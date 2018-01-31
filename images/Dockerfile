@@ -79,15 +79,6 @@ RUN wget -O /tmp/get_helm.sh \
 # Initialize helm
 RUN helm init --client-only
 
-# Install ksonnet
-RUN curl -o /usr/local/bin/ks -L \
-    https://github.com/ksonnet/ksonnet/releases/download/v0.8.0/ks-linux-amd64 && \
-    chmod a+x /usr/local/bin/ks
-
-# Install various python libraries.
-RUN  pip install --upgrade six pyyaml google-api-python-client \
-     google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying
-
 # Install  Node.js
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
     && apt-get install -y nodejs
@@ -105,6 +96,17 @@ RUN cd /tmp && \
             https://github.com/Masterminds/glide/releases/download/v0.13.0/glide-v0.13.0-linux-amd64.tar.gz && \
     tar -xvf glide-v0.13.0-linux-amd64.tar.gz && \
     mv ./linux-amd64/glide /usr/local/bin/
+
+# Install ksonnet
+RUN curl -o /usr/local/bin/ks -L \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.8.0/ks-linux-amd64 && \
+    chmod a+x /usr/local/bin/ks
+
+
+# Install various python libraries.
+RUN  pip install --upgrade six pyyaml google-api-python-client \
+     google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying \
+     jinja2
 
 COPY bootstrap.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/bootstrap.sh

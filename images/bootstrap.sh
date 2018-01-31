@@ -8,6 +8,9 @@
 set -xe
 
 mkdir -p /src
+
+# TODO(jlewi): We should eventually move the code for running the workflow from
+# kubeflow/kubeflow into kubeflow/testing
 git clone https://github.com/kubeflow/kubeflow.git /src/google_kubeflow
 
 cd /src/google_kubeflow
