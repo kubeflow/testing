@@ -33,6 +33,60 @@ kubectl exec -it debug-worker-0 /bin/bash
 
 This can be very useful for reproducing test failures.
 
+## Logs
+
+Logs from the E2E tests are available in a number of places and can be used to troubleshoot test failures.
+
+### Prow
+
+These should be publicly accessible.
+
+The logs from each step are copied to GCS and made available through gubernator. The K8s-ci robot should post
+a link to the gubernator UI in the PR. You can also find them as follows
+
+1. Open up the prow jobs dashboard e.g. [for kubeflow/kubeflow](https://prow.k8s.io/?repo=kubeflow%2Fkubeflow)
+1. Find your job
+1. Click on the link under job; this goes to the Gubernator dashboard
+1. Click on artifacts
+1. Navigate to artifacts/logs
+
+If these logs aren't available it could indicate a problem that prevent logs from being uploaded correctly to GCS for gubernator.
+
+### Argo UI
+
+The argo UI is publicly accessible at http://testing-argo.kubeflow.io/timeline.
+
+1. Find and click on the workflow corresponding to your pre/post/periodic job
+1. Select the workflow tab
+1. From here you can select a specific step and then see the logs for that step
+
+Unfortunately there are some limitations in the Argo UI e.g.
+ 
+  * [argo/issues#710](https://github.com/argoproj/argo/issues/710) exit handlers aren't shown
+
+So if your exit handler fails you may need to look at pod logs or stackdriver logs directly.
+
+### StackDriver logs
+
+Since we run our E2E tests on GKE, all logs are persisted in Stackdriver logging.
+
+Access to Stackdriver logs is restricted. We are working on giving sufficient access to members of the community ([kubeflow/testing#5](https://github.com/kubeflow/testing/issues/5).
+
+If you know the pod id corresponding to the step of interest then you can use the following Stackdriver filter
+
+```
+resource.type="container"
+resource.labels.cluster_name="kubeflow-testing"
+resource.labels.container_name = "main"
+resource.labels.pod_id=${POD_ID}
+```
+
+The ${POD_ID} is of the form
+
+```
+${WORKFLOW_ID}-${RANDOM_ID}
+```
+
 ## Setting up the Test Infrastructure
 
 Our tests require a K8s cluster with Argo installed. This section provides the instructions
