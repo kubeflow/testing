@@ -16,47 +16,7 @@ The current thinking is this will work as follows
 
 ## Accessing Argo UI
 
-You can access the Argo UI over the API Server proxy.
-
-We currently use the cluster
-
-```
-PROJECT=mlkube-testing
-ZONE=us-east1-d
-CLUSTER=kubeflow-testing
-NAMESPACE=kubeflow-test-infra
-```
-
-After starting `kubectl proxy` on `127.0.0.1:8001`, you can connect to the argo UI via the local proxy at
-
-```
-http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui:80/
-```
-
-TODO(jlewi): We can probably make the UI publicly available since I don't think it offers any ability to launch workflows.
-
-
-## Running the tests
-
-### Run a presubmit
-
-```
-ks param set workflows name e2e-test-pr-`date '+%Y%m%d-%H%M%S'`
-ks param set workflows prow_env REPO_OWNER=google,REPO_NAME=kubeflow,PULL_NUMBER=${PULL_NUMBER},PULL_PULL_SHA=${COMMIT}
-ks param set workflows commit ${COMMIT}
-ks apply prow -c workflows
-```
-	* You can set COMMIT to `pr` to checkout the latest change on the PR.
-
-### Run a postsubmit
-
-```
-ks param set workflows name e2e-test-postsubmit-`date '+%Y%m%d-%H%M%S'`
-ks param set workflows prow_env REPO_OWNER=google,REPO_NAME=kubeflow,PULL_BASE_SHA=${COMMIT}
-ks param set workflows commit ${COMMIT}
-ks apply prow -c workflows
-```
-  * You can set COMMIT to `master` to use HEAD
+The UI is publicly available at http://http://testing-argo.kubeflow.io/
 
 
 ## Setting up the Test Infrastructure
@@ -111,6 +71,15 @@ kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluste
 ```
 * The service account is used to deploye Kubeflow which entails creating various roles; so it needs sufficient RBAC permission to do so.
 
+The service account also needs the following GCP privileges because various tests use them
+
+  * Project Viewer (because GCB requires this with gcloud)
+  * Cloud Container Builder
+  * Kubernetes Engine Admin (some tests create GKE clusters)
+  * Logs viewer
+  * Storage Admin
+  * Service Account User of the Compute Engine Default Service account (to avoid this [error](https://stackoverflow.com/questions/40367866/gcloud-the-user-does-not-have-access-to-service-account-default))
+
 ### Create a GitHub Token
 
 You need to use a GitHub token with ksonnet otherwise the test quickly runs into GitHub API limits.
@@ -127,7 +96,17 @@ To create the secret run
 kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${TOKEN}
 ```
 
+### Deploy NFS
+
+We use GCP Cloud Launcher to create a single node NFS share; current settings
+
+  * 8 VCPU
+  * 1 TB disk
+
 ### Create a PD for NFS
+
+**Note** We are in the process of migrating to using an NFS share outside the GKE cluster. Once we move
+kubeflow/kubeflow to that we can get rid of this section.
 
 Create a PD to act as the backing storage for the NFS filesystem that will be used to store data from
 the test runs.
@@ -171,19 +150,3 @@ User or service account deploying the test infrastructure needs sufficient permi
 ```
 kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
 ```
-
-##### Operator Logs
-
-The following Stackdriver filter can be used to get the pod logs for the operator
-
-```
-resource.type="container"
-resource.labels.namespace_id="e2e-0117-1911-3a53"
-resource.labels.container_name="tf-job-operator"
-```
-
-## Managing namespaces
-
-All namespaces created for the tests should be labeled with `app=kubeflow-e2e-test`.
-
-This can be used to manually delete old namespaces that weren't properly garbage collected.
