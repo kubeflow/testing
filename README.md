@@ -19,6 +19,20 @@ The current thinking is this will work as follows
 The UI is publicly available at http://http://testing-argo.kubeflow.io/
 
 
+## Working with the test infrastructure
+
+The tests store the results of tests in a shared NFS filesystem. To inspect the results you can mount the NFS volume.
+
+To facilitate that, run a stateful set that mounts the same volumes as our Argo workers. Furthermore, this stateful set
+is using an environment (GCP credentials, docker image, etc...) that mimics our Argo workers. You can
+ssh into this stateful set in order to get access to the NFS volume.
+
+```
+kubectl exec -it debug-worker-0 /bin/bash
+```
+
+This can be very useful for reproducing test failures.
+
 ## Setting up the Test Infrastructure
 
 Our tests require a K8s cluster with Argo installed. This section provides the instructions
@@ -132,6 +146,12 @@ You can deploy argo as follows (you don't need to use argo's CLI)
 
 ```
 ks apply prow -c argo
+```
+
+Create the PVs corresponding to external NFS
+
+```
+ks apply prow -c nfs-external
 ```
 
 Deploy NFS & Jupyter
