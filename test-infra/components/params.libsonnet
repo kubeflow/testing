@@ -21,5 +21,9 @@
       namespace: "kubeflow-test-infra",
       nfsServer: "10.142.0.6",
     },
+    "debug-worker": {
+      name: "debug-worker",
+      namespace: "kubeflow-test-infra",
+    },
   },
 }
