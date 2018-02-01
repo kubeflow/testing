@@ -9,18 +9,17 @@
     argo: {
       namespace: "kubeflow-test-infra",
     },
-    workflows: {
-      bucket: "mlkube-testing_temp",
-      name: "training-presubmit-1-5-31203837",
-      namespace: "kubeflow-test-infra",
-      prow_env: "BUILD_NUMBER=2,JOB_NAME=kubeflow-presubmit,JOB_TYPE=presubmit,PULL_NUMBER=81,REPO_NAME=kubeflow,REPO_OWNER=google",
-    },
     "nfs-jupyter": {
       cloud: "",
       disks: "kubeflow-testing",
       name: "nfs-jupyter",
       namespace: "kubeflow-test-infra",
       tfJobImage: "gcr.io/tf-on-k8s-dogfood/tf_operator:v20171214-0bd02ac",
+    },
+    "nfs-external": {
+      name: "nfs-external",
+      namespace: "kubeflow-test-infra",
+      nfsServer: "10.142.0.6",
     },
   },
 }
