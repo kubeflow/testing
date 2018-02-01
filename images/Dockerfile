@@ -49,10 +49,10 @@ RUN sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
 # Install go
 RUN cd /tmp && \
     wget -O /tmp/go.tar.gz https://redirector.gvt1.com/edgedl/go/go1.9.2.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go.tar.gz
+    tar -C /usr/local -xzf go.tar.gz 
 
 # Install gcloud
-ENV PATH=/google-cloud-sdk/bin:/workspace:${PATH} \
+ENV PATH=/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
     CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
