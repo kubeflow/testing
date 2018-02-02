@@ -1,7 +1,7 @@
 local params = std.extVar("__ksonnet/params").components.prow_pod;
 local k = import 'k.libsonnet';
 
-local image = "gcr.io/mlkube-testing/test-worker:latest";
+local image = params.image;
 
 // convert a list of two items into a map representing an environment variable
 // TODO(jlewi): Should we move this into kubeflow/core/util.libsonnet
