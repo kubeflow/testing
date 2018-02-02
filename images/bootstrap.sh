@@ -11,9 +11,9 @@ mkdir -p /src
 
 # TODO(jlewi): We should eventually move the code for running the workflow from
 # kubeflow/kubeflow into kubeflow/testing
-git clone https://github.com/kubeflow/kubeflow.git /src/google_kubeflow
+git clone https://github.com/${REPO_OWNER}/${REPO_NAME}.git /src
 
-cd /src/google_kubeflow
+cd /src
 
 echo Job Name = ${JOB_NAME}
 
@@ -37,11 +37,11 @@ echo Repo is at `git describe --tags --always --dirty`
 git submodule
 git status
 
-export PYTHONPATH=$PYTHONPATH:/src/google_kubeflow/tensorflow_k8s
-cd /src/google_kubeflow
-# Invoke the script to run the workflow
-python -m testing.run_e2e_workflow  \
-  --project=mlkube-testing \
-  --zone=us-east1-d \
-  --cluster=kubeflow-testing \
-  --bucket=kubernetes-jenkins
+#export PYTHONPATH=$PYTHONPATH:/src/google_kubeflow/tensorflow_k8s
+#cd /src/google_kubeflow
+## Invoke the script to run the workflow
+#python -m testing.run_e2e_workflow  \
+#  --project=mlkube-testing \
+#  --zone=us-east1-d \
+#  --cluster=kubeflow-testing \
+#  --bucket=kubernetes-jenkins

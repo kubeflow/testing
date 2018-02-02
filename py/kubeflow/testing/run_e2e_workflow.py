@@ -85,12 +85,18 @@ def run(args, file_handler):
 
   workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER"))
 
+  salt = uuid.uuid4().hex[0:4]
   # Add some salt. This is mostly a convenience for the case where you
   # are submitting jobs manually for testing/debugging. Since the prow should
   # vend unique build numbers for each job.
-  workflow_name += "-{0}".format(uuid.uuid4().hex[0:4])
+  workflow_name += "-{0}".format(salt)
 
-  util.run(["ks", "param", "set", args.component, "name", workflow_name],
+  # Create a new environment for this run
+  env = workflow_name
+
+  util.run(["ks", "env", "add", env], cwd=args.app_dir)
+
+  util.run(["ks", "param", "set", "--env=" + env, args.component, "name", workflow_name],
            cwd=args.app_dir)
   util.load_kube_config()
 
@@ -108,16 +114,16 @@ def run(args, file_handler):
       continue
     prow_env.append("{0}={1}".format(v, os.getenv(v)))
 
-  util.run(["ks", "param", "set", args.component, "prow_env", ",".join(prow_env)],
+  util.run(["ks", "param", "set", "--env=" + env, args.component, "prow_env", ",".join(prow_env)],
            cwd=app_dir)
-  util.run(["ks", "param", "set", args.component, "namespace", NAMESPACE],
+  util.run(["ks", "param", "set", "--env=" + env, args.component, "namespace", NAMESPACE],
            cwd=args.app_dir)
-  util.run(["ks", "param", "set", args.component, "bucket", args.bucket],
+  util.run(["ks", "param", "set", "--env=" + env, args.component, "bucket", args.bucket],
            cwd=args.app_dir)
 
   # For debugging print out the manifest
-  util.run(["ks", "show", args.env, "-c", args.component], cwd=args.app_dir)
-  util.run(["ks", "apply", args.env, "-c", args.component], cwd=args.app_dir)
+  util.run(["ks", "show", env, "-c", args.component], cwd=args.app_dir)
+  util.run(["ks", "apply",env, "-c", args.component], cwd=args.app_dir)
 
   success = False
   try:
@@ -171,11 +177,6 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     default="",
     type=str,
     help="The bucket to use for the Gubernator outputs.")
-
-  parser.add_argument(
-    "--env",
-    type=str,
-    help="The ksonnet environment to use.")
 
   parser.add_argument(
     "--app_dir",
