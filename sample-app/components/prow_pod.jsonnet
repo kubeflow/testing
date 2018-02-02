@@ -65,14 +65,14 @@ local pod = {
 	          {
 
 	            name: "PYTHONPATH",
-	          	value: "/src/" + params.testing_subdir + "/py",
+	          	value: "/src/kubeflow/testing/py",
 	          },          
 	        ] + parseEnv(params.prow_env),
 	        // TODO(jlewi): Prow is adding support for init containers and doing the checkout in init containers
 	        // so eventually we should be able to stop explicitly calling bootstrap.sh
 	        command: [
 	          "bash", "-c",
-	          "/usr/local/bin/bootstrap.sh " +
+	          "/usr/local/bin/checkout.sh /src " +
 	          "&& " +
 	          "python " +
 	          "-m  " +

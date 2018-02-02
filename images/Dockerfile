@@ -108,10 +108,5 @@ RUN  pip install --upgrade six pyyaml google-api-python-client \
      google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying \
      jinja2
 
-COPY bootstrap.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/bootstrap.sh
-
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
-
-ENTRYPOINT ["/usr/local/bin/bootstrap.sh"]
