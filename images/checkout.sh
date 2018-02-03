@@ -43,4 +43,9 @@ git status
 # TODO(jlewi): We might want to eventually pin to a particular version that is known to be good.
 if [ ! -d /src/kubeflow/testing ]; then
 	git clone https://github.com/kubeflow/testing.git ${SRC_DIR}/kubeflow/testing
+
+	# DO NOT SUBMIT hack to get version we need
+	cd ${SRC_DIR}/kubeflow/testing
+	git fetch origin pull/9/head:pr
+	git checkout pr
 fi	

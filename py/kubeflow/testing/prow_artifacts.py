@@ -9,7 +9,7 @@ import json
 import os
 import time
 from google.cloud import storage  # pylint: disable=no-name-in-module
-from kubeflow.testing import util
+from py import util
 
 
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this

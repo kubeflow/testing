@@ -11,8 +11,8 @@ import logging
 from kubernetes import client as k8s_client
 import os
 import tempfile
-from testing import argo_client
-from testing import prow_artifacts
+from kubeflow.testing import argo_client
+from kubeflow.testing import prow_artifacts
 import uuid
 from google.cloud import storage  # pylint: disable=no-name-in-module
 from kubeflow.testing import util
@@ -125,6 +125,9 @@ def run(args, file_handler):
   util.run(["ks", "show", env, "-c", args.component], cwd=args.app_dir)
   util.run(["ks", "apply",env, "-c", args.component], cwd=args.app_dir)
 
+  ui_url = ("http://testing-argo.kubeflow.io/timeline/kubeflow-test-infra/{0}"
+            ";tab=workflow".format(workflow_name))
+  logging.info("URL for workflow: %s", ui)
   success = False
   try:
     results = argo_client.wait_for_workflow(api_client, NAMESPACE, workflow_name,

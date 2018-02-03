@@ -110,3 +110,7 @@ RUN  pip install --upgrade six pyyaml google-api-python-client \
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
+
+# Add the directory where we will checkout kubeflow/testing 
+# which contains shared scripts.
+ENV PYTHONPATH /src/kubeflow/testing/py
