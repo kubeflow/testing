@@ -8,7 +8,7 @@ import time
 from kubernetes import client as k8s_client
 from kubernetes.client.rest import ApiException
 
-from py import util
+from kubeflow.testing import util
 
 GROUP = "argoproj.io"
 VERSION = "v1alpha1"
