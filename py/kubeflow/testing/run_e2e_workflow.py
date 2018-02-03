@@ -59,18 +59,9 @@ def create_finished_file(bucket, success):
   upload_to_gcs(contents, target)
 
 def run(args, file_handler):
-  src_dir = _get_src_dir()
-  logging.info("Source directory: %s", src_dir)
-  app_dir = os.path.join(src_dir, "test-infra")
-
   create_started_file(args.bucket)
 
-  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-    logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
-                 "to use service account.")
-    # Since a service account is set tell gcloud to use it.
-    util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
-              os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
+  util.maybe_activate_service_account()
 
   util.configure_kubectl(args.project, args.zone, args.cluster)
   util.load_kube_config()
@@ -96,7 +87,8 @@ def run(args, file_handler):
 
   util.run(["ks", "env", "add", env], cwd=args.app_dir)
 
-  util.run(["ks", "param", "set", "--env=" + env, args.component, "name", workflow_name],
+  util.run(["ks", "param", "set", "--env=" + env, args.component,
+            "name", workflow_name],
            cwd=args.app_dir)
   util.load_kube_config()
 
@@ -115,7 +107,7 @@ def run(args, file_handler):
     prow_env.append("{0}={1}".format(v, os.getenv(v)))
 
   util.run(["ks", "param", "set", "--env=" + env, args.component, "prow_env", ",".join(prow_env)],
-           cwd=app_dir)
+           cwd=args.app_dir)
   util.run(["ks", "param", "set", "--env=" + env, args.component, "namespace", NAMESPACE],
            cwd=args.app_dir)
   util.run(["ks", "param", "set", "--env=" + env, args.component, "bucket", args.bucket],

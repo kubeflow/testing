@@ -1,24 +1,12 @@
 # Docker image for running E2E tests using Argo.
 
-FROM python:2.7-slim
+FROM ubuntu:xenial
 MAINTAINER Jeremy Lewi
 
 # Never prompt the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
-# Define en_US.
-ENV LANGUAGE=en_US.UTF-8 \
-    LANG=en_US.UTF-8 \
-    LC_ALL=en_US.UTF-8 \
-    LC_CTYPE=en_US.UTF-8 \
-    LC_MESSAGES=en_US.UTF-8 \
-    LC_ALL=en_US.UTF-8
-
-
-# buildDeps should be packages needed only to build some other packages as
-# these packages are purged in a later step.
-#
 # gcc & python-dev are needed so we can install crcmod for gsutil
 RUN set -ex \
     && apt-get update -yqq \
@@ -40,11 +28,6 @@ RUN set -ex \
         /usr/share/man \
         /usr/share/doc \
         /usr/share/doc-base
-
-# Set the locale
-RUN sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
-    && locale-gen \
-    && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 # Install go
 RUN cd /tmp && \
@@ -98,8 +81,11 @@ RUN cd /tmp && \
     mv ./linux-amd64/glide /usr/local/bin/
 
 # Install ksonnet
-RUN curl -o /usr/local/bin/ks -L \
-    https://github.com/ksonnet/ksonnet/releases/download/v0.8.0/ks-linux-amd64 && \
+RUN cd /tmp && \
+    wget -O ks.tar.gz \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.8.0/ks_0.8.0_linux_amd64.tar.gz  && \
+    tar -xvf ks.tar.gz && \
+    mv ks_0.8.0_linux_amd64/ks /usr/local/bin && \    
     chmod a+x /usr/local/bin/ks
 
 
@@ -110,6 +96,9 @@ RUN  pip install --upgrade six pyyaml google-api-python-client \
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
+
+# Work around for https://github.com/ksonnet/ksonnet/issues/298
+ENV USER root
 
 # Add the directory where we will checkout kubeflow/testing 
 # which contains shared scripts.
