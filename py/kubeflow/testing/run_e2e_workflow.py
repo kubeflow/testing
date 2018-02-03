@@ -119,7 +119,7 @@ def run(args, file_handler):
 
   ui_url = ("http://testing-argo.kubeflow.io/timeline/kubeflow-test-infra/{0}"
             ";tab=workflow".format(workflow_name))
-  logging.info("URL for workflow: %s", ui)
+  logging.info("URL for workflow: %s", ui_url)
   success = False
   try:
     results = argo_client.wait_for_workflow(api_client, NAMESPACE, workflow_name,
