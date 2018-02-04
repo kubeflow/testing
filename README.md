@@ -2,9 +2,19 @@
 
 This directory contains the Kubeflow test Infrastructure.
 
-This is a work in progress see [kubeflow/kubeflow#38](https://github.com/kubeflow/kubeflow/issues/38)
+We use [Prow](https://github.com/kubernetes/test-infra/tree/master/prow),
+K8s' continuous integration tool.
 
-The current thinking is this will work as follows
+  * Prow is a set of binaries that run on Kubernetes and respond to
+GitHub events.
+
+We use Prow to run:
+
+  * Presubmit jobs
+  * Postsubmit jobs
+  * Periodic tests
+  
+This is a work in progress see [kubeflow/kubeflow#38](https://github.com/kubeflow/kubeflow/issues/38)
 
   * Prow will be used to trigger E2E tests
   * The E2E test will launch an Argo workflow that describes the tests to run
@@ -14,10 +24,17 @@ The current thinking is this will work as follows
   * Each step in the pipeline can write outputs and junit.xml files to a test directory in the volume
   * A final step in the Argo pipeline will upload the outputs to GCS so they are available in gubernator
 
-## Accessing Argo UI
+## Anatomy of our Tests
+
+* Our prow jobs are defined in [config.yaml](https://github.com/kubernetes/test-infra/blob/master/prow/config.yaml)
+* Each prow job defines a K8s PodSpec indicating a command to run
+* Our prow jobs use [run_e2e_workflow.py](https://github.com/py/kubeflow/testing/run_e2e_workflow.py
+) to trigger an Airflow pipeline that checks out our code and runs our Tests.
+* Our tests are structured as Argo pipelines so that we can easily perform steps in parallel.
+
+## Accessing The Argo UI
 
 The UI is publicly available at http://http://testing-argo.kubeflow.io/
-
 
 ## Working with the test infrastructure
 

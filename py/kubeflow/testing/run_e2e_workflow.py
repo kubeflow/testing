@@ -67,12 +67,17 @@ def run(args, file_handler):
   util.load_kube_config()
 
   # Create the name for the workflow
+  # We truncate sha numbers to prevent the workflow name from being too large.
+  # Workflow name should not be more than 63 characters because its used
+  # as a label on the pods.
   workflow_name = os.getenv("JOB_NAME")
   job_type = os.getenv("JOB_TYPE")
   if job_type == "presubmit":
     workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
+    workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
+
   elif job_type == "postsubmit":
-    workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA"))
+    workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA")[0:7])
 
   workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER"))
 
