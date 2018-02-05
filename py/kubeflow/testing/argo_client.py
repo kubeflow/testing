@@ -23,7 +23,7 @@ def log_status(workflow):
            workflow["status"]["phase"])
 
 def wait_for_workflow(client, namespace, name,
-                      timeout=datetime.timedelta(minutes=15),
+                      timeout=datetime.timedelta(minutes=30),
                       polling_interval=datetime.timedelta(seconds=30),
                       status_callback=None):
   """Wait for the specified workflow to finish.
