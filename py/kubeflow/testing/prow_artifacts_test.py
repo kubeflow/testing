@@ -2,7 +2,7 @@ import json
 import os
 import unittest
 import mock
-from kubeflow.testing import prow_artifacts
+from testing import prow_artifacts
 import tempfile
 
 from google.cloud import storage  # pylint: disable=no-name-in-module
