@@ -24,7 +24,6 @@ all: build
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 build:
-	@echo {\"image\": \"$(IMG):$(TAG)\"} > version.json
 	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) .
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):$(TAG) and tagged with latest
