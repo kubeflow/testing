@@ -28,10 +28,6 @@ MASTER_REPO_NAME = "k8s"
 
 # TODO(jlewi): Should we stream the output by polling the subprocess?
 # look at run_and_stream in build_and_push.
-#
-# TODO(jlewi): I think we can delete use_print after updating callers. that
-# was a hack to make output show up in Airflow; I think writing subprocess
-# to a file and then logging it works better.
 def run(command, cwd=None, env=None, dryrun=False):
   """Run a subprocess.
 
