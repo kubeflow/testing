@@ -7,7 +7,7 @@ from xml.etree import ElementTree
 
 import six
 
-from py import util
+from kubeflow.testing import util
 
 class TestCase(object):
   def __init__(self, class_name="", name=""):
