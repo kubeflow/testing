@@ -26,7 +26,12 @@ echo Job Name = ${JOB_NAME}
 cd ${SRC_DIR}/${REPO_OWNER}/${REPO_NAME}
 if [ ! -z ${PULL_NUMBER} ]; then
  git fetch origin  pull/${PULL_NUMBER}/head:pr
- git checkout ${PULL_PULL_SHA}
+ if [ ! -z ${PULL_PULL_SHA} ]; then
+ 	git checkout ${PULL_PULL_SHA}
+ else
+ 	git checkout pr
+ fi
+ 
 else
  if [ ! -z ${PULL_BASE_SHA} ]; then
  	# Its a post submit; checkout the commit to test.
