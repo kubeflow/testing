@@ -96,14 +96,29 @@ RUN cd /tmp && \
     mv ks_0.8.0_linux_amd64/ks /usr/local/bin && \    
     chmod a+x /usr/local/bin/ks
 
-
-# Install various python libraries.
-RUN pip install --upgrade six pyyaml google-api-python-client \
-     google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying \
-     jinja2 && \
-    pip3 install --upgrade six pyyaml google-api-python-client \
-     google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying \
-     jinja2
+# Install various python libraries for both Python 2 and 3 (for now)
+RUN pip install --upgrade \
+    six \
+    pyyaml \
+    google-api-python-client \
+    google-cloud-storage \
+    google-auth-httplib2 \
+    pylint \
+    kubernetes==4.0.0 \
+    mock \
+    retrying \
+    jinja2 && \
+    pip3 install --upgrade \
+    six \
+    pyyaml \
+    google-api-python-client \
+    google-cloud-storage \
+    google-auth-httplib2 \
+    pylint \
+    kubernetes==4.0.0 \
+    mock \
+    retrying \
+    jinja2
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
