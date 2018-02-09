@@ -97,6 +97,9 @@ RUN  pip install --upgrade six pyyaml google-api-python-client \
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
 
+# Install docker.
+RUN curl  https://get.docker.com/ | sh
+
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
 
