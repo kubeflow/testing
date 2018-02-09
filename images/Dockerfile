@@ -8,6 +8,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # gcc & python-dev are needed so we can install crcmod for gsutil
+# also includes installations for Python3
 RUN set -ex \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
@@ -18,8 +19,13 @@ RUN set -ex \
         git \
         zip \
         unzip \
-        gcc python-dev \
+        gcc \
+        python-dev \
+        python3-dev \
         python-setuptools \
+    && python -V \
+    && python3 -V \
+    && python3 -m ensurepip --upgrade \
     && apt-get clean \
     && rm -rf \
         /var/lib/apt/lists/* \
