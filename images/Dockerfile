@@ -95,8 +95,8 @@ RUN cd /tmp && \
 COPY ./requirements.txt /tmp/requirements.txt
 
 # Install various python libraries for both Python 2 and 3 (for now)
-RUN pip install -f /tmp/requirements.txt && \
-    pip3 install -f /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt && \
+    pip3 install -r /tmp/requirements.txt
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
