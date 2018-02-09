@@ -21,13 +21,13 @@ RUN set -ex \
         unzip \
         gcc \
         python-dev \
-        python3-dev \
         python-setuptools \
+        python-pip \
+        python3-dev \
         python3-setuptools \
         python3-pip \
     && python -V \
     && python3 -V \
-    && python3 -m ensurepip --upgrade \
     && apt-get clean \
     && rm -rf \
         /var/lib/apt/lists/* \
@@ -57,8 +57,8 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
     gcloud components install alpha beta kubectl
 
 # Install CRCMOD for gsutil
-RUN easy_install -U pip && \
-    pip install -U crcmod
+RUN pip install -U crcmod && \
+    pip3 install -U crcmod
 
 # Install Helm
 RUN wget -O /tmp/get_helm.sh \
@@ -98,7 +98,10 @@ RUN cd /tmp && \
 
 
 # Install various python libraries.
-RUN  pip install --upgrade six pyyaml google-api-python-client \
+RUN pip install --upgrade six pyyaml google-api-python-client \
+     google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying \
+     jinja2 && \
+    pip3 install --upgrade six pyyaml google-api-python-client \
      google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying \
      jinja2
 
