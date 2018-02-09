@@ -98,6 +98,7 @@ RUN cd /tmp && \
 
 # Install various python libraries for both Python 2 and 3 (for now)
 RUN pip install --upgrade \
+    wheel \
     six \
     pyyaml \
     google-api-python-client \
@@ -109,6 +110,7 @@ RUN pip install --upgrade \
     retrying \
     jinja2 && \
     pip3 install --upgrade \
+    wheel \
     six \
     pyyaml \
     google-api-python-client \
