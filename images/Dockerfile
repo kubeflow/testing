@@ -23,6 +23,7 @@ RUN set -ex \
         python-dev \
         python3-dev \
         python-setuptools \
+        python3-setuptools \
     && python -V \
     && python3 -V \
     && python3 -m ensurepip --upgrade \
