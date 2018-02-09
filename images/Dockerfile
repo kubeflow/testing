@@ -95,7 +95,9 @@ RUN cd /tmp && \
 COPY ./requirements.txt /tmp/requirements.txt
 
 # Install various python libraries for both Python 2 and 3 (for now)
-RUN pip install -r /tmp/requirements.txt && \
+RUN pip install -U pip wheel && \
+    pip install -r /tmp/requirements.txt && \
+    pip3 install -U pip wheel && \
     pip3 install -r /tmp/requirements.txt
 
 COPY checkout.sh /usr/local/bin
