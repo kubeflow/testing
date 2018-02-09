@@ -224,6 +224,12 @@ gcloud --project=${PROJECT} container clusters create \
 ```
 
 
+### Create a static ip for the Argo UI
+
+```
+gcloud compute --project=mlkube-testing addresses create argo-ui --global
+```
+
 ### Create a GCP service account
 
 * The tests need a GCP service account to upload data to GCS for Gubernator
@@ -239,10 +245,11 @@ gcloud projects add-iam-policy-binding ${PROJECT} \
 Create a secret key containing a GCP private key for the service account
 
 ```
+KEY_FILE=<path to key>
 gcloud iam service-accounts keys create ~/tmp/key.json \
     	--iam-account ${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
 kubectl create secret generic kubeflow-testing-credentials \
-    --namespace=kubeflow-test-infra --from-file=`echo ~/tmp/key.json`
+    --namespace=kubeflow-test-infra --from-file=key.json=${KEY_FILE}
 rm ~/tmp/key.json
 ```
 
