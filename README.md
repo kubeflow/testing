@@ -224,6 +224,12 @@ gcloud --project=${PROJECT} container clusters create \
 ```
 
 
+### Create a static ip for the Argo UI
+
+```
+gcloud compute --project=mlkube-testing addresses create argo-ui --global
+```
+
 ### Create a GCP service account
 
 * The tests need a GCP service account to upload data to GCS for Gubernator
@@ -239,11 +245,11 @@ gcloud projects add-iam-policy-binding ${PROJECT} \
 Create a secret key containing a GCP private key for the service account
 
 ```
-gcloud iam service-accounts keys create ~/tmp/key.json \
+KEY_FILE=<path to key>
+gcloud iam service-accounts keys create ${KEY_FILE} \
     	--iam-account ${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
 kubectl create secret generic kubeflow-testing-credentials \
-    --namespace=kubeflow-test-infra --from-file=`echo ~/tmp/key.json`
-rm ~/tmp/key.json
+    --namespace=kubeflow-test-infra --from-file=key.json=${KEY_FILE}
 ```
 
 Make the service account a cluster admin
@@ -276,7 +282,7 @@ You can use the GitHub API to create a token
 To create the secret run
 
 ```
-kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${TOKEN}
+kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${GITHUB_TOKEN}
 ```
 
 ### Deploy NFS
@@ -286,18 +292,6 @@ We use GCP Cloud Launcher to create a single node NFS share; current settings
   * 8 VCPU
   * 1 TB disk
 
-### Create a PD for NFS
-
-**Note** We are in the process of migrating to using an NFS share outside the GKE cluster. Once we move
-kubeflow/kubeflow to that we can get rid of this section.
-
-Create a PD to act as the backing storage for the NFS filesystem that will be used to store data from
-the test runs.
-
-```
-  gcloud --project=${PROJECT} compute disks create  \
-  	--zone=${ZONE} kubeflow-testing --description="PD to back NFS storage for kubeflow testing." --size=1TB
-```
 ### Create K8s Resources for Testing
 
 The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
@@ -322,15 +316,6 @@ Create the PVs corresponding to external NFS
 ```
 ks apply prow -c nfs-external
 ```
-
-Deploy NFS & Jupyter
-
-```
-ks apply prow -c nfs-jupyter
-```
-
-* This creates the NFS share
-* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
 
 #### Troubleshooting
 

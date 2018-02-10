@@ -45,12 +45,8 @@ local ss = {
                 "name": "test-container", 
                 "volumeMounts": [
                   {
-                    "mountPath": "/mnt/data", 
-                    "name": "nfs-external"
-                  }, 
-                  {
                     "mountPath": "/mnt/test-data-volume", 
-                    "name": "kubeflow-test-volume"
+                    "name": "nfs-external"
                   }, 
                   {
                     "mountPath": "/secret/gcp-credentials", 
@@ -64,12 +60,6 @@ local ss = {
                 "name": "nfs-external", 
                 "persistentVolumeClaim": {
                   "claimName": "nfs-external"
-                }
-              }, 
-              {
-                "name": "kubeflow-test-volume", 
-                "persistentVolumeClaim": {
-                  "claimName": "kubeflow-testing"
                 }
               }, 
               {
