@@ -246,11 +246,10 @@ Create a secret key containing a GCP private key for the service account
 
 ```
 KEY_FILE=<path to key>
-gcloud iam service-accounts keys create ~/tmp/key.json \
+gcloud iam service-accounts keys create ${KEY_FILE} \
     	--iam-account ${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
 kubectl create secret generic kubeflow-testing-credentials \
     --namespace=kubeflow-test-infra --from-file=key.json=${KEY_FILE}
-rm ~/tmp/key.json
 ```
 
 Make the service account a cluster admin
@@ -283,7 +282,7 @@ You can use the GitHub API to create a token
 To create the secret run
 
 ```
-kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${TOKEN}
+kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${GITHUB_TOKEN}
 ```
 
 ### Deploy NFS
