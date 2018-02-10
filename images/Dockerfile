@@ -8,6 +8,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # gcc & python-dev are needed so we can install crcmod for gsutil
+# also includes installations for Python3
 RUN set -ex \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
@@ -18,8 +19,15 @@ RUN set -ex \
         git \
         zip \
         unzip \
-        gcc python-dev \
+        gcc \
+        python-dev \
         python-setuptools \
+        python-pip \
+        python3-dev \
+        python3-setuptools \
+        python3-pip \
+    && python -V \
+    && python3 -V \
     && apt-get clean \
     && rm -rf \
         /var/lib/apt/lists/* \
@@ -32,7 +40,7 @@ RUN set -ex \
 # Install go
 RUN cd /tmp && \
     wget -O /tmp/go.tar.gz https://redirector.gvt1.com/edgedl/go/go1.9.2.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go.tar.gz 
+    tar -C /usr/local -xzf go.tar.gz
 
 # Install gcloud
 ENV PATH=/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
@@ -47,10 +55,6 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
         --path-update=false \
         --usage-reporting=false && \
     gcloud components install alpha beta kubectl
-
-# Install CRCMOD for gsutil
-RUN easy_install -U pip && \
-    pip install -U crcmod
 
 # Install Helm
 RUN wget -O /tmp/get_helm.sh \
@@ -85,17 +89,22 @@ RUN cd /tmp && \
     wget -O ks.tar.gz \
     https://github.com/ksonnet/ksonnet/releases/download/v0.8.0/ks_0.8.0_linux_amd64.tar.gz  && \
     tar -xvf ks.tar.gz && \
-    mv ks_0.8.0_linux_amd64/ks /usr/local/bin && \    
+    mv ks_0.8.0_linux_amd64/ks /usr/local/bin && \
     chmod a+x /usr/local/bin/ks
 
+COPY ./requirements.txt /tmp/requirements.txt
 
-# Install various python libraries.
-RUN  pip install --upgrade six pyyaml google-api-python-client \
-     google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying \
-     jinja2
+# Install various python libraries for both Python 2 and 3 (for now)
+RUN pip install -U pip wheel && \
+    pip install -r /tmp/requirements.txt && \
+    pip3 install -U pip wheel && \
+    pip3 install -r /tmp/requirements.txt
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
+
+# Install docker.
+RUN curl  https://get.docker.com/ | sh
 
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
