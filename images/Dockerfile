@@ -103,12 +103,17 @@ RUN pip install -U pip wheel && \
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
 
+COPY run_workflows.sh /usr/local/bin
+RUN chmod a+x /usr/local/bin/run_workflows.sh
+
 # Install docker.
 RUN curl  https://get.docker.com/ | sh
 
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
 
-# Add the directory where we will checkout kubeflow/testing 
+# Add the directory where we will checkout kubeflow/testing
 # which contains shared scripts.
 ENV PYTHONPATH /src/kubeflow/testing/py
+
+ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]

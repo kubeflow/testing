@@ -15,7 +15,7 @@
 # Requirements:
 #   https://github.com/mattrobenolt/jinja2-cli
 #   pip install jinja2-clie
-IMG = gcr.io/mlkube-testing/test-worker
+IMG = gcr.io/kubeflow-ci/test-worker
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | sha256sum | cut -c -6)
 DIR := ${CURDIR}
 
