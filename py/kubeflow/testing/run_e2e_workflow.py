@@ -7,11 +7,13 @@ It requires the workflow to be expressed as a ksonnet app.
 """
 
 import argparse
+import base64
 import logging
 from kubernetes import client as k8s_client
 import os
 import tempfile
 from kubeflow.testing import argo_client
+from kubeflow.testing import github_status
 from kubeflow.testing import prow_artifacts
 import uuid
 from google.cloud import storage  # pylint: disable=no-name-in-module
@@ -98,7 +100,9 @@ def run(args, file_handler):
   util.load_kube_config()
 
   api_client = k8s_client.ApiClient()
-
+  api_coreV1 = k8s_client.CoreV1Api(api_client)
+  github_secret = api_instance.read_namespaced_secret("github-token", NAMESPACE)
+  github_token = base64.b64decode(api_response.data["github_token"]).decode("utf-8")
   # Set the prow environment variables.
   prow_env = []
 
@@ -124,7 +128,10 @@ def run(args, file_handler):
 
   ui_url = ("http://testing-argo.kubeflow.io/timeline/kubeflow-test-infra/{0}"
             ";tab=workflow".format(workflow_name))
+  status_context = "argo-workflow"
   logging.info("URL for workflow: %s", ui_url)
+  status = github_status.GithubStatus(github_status.Github(github_token))
+  status.create_status("pending", ui_url, "Workflow started", status_context)
   success = False
   try:
     results = argo_client.wait_for_workflow(api_client, NAMESPACE, workflow_name,
@@ -138,6 +145,10 @@ def run(args, file_handler):
     logging.error("Time out waiting for Workflow %s/%s to finish", NAMESPACE, workflow_name)
   finally:
     create_finished_file(args.bucket, success)
+    if success:
+      status.create_status("success", ui_url, "Workflow completed", status_context)
+    else:
+      status.create_status("failure", ui_url, "Workflow failed", status_context)
 
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
