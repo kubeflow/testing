@@ -7,6 +7,7 @@ It requires the workflow to be expressed as a ksonnet app.
 """
 
 import argparse
+import base64
 import logging
 from kubernetes import client as k8s_client
 import os
@@ -99,7 +100,9 @@ def run(args, file_handler):
   util.load_kube_config()
 
   api_client = k8s_client.ApiClient()
-
+  api_coreV1 = k8s_client.CoreV1Api(api_client)
+  github_secret = api_instance.read_namespaced_secret("github-token", NAMESPACE)
+  github_token = base64.b64decode(api_response.data["github_token"]).decode("utf-8")
   # Set the prow environment variables.
   prow_env = []
 
@@ -127,7 +130,7 @@ def run(args, file_handler):
             ";tab=workflow".format(workflow_name))
   status_context = "argo-workflow"
   logging.info("URL for workflow: %s", ui_url)
-  status = github_status.GithubStatus()
+  status = github_status.GithubStatus(github_status.Github(github_token))
   status.create_status("pending", ui_url, "Workflow started", status_context)
   success = False
   try:

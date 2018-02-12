@@ -17,9 +17,9 @@ REPO_ORG = os.getenv("REPO_OWNER", "tensorflow")
 REPO_NAME = os.getenv("REPO_NAME", "k8s")
 
 class Github(object):
-  def __init__(self):
+  def __init__(self, oauth):
     self.github_api = 'https://api.github.com'
-    self.oauth = os.environ.get('GIT_TOKEN')
+    self.oauth = oauth
     if self.oauth is None:
       raise Exception('Missing environment variable GIT_TOKEN')
     self.headers = {
