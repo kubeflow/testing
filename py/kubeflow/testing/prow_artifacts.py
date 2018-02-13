@@ -46,7 +46,7 @@ def create_started():
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
 # version. We should do that when we switch tensorflow/k8s to use Argo instead
 # of Airflow.
-def create_finished(success):
+def create_finished(success, ui_urls):
   """Create a string containing the contents for finished.json.
 
   Args:
@@ -62,7 +62,9 @@ def create_finished(success):
       # Dictionary of extra key value pairs to display to the user.
       # TODO(jlewi): Perhaps we should add the GCR path of the Docker image
       # we are running in. We'd have to plumb this in from bootstrap.
-      "metadata": {},
+      "metadata": {
+        "ui-urls": ui_urls
+      },
   }
 
   return json.dumps(finished)
