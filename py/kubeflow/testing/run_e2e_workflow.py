@@ -183,11 +183,12 @@ def run(args, file_handler):
                                              workflow_names,
                                              status_callback=argo_client.log_status)
     for r in results:
-      if results["status"]["phase"] != "Succeeded":
+      phase = r.get("status", {}).get("phase")
+      if phase != "Succeeded":
         success = False
       logging.info("Workflow %s/%s finished phase: %s", NAMESPACE,
                    results["metadata"]["name"],
-                   results["status"]["phase"] )
+                   phase)
   except util.TimeoutError:
     success = False
     logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
