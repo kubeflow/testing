@@ -31,14 +31,16 @@ class TestProw(unittest.TestCase):
   def testCreateFinished(self, mock_time):  # pylint: disable=no-self-use
     """Test create finished job."""
     mock_time.return_value = 1000
-
+    test_urls = "https://example.com"
     expected = {
         "timestamp": 1000,
         "result": "FAILED",
-        "metadata": {},
+        "metadata": {
+          "ui-urls": "https://example.com"
+        },
     }
 
-    actual = prow_artifacts.create_finished(False)
+    actual = prow_artifacts.create_finished(False, test_urls)
 
     self.assertEquals(expected, json.loads(actual))
 

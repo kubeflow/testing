@@ -82,9 +82,9 @@ def create_started_file(bucket):
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "started.json")
   upload_to_gcs(contents, target)
 
-def create_finished_file(bucket, success):
+def create_finished_file(bucket, success, ui_urls):
   """Create the started file in gcs for gubernator."""
-  contents = prow_artifacts.create_finished(success)
+  contents = prow_artifacts.create_finished(success, ui_urls)
 
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "finished.json")
   upload_to_gcs(contents, target)
@@ -115,6 +115,7 @@ def run(args, file_handler):
 
   api_client = k8s_client.ApiClient()
   workflow_names = []
+  ui_urls = []
   for w in workflows:
     app_dir = w.app_dir
     # Create the name for the workflow
@@ -173,6 +174,7 @@ def run(args, file_handler):
 
     ui_url = ("http://testing-argo.kubeflow.io/timeline/kubeflow-test-infra/{0}"
               ";tab=workflow".format(workflow_name))
+    ui_urls.append(ui_url)
     logging.info("URL for workflow: %s", ui_url)
 
   success = True
@@ -190,7 +192,7 @@ def run(args, file_handler):
     success = False
     logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
   finally:
-    create_finished_file(args.bucket, success)
+    create_finished_file(args.bucket, success, ",".join(ui_urls))
 
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
