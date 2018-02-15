@@ -2,8 +2,8 @@ import json
 import os
 import unittest
 import mock
+import sys
 from kubeflow.testing import prow_artifacts
-
 from google.cloud import storage  # pylint: disable=no-name-in-module
 
 class TestProw(unittest.TestCase):
@@ -93,4 +93,11 @@ class TestProw(unittest.TestCase):
         "/kubeflow-presubmit/100")
 
 if __name__ == "__main__":
+  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+  logging.basicConfig(level=logging.INFO,
+                      format=('%(levelname)s|%(asctime)s'
+                              '|%(pathname)s|%(lineno)d| %(message)s'),
+                      datefmt='%Y-%m-%dT%H:%M:%S',
+                      )
+  logging.info("PYTHONPATH:\n%s", "\n".join(sys.path))
   unittest.main()
