@@ -36,6 +36,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
   def testMainPresubmit(self, mock_run, mock_configure, mock_wait, *unused_mocks):  # pylint: disable=no-self-use
     """Test create started for presubmit job."""
 
+    os.environ = {}
     os.environ["REPO_OWNER"] = "fake_org"
     os.environ["REPO_NAME"] = "fake_name"
     os.environ["PULL_NUMBER"] = "77"
@@ -104,7 +105,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
     with tempfile.NamedTemporaryFile(delete=False) as hf:
       yaml.dump(config, hf)
       name = hf.name
-
+    os.environ = {}
     os.environ["REPO_OWNER"] = "fake_org"
     os.environ["REPO_NAME"] = "fake_name"
     os.environ["PULL_NUMBER"] = "77"
