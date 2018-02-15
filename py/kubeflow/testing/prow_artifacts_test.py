@@ -2,7 +2,7 @@ import json
 import os
 import unittest
 import mock
-from testing import prow_artifacts
+from kubeflow.testing import prow_artifacts
 import tempfile
 
 from google.cloud import storage  # pylint: disable=no-name-in-module
@@ -44,10 +44,11 @@ class TestProw(unittest.TestCase):
 
     self.assertEquals(expected, json.loads(actual))
 
-  @mock.patch("testing.prow_artifacts.util.run")
+  @mock.patch("kubeflow.testing.prow_artifacts.util.run")
   def testCopyArtifactsPresubmit(self, mock_run):  # pylint: disable=no-self-use
     """Test copy artifacts to GCS."""
 
+    os.environ = {}
     os.environ["REPO_OWNER"] = "fake_org"
     os.environ["REPO_NAME"] = "fake_name"
     os.environ["PULL_NUMBER"] = "72"
