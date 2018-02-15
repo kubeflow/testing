@@ -1,6 +1,7 @@
 import json
 import os
 import unittest
+import logging
 import mock
 import sys
 from kubeflow.testing import prow_artifacts
