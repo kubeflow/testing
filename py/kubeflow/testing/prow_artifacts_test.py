@@ -2,13 +2,11 @@ import json
 import os
 import unittest
 import mock
-from testing import prow_artifacts
-import tempfile
-
+from kubeflow.testing import prow_artifacts
 from google.cloud import storage  # pylint: disable=no-name-in-module
 
 class TestProw(unittest.TestCase):
-  @mock.patch("testing.prow_artifacts.time.time")
+  @mock.patch("kubeflow.testing.prow_artifacts.time.time")
   def testCreateStartedPresubmit(self, mock_time):  # pylint: disable=no-self-use
     """Test create started for presubmit job."""
     mock_time.return_value = 1000
@@ -27,7 +25,7 @@ class TestProw(unittest.TestCase):
 
     self.assertEquals(expected, json.loads(actual))
 
-  @mock.patch("testing.prow_artifacts.time.time")
+  @mock.patch("kubeflow.testing.prow_artifacts.time.time")
   def testCreateFinished(self, mock_time):  # pylint: disable=no-self-use
     """Test create finished job."""
     mock_time.return_value = 1000
@@ -44,10 +42,11 @@ class TestProw(unittest.TestCase):
 
     self.assertEquals(expected, json.loads(actual))
 
-  @mock.patch("testing.prow_artifacts.util.run")
+  @mock.patch("kubeflow.testing.prow_artifacts.util.run")
   def testCopyArtifactsPresubmit(self, mock_run):  # pylint: disable=no-self-use
     """Test copy artifacts to GCS."""
 
+    os.environ = {}
     os.environ["REPO_OWNER"] = "fake_org"
     os.environ["REPO_NAME"] = "fake_name"
     os.environ["PULL_NUMBER"] = "72"
@@ -55,7 +54,6 @@ class TestProw(unittest.TestCase):
     os.environ["PULL_PULL_SHA"] = "123abc"
     os.environ["JOB_NAME"] = "kubeflow-presubmit"
 
-    temp_dir = tempfile.mkdtemp(prefix="tmpTestProwTestCreateFinished.")
     args = ["--artifacts_dir=/tmp/some/dir", "copy_artifacts",
             "--bucket=some_bucket"]
     prow_artifacts.main(args)
@@ -66,7 +64,7 @@ class TestProw(unittest.TestCase):
        "/100"],
     )
 
-  def testCreateSymlink(self):
+  def testCreateSymlink(self): # pylint: disable=no-self-use
     gcs_client = mock.MagicMock(spec=storage.Client)
     mock_bucket = mock.MagicMock(spec=storage.Bucket)
     gcs_client.get_bucket.return_value = mock_bucket
@@ -75,7 +73,8 @@ class TestProw(unittest.TestCase):
     # We can't add the decorator the instance method because that would
     # interfere with creating gcs_client since storage.Client would then
     # point to the mock and not the actual class.
-    with mock.patch("testing.prow_artifacts.storage.Client") as mock_client:
+    with mock.patch("kubeflow.testing.prow_artifacts.storage"
+                    ".Client") as mock_client:
       mock_client.return_value = gcs_client
 
       os.environ["REPO_OWNER"] = "fake_org"

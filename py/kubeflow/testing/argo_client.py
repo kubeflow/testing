@@ -1,12 +1,10 @@
 """Some utility functions for working with TfJobs."""
 
 import datetime
-import json
 import logging
 import time
 
 from kubernetes import client as k8s_client
-from kubernetes.client.rest import ApiException
 
 from kubeflow.testing import util
 
@@ -65,10 +63,12 @@ def wait_for_workflows(client, namespace, names,
       return all_results
     if datetime.datetime.now() + polling_interval > end_time:
       raise util.TimeoutError(
-        "Timeout waiting for workflow {0} in namespace {1} to finish.".format(
-          name, namespace))
+        "Timeout waiting for workflows {0} in namespace {1} to finish.".format(
+          ",".join(names), namespace))
 
     time.sleep(polling_interval.seconds)
+
+  return []
 
 def wait_for_workflow(client, namespace, name,
                       timeout=datetime.timedelta(minutes=30),

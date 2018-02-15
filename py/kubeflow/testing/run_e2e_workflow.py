@@ -35,9 +35,9 @@ import os
 import tempfile
 from kubeflow.testing import argo_client
 from kubeflow.testing import prow_artifacts
+from kubeflow.testing import util
 import uuid
 from google.cloud import storage  # pylint: disable=no-name-in-module
-from kubeflow.testing import util
 import sys
 import yaml
 
@@ -99,7 +99,7 @@ def parse_config_file(config_file, root_dir):
       i["name"], os.path.join(root_dir, i["app_dir"]), i["component"]))
   return components
 
-def run(args, file_handler):
+def run(args, file_handler): # pylint: disable=too-many-statements
   workflows = []
   if args.config_file:
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
@@ -117,7 +117,6 @@ def run(args, file_handler):
   workflow_names = []
   ui_urls = []
   for w in workflows:
-    app_dir = w.app_dir
     # Create the name for the workflow
     # We truncate sha numbers to prevent the workflow name from being too large.
     # Workflow name should not be more than 63 characters because its used
@@ -170,7 +169,7 @@ def run(args, file_handler):
 
     # For debugging print out the manifest
     util.run(["ks", "show", env, "-c", w.component], cwd=w.app_dir)
-    util.run(["ks", "apply",env, "-c", w.component], cwd=w.app_dir)
+    util.run(["ks", "apply", env, "-c", w.component], cwd=w.app_dir)
 
     ui_url = ("http://testing-argo.kubeflow.io/timeline/kubeflow-test-infra/{0}"
               ";tab=workflow".format(workflow_name))
@@ -187,8 +186,7 @@ def run(args, file_handler):
       if phase != "Succeeded":
         success = False
       logging.info("Workflow %s/%s finished phase: %s", NAMESPACE,
-                   results["metadata"]["name"],
-                   phase)
+                   r.get("metadata", {}).get("name"), phase)
   except util.TimeoutError:
     success = False
     logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
@@ -294,10 +292,9 @@ if __name__ == "__main__":
                       datefmt='%Y-%m-%dT%H:%M:%S',
                       )
   logging.getLogger().setLevel(logging.INFO)
-  success = main()
-  if not success:
+  final_result = main()
+  if not final_result:
     # Exit with a non-zero exit code by to signal failure to prow.
     logging.error("One or more test steps failed exiting with non-zero exit "
                   "code.")
     sys.exit(1)
-
