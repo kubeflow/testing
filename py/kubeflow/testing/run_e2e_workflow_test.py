@@ -22,6 +22,8 @@ class TestRunE2eWorkflow(unittest.TestCase):
     for index, e in enumerate(expected):
       self.assertRegexpMatches(actual[index], e)
 
+  @mock.patch("kubeflow.testing.run_e2e_workflow.util"
+              ".maybe_activate_service_account")
   @mock.patch("kubeflow.testing.run_e2e_workflow.upload_file_to_gcs")
   @mock.patch("kubeflow.testing.run_e2e_workflow.upload_to_gcs")
   @mock.patch("kubeflow.testing.run_e2e_workflow.util.load_kube_config")
@@ -77,6 +79,8 @@ class TestRunE2eWorkflow(unittest.TestCase):
          "/some/dir",
          mock_run.call_args_list[i][1]["cwd"])
 
+  @mock.patch("kubeflow.testing.run_e2e_workflow.util"
+              ".maybe_activate_service_account")
   @mock.patch("kubeflow.testing.run_e2e_workflow.upload_file_to_gcs")
   @mock.patch("kubeflow.testing.run_e2e_workflow.upload_to_gcs")
   @mock.patch("kubeflow.testing.run_e2e_workflow.util.load_kube_config")
