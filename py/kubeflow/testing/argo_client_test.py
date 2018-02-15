@@ -2,12 +2,11 @@ from __future__ import print_function
 
 import unittest
 
-from testing import argo_client
+from kubeflow.testing import argo_client
 from kubernetes import client as k8s_client
 import mock
 import os
 import yaml
-from py import util
 
 class ArgoClientTest(unittest.TestCase):
   def setUp(self):
