@@ -1,9 +1,7 @@
 import json
 import os
 import unittest
-import logging
 import mock
-import sys
 from kubeflow.testing import prow_artifacts
 from google.cloud import storage  # pylint: disable=no-name-in-module
 
@@ -75,7 +73,8 @@ class TestProw(unittest.TestCase):
     # We can't add the decorator the instance method because that would
     # interfere with creating gcs_client since storage.Client would then
     # point to the mock and not the actual class.
-    with mock.patch("testing.prow_artifacts.storage.Client") as mock_client:
+    with mock.patch("kubeflow.testing.prow_artifacts.storage"
+                    ".Client") as mock_client:
       mock_client.return_value = gcs_client
 
       os.environ["REPO_OWNER"] = "fake_org"
@@ -94,11 +93,4 @@ class TestProw(unittest.TestCase):
         "/kubeflow-presubmit/100")
 
 if __name__ == "__main__":
-  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
-  logging.info("PYTHONPATH:\n%s", "\n".join(sys.path))
   unittest.main()
