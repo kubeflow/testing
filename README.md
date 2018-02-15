@@ -224,6 +224,12 @@ gcloud --project=${PROJECT} container clusters create \
 ```
 
 
+### Create a static ip for the Argo UI
+
+```
+gcloud compute --project=mlkube-testing addresses create argo-ui --global
+```
+
 ### Create a GCP service account
 
 * The tests need a GCP service account to upload data to GCS for Gubernator
@@ -239,11 +245,11 @@ gcloud projects add-iam-policy-binding ${PROJECT} \
 Create a secret key containing a GCP private key for the service account
 
 ```
-gcloud iam service-accounts keys create ~/tmp/key.json \
+KEY_FILE=<path to key>
+gcloud iam service-accounts keys create ${KEY_FILE} \
     	--iam-account ${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
 kubectl create secret generic kubeflow-testing-credentials \
-    --namespace=kubeflow-test-infra --from-file=`echo ~/tmp/key.json`
-rm ~/tmp/key.json
+    --namespace=kubeflow-test-infra --from-file=key.json=${KEY_FILE}
 ```
 
 Make the service account a cluster admin
@@ -276,7 +282,7 @@ You can use the GitHub API to create a token
 To create the secret run
 
 ```
-kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${TOKEN}
+kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${GITHUB_TOKEN}
 ```
 
 ### Deploy NFS
@@ -286,18 +292,6 @@ We use GCP Cloud Launcher to create a single node NFS share; current settings
   * 8 VCPU
   * 1 TB disk
 
-### Create a PD for NFS
-
-**Note** We are in the process of migrating to using an NFS share outside the GKE cluster. Once we move
-kubeflow/kubeflow to that we can get rid of this section.
-
-Create a PD to act as the backing storage for the NFS filesystem that will be used to store data from
-the test runs.
-
-```
-  gcloud --project=${PROJECT} compute disks create  \
-  	--zone=${ZONE} kubeflow-testing --description="PD to back NFS storage for kubeflow testing." --size=1TB
-```
 ### Create K8s Resources for Testing
 
 The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
@@ -323,15 +317,6 @@ Create the PVs corresponding to external NFS
 ks apply prow -c nfs-external
 ```
 
-Deploy NFS & Jupyter
-
-```
-ks apply prow -c nfs-jupyter
-```
-
-* This creates the NFS share
-* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
-
 #### Troubleshooting
 
 User or service account deploying the test infrastructure needs sufficient permissions to create the roles that are created as part deploying the test infrastructure. So you may need to run the following command before using ksonnet to deploy the test infrastructure.
@@ -348,13 +333,16 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
     * Add prow jobs to [prow/config.yaml](https://github.com/kubernetes/test-infra/pull/4951/files#diff-406185368ba7839d1459d3d51424f104)
     * Add trigger plugin to [prow/plugins.yaml](https://github.com/kubernetes/test-infra/pull/4951/files#diff-ae83e55ccb05896d5229df577d34255d)
     * Add test dashboards to [testgrid/config/config.yaml](https://github.com/kubernetes/test-infra/pull/4951/files#diff-49f154cd90facc43fda49a99885e6d17)
-    * Modify [testgrid/jenkins_verify/jenkins_validat.go](https://github.com/kubernetes/test-infra/pull/4951/files#diff-7fb4731a02dd681bbd0daada8dd2f908)
+    * Modify testgrid/cmd/config/config_test.go
        to allow presubmits for the new repo.
-1. For tensorflow/k8s configure webhooks by following these [instructions](https://github.com/kubernetes/test-infra/blob/master/prow/getting_started.md#add-the-webhook-to-github)
-    * Use https://prow.k8s.io/hook as the target
-    * Get HMAC token from k8s test team
 1. Add the k8s bot account, k8s-ci-robot, as an admin on the repository
     * Admin privileges are needed to update status (but not comment)
     * Someone with access to the bot will need to accept the request.
 1. Follow [instructions](https://github.com/kubernetes/test-infra/tree/master/gubernator#adding-a-repository-to-the-pr-dashboard) for adding a repository to the PR
    dashboard.
+
+
+Webhooks for prow should already be configured according to these [instructions](https://github.com/kubernetes/test-infra/blob/master/prow/getting_started.md#add-the-webhook-to-github) for the org so you shouldn't
+need to set hooks per repository.
+    * Use https://prow.k8s.io/hook as the target
+    * Get HMAC token from k8s test team

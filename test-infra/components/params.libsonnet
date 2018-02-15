@@ -9,13 +9,6 @@
     argo: {
       namespace: "kubeflow-test-infra",
     },
-    "nfs-jupyter": {
-      cloud: "",
-      disks: "kubeflow-testing",
-      name: "nfs-jupyter",
-      namespace: "kubeflow-test-infra",
-      tfJobImage: "gcr.io/tf-on-k8s-dogfood/tf_operator:v20171214-0bd02ac",
-    },
     "nfs-external": {
       name: "nfs-external",
       namespace: "kubeflow-test-infra",
