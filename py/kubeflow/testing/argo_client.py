@@ -69,6 +69,7 @@ def wait_for_workflows(client, namespace, names,
     time.sleep(polling_interval.seconds)
 
   return []
+
 def wait_for_workflow(client, namespace, name,
                       timeout=datetime.timedelta(minutes=30),
                       polling_interval=datetime.timedelta(seconds=30),

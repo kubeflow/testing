@@ -14,6 +14,12 @@ from google.cloud import storage  # pylint: disable=no-name-in-module
 from kubeflow.testing import util
 from kubeflow.testing import test_util
 
+def should_exclude(root, full_dir_excludes):
+  for e in full_dir_excludes:
+    if root.startswith(e):
+      return True
+  else:
+    return False
 
 def run_lint(args):
   start_time = time.time()
@@ -27,6 +33,8 @@ def run_lint(args):
                   "vendor",]
   full_dir_excludes = [os.path.join(os.path.abspath(args.src_dir), f) for f in
                        dir_excludes]
+
+  # TODO(jlewi): Use pathlib once we switch to python3.
   includes = ["*.py"]
   failed_files = []
   rc_file = os.path.join(args.src_dir, ".pylintrc")
@@ -34,12 +42,7 @@ def run_lint(args):
                                    topdown=True):
     # excludes can be done with fnmatch.filter and complementary set,
     # but it's more annoying to read.
-    exclude = False
-    for e in full_dir_excludes:
-      if root.startswith(e):
-        exclude = True
-        break
-    if exclude:
+    if should_exclude(root, full_dir_excludes):
       continue
 
     dirs[:] = [d for d in dirs]
