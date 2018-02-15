@@ -8,9 +8,9 @@
     // Each object below should correspond to a component in the components/ directory
     workflows: {
       bucket: "mlkube-testing_temp",
-      name: "jlewi-kubeflow-test-presubmit-test-33-0ca0",
+      name: "jlewi-kubeflow-test-presubmit-test-33-0237",
       namespace: "kubeflow-test-infra",
-      prow_env: "JOB_NAME=kubeflow-test-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=33,REPO_NAME=testing,REPO_OWNER=kubeflow,BUILD_NUMBER=0ca0",
+      prow_env: "JOB_NAME=kubeflow-test-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=33,REPO_NAME=testing,REPO_OWNER=kubeflow,BUILD_NUMBER=0237",
     },
   },
 }
