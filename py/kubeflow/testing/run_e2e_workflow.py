@@ -187,8 +187,7 @@ def run(args, file_handler):
       if phase != "Succeeded":
         success = False
       logging.info("Workflow %s/%s finished phase: %s", NAMESPACE,
-                   results["metadata"]["name"],
-                   phase)
+                   r.get("metadata", {}).get("name"), phase)
   except util.TimeoutError:
     success = False
     logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
