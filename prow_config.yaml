@@ -3,4 +3,4 @@
 workflows:
   - app_dir: kubeflow/testing/workflows
     component: workflows
-    name: testing-unittests  
+    name: unittests

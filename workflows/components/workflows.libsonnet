@@ -33,6 +33,7 @@
       local artifactsDir = outputDir + "/artifacts";
       // Source directory where all repos should be checked out
       local srcRootDir = testDir + "/src";
+      local srcDir = srcRootDir + "/kubeflow/testing";
       local image = "gcr.io/mlkube-testing/test-worker";
       // The name of the NFS volume claim to use for test files.
       // local nfsVolumeClaim = "kubeflow-testing";

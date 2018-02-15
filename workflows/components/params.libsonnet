@@ -6,11 +6,11 @@
   components: {
     // Component-level parameters, defined initially from 'ks prototype use ...'
     // Each object below should correspond to a component in the components/ directory
-    testing-unittests: {
+    workflows: {
       bucket: "mlkube-testing_temp",
-      name: "some-very-very-very-very-very-long-name-jlewi-tf-k8s-presubmit-test-374-6e32",
+      name: "jlewi-kubeflow-test-presubmit-test-33-0ca0",
       namespace: "kubeflow-test-infra",
-      prow_env: "JOB_NAME=tf-k8s-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=374,REPO_NAME=k8s,REPO_OWNER=tensorflow,BUILD_NUMBER=6e32",
+      prow_env: "JOB_NAME=kubeflow-test-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=33,REPO_NAME=testing,REPO_OWNER=kubeflow,BUILD_NUMBER=0ca0",
     },
   },
 }
