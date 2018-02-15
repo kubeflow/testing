@@ -8,7 +8,7 @@ from kubeflow.testing import prow_artifacts
 from google.cloud import storage  # pylint: disable=no-name-in-module
 
 class TestProw(unittest.TestCase):
-  @mock.patch("testing.prow_artifacts.time.time")
+  @mock.patch("kubeflow.testing.prow_artifacts.time.time")
   def testCreateStartedPresubmit(self, mock_time):  # pylint: disable=no-self-use
     """Test create started for presubmit job."""
     mock_time.return_value = 1000
@@ -27,7 +27,7 @@ class TestProw(unittest.TestCase):
 
     self.assertEquals(expected, json.loads(actual))
 
-  @mock.patch("testing.prow_artifacts.time.time")
+  @mock.patch("kubeflow.testing.prow_artifacts.time.time")
   def testCreateFinished(self, mock_time):  # pylint: disable=no-self-use
     """Test create finished job."""
     mock_time.return_value = 1000
