@@ -18,8 +18,7 @@ def should_exclude(root, full_dir_excludes):
   for e in full_dir_excludes:
     if root.startswith(e):
       return True
-  else:
-    return False
+  return False
 
 def run_lint(args):
   start_time = time.time()

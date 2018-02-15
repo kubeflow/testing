@@ -113,24 +113,12 @@ def get_gcs_dir(bucket):
 
 def copy_artifacts(args):
   """Sync artifacts to GCS."""
-  job_name = os.getenv("JOB_NAME")
-
   # GCS layout is defined here:
   # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
-  pull_number = os.getenv("PULL_NUMBER")
-
-  repo_owner = os.getenv("REPO_OWNER")
-  repo_name = os.getenv("REPO_NAME")
 
   output = get_gcs_dir(args.bucket)
 
-  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-    logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
-                 "to use service account.")
-    # Since a service account is set tell gcloud to use it.
-    util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
-              os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
-
+  util.maybe_activate_service_account()
   util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
 
 def create_pr_symlink(args):
@@ -145,24 +133,13 @@ def create_pr_symlink(args):
   pull_number = os.getenv("PULL_NUMBER")
   if not pull_number:
     # Symlinks are only created for pull requests.
-    return ""
+    return
 
   path = "pr-logs/directory/{job}/{build}.txt".format(
       job=os.getenv("JOB_NAME"), build=os.getenv("BUILD_NUMBER"))
 
   pull_number = os.getenv("PULL_NUMBER")
 
-  repo_owner = os.getenv("REPO_OWNER")
-  repo_name = os.getenv("REPO_NAME")
-
-
-  build_dir = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
-               "{pull_number}/{job}/{build}").format(
-                bucket=args.bucket,
-                owner=repo_owner, repo=repo_name,
-                pull_number=pull_number,
-                job=os.getenv("JOB_NAME"),
-                build=os.getenv("BUILD_NUMBER"))
   source = util.to_gcs_uri(args.bucket, path)
   target = get_gcs_dir(args.bucket)
   logging.info("Creating symlink %s pointing to %s", source, target)

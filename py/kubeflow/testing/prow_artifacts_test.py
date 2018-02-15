@@ -3,7 +3,6 @@ import os
 import unittest
 import mock
 from kubeflow.testing import prow_artifacts
-import tempfile
 
 from google.cloud import storage  # pylint: disable=no-name-in-module
 
@@ -56,7 +55,6 @@ class TestProw(unittest.TestCase):
     os.environ["PULL_PULL_SHA"] = "123abc"
     os.environ["JOB_NAME"] = "kubeflow-presubmit"
 
-    temp_dir = tempfile.mkdtemp(prefix="tmpTestProwTestCreateFinished.")
     args = ["--artifacts_dir=/tmp/some/dir", "copy_artifacts",
             "--bucket=some_bucket"]
     prow_artifacts.main(args)
@@ -67,7 +65,7 @@ class TestProw(unittest.TestCase):
        "/100"],
     )
 
-  def testCreateSymlink(self):
+  def testCreateSymlink(self): # pylint: disable=no-self-use
     gcs_client = mock.MagicMock(spec=storage.Client)
     mock_bucket = mock.MagicMock(spec=storage.Bucket)
     gcs_client.get_bucket.return_value = mock_bucket
