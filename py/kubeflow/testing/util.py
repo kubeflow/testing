@@ -14,6 +14,7 @@ import yaml
 import google.auth
 import google.auth.transport
 import google.auth.transport.requests
+from google.cloud import storage  # pylint: disable=no-name-in-module
 
 from googleapiclient import errors
 from kubernetes import client as k8s_client
@@ -501,7 +502,7 @@ def maybe_activate_service_account():
 def upload_to_gcs(contents, target):
   gcs_client = storage.Client()
 
-  bucket_name, path = util.split_gcs_uri(target)
+  bucket_name, path = split_gcs_uri(target)
 
   bucket = gcs_client.get_bucket(bucket_name)
   logging.info("Writing %s", target)
@@ -510,7 +511,7 @@ def upload_to_gcs(contents, target):
 
 def upload_file_to_gcs(source, target):
   gcs_client = storage.Client()
-  bucket_name, path = util.split_gcs_uri(target)
+  bucket_name, path = split_gcs_uri(target)
 
   bucket = gcs_client.get_bucket(bucket_name)
 

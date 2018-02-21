@@ -37,7 +37,6 @@ from kubeflow.testing import argo_client
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
 import uuid
-
 import sys
 import yaml
 
