@@ -154,12 +154,11 @@ def _get_actual_junit_files(bucket, prefix):
     actual_junit.add(os.path.basename(b.name))
   return actual_junit
 
-def check_no_errors(gcs_client, artifacts_dir, junit_files):
+def check_no_errors(gcs_client, artifacts_dir):
   """Check that all the XML files exist and there were no errors.
   Args:
     gcs_client: The GCS client.
     artifacts_dir: The directory where artifacts should be stored.
-    junit_files: List of the names of the junit files.
   Returns:
     True if there were no errors and false otherwise.
   """
@@ -204,7 +203,7 @@ def finalize_prow_job(bucket, workflow_success, ui_urls):
   # already know it failed; furthermore we can't rely on the junit files
   # if the workflow didn't succeed because not all junit files might be there.
   if workflow_success:
-    workflow_success = check_no_errors(gcs_client, artifacts_dir, junit_files)
+    workflow_success = check_no_errors(gcs_client, artifacts_dir)
 
   create_finished(gcs_client, output_dir, workflow_success)
 
