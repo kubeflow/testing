@@ -37,7 +37,7 @@ from kubeflow.testing import argo_client
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
 import uuid
-from google.cloud import storage  # pylint: disable=no-name-in-module
+
 import sys
 import yaml
 
@@ -55,40 +55,12 @@ class WorkflowComponent(object):
 def _get_src_dir():
   return os.path.abspath(os.path.join(__file__, "..",))
 
-def upload_to_gcs(contents, target):
-  gcs_client = storage.Client()
-
-  bucket_name, path = util.split_gcs_uri(target)
-
-  bucket = gcs_client.get_bucket(bucket_name)
-  logging.info("Writing %s", target)
-  blob = bucket.blob(path)
-  blob.upload_from_string(contents)
-
-def upload_file_to_gcs(source, target):
-  gcs_client = storage.Client()
-  bucket_name, path = util.split_gcs_uri(target)
-
-  bucket = gcs_client.get_bucket(bucket_name)
-
-  logging.info("Uploading file %s to %s.", source, target)
-  blob = bucket.blob(path)
-  blob.upload_from_filename(source)
-
 def create_started_file(bucket):
   """Create the started file in gcs for gubernator."""
   contents = prow_artifacts.create_started()
 
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "started.json")
-  upload_to_gcs(contents, target)
-
-# DO NOT SUBMIT delete this.
-#def create_finished_file(bucket, success, ui_urls):
-  #"""Create the started file in gcs for gubernator."""
-  #contents = prow_artifacts.create_finished(success, ui_urls)
-
-  #target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "finished.json")
-  #upload_to_gcs(contents, target)
+  util.upload_to_gcs(contents, target)
 
 def parse_config_file(config_file, root_dir):
   with open(config_file) as hf:
@@ -197,7 +169,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
     file_handler.flush()
-    upload_file_to_gcs(
+    util.upload_file_to_gcs(
       file_handler.baseFilename,
       os.path.join(prow_artifacts.get_gcs_dir(args.bucket), "build-log.txt"))
 

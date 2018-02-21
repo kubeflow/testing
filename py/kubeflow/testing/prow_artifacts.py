@@ -70,6 +70,13 @@ def create_finished(success, ui_urls):
 
   return json.dumps(finished)
 
+def create_finished_file(bucket, success, ui_urls):
+  """Create the started file in gcs for gubernator."""
+  contents = create_finished(success, ui_urls)
+
+  target = os.path.join(get_gcs_dir(bucket), "finished.json")
+  util.upload_to_gcs(contents, target)
+
 def get_gcs_dir(bucket):
   """Return the GCS directory for this job."""
   pull_number = os.getenv("PULL_NUMBER")
@@ -205,7 +212,7 @@ def finalize_prow_job(bucket, workflow_success, ui_urls):
   if workflow_success:
     workflow_success = check_no_errors(gcs_client, artifacts_dir)
 
-  create_finished(gcs_client, output_dir, workflow_success)
+  create_finished_file(bucket, workflow_success, ui_urls)
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals

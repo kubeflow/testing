@@ -100,9 +100,7 @@ class TestProw(unittest.TestCase):
     artifacts_dir = "gs://some_dir"
     mock_get_junit.return_value = set(["junit_1.xml"])
     mock_get_failures.return_value = 0
-    junit_files = ["junit_1.xml"]
-    self.assertTrue(prow_artifacts.check_no_errors(gcs_client, artifacts_dir,
-                                                   junit_files))
+    self.assertTrue(prow_artifacts.check_no_errors(gcs_client, artifacts_dir))
 
   @mock.patch("kubeflow.testing.test_util.get_num_failures")
   @mock.patch("kubeflow.testing.prow_artifacts._get_actual_junit_files")
@@ -113,8 +111,7 @@ class TestProw(unittest.TestCase):
     artifacts_dir = "gs://some_dir"
     mock_get_junit.return_value = set(["junit_1.xml"])
     mock_get_failures.return_value = 1
-    junit_files = ["junit_1.xml"]
-    self.assertFalse(prow_artifacts.check_no_errors(gcs_client, artifacts_dir,
-                                                    junit_files))
+    self.assertFalse(prow_artifacts.check_no_errors(gcs_client, artifacts_dir))
+
 if __name__ == "__main__":
   unittest.main()
