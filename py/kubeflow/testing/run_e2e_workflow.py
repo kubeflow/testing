@@ -82,12 +82,13 @@ def create_started_file(bucket):
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "started.json")
   upload_to_gcs(contents, target)
 
-def create_finished_file(bucket, success, ui_urls):
-  """Create the started file in gcs for gubernator."""
-  contents = prow_artifacts.create_finished(success, ui_urls)
+# DO NOT SUBMIT delete this.
+#def create_finished_file(bucket, success, ui_urls):
+  #"""Create the started file in gcs for gubernator."""
+  #contents = prow_artifacts.create_finished(success, ui_urls)
 
-  target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "finished.json")
-  upload_to_gcs(contents, target)
+  #target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "finished.json")
+  #upload_to_gcs(contents, target)
 
 def parse_config_file(config_file, root_dir):
   with open(config_file) as hf:
@@ -191,7 +192,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements
     success = False
     logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
   finally:
-    create_finished_file(args.bucket, success, ",".join(ui_urls))
+    prow_artifacts.finalize_prow_job(args.bucket, success, ",".join(ui_urls))
 
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs

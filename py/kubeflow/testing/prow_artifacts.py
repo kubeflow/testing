@@ -9,6 +9,7 @@ import json
 import os
 import time
 from google.cloud import storage  # pylint: disable=no-name-in-module
+from kubeflow.testing import test_util
 from kubeflow.testing import util
 
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
@@ -146,6 +147,66 @@ def create_pr_symlink(args):
   bucket = gcs_client.get_bucket(args.bucket)
   blob = bucket.blob(path)
   blob.upload_from_string(target)
+
+def _get_actual_junit_files(bucket, prefix):
+  actual_junit = set()
+  for b in bucket.list_blobs(prefix=os.path.join(prefix, "junit")):
+    actual_junit.add(os.path.basename(b.name))
+  return actual_junit
+
+def check_no_errors(gcs_client, artifacts_dir, junit_files):
+  """Check that all the XML files exist and there were no errors.
+  Args:
+    gcs_client: The GCS client.
+    artifacts_dir: The directory where artifacts should be stored.
+    junit_files: List of the names of the junit files.
+  Returns:
+    True if there were no errors and false otherwise.
+  """
+  bucket_name, prefix = util.split_gcs_uri(artifacts_dir)
+  bucket = gcs_client.get_bucket(bucket_name)
+  no_errors = True
+
+  # Get a list of actual junit files.
+  actual_junit = _get_actual_junit_files(bucket, prefix)
+
+  for f in actual_junit:
+    full_path = os.path.join(artifacts_dir, f)
+    logging.info("Checking %s", full_path)
+    b = bucket.blob(os.path.join(prefix, f))
+
+    xml_contents = b.download_as_string()
+
+    if test_util.get_num_failures(xml_contents) > 0:
+      logging.info("Test failures in %s", full_path)
+      no_errors = False
+
+  return no_errors
+
+def finalize_prow_job(bucket, workflow_success, ui_urls):
+  """Finalize a prow job.
+
+  Finalizing a PROW job consists of determining the status of the
+  prow job by looking at the junit files and then creating finished.json.
+
+  Args
+    bucket: The bucket where results are stored.
+    workflow_success: Bool indicating whether the workflow succeeded or not.
+    ui_urls: String corresponding to the Argo UI for the workflows launched.
+  """
+  gcs_client = storage.Client()
+
+  output_dir = get_gcs_dir(bucket)
+  artifacts_dir = os.path.join(output_dir, "artifacts")
+
+  # If the workflow failed then we will mark the prow job as failed.
+  # We don't need to check the junit files for test failures because we
+  # already know it failed; furthermore we can't rely on the junit files
+  # if the workflow didn't succeed because not all junit files might be there.
+  if workflow_success:
+    workflow_success = check_no_errors(gcs_client, artifacts_dir, junit_files)
+
+  create_finished(gcs_client, output_dir, workflow_success)
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
