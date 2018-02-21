@@ -101,7 +101,7 @@ def parse_config_file(config_file, root_dir):
 
 def run(args, file_handler): # pylint: disable=too-many-statements
   workflows = []
-  if args.config_file:
+  if args.config_file and os.path.isfile(args.config_file):
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
 
   if args.app_dir and args.component:
