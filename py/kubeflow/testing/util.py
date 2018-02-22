@@ -14,6 +14,7 @@ import yaml
 import google.auth
 import google.auth.transport
 import google.auth.transport.requests
+from google.cloud import storage  # pylint: disable=no-name-in-module
 
 from googleapiclient import errors
 from kubernetes import client as k8s_client
@@ -497,3 +498,23 @@ def maybe_activate_service_account():
          "--key-file=" + os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
   else:
     logging.info("GOOGLE_APPLICATION_CREDENTIALS is not set.")
+
+def upload_to_gcs(contents, target):
+  gcs_client = storage.Client()
+
+  bucket_name, path = split_gcs_uri(target)
+
+  bucket = gcs_client.get_bucket(bucket_name)
+  logging.info("Writing %s", target)
+  blob = bucket.blob(path)
+  blob.upload_from_string(contents)
+
+def upload_file_to_gcs(source, target):
+  gcs_client = storage.Client()
+  bucket_name, path = split_gcs_uri(target)
+
+  bucket = gcs_client.get_bucket(bucket_name)
+
+  logging.info("Uploading file %s to %s.", source, target)
+  blob = bucket.blob(path)
+  blob.upload_from_filename(source)
