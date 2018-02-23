@@ -4,5 +4,8 @@ params + {
     "nfs-external" +: {
       nfsServer: "10.128.0.3",
     },
+    argo +: {
+      exposeUi: true,
+    },
   },
 }

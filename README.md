@@ -218,38 +218,63 @@ NAMESPACE=kubeflow-test-infra
 
 gcloud --project=${PROJECT} container clusters create \
 	--zone=${ZONE} \
-	--machine-type=n1-standard-8 \
-	--cluster-version=1.8.4-gke.1 \
+	--machine-type=n1-standard-8 \	
 	${CLUSTER}
 ```
-
 
 ### Create a static ip for the Argo UI
 
 ```
-gcloud compute --project=mlkube-testing addresses create argo-ui --global
+gcloud compute --project=${PROJECT} addresses create argo-ui --global
 ```
 
+### Enable GCP APIs
+
+```
+gcloud services --project=${PROJECT} enable cloudbuild.googleapis.com
+gcloud services --project=${PROJECT} enable containerregistry.googleapis.com
+gcloud services --project=${PROJECT} enable container.googleapis.com  
+```
 ### Create a GCP service account
 
 * The tests need a GCP service account to upload data to GCS for Gubernator
 
 ```
 SERVICE_ACCOUNT=kubeflow-testing
-gcloud iam service-accounts --project=mlkube-testing create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
+gcloud iam service-accounts --project=${PROJECT} create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
 gcloud projects add-iam-policy-binding ${PROJECT} \
-    	--member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com --role roles/container.developer
+    	--member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com --role roles/container.admin \
+      --role=roles/viewer \
+      --role=roles/cloudbuild.builds.editor \
+      --role=roles/logging.viewer \
+      --role=roles/storage.admin     
 ```
   * Our tests create K8s resources (e.g. namespaces) which is why we grant it developer permissions.
+  * Project Viewer (because GCB requires this with gcloud)
+  * Kubernetes Engine Admin (some tests create GKE clusters)
+  * Logs viewer (for GCB)
+  * Storage Admin (For GCR)
+
+
+```
+GCE_DEFAULT=${PROJECT_NUMBER}-compute@developer.gserviceaccount.com
+FULL_SERVICE=${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
+gcloud --project=${PROJECT} iam service-accounts add-iam-policy-binding \
+   ${GCE_DEFAULT} --member="serviceAccount:${FULL_SERVICE}" \
+   --role=roles/iam.serviceAccountUser
+```
+  * Service Account User of the Compute Engine Default Service account (to avoid this [error](https://stackoverflow.com/questions/40367866/gcloud-the-user-does-not-have-access-to-service-account-default))
+
 
 Create a secret key containing a GCP private key for the service account
 
 ```
 KEY_FILE=<path to key>
+SECRET_NAME=gcp-credentials
 gcloud iam service-accounts keys create ${KEY_FILE} \
     	--iam-account ${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
-kubectl create secret generic kubeflow-testing-credentials \
-    --namespace=kubeflow-test-infra --from-file=key.json=${KEY_FILE}
+kubectl create secret generic ${SECRET_NAME} \
+    --namespace=${NAMESPACE} --from-file=key.json=${KEY_FILE}
 ```
 
 Make the service account a cluster admin
@@ -259,15 +284,6 @@ kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluste
 		--user=${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
 ```
 * The service account is used to deploye Kubeflow which entails creating various roles; so it needs sufficient RBAC permission to do so.
-
-The service account also needs the following GCP privileges because various tests use them
-
-  * Project Viewer (because GCB requires this with gcloud)
-  * Cloud Container Builder
-  * Kubernetes Engine Admin (some tests create GKE clusters)
-  * Logs viewer
-  * Storage Admin
-  * Service Account User of the Compute Engine Default Service account (to avoid this [error](https://stackoverflow.com/questions/40367866/gcloud-the-user-does-not-have-access-to-service-account-default))
 
 ### Create a GitHub Token
 
@@ -282,7 +298,7 @@ You can use the GitHub API to create a token
 To create the secret run
 
 ```
-kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${GITHUB_TOKEN}
+kubectl create secret generic github-token --namespace=${NAMESPACE} --from-literal=github_token=${GITHUB_TOKEN}
 ```
 
 ### Deploy NFS
@@ -307,14 +323,48 @@ point to your cluster.
 
 You can deploy argo as follows (you don't need to use argo's CLI)
 
+Set up the environment
+
 ```
-ks apply prow -c argo
+NFS_SERVER=<Internal GCE IP address of the NFS Server>
+ks env add ${ENV}
+ks param set --env=${ENV} argo namespace ${NAMESPACE}
+ks param set --env=${ENV} debug-worker namespace ${NAMESPACE}
+ks param set --env=${ENV} nfs-external namespace ${NAMESPACE}
+ks param set --env=${ENV} nfs-external nfsServer ${NFS_SERVER}
+```
+
+In the testing environment (but not release) we also expose the UI
+
+```
+ks param set --env=${ENV} argo exposeUi true
+```
+
+```
+ks apply ${ENV} -c argo
 ```
 
 Create the PVs corresponding to external NFS
 
 ```
-ks apply prow -c nfs-external
+ks apply ${ENV} -c nfs-external
+```
+
+### Release infrastructure
+
+Our release infrastructure is largely identical to our test infrastructure
+except its more locked down. 
+
+In particular, we don't expose the Argo UI publicly.
+
+Additionally we need to grant the service account access to the GCR
+registry used to host our images.
+
+```
+GCR_PROJECT=kubeflow-images-staging
+gcloud projects add-iam-policy-binding ${GCR_PROJECT} \
+      --member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
+      --role=roles/storage.admin
 ```
 
 #### Troubleshooting
