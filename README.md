@@ -34,7 +34,7 @@ Quick Links
 
 * Our prow jobs are defined in [config.yaml](https://github.com/kubernetes/test-infra/blob/master/prow/config.yaml)
 * Each prow job defines a K8s PodSpec indicating a command to run
-* Our prow jobs use [run_e2e_workflow.py](https://github.com/py/kubeflow/testing/run_e2e_workflow.py)
+* Our prow jobs use [run_e2e_workflow.py](https://github.com/kubeflow/testing/blob/master/py/kubeflow/testing/run_e2e_workflow.py)
   to trigger an Argo workflow that checks out our code and runs our tests.
 * Our tests are structured as Argo workflows so that we can easily perform steps in parallel.
 * The Argo workflow is defined in the repository being tested
@@ -346,3 +346,4 @@ Webhooks for prow should already be configured according to these [instructions]
 need to set hooks per repository.
     * Use https://prow.k8s.io/hook as the target
     * Get HMAC token from k8s test team
+
