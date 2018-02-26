@@ -367,6 +367,16 @@ gcloud projects add-iam-policy-binding ${GCR_PROJECT} \
       --role=roles/storage.admin
 ```
 
+We also need to give access to the GCB service account to the registry
+
+```
+GCR_PROJECT=kubeflow-images-staging
+GCB_SERVICE_ACCOUNT=${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com
+gcloud projects add-iam-policy-binding ${GCR_PROJECT} \
+      --member serviceAccount:${GCB_SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
+      --role=roles/storage.admin
+```
+
 #### Troubleshooting
 
 User or service account deploying the test infrastructure needs sufficient permissions to create the roles that are created as part deploying the test infrastructure. So you may need to run the following command before using ksonnet to deploy the test infrastructure.
