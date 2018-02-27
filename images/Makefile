@@ -16,6 +16,8 @@
 #   https://github.com/mattrobenolt/jinja2-cli
 #   pip install jinja2-clie
 IMG = gcr.io/kubeflow-ci/test-worker
+RELEASE_WORKER = gcr.io/kubeflow-releasing/worker
+
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | sha256sum | cut -c -6)
 DIR := ${CURDIR}
 
@@ -32,3 +34,8 @@ push: build
 	gcloud docker -- push $(IMG):$(TAG)
 	gcloud docker -- push $(IMG):latest
 	@echo Pushed $(IMG) with :latest and :$(TAG) tags
+	# Tagging into a new project can be very slow but it appears to work.
+	gcloud container images add-tag --quiet $(IMG):$(TAG) $(RELEASE_WORKER):$(TAG) --verbosity=info
+	echo created $(RELEASE_WORKER):$(TAG)
+	gcloud container images add-tag --quiet $(RELEASE_WORKER):$(TAG) $(RELEASE_WORKER):latest --verbosity=info
+	echo created $(RELEASE_WORKER):latest
