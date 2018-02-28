@@ -12,6 +12,7 @@ from google.cloud import storage  # pylint: disable=no-name-in-module
 from kubeflow.testing import test_util
 from kubeflow.testing import util
 
+
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
 # version. We should do that when we switch tensorflow/k8s to use Argo instead
 # of Airflow.
@@ -22,9 +23,8 @@ def create_started():
   # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
   # For a list of fields expected by gubernator
   started = {
-      "timestamp": int(time.time()),
-      "repos": {
-      },
+    "timestamp": int(time.time()),
+    "repos": {},
   }
 
   repo_owner = os.getenv("REPO_OWNER", "")
@@ -44,6 +44,7 @@ def create_started():
 
   return json.dumps(started)
 
+
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
 # version. We should do that when we switch tensorflow/k8s to use Argo instead
 # of Airflow.
@@ -58,17 +59,18 @@ def create_finished(success, ui_urls):
   else:
     result = "FAILED"
   finished = {
-      "timestamp": int(time.time()),
-      "result": result,
-      # Dictionary of extra key value pairs to display to the user.
-      # TODO(jlewi): Perhaps we should add the GCR path of the Docker image
-      # we are running in. We'd have to plumb this in from bootstrap.
-      "metadata": {
-        "ui-urls": ui_urls
-      },
+    "timestamp": int(time.time()),
+    "result": result,
+    # Dictionary of extra key value pairs to display to the user.
+    # TODO(jlewi): Perhaps we should add the GCR path of the Docker image
+    # we are running in. We'd have to plumb this in from bootstrap.
+    "metadata": {
+      "ui-urls": ui_urls
+    },
   }
 
   return json.dumps(finished)
+
 
 def create_finished_file(bucket, success, ui_urls):
   """Create the started file in gcs for gubernator."""
@@ -77,13 +79,13 @@ def create_finished_file(bucket, success, ui_urls):
   target = os.path.join(get_gcs_dir(bucket), "finished.json")
   util.upload_to_gcs(contents, target)
 
+
 def get_gcs_dir(bucket):
   """Return the GCS directory for this job."""
   pull_number = os.getenv("PULL_NUMBER")
 
   repo_owner = os.getenv("REPO_OWNER")
   repo_name = os.getenv("REPO_NAME")
-
 
   job_name = os.getenv("JOB_NAME")
 
@@ -97,27 +99,29 @@ def get_gcs_dir(bucket):
   if pull_number:
     output = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
               "{pull_number}/{job}/{build}").format(
-              bucket=bucket,
-              owner=repo_owner, repo=repo_name,
-              pull_number=pull_number,
-              job=os.getenv("JOB_NAME"),
-              build=os.getenv("BUILD_NUMBER"))
+                bucket=bucket,
+                owner=repo_owner,
+                repo=repo_name,
+                pull_number=pull_number,
+                job=os.getenv("JOB_NAME"),
+                build=os.getenv("BUILD_NUMBER"))
 
   elif repo_owner:
     # It is a postsubmit job
     output = ("gs://{bucket}/logs/{owner}_{repo}/"
               "{job}/{build}").format(
-                  bucket=bucket, owner=repo_owner,
-                  repo=repo_name, job=job_name,
-                  build=os.getenv("BUILD_NUMBER"))
+                bucket=bucket,
+                owner=repo_owner,
+                repo=repo_name,
+                job=job_name,
+                build=os.getenv("BUILD_NUMBER"))
   else:
     # Its a periodic job
     output = ("gs://{bucket}/logs/{job}/{build}").format(
-        bucket=bucket,
-        job=job_name,
-        build=os.getenv("BUILD_NUMBER"))
+      bucket=bucket, job=job_name, build=os.getenv("BUILD_NUMBER"))
 
   return output
+
 
 def copy_artifacts(args):
   """Sync artifacts to GCS."""
@@ -128,6 +132,7 @@ def copy_artifacts(args):
 
   util.maybe_activate_service_account()
   util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
+
 
 def create_pr_symlink(args):
   """Create a 'symlink' in GCS pointing at the results for a PR.
@@ -144,7 +149,7 @@ def create_pr_symlink(args):
     return
 
   path = "pr-logs/directory/{job}/{build}.txt".format(
-      job=os.getenv("JOB_NAME"), build=os.getenv("BUILD_NUMBER"))
+    job=os.getenv("JOB_NAME"), build=os.getenv("BUILD_NUMBER"))
 
   pull_number = os.getenv("PULL_NUMBER")
 
@@ -155,11 +160,13 @@ def create_pr_symlink(args):
   blob = bucket.blob(path)
   blob.upload_from_string(target)
 
+
 def _get_actual_junit_files(bucket, prefix):
   actual_junit = set()
   for b in bucket.list_blobs(prefix=os.path.join(prefix, "junit")):
     actual_junit.add(os.path.basename(b.name))
   return actual_junit
+
 
 def check_no_errors(gcs_client, artifacts_dir):
   """Check that all the XML files exist and there were no errors.
@@ -189,6 +196,7 @@ def check_no_errors(gcs_client, artifacts_dir):
 
   return no_errors
 
+
 def finalize_prow_job(bucket, workflow_success, ui_urls):
   """Finalize a prow job.
 
@@ -214,11 +222,11 @@ def finalize_prow_job(bucket, workflow_success, ui_urls):
 
   create_finished_file(bucket, workflow_success, ui_urls)
 
+
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
-  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+  logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
   # create the top-level parser
-  parser = argparse.ArgumentParser(
-    description="Create prow artifacts.")
+  parser = argparse.ArgumentParser(description="Create prow artifacts.")
 
   parser.add_argument(
     "--artifacts_dir",
@@ -234,24 +242,19 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     "copy_artifacts", help="Copy the artifacts.")
 
   parser_copy.add_argument(
-    "--bucket",
-    default="",
-    type=str,
-    help="Bucket to copy the artifacts to.")
+    "--bucket", default="", type=str, help="Bucket to copy the artifacts to.")
 
   parser_copy.set_defaults(func=copy_artifacts)
 
   #############################################################################
   # Create the pr symlink.
   parser_link = subparsers.add_parser(
-    "create_pr_symlink", help="Create a symlink pointing at PR output dir; null "
-                           "op if prow job is not a presubmit job.")
+    "create_pr_symlink",
+    help="Create a symlink pointing at PR output dir; null "
+    "op if prow job is not a presubmit job.")
 
   parser_link.add_argument(
-    "--bucket",
-    default="",
-    type=str,
-    help="Bucket to copy the artifacts to.")
+    "--bucket", default="", type=str, help="Bucket to copy the artifacts to.")
 
   parser_link.set_defaults(func=create_pr_symlink)
 
@@ -265,9 +268,9 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   # to gubernator.
   root_logger = logging.getLogger()
 
-  test_log = os.path.join(os.path.join(args.artifacts_dir, "artifacts"),
-                          "logs", "prow_artifacts." + args.func.__name__ +
-                          ".log")
+  test_log = os.path.join(
+    os.path.join(args.artifacts_dir, "artifacts"), "logs",
+    "prow_artifacts." + args.func.__name__ + ".log")
   if not os.path.exists(os.path.dirname(test_log)):
     os.makedirs(os.path.dirname(test_log))
 
@@ -275,19 +278,22 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   root_logger.addHandler(file_handler)
   # We need to explicitly set the formatter because it will not pick up
   # the BasicConfig.
-  formatter = logging.Formatter(fmt=("%(levelname)s|%(asctime)s"
-                                     "|%(pathname)s|%(lineno)d| %(message)s"),
-                                datefmt="%Y-%m-%dT%H:%M:%S")
+  formatter = logging.Formatter(
+    fmt=("%(levelname)s|%(asctime)s"
+         "|%(pathname)s|%(lineno)d| %(message)s"),
+    datefmt="%Y-%m-%dT%H:%M:%S")
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
 
   args.func(args)
 
+
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   main()

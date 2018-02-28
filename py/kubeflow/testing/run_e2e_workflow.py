@@ -43,6 +43,7 @@ import yaml
 # The namespace to launch the Argo workflow in.
 NAMESPACE = "kubeflow-test-infra"
 
+
 class WorkflowComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
@@ -51,8 +52,13 @@ class WorkflowComponent(object):
     self.app_dir = app_dir
     self.component = component
 
+
 def _get_src_dir():
-  return os.path.abspath(os.path.join(__file__, "..",))
+  return os.path.abspath(os.path.join(
+    __file__,
+    "..",
+  ))
+
 
 def create_started_file(bucket):
   """Create the started file in gcs for gubernator."""
@@ -61,17 +67,20 @@ def create_started_file(bucket):
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "started.json")
   util.upload_to_gcs(contents, target)
 
+
 def parse_config_file(config_file, root_dir):
   with open(config_file) as hf:
     results = yaml.load(hf)
 
   components = []
   for i in results["workflows"]:
-    components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"]))
+    components.append(
+      WorkflowComponent(i["name"], os.path.join(root_dir, i["app_dir"]),
+                        i["component"]))
   return components
 
-def run(args, file_handler): # pylint: disable=too-many-statements
+
+def run(args, file_handler):  # pylint: disable=too-many-statements
   workflows = []
   if args.config_file:
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
@@ -116,28 +125,42 @@ def run(args, file_handler): # pylint: disable=too-many-statements
 
     util.run(["ks", "env", "add", env], cwd=w.app_dir)
 
-    util.run(["ks", "param", "set", "--env=" + env, w.component,
-              "name", workflow_name],
-             cwd=w.app_dir)
+    util.run(
+      [
+        "ks", "param", "set", "--env=" + env, w.component, "name", workflow_name
+      ],
+      cwd=w.app_dir)
 
     # Set the prow environment variables.
     prow_env = []
 
-    names = ["JOB_NAME", "JOB_TYPE", "BUILD_ID", "BUILD_NUMBER",
-             "PULL_BASE_SHA", "PULL_NUMBER", "PULL_PULL_SHA", "REPO_OWNER",
-             "REPO_NAME"]
+    names = [
+      "JOB_NAME", "JOB_TYPE", "BUILD_ID", "BUILD_NUMBER", "PULL_BASE_SHA",
+      "PULL_NUMBER", "PULL_PULL_SHA", "REPO_OWNER", "REPO_NAME"
+    ]
     names.sort()
     for v in names:
       if not os.getenv(v):
         continue
       prow_env.append("{0}={1}".format(v, os.getenv(v)))
 
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "prow_env", ",".join(prow_env)],
-             cwd=w.app_dir)
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "namespace", NAMESPACE],
-             cwd=w.app_dir)
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "bucket", args.bucket],
-             cwd=w.app_dir)
+    util.run(
+      [
+        "ks", "param", "set", "--env=" + env, w.component, "prow_env",
+        ",".join(prow_env)
+      ],
+      cwd=w.app_dir)
+    util.run(
+      [
+        "ks", "param", "set", "--env=" + env, w.component, "namespace",
+        NAMESPACE
+      ],
+      cwd=w.app_dir)
+    util.run(
+      [
+        "ks", "param", "set", "--env=" + env, w.component, "bucket", args.bucket
+      ],
+      cwd=w.app_dir)
 
     # For debugging print out the manifest
     util.run(["ks", "show", env, "-c", w.component], cwd=w.app_dir)
@@ -150,9 +173,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements
 
   success = True
   try:
-    results = argo_client.wait_for_workflows(api_client, NAMESPACE,
-                                             workflow_names,
-                                             status_callback=argo_client.log_status)
+    results = argo_client.wait_for_workflows(
+      api_client,
+      NAMESPACE,
+      workflow_names,
+      status_callback=argo_client.log_status)
     for r in results:
       phase = r.get("status", {}).get("phase")
       if phase != "Succeeded":
@@ -161,21 +186,24 @@ def run(args, file_handler): # pylint: disable=too-many-statements
                    r.get("metadata", {}).get("name"), phase)
   except util.TimeoutError:
     success = False
-    logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
+    logging.error("Time out waiting for Workflows %s to finish",
+                  ",".join(workflow_names))
   finally:
     prow_artifacts.finalize_prow_job(args.bucket, success, ",".join(ui_urls))
 
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
     file_handler.flush()
-    util.upload_file_to_gcs(
-      file_handler.baseFilename,
-      os.path.join(prow_artifacts.get_gcs_dir(args.bucket), "build-log.txt"))
+    util.upload_file_to_gcs(file_handler.baseFilename,
+                            os.path.join(
+                              prow_artifacts.get_gcs_dir(args.bucket),
+                              "build-log.txt"))
 
   return success
 
+
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
-  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+  logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
   # create the top-level parser
   parser = argparse.ArgumentParser(
     description="Submit an Argo workflow to run the E2E tests.")
@@ -226,10 +254,7 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     help="The directory where the ksonnet app is stored.")
 
   parser.add_argument(
-    "--component",
-    type=str,
-    default="",
-    help="The ksonnet component to use.")
+    "--component", type=str, default="", help="The ksonnet component to use.")
 
   #############################################################################
   # Process the command line arguments.
@@ -241,16 +266,18 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   # to gubernator.
   root_logger = logging.getLogger()
 
-  with tempfile.NamedTemporaryFile(prefix="tmpRunE2eWorkflow", suffix="log") as hf:
+  with tempfile.NamedTemporaryFile(
+      prefix="tmpRunE2eWorkflow", suffix="log") as hf:
     test_log = hf.name
 
   file_handler = logging.FileHandler(test_log)
   root_logger.addHandler(file_handler)
   # We need to explicitly set the formatter because it will not pick up
   # the BasicConfig.
-  formatter = logging.Formatter(fmt=("%(levelname)s|%(asctime)s"
-                                     "|%(pathname)s|%(lineno)d| %(message)s"),
-                                datefmt="%Y-%m-%dT%H:%M:%S")
+  formatter = logging.Formatter(
+    fmt=("%(levelname)s|%(asctime)s"
+         "|%(pathname)s|%(lineno)d| %(message)s"),
+    datefmt="%Y-%m-%dT%H:%M:%S")
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
 
@@ -258,11 +285,12 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
 
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   final_result = main()
   if not final_result:

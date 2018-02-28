@@ -5,7 +5,9 @@ import mock
 from kubeflow.testing import prow_artifacts
 from google.cloud import storage  # pylint: disable=no-name-in-module
 
+
 class TestProw(unittest.TestCase):
+
   @mock.patch("kubeflow.testing.prow_artifacts.time.time")
   def testCreateStartedPresubmit(self, mock_time):  # pylint: disable=no-self-use
     """Test create started for presubmit job."""
@@ -15,10 +17,10 @@ class TestProw(unittest.TestCase):
     os.environ["REPO_NAME"] = "fake_name"
     os.environ["PULL_PULL_SHA"] = "123abc"
     expected = {
-        "timestamp": 1000,
-        "repos": {
-            "fake_org/fake_name": "123abc",
-        },
+      "timestamp": 1000,
+      "repos": {
+        "fake_org/fake_name": "123abc",
+      },
     }
 
     actual = prow_artifacts.create_started()
@@ -31,11 +33,11 @@ class TestProw(unittest.TestCase):
     mock_time.return_value = 1000
     test_urls = "https://example.com"
     expected = {
-        "timestamp": 1000,
-        "result": "FAILED",
-        "metadata": {
-          "ui-urls": "https://example.com"
-        },
+      "timestamp": 1000,
+      "result": "FAILED",
+      "metadata": {
+        "ui-urls": "https://example.com"
+      },
     }
 
     actual = prow_artifacts.create_finished(False, test_urls)
@@ -54,17 +56,18 @@ class TestProw(unittest.TestCase):
     os.environ["PULL_PULL_SHA"] = "123abc"
     os.environ["JOB_NAME"] = "kubeflow-presubmit"
 
-    args = ["--artifacts_dir=/tmp/some/dir", "copy_artifacts",
-            "--bucket=some_bucket"]
+    args = [
+      "--artifacts_dir=/tmp/some/dir", "copy_artifacts", "--bucket=some_bucket"
+    ]
     prow_artifacts.main(args)
 
-    mock_run.assert_called_once_with(
-      ["gsutil", "-m", "rsync", "-r", "/tmp/some/dir",
-       "gs://some_bucket/pr-logs/pull/fake_org_fake_name/72/kubeflow-presubmit"
-       "/100"],
-    )
+    mock_run.assert_called_once_with([
+      "gsutil", "-m", "rsync", "-r", "/tmp/some/dir",
+      "gs://some_bucket/pr-logs/pull/fake_org_fake_name/72/kubeflow-presubmit"
+      "/100"
+    ],)
 
-  def testCreateSymlink(self): # pylint: disable=no-self-use
+  def testCreateSymlink(self):  # pylint: disable=no-self-use
     gcs_client = mock.MagicMock(spec=storage.Client)
     mock_bucket = mock.MagicMock(spec=storage.Bucket)
     gcs_client.get_bucket.return_value = mock_bucket
@@ -84,8 +87,10 @@ class TestProw(unittest.TestCase):
       os.environ["PULL_PULL_SHA"] = "123abc"
       os.environ["JOB_NAME"] = "kubeflow-presubmit"
 
-      args = ["--artifacts_dir=/tmp/some/dir", "create_pr_symlink",
-              "--bucket=some-bucket"]
+      args = [
+        "--artifacts_dir=/tmp/some/dir", "create_pr_symlink",
+        "--bucket=some-bucket"
+      ]
       prow_artifacts.main(args)
 
       mock_blob.upload_from_string.assert_called_once_with(
@@ -112,6 +117,7 @@ class TestProw(unittest.TestCase):
     mock_get_junit.return_value = set(["junit_1.xml"])
     mock_get_failures.return_value = 1
     self.assertFalse(prow_artifacts.check_no_errors(gcs_client, artifacts_dir))
+
 
 if __name__ == "__main__":
   unittest.main()
