@@ -1,0 +1,12 @@
+language: python
+
+python:
+  - "3.6"
+
+install:
+  - pip install -U pip wheel
+  - pip install pipenv pylint
+  - pipenv install --system
+
+script:
+  - pylint py/**/*.py
