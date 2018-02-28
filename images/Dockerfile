@@ -4,38 +4,40 @@ FROM ubuntu:xenial
 MAINTAINER Jeremy Lewi
 
 # Never prompt the user for choices on installation/configuration of packages
-ENV DEBIAN_FRONTEND noninteractive
-ENV TERM linux
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TERM=linux
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
 
 # gcc & python-dev are needed so we can install crcmod for gsutil
 # also includes installations for Python3
 RUN set -ex \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
-        curl \
-        locales \
-        wget \
-        ca-certificates \
-        git \
-        zip \
-        unzip \
-        gcc \
-        python-dev \
-        python-setuptools \
-        python-pip \
-        python3-dev \
-        python3-setuptools \
-        python3-pip \
+    curl \
+    locales \
+    wget \
+    ca-certificates \
+    git \
+    zip \
+    unzip \
+    gcc \
+    python-dev \
+    python-setuptools \
+    python-pip \
+    python3-dev \
+    python3-setuptools \
+    python3-pip \
     && python -V \
     && python3 -V \
     && apt-get clean \
     && rm -rf \
-        /var/lib/apt/lists/* \
-        /tmp/* \
-        /var/tmp/* \
-        /usr/share/man \
-        /usr/share/doc \
-        /usr/share/doc-base
+    /var/lib/apt/lists/* \
+    /tmp/* \
+    /var/tmp/* \
+    /usr/share/man \
+    /usr/share/doc \
+    /usr/share/doc-base
 
 # Install go
 RUN cd /tmp && \
@@ -50,10 +52,10 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
     tar xzf google-cloud-sdk.tar.gz -C / && \
     rm google-cloud-sdk.tar.gz && \
     /google-cloud-sdk/install.sh \
-        --disable-installation-options \
-        --bash-completion=false \
-        --path-update=false \
-        --usage-reporting=false && \
+    --disable-installation-options \
+    --bash-completion=false \
+    --path-update=false \
+    --usage-reporting=false && \
     gcloud components install alpha beta kubectl
 
 # Install Helm
@@ -80,7 +82,7 @@ RUN curl -sS http://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 # Install glide
 RUN cd /tmp && \
     wget -O glide-v0.13.0-linux-amd64.tar.gz \
-            https://github.com/Masterminds/glide/releases/download/v0.13.0/glide-v0.13.0-linux-amd64.tar.gz && \
+    https://github.com/Masterminds/glide/releases/download/v0.13.0/glide-v0.13.0-linux-amd64.tar.gz && \
     tar -xvf glide-v0.13.0-linux-amd64.tar.gz && \
     mv ./linux-amd64/glide /usr/local/bin/
 
@@ -92,13 +94,16 @@ RUN cd /tmp && \
     mv ks_0.8.0_linux_amd64/ks /usr/local/bin && \
     chmod a+x /usr/local/bin/ks
 
-COPY ./requirements.txt /tmp/requirements.txt
+COPY ./Pipfile ./Pipfile.lock /tmp/
 
 # Install various python libraries for both Python 2 and 3 (for now)
-RUN pip install -U pip wheel && \
-    pip install -r /tmp/requirements.txt && \
+RUN cd /tmp/ && \
+    pip install -U pip wheel && \
+    pip install pipenv && \
+    pipenv install --system --two && \
     pip3 install -U pip wheel && \
-    pip3 install -r /tmp/requirements.txt
+    pip3 install pipenv && \
+    pipenv install --system --three
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
