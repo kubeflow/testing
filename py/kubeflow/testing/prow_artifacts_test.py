@@ -23,7 +23,7 @@ class TestProw(unittest.TestCase):
 
     actual = prow_artifacts.create_started()
 
-    self.assertEquals(expected, json.loads(actual))
+    self.assertEqual(expected, json.loads(actual))
 
   @mock.patch("kubeflow.testing.prow_artifacts.time.time")
   def testCreateFinished(self, mock_time):  # pylint: disable=no-self-use
@@ -40,7 +40,7 @@ class TestProw(unittest.TestCase):
 
     actual = prow_artifacts.create_finished(False, test_urls)
 
-    self.assertEquals(expected, json.loads(actual))
+    self.assertEqual(expected, json.loads(actual))
 
   @mock.patch("kubeflow.testing.prow_artifacts.util.run")
   def testCopyArtifactsPresubmit(self, mock_run):  # pylint: disable=no-self-use
