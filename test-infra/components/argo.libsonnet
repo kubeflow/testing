@@ -85,7 +85,7 @@
                     },
                   },
                 ],
-                image: "argoproj/workflow-controller:v2.0.0-alpha3",
+                image: "argoproj/workflow-controller:v2.1.0-alpha1",
                 imagePullPolicy: "IfNotPresent",
                 name: "workflow-controller",
                 resources: {},
@@ -157,7 +157,7 @@
                     value: "true",
                   },
                 ],
-                image: "argoproj/argoui:v2.0.0-alpha3",
+                image: "argoproj/argoui:v2.1.0-alpha1",
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
                 resources: {},
@@ -240,7 +240,7 @@
     config: {
       apiVersion: "v1",
       data: {
-        config: @"executorImage: argoproj/argoexec:v2.0.0-alpha2",
+        config: @"executorImage: argoproj/argoexec:v2.1.0-alpha1",
       },
       kind: "ConfigMap",
       metadata: {
