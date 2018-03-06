@@ -11,6 +11,7 @@ params + {
     },
     "debug-worker" +: {
       namespace: "kubeflow-releasing",
+      gcpCredentialsSecretName: "gcp-credentials",
     },
     "nfs-external" +: {
       namespace: "kubeflow-releasing",
