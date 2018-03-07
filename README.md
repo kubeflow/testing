@@ -40,7 +40,7 @@ Quick Links
 * The Argo workflow is defined in the repository being tested
    * We always use the worfklow at the commit being tested
 * [checkout.sh](https://github.com/kubeflow/testing/blob/master/images/checkout.sh) is used to checkout the code being tested
-   * This also checks out [kubeflow/testing]((https://github.com/kubeflow/testing/) so that all repositories can
+   * This also checks out [kubeflow/testing](https://github.com/kubeflow/testing/) so that all repositories can
      rely on it for shared tools.
 
 ## Accessing The Argo UI
