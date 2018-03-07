@@ -26,7 +26,7 @@ Here's how it works
 
 Quick Links
 
-  * [Argo UI](http://testing-argo.kubeflow.io/)
+  * [Argo UI](http://testing-argo.kubeflow.org/)
   * [Test Grid](https://k8s-testgrid.appspot.com/sig-big-data)
   * [Prow jobs for kubeflow/kubeflow](https://prow.k8s.io/?repo=kubeflow%2Fkubeflow)
 
@@ -45,7 +45,7 @@ Quick Links
 
 ## Accessing The Argo UI
 
-The UI is publicly available at http://testing-argo.kubeflow.io/
+The UI is publicly available at http://testing-argo.kubeflow.org/
 
 ## Working with the test infrastructure
 
@@ -83,7 +83,7 @@ case you can use one of the alternative methods listed below.
 
 ### Argo UI
 
-The argo UI is publicly accessible at http://testing-argo.kubeflow.io/timeline.
+The argo UI is publicly accessible at http://testing-argo.kubeflow.org/timeline.
 
 1. Find and click on the workflow corresponding to your pre/post/periodic job
 1. Select the workflow tab
