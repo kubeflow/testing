@@ -143,8 +143,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements
     util.run(["ks", "show", env, "-c", w.component], cwd=w.app_dir)
     util.run(["ks", "apply", env, "-c", w.component], cwd=w.app_dir)
 
-    ui_url = ("http://testing-argo.kubeflow.org/timeline/kubeflow-test-infra/{0}"
-              ";tab=workflow".format(workflow_name))
+    ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
+              "?tab=workflow".format(workflow_name))
     ui_urls.append(ui_url)
     logging.info("URL for workflow: %s", ui_url)
 
