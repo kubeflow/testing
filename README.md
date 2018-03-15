@@ -40,7 +40,7 @@ Quick Links
 * The Argo workflow is defined in the repository being tested
    * We always use the worfklow at the commit being tested
 * [checkout.sh](https://github.com/kubeflow/testing/blob/master/images/checkout.sh) is used to checkout the code being tested
-   * This also checks out [kubeflow/testing]((https://github.com/kubeflow/testing/) so that all repositories can
+   * This also checks out [kubeflow/testing](https://github.com/kubeflow/testing/) so that all repositories can
      rely on it for shared tools.
 
 ## Accessing The Argo UI
@@ -90,7 +90,7 @@ The argo UI is publicly accessible at http://testing-argo.kubeflow.org/timeline.
 1. From here you can select a specific step and then see the logs for that step
 
 Unfortunately there are some limitations in the Argo UI e.g.
- 
+
   * [argo/issues#710](https://github.com/argoproj/argo/issues/710) exit handlers aren't shown
 
 So if your exit handler fails you may need to look at pod logs or Stackdriver logs directly.
@@ -134,7 +134,7 @@ configured for the repository (see these [instructions](#prow-setup) for info on
        to run the Argo workflow.
 
 1. Create a prow job for that repository
-  
+
   * The command for the prow job should be set via the entrypoint baked into the Docker image
   * This way we can change the Prow job just by pushing a docker image and we don't need to update the prow config.
 
@@ -199,9 +199,9 @@ Our jobs should be added to
 ## Setting up Kubeflow Test Infrastructure
 
 Our tests require:
-  * a K8s cluster 
+  * a K8s cluster
   * Argo installed on the cluster
-  * A shared NFS filesystem  
+  * A shared NFS filesystem
 
 Our prow jobs execute Argo worflows in project/clusters owned by Kubeflow. We don't use the shared Kubernetes test clusters for this.
   * This gives us more control of the resources we want to use e.g. GPUs
@@ -218,7 +218,7 @@ NAMESPACE=kubeflow-test-infra
 
 gcloud --project=${PROJECT} container clusters create \
 	--zone=${ZONE} \
-	--machine-type=n1-standard-8 \	
+	--machine-type=n1-standard-8 \
 	${CLUSTER}
 ```
 
@@ -233,7 +233,7 @@ gcloud compute --project=${PROJECT} addresses create argo-ui --global
 ```
 gcloud services --project=${PROJECT} enable cloudbuild.googleapis.com
 gcloud services --project=${PROJECT} enable containerregistry.googleapis.com
-gcloud services --project=${PROJECT} enable container.googleapis.com  
+gcloud services --project=${PROJECT} enable container.googleapis.com
 ```
 ### Create a GCP service account
 
@@ -247,7 +247,7 @@ gcloud projects add-iam-policy-binding ${PROJECT} \
       --role=roles/viewer \
       --role=roles/cloudbuild.builds.editor \
       --role=roles/logging.viewer \
-      --role=roles/storage.admin     
+      --role=roles/storage.admin
 ```
   * Our tests create K8s resources (e.g. namespaces) which is why we grant it developer permissions.
   * Project Viewer (because GCB requires this with gcloud)
@@ -353,7 +353,7 @@ ks apply ${ENV} -c nfs-external
 ### Release infrastructure
 
 Our release infrastructure is largely identical to our test infrastructure
-except its more locked down. 
+except its more locked down.
 
 In particular, we don't expose the Argo UI publicly.
 
@@ -406,4 +406,3 @@ Webhooks for prow should already be configured according to these [instructions]
 need to set hooks per repository.
     * Use https://prow.k8s.io/hook as the target
     * Get HMAC token from k8s test team
-
