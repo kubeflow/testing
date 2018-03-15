@@ -72,6 +72,8 @@ def parse_config_file(config_file, root_dir):
   return components
 
 def run(args, file_handler): # pylint: disable=too-many-statements
+  # Print ksonnet version
+  util.run(["ks", "version"])
   workflows = []
   if args.config_file:
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
