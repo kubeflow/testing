@@ -89,9 +89,9 @@ RUN cd /tmp && \
 # Install ksonnet
 RUN cd /tmp && \
     wget -O ks.tar.gz \
-    https://github.com/ksonnet/ksonnet/releases/download/v0.9.0/ks_0.9.0_linux_amd64.tar.gz  && \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.9.1/ks_0.9.1_linux_amd64.tar.gz  && \
     tar -xvf ks.tar.gz && \
-    mv ks_0.8.0_linux_amd64/ks /usr/local/bin && \
+    mv ks_0.9.1_linux_amd64/ks /usr/local/bin && \
     chmod a+x /usr/local/bin/ks
 
 COPY ./Pipfile ./Pipfile.lock /tmp/
