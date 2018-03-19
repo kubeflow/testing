@@ -57,18 +57,22 @@ def run(command, cwd=None, env=None, dryrun=False):
     command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
   logging.info("Subprocess output:\n")
+  output = []
   while process.poll() is None:
     process.stdout.flush()
     for line in iter(process.stdout.readline, ''):
+      output.append(line.strip())
       logging.info(line.strip())
 
   process.stdout.flush()
   for line in iter(process.stdout.readline, ''):
+    output.append(line.strip())
     logging.info(line.strip())
 
   if process.returncode != 0:
-    raise subprocess.CalledProcessError("cmd: {0} exited with code {1}".format(
-      " ".join(cmd), process.returncode))
+    raise subprocess.CalledProcessError(process.returncode,
+                                        "cmd: {0} exited with code {1}".format(
+                                        " ".join(command), process.returncode), "\n".join(output))
 
 def run_and_output(command, cwd=None, env=None):
   logging.info("Running: %s \ncwd=%s", " ".join(command), cwd)
