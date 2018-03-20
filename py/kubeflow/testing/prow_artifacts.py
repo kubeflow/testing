@@ -53,7 +53,8 @@ def create_finished(success, workflow_phase, ui_urls):
   Args:
     success: Bool indicating whether the workflow succeeded or not.
     workflow_phase: Dictionary of workflow name to phase.
-    ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI for the workflows launched.
+    ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI
+      for the workflows launched.
   """
   if success:
     result = "SUCCESS"
@@ -65,7 +66,7 @@ def create_finished(success, workflow_phase, ui_urls):
       # Dictionary of extra key value pairs to display to the user.
       # TODO(jlewi): Perhaps we should add the GCR path of the Docker image
       # we are running in. We'd have to plumb this in from bootstrap.
-      "metadata": {        
+      "metadata": {
       },
   }
 
@@ -206,7 +207,8 @@ def finalize_prow_job(bucket, workflow_success, workflow_phase, ui_urls):
     bucket: The bucket where results are stored.
     workflow_success: Bool indicating whether the job should be considered succeeded or failed.
     workflow_phase: Dictionary of workflow name to phase the workflow is in.
-    ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI for the workflows launched.
+    ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI
+      for the workflows launched.
   """
   gcs_client = storage.Client()
 

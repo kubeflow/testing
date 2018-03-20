@@ -72,7 +72,7 @@ def parse_config_file(config_file, root_dir):
       i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("params", {})))
   return components
 
-def run(args, file_handler): # pylint: disable=too-many-statements
+def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
   # Print ksonnet version
   util.run(["ks", "version"])
   workflows = []
@@ -143,7 +143,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements
     util.run(["ks", "param", "set", "--env=" + env, w.component, "bucket", args.bucket],
              cwd=w.app_dir)
 
-    # Set any extra params. We do this in alphabetical order to make it easier to verify in the unittest.
+    # Set any extra params. We do this in alphabetical order to make it easier to verify in
+    # the unittest.
     param_names = w.params.keys()
     param_names.sort()
     for k in param_names:

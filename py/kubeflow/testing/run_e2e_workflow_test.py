@@ -2,6 +2,7 @@ import os
 import unittest
 import mock
 from kubeflow.testing import run_e2e_workflow
+import six
 import tempfile
 import yaml
 
@@ -20,7 +21,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
       # assertRegexpMatches uses re.search so we automatically append
       # ^ and $ so we match the beginning and end of the string.
       pattern = "^" + e + "$"
-      self.assertRegexpMatches(actual[index], pattern)
+      six.assertRegex(actual[index], pattern)
 
   @mock.patch("kubeflow.testing.run_e2e_workflow.prow_artifacts"
               ".finalize_prow_job")
@@ -81,7 +82,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
         expected,
         mock_run.call_args_list[i][0][0])
       if i > 0:
-        self.assertEquals(
+        self.assertEqual(
            "/some/dir",
            mock_run.call_args_list[i][1]["cwd"])
 
@@ -164,7 +165,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
         expected,
         mock_run.call_args_list[i][0][0])
       if i > 0:
-        self.assertEquals(
+        self.assertEqual(
            "/src/kubeflow/testing/workflows",
            mock_run.call_args_list[i][1]["cwd"])
 
