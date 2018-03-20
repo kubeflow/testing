@@ -12,6 +12,7 @@ ENV TERM linux
 RUN set -ex \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
+        build-essential \
         curl \
         locales \
         wget \
@@ -87,10 +88,19 @@ RUN cd /tmp && \
 # Install ksonnet
 RUN cd /tmp && \
     wget -O ks.tar.gz \
-    https://github.com/ksonnet/ksonnet/releases/download/v0.8.0/ks_0.8.0_linux_amd64.tar.gz  && \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.9.1/ks_0.9.1_linux_amd64.tar.gz  && \
     tar -xvf ks.tar.gz && \
-    mv ks_0.8.0_linux_amd64/ks /usr/local/bin && \
+    mv ks_0.9.1_linux_amd64/ks /usr/local/bin && \
     chmod a+x /usr/local/bin/ks
+
+RUN cd /tmp && \
+    wget https://github.com/google/jsonnet/archive/v0.9.5.tar.gz && \
+    tar -xvf v0.9.5.tar.gz && \
+    cd jsonnet-0.9.5 && \
+    make && \
+    mv jsonnet /usr/local/bin && \
+    rm -rf /tmp/v0.9.5.tar.gz && \
+    rm -rf /tmp/jsonnet-0.9.5
 
 COPY ./requirements.txt /tmp/requirements.txt
 

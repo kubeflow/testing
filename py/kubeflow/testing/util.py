@@ -261,13 +261,14 @@ def configure_kubectl(project, zone, cluster_name):
   ])
 
 
-def wait_for_deployment(api_client, namespace, name):
+def wait_for_deployment(api_client, namespace, name, timeout_minutes=2):
   """Wait for deployment to be ready.
 
   Args:
     api_client: K8s api client to use.
     namespace: The name space for the deployment.
     name: The name of the deployment.
+    timeout_minutes: Timeout interval in minutes.
 
   Returns:
     deploy: The deploy object describing the deployment.
@@ -276,7 +277,7 @@ def wait_for_deployment(api_client, namespace, name):
     TimeoutError: If timeout waiting for deployment to be ready.
   """
   # Wait for tiller to be ready
-  end_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=timeout_minutes)
 
   ext_client = k8s_client.ExtensionsV1beta1Api(api_client)
 

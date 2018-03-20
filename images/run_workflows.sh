@@ -10,7 +10,7 @@ set -ex
 
 # Trigger a workflow
 python -m kubeflow.testing.run_e2e_workflow \
-  --project=mlkube-testing \
+  --project=kubeflow-ci \
   --zone=us-east1-d \
   --cluster=kubeflow-testing \
   --bucket=kubernetes-jenkins \

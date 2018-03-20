@@ -18,7 +18,7 @@
 IMG = gcr.io/kubeflow-ci/test-worker
 RELEASE_WORKER = gcr.io/kubeflow-releasing/worker
 
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | sha256sum | cut -c -6)
+TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 DIR := ${CURDIR}
 
 all: build
