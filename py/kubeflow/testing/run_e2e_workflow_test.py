@@ -21,7 +21,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
       # assertRegexpMatches uses re.search so we automatically append
       # ^ and $ so we match the beginning and end of the string.
       pattern = "^" + e + "$"
-      six.assertRegex(actual[index], pattern)
+      six.assertRegex(self, actual[index], pattern)
 
   @mock.patch("kubeflow.testing.run_e2e_workflow.prow_artifacts"
               ".finalize_prow_job")
