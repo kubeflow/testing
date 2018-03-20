@@ -14,7 +14,7 @@ ENV LANG=C.UTF-8
 RUN set -ex \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
-<<<<<<< HEAD
+    build-essential \
     curl \
     locales \
     wget \
@@ -29,23 +29,6 @@ RUN set -ex \
     python3-dev \
     python3-setuptools \
     python3-pip \
-=======
-        build-essential \
-        curl \
-        locales \
-        wget \
-        ca-certificates \
-        git \
-        zip \
-        unzip \
-        gcc \
-        python-dev \
-        python-setuptools \
-        python-pip \
-        python3-dev \
-        python3-setuptools \
-        python3-pip \
->>>>>>> Add jsonnet to test-worker (#68)
     && python -V \
     && python3 -V \
     && apt-get clean \
@@ -112,9 +95,6 @@ RUN cd /tmp && \
     mv ks_0.9.1_linux_amd64/ks /usr/local/bin && \
     chmod a+x /usr/local/bin/ks
 
-<<<<<<< HEAD
-COPY ./Pipfile ./Pipfile.lock /tmp/
-=======
 RUN cd /tmp && \
     wget https://github.com/google/jsonnet/archive/v0.9.5.tar.gz && \
     tar -xvf v0.9.5.tar.gz && \
@@ -124,8 +104,7 @@ RUN cd /tmp && \
     rm -rf /tmp/v0.9.5.tar.gz && \
     rm -rf /tmp/jsonnet-0.9.5
 
-COPY ./requirements.txt /tmp/requirements.txt
->>>>>>> Add jsonnet to test-worker (#68)
+COPY ./Pipfile ./Pipfile.lock /tmp/
 
 # Install various python libraries for both Python 2 and 3 (for now)
 RUN cd /tmp/ && \
