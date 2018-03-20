@@ -46,10 +46,11 @@ NAMESPACE = "kubeflow-test-infra"
 class WorkflowComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
-  def __init__(self, name, app_dir, component):
+  def __init__(self, name, app_dir, component, params):
     self.name = name
     self.app_dir = app_dir
     self.component = component
+    self.params = params
 
 def _get_src_dir():
   return os.path.abspath(os.path.join(__file__, "..",))
@@ -68,7 +69,7 @@ def parse_config_file(config_file, root_dir):
   components = []
   for i in results["workflows"]:
     components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"]))
+      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("params", {})))
   return components
 
 def run(args, file_handler): # pylint: disable=too-many-statements
@@ -79,7 +80,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
 
   if args.app_dir and args.component:
-    workflows.append(WorkflowComponent("legacy", args.app_dir, args.component))
+    # TODO(jlewi): We can get rid of this branch once all repos are using a prow_config.xml file.
+    workflows.append(WorkflowComponent("legacy", args.app_dir, args.component, {}))
   create_started_file(args.bucket)
 
   util.maybe_activate_service_account()
@@ -89,7 +91,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements
 
   api_client = k8s_client.ApiClient()
   workflow_names = []
-  ui_urls = []
+  ui_urls = {}
   for w in workflows:
     # Create the name for the workflow
     # We truncate sha numbers to prevent the workflow name from being too large.
@@ -141,31 +143,40 @@ def run(args, file_handler): # pylint: disable=too-many-statements
     util.run(["ks", "param", "set", "--env=" + env, w.component, "bucket", args.bucket],
              cwd=w.app_dir)
 
+    # Set any extra params. We do this in alphabetical order to make it easier to verify in the unittest.
+    param_names = w.params.keys()
+    param_names.sort()
+    for k in param_names:
+      util.run(["ks", "param", "set", "--env=" + env, w.component, k, "{0}".format(w.params[k])],
+               cwd=w.app_dir)
+
     # For debugging print out the manifest
     util.run(["ks", "show", env, "-c", w.component], cwd=w.app_dir)
     util.run(["ks", "apply", env, "-c", w.component], cwd=w.app_dir)
 
     ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))
-    ui_urls.append(ui_url)
+    ui_urls[workflow_name] = ui_url
     logging.info("URL for workflow: %s", ui_url)
 
   success = True
+  workflow_phase = {}
   try:
     results = argo_client.wait_for_workflows(api_client, NAMESPACE,
                                              workflow_names,
                                              status_callback=argo_client.log_status)
     for r in results:
       phase = r.get("status", {}).get("phase")
+      name = r.get("metadata", {}).get("name")
+      workflow_phase[name] = phase
       if phase != "Succeeded":
         success = False
-      logging.info("Workflow %s/%s finished phase: %s", NAMESPACE,
-                   r.get("metadata", {}).get("name"), phase)
+      logging.info("Workflow %s/%s finished phase: %s", NAMESPACE, name, phase)
   except util.TimeoutError:
     success = False
     logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
   finally:
-    prow_artifacts.finalize_prow_job(args.bucket, success, ",".join(ui_urls))
+    prow_artifacts.finalize_prow_job(args.bucket, success, workflow_phase, ui_urls)
 
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs

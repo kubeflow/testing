@@ -55,6 +55,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
                                            "some-cluster",)
 
     expected_calls = [
+      ["ks", "version"],
       ["ks", "env", "add", "kubeflow-presubmit-legacy-77-123abc-1234-.*"],
       ["ks", "param", "set", "--env=.*", "workflows", "name",
            "kubeflow-presubmit-legacy-77-123abc-1234-[0-9a-z]{4}"],
@@ -79,9 +80,10 @@ class TestRunE2eWorkflow(unittest.TestCase):
       self.assertItemsMatchRegex(
         expected,
         mock_run.call_args_list[i][0][0])
-      self.assertEquals(
-         "/some/dir",
-         mock_run.call_args_list[i][1]["cwd"])
+      if i > 0:
+        self.assertEquals(
+           "/some/dir",
+           mock_run.call_args_list[i][1]["cwd"])
 
   @mock.patch("kubeflow.testing.run_e2e_workflow.prow_artifacts"
               ".finalize_prow_job")
@@ -101,6 +103,10 @@ class TestRunE2eWorkflow(unittest.TestCase):
         {"app_dir": "kubeflow/testing/workflows",
          "component": "workflows",
          "name": "wf",
+         "params": {
+           "param1": "valuea",
+           "param2": 10,
+         },
         },]
     }
     with tempfile.NamedTemporaryFile(delete=False) as hf:
@@ -126,6 +132,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
                                            "some-cluster",)
 
     expected_calls = [
+      ["ks", "version"],
       ["ks", "env", "add", "kubeflow-presubmit-wf-77-123abc-1234-.*"],
       ["ks", "param", "set", "--env=.*", "workflows", "name",
            "kubeflow-presubmit-wf-77-123abc-1234-[0-9a-z]{4}"],
@@ -142,6 +149,12 @@ class TestRunE2eWorkflow(unittest.TestCase):
       ["ks", "param", "set",
            "--env=.*",
            "workflows", "bucket", "some-bucket"],
+      ["ks", "param", "set",
+           "--env=.*",
+           "workflows", "param1", "valuea"],
+      ["ks", "param", "set",
+           "--env=.*",
+           "workflows", "param2", "10"],
       ["ks", "show", "kubeflow-presubmit.*", "-c", "workflows"],
       ["ks", "apply", "kubeflow-presubmit.*", "-c", "workflows"],
     ]
@@ -150,9 +163,10 @@ class TestRunE2eWorkflow(unittest.TestCase):
       self.assertItemsMatchRegex(
         expected,
         mock_run.call_args_list[i][0][0])
-      self.assertEquals(
-         "/src/kubeflow/testing/workflows",
-         mock_run.call_args_list[i][1]["cwd"])
+      if i > 0:
+        self.assertEquals(
+           "/src/kubeflow/testing/workflows",
+           mock_run.call_args_list[i][1]["cwd"])
 
 if __name__ == "__main__":
   unittest.main()

@@ -47,11 +47,13 @@ def create_started():
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
 # version. We should do that when we switch tensorflow/k8s to use Argo instead
 # of Airflow.
-def create_finished(success, ui_urls):
+def create_finished(success, workflow_phase, ui_urls):
   """Create a string containing the contents for finished.json.
 
   Args:
     success: Bool indicating whether the workflow succeeded or not.
+    workflow_phase: Dictionary of workflow name to phase.
+    ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI for the workflows launched.
   """
   if success:
     result = "SUCCESS"
@@ -63,16 +65,21 @@ def create_finished(success, ui_urls):
       # Dictionary of extra key value pairs to display to the user.
       # TODO(jlewi): Perhaps we should add the GCR path of the Docker image
       # we are running in. We'd have to plumb this in from bootstrap.
-      "metadata": {
-        "ui-urls": ui_urls
+      "metadata": {        
       },
   }
 
+  names = set()
+  names.update(workflow_phase.keys())
+  names.update(ui_urls.keys())
+  for n in names:
+    finished["metadata"][n + "-phase"] = workflow_phase.get(n, "")
+    finished["metadata"][n + "-ui"] = ui_urls.get(n, "")
   return json.dumps(finished)
 
-def create_finished_file(bucket, success, ui_urls):
+def create_finished_file(bucket, success, workflow_phase, ui_urls):
   """Create the started file in gcs for gubernator."""
-  contents = create_finished(success, ui_urls)
+  contents = create_finished(success, workflow_phase, ui_urls)
 
   target = os.path.join(get_gcs_dir(bucket), "finished.json")
   util.upload_to_gcs(contents, target)
@@ -189,7 +196,7 @@ def check_no_errors(gcs_client, artifacts_dir):
 
   return no_errors
 
-def finalize_prow_job(bucket, workflow_success, ui_urls):
+def finalize_prow_job(bucket, workflow_success, workflow_phase, ui_urls):
   """Finalize a prow job.
 
   Finalizing a PROW job consists of determining the status of the
@@ -197,8 +204,9 @@ def finalize_prow_job(bucket, workflow_success, ui_urls):
 
   Args
     bucket: The bucket where results are stored.
-    workflow_success: Bool indicating whether the workflow succeeded or not.
-    ui_urls: String corresponding to the Argo UI for the workflows launched.
+    workflow_success: Bool indicating whether the job should be considered succeeded or failed.
+    workflow_phase: Dictionary of workflow name to phase the workflow is in.
+    ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI for the workflows launched.
   """
   gcs_client = storage.Client()
 
@@ -212,7 +220,7 @@ def finalize_prow_job(bucket, workflow_success, ui_urls):
   if workflow_success:
     workflow_success = check_no_errors(gcs_client, artifacts_dir)
 
-  create_finished_file(bucket, workflow_success, ui_urls)
+  create_finished_file(bucket, workflow_success, workflow_phase, ui_urls)
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
