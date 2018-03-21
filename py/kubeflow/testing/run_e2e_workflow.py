@@ -165,7 +165,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements
     success = False
     logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
   finally:
-    prow_artifacts.finalize_prow_job(args.bucket, success, ",".join(ui_urls))
+    success = prow_artifacts.finalize_prow_job(args.bucket, success, ",".join(ui_urls))
 
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
