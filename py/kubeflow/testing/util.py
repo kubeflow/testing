@@ -243,13 +243,14 @@ def configure_kubectl(project, zone, cluster_name):
   run(["gcloud", "--project=" + project, "container",
        "clusters", "--zone=" + zone, "get-credentials", cluster_name])
 
-def wait_for_deployment(api_client, namespace, name):
+def wait_for_deployment(api_client, namespace, name, timeout_minutes=2):
   """Wait for deployment to be ready.
 
   Args:
     api_client: K8s api client to use.
     namespace: The name space for the deployment.
     name: The name of the deployment.
+    timeout_minutes: Timeout interval in minutes.
 
   Returns:
     deploy: The deploy object describing the deployment.
@@ -258,7 +259,7 @@ def wait_for_deployment(api_client, namespace, name):
     TimeoutError: If timeout waiting for deployment to be ready.
   """
   # Wait for tiller to be ready
-  end_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=timeout_minutes)
 
   ext_client = k8s_client.ExtensionsV1beta1Api(api_client)
 
@@ -421,7 +422,9 @@ def setup_cluster(api_client):
   if use_gpus:
     wait_for_gpu_driver_install(api_client)
 
-class TimeoutError(Exception):
+# TODO(jlewi): TimeoutError should be built in in python3 so once
+# we migrate to Python3 we should be able to get rid of this.
+class TimeoutError(Exception):  # pylint: disable=redefined-builtin
   """An error indicating an operation timed out."""
 
 GCS_REGEX = re.compile("gs://([^/]*)(/.*)?")
