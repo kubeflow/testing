@@ -422,7 +422,9 @@ def setup_cluster(api_client):
   if use_gpus:
     wait_for_gpu_driver_install(api_client)
 
-class TimeoutError(Exception):
+# TODO(jlewi): TimeoutError should be built in in python3 so once
+# we migrate to Python3 we should be able to get rid of this.
+class TimeoutError(Exception):  # pylint: disable=redefined-builtin
   """An error indicating an operation timed out."""
 
 GCS_REGEX = re.compile("gs://([^/]*)(/.*)?")
