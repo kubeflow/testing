@@ -285,12 +285,14 @@ gcloud projects add-iam-policy-binding ${PROJECT} \
       --role=roles/viewer \
       --role=roles/cloudbuild.builds.editor \
       --role=roles/logging.viewer \
-      --role=roles/storage.admin
+      --role=roles/storage.admin \
+      --role=roles/compute.instanceAdmin.v1
 ```
   * Our tests create K8s resources (e.g. namespaces) which is why we grant it developer permissions.
   * Project Viewer (because GCB requires this with gcloud)
   * Kubernetes Engine Admin (some tests create GKE clusters)
   * Logs viewer (for GCB)
+  * Compute Instance Admin to create VMs for minikube
   * Storage Admin (For GCR)
 
 
