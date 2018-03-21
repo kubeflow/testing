@@ -204,6 +204,7 @@ def finalize_prow_job(bucket, workflow_success, workflow_phase, ui_urls):
   prow job by looking at the junit files and then creating finished.json.
 
   Args
+    bucket: The bucket where results are stored.
     workflow_success: Bool indicating whether the job should be considered succeeded or failed.
     workflow_phase: Dictionary of workflow name to phase the workflow is in.
     ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI
@@ -226,7 +227,7 @@ def finalize_prow_job(bucket, workflow_success, workflow_phase, ui_urls):
   else:
     test_success = False
 
-  create_finished_file(bucket, workflow_success, workflow_phase, ui_urls)
+  create_finished_file(bucket, test_success, workflow_phase, ui_urls)
   return test_success
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
