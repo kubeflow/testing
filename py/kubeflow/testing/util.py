@@ -470,6 +470,7 @@ def load_kube_config(config_file=None, context=None,
 
   if config_file is None:
     config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
+  logging.info("Using Kubernetes config file: %s", config_file)
 
   config_persister = None
   if persist_config:
