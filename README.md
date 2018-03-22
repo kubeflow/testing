@@ -163,8 +163,8 @@ configured for the repository (see these [instructions](#prow-setup) for info on
   * The first step in the workflow should checkout the code using [checkout.sh](https://github.com/kubeflow/testing/tree/master/images/checkout.sh)
   * Code should be checked out to a shared NFS volume to make it accessible to subsequent steps
 1. Create a container to use with the Prow job
-  * For an example look at the [kubeflow/testing](https://github.com/kubeflow/testing/blob/master/images/Dockerfile) repository
-  * Image should be based on `gcr.io/mlkube-testing/test-worker`
+  * For an example look at the [kubeflow/testing](https://github.com/kubeflow/testing/blob/master/images/Dockerfile) Dockerfile
+  * Image should be based on `kubeflow-ci/test-worker`
   * Create an entrypoint that does two things
 
     1. Run [checkout.sh](https://github.com/kubeflow/testing/images/checkout.sh) to download the source
