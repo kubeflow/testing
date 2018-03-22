@@ -27,12 +27,13 @@ from kubernetes.client import rest
 MASTER_REPO_OWNER = "tensorflow"
 MASTER_REPO_NAME = "k8s"
 
-# TODO(jlewi): Should we stream the output by polling the subprocess?
-# look at run_and_stream in build_and_push.
-def run(command, cwd=None, env=None, dryrun=False):
+def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds=1)):
   """Run a subprocess.
 
   Any subprocess output is emitted through the logging modules.
+  
+  Returns:
+    output: A string containing the output.
   """
   logging.info("Running: %s \ncwd=%s", " ".join(command), cwd)
 
@@ -47,11 +48,6 @@ def run(command, cwd=None, env=None, dryrun=False):
     logging.info("Running: Environment:\n%s", "\n".join(lines))
 
   log_file = None
-  
-  if dryrun:
-    command_str = ("Dryrun: Command:\n{0}\nCWD:\n{1}\n"
-                   "Environment:\n{2}").format(" ".join(command), cwd, env)
-    logging.info(command_str)
 
   process = subprocess.Popen(
     command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -64,6 +60,8 @@ def run(command, cwd=None, env=None, dryrun=False):
       output.append(line.strip())
       logging.info(line.strip())
 
+    time.sleep(polling_interval.total_seconds())
+
   process.stdout.flush()
   for line in iter(process.stdout.readline, ''):
     output.append(line.strip())
@@ -74,21 +72,11 @@ def run(command, cwd=None, env=None, dryrun=False):
                                         "cmd: {0} exited with code {1}".format(
                                         " ".join(command), process.returncode), "\n".join(output))
 
-def run_and_output(command, cwd=None, env=None):
-  logging.info("Running: %s \ncwd=%s", " ".join(command), cwd)
+  return "\n".join(output)
 
-  if not env:
-    env = os.environ
-  # The output won't be available until the command completes.
-  # So prefer using run if we don't need to return the output.
-  try:
-    output = subprocess.check_output(command, cwd=cwd, env=env,
-                                     stderr=subprocess.STDOUT).decode("utf-8")
-    logging.info("Subprocess output:\n%s", output)
-  except subprocess.CalledProcessError as e:
-    logging.info("Subprocess output:\n%s", e.output)
-    raise
-  return output
+# TODO(jlewi): We should update callers to use run and just delete this function.
+def run_and_output(*args, **argv):
+  return run(*args, **argv)
 
 
 def clone_repo(dest, repo_owner=MASTER_REPO_OWNER, repo_name=MASTER_REPO_NAME,
