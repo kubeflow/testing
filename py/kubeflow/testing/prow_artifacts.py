@@ -209,6 +209,8 @@ def finalize_prow_job(bucket, workflow_success, workflow_phase, ui_urls):
     workflow_phase: Dictionary of workflow name to phase the workflow is in.
     ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI
       for the workflows launched.
+  Returns:
+    test_success: Bool indicating whether all tests succeeded.
   """
   gcs_client = storage.Client()
 
@@ -219,10 +221,14 @@ def finalize_prow_job(bucket, workflow_success, workflow_phase, ui_urls):
   # We don't need to check the junit files for test failures because we
   # already know it failed; furthermore we can't rely on the junit files
   # if the workflow didn't succeed because not all junit files might be there.
+  test_success = True
   if workflow_success:
-    workflow_success = check_no_errors(gcs_client, artifacts_dir)
+    test_success = check_no_errors(gcs_client, artifacts_dir)
+  else:
+    test_success = False
 
-  create_finished_file(bucket, workflow_success, workflow_phase, ui_urls)
+  create_finished_file(bucket, test_success, workflow_phase, ui_urls)
+  return test_success
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
