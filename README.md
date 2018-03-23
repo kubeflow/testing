@@ -89,17 +89,14 @@ The argo UI is publicly accessible at http://testing-argo.kubeflow.org/timeline.
 1. Select the workflow tab
 1. From here you can select a specific step and then see the logs for that step
 
-Unfortunately there are some limitations in the Argo UI e.g.
-
-  * [argo/issues#710](https://github.com/argoproj/argo/issues/710) exit handlers aren't shown
-
-So if your exit handler fails you may need to look at pod logs or Stackdriver logs directly.
-
 ### Stackdriver logs
 
-Since we run our E2E tests on GKE, all logs are persisted in Stackdriver logging.
+Since we run our E2E tests on GKE, all logs are persisted in [Stackdriver logging](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci&resource=k8s_cluster%2Flocation%2Fus-east1-d%2Fcluster_name%2Fkubeflow-testing).
 
-Access to Stackdriver logs is restricted. We are working on giving sufficient access to members of the community ([kubeflow/testing#5](https://github.com/kubeflow/testing/issues/5)).
+Viewer access to Stackdriver logs is available by joining one of the following groups
+
+  * ci-viewer@kubeflow.org
+  * ci-team@kubeflow.org
 
 If you know the pod id corresponding to the step of interest then you can use the following Stackdriver filter
 
@@ -115,6 +112,47 @@ The ${POD_ID} is of the form
 ```
 ${WORKFLOW_ID}-${RANDOM_ID}
 ```
+
+## Debugging Failed Tests
+
+### No results show up in Gubernator
+
+If no results show up in Gubernator this means the prow job didn't get far enough to upload any results/logs to GCS.
+
+To debug this you need the pod logs. You can access the pod logs via the build log link for your job in the [prow jobs UI](https://prow.k8s.io/)
+
+  * Pod logs are ephmeral so you need to check shortly after your job runs.
+
+The pod logs are available in StackDriver but only the Google Kubeflow Team has access
+  * Prow runs on a cluster owned by the K8s team not Kubeflow
+  * This policy is determined by K8s not Kubeflow
+  * This could potentially be fixed by using our own prow build cluster [issue#32](https://github.com/kubeflow/testing/issues/32)
+
+To access the stackdriver logs 
+  
+  * Open stackdriver for project **k8s-prow-builds**
+  * Get the pod ID by clicking on the build log in the [prow jobs UI](https://prow.k8s.io/)
+  * Filter the logs using 
+
+  ```
+  resource.type="container"
+  resource.labels.pod_id=${POD_ID}
+  ```
+
+### Debugging Failed Deployments
+
+If an E2E test fails because a pod doesn't start (e.g JupyterHub) we can debug this by looking at the events associated with the pod.
+If you have access to the pod you can do `kubectl describe pods`.
+
+Events are also persisted to StackDriver and can be fetched with a query like the following.
+
+```
+resource.labels.cluster_name="kubeflow-testing"
+logName="projects/kubeflow-ci/logs/events" 
+jsonPayload.involvedObject.namespace = "kubeflow-presubmit-tf-serving-image-299-439a983-360-fa0d"
+```
+
+  * Change the namespace to be the actual namespace used for the test
 
 ## Adding an E2E test for a new repository
 
@@ -247,12 +285,14 @@ gcloud projects add-iam-policy-binding ${PROJECT} \
       --role=roles/viewer \
       --role=roles/cloudbuild.builds.editor \
       --role=roles/logging.viewer \
-      --role=roles/storage.admin
+      --role=roles/storage.admin \
+      --role=roles/compute.instanceAdmin.v1
 ```
   * Our tests create K8s resources (e.g. namespaces) which is why we grant it developer permissions.
   * Project Viewer (because GCB requires this with gcloud)
   * Kubernetes Engine Admin (some tests create GKE clusters)
   * Logs viewer (for GCB)
+  * Compute Instance Admin to create VMs for minikube
   * Storage Admin (For GCR)
 
 
