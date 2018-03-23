@@ -91,7 +91,7 @@ The argo UI is publicly accessible at http://testing-argo.kubeflow.org/timeline.
 
 ### Stackdriver logs
 
-Since we run our E2E tests on GKE, all logs are persisted in Stackdriver logging.
+Since we run our E2E tests on GKE, all logs are persisted in [Stackdriver logging](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci&resource=k8s_cluster%2Flocation%2Fus-east1-d%2Fcluster_name%2Fkubeflow-testing).
 
 Viewer access to Stackdriver logs is available by joining one of the following groups
 
@@ -113,7 +113,7 @@ The ${POD_ID} is of the form
 ${WORKFLOW_ID}-${RANDOM_ID}
 ```
 
-## Debuging Failed Tests
+## Debugging Failed Tests
 
 ### No results show up in Gubernator
 
