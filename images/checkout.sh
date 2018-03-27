@@ -2,7 +2,7 @@
 #
 # This script is used to bootstrap our prow jobs.
 # The point of this script is to check out repositories
-# at the commit corresponding to the Prow job. 
+# at the commit corresponding to the Prow job.
 #
 # In addition to understanding the prow environment variables.
 # the environment variable EXTRA_REPOS can be used to specify
@@ -16,7 +16,10 @@ set -xe
 
 SRC_DIR=$1
 
-mkdir -p /src/${REPO_OWNER}
+# Since we use a shared mount, during re-runs of release
+# git clone will fail. So clean up everything under the
+# ${SRC_DIR} to start from a clean directory
+rm -rm ${SRC_DIR}/*
 
 # TODO(jlewi): We should eventually move the code for running the workflow from
 # kubeflow/kubeflow into kubeflow/testing
@@ -34,7 +37,7 @@ if [ ! -z ${PULL_NUMBER} ]; then
  else
  	git checkout pr
  fi
- 
+
 else
  if [ ! -z ${PULL_BASE_SHA} ]; then
  	# Its a post submit; checkout the commit to test.
@@ -55,12 +58,12 @@ git status
 IFS=';' read -ra REPOS <<< "${EXTRA_REPOS}"
 echo REPOS=${REPOS}
 for r in "${REPOS[@]}"; do
-  echo "Processing ${r}" 
+  echo "Processing ${r}"
   ORG_NAME="$(cut -d'@' -f1 <<< "$r")"
   EXTRA_ORG="$(cut -d'/' -f1 <<< "$ORG_NAME")"
   EXTRA_NAME="$(cut -d'/' -f2<<< "$ORG_NAME")"
-  SHA_AND_PR="$(cut -d'@' -f2 <<< "$r")"  
-  SHA="$(cut -d':' -f1 <<< "$SHA_AND_PR")"  
+  SHA_AND_PR="$(cut -d'@' -f2 <<< "$r")"
+  SHA="$(cut -d':' -f1 <<< "$SHA_AND_PR")"
   EXTRA_PR="$(cut -d':' -s -f2 <<< "$SHA_AND_PR")"
   URL=https://github.com/${EXTRA_ORG}/${EXTRA_NAME}.git
   TARGET=${SRC_DIR}/${EXTRA_ORG}/${EXTRA_NAME}
@@ -74,15 +77,15 @@ for r in "${REPOS[@]}"; do
 
 	  	if [ "$SHA" -ne "HEAD" ]; then
 	  		git checkout ${SHA}
-		fi  		
-  	else  	
+		fi
+  	else
   		git checkout ${SHA}
-	fi  
+	fi
 	echo ${TARGET} is at `git describe --tags --always --dirty`
   else
   	echo Error ${TARGET} already exists not cloning ${URL}
   fi
-done	
+done
 
 # Check out the kubeflow/testing repo (unless that's the repo being tested)
 # since it contains common utilities.
@@ -90,4 +93,4 @@ done
 # an EXTRA_REPOS.
 if [ ! -d ${SRC_DIR}/kubeflow/testing ]; then
 	git clone https://github.com/kubeflow/testing.git ${SRC_DIR}/kubeflow/testing
-fi	
+fi
