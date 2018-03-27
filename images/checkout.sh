@@ -21,8 +21,6 @@ SRC_DIR=$1
 # ${SRC_DIR} to start from a clean directory
 rm -rf ${SRC_DIR}/*
 
-mkdir -p ${SRC_DIR}/${REPO_OWNER}
-
 # TODO(jlewi): We should eventually move the code for running the workflow from
 # kubeflow/kubeflow into kubeflow/testing
 git clone https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${SRC_DIR}/${REPO_OWNER}/${REPO_NAME}
