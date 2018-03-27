@@ -19,7 +19,9 @@ SRC_DIR=$1
 # Since we use a shared mount, during re-runs of release
 # git clone will fail. So clean up everything under the
 # ${SRC_DIR} to start from a clean directory
-rm -rm ${SRC_DIR}/*
+rm -rf ${SRC_DIR}/*
+
+mkdir -p ${SRC_DIR}/${REPO_OWNER}
 
 # TODO(jlewi): We should eventually move the code for running the workflow from
 # kubeflow/kubeflow into kubeflow/testing
