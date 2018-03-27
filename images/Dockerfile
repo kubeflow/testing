@@ -21,6 +21,7 @@ RUN set -ex \
         zip \
         unzip \
         gcc \
+        ssh \
         python-dev \
         python-setuptools \
         python-pip \

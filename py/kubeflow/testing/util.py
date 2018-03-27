@@ -26,13 +26,13 @@ from kubernetes.client import rest
 MASTER_REPO_OWNER = "tensorflow"
 MASTER_REPO_NAME = "k8s"
 
-
-# TODO(jlewi): Should we stream the output by polling the subprocess?
-# look at run_and_stream in build_and_push.
-def run(command, cwd=None, env=None, dryrun=False):
+def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds=1)):
   """Run a subprocess.
 
   Any subprocess output is emitted through the logging modules.
+
+  Returns:
+    output: A string containing the output.
   """
   logging.info("Running: %s \ncwd=%s", " ".join(command), cwd)
 
@@ -47,41 +47,35 @@ def run(command, cwd=None, env=None, dryrun=False):
     logging.info("Running: Environment:\n%s", "\n".join(lines))
 
   log_file = None
-  try:
-    if dryrun:
-      command_str = ("Dryrun: Command:\n{0}\nCWD:\n{1}\n"
-                     "Environment:\n{2}").format(" ".join(command), cwd, env)
-      logging.info(command_str)
 
-    # We write stderr/stdout to a file and then read it and process it.
-    # We do this because if just inherit the handles from the parent the
-    # subprocess output doesn't show up in Airflow. This might be because
-    # we had multiple levels of processes invoking python processes.
-    with tempfile.NamedTemporaryFile(
-        prefix="tmpRunLogs", delete=False, mode="w") as hf:
-      log_file = hf.name
-      subprocess.check_call(command, cwd=cwd, env=env, stdout=hf, stderr=hf)
-  finally:
-    with open(log_file, "r") as hf:
-      output = hf.read()
-    logging.info("Subprocess output:\n%s", output)
+  process = subprocess.Popen(
+    command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
+  logging.info("Subprocess output:\n")
+  output = []
+  while process.poll() is None:
+    process.stdout.flush()
+    for line in iter(process.stdout.readline, ''):
+      output.append(line.strip())
+      logging.info(line.strip())
 
-def run_and_output(command, cwd=None, env=None):
-  logging.info("Running: %s \ncwd=%s", " ".join(command), cwd)
+    time.sleep(polling_interval.total_seconds())
 
-  if not env:
-    env = os.environ
-  # The output won't be available until the command completes.
-  # So prefer using run if we don't need to return the output.
-  try:
-    output = subprocess.check_output(
-      command, cwd=cwd, env=env, stderr=subprocess.STDOUT).decode("utf-8")
-    logging.info("Subprocess output:\n%s", output)
-  except subprocess.CalledProcessError as e:
-    logging.info("Subprocess output:\n%s", e.output)
-    raise
-  return output
+  process.stdout.flush()
+  for line in iter(process.stdout.readline, ''):
+    output.append(line.strip())
+    logging.info(line.strip())
+
+  if process.returncode != 0:
+    raise subprocess.CalledProcessError(process.returncode,
+                                        "cmd: {0} exited with code {1}".format(
+                                        " ".join(command), process.returncode), "\n".join(output))
+
+  return "\n".join(output)
+
+# TODO(jlewi): We should update callers to use run and just delete this function.
+def run_and_output(*args, **argv):
+  return run(*args, **argv)
 
 
 def clone_repo(dest,
@@ -446,8 +440,9 @@ def setup_cluster(api_client):
   if use_gpus:
     wait_for_gpu_driver_install(api_client)
 
-
-class TimeoutError(Exception):
+# TODO(jlewi): TimeoutError should be built in in python3 so once
+# we migrate to Python3 we should be able to get rid of this.
+class TimeoutError(Exception):  # pylint: disable=redefined-builtin
   """An error indicating an operation timed out."""
 
 
@@ -500,6 +495,7 @@ def load_kube_config(config_file=None,
 
   if config_file is None:
     config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
+  logging.info("Using Kubernetes config file: %s", config_file)
 
   config_persister = None
   if persist_config:

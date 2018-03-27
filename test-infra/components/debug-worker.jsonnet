@@ -1,7 +1,7 @@
 // This component defines a stateful set that just starts a pod using the same image
 // as the workers used by our Argo workflows and mounts the same NFS volumes.
 // This is useful for looking at the files because you can just do kubectl exec.
-local params = std.extVar("__ksonnet/params").components["nfs-external"];
+local params = std.extVar("__ksonnet/params").components["debug-worker"];
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
@@ -65,7 +65,7 @@ local ss = {
               {
                 "name": "gcp-credentials", 
                 "secret": {
-                  "secretName": "kubeflow-testing-credentials"
+                  "secretName": params.gcpCredentialsSecretName,
                 }
               }
             ]

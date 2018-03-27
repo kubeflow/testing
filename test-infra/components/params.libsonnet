@@ -18,6 +18,7 @@
     "debug-worker": {
       name: "debug-worker",
       namespace: "kubeflow-test-infra",
+      gcpCredentialsSecretName: "kubeflow-testing-credentials",
     },
   },
 }
