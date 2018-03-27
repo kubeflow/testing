@@ -60,10 +60,7 @@ class XMLTest(unittest.TestCase):
     e.write(s)
     xml_value = s.getvalue()
     self.assertEqual(0, test_util.get_num_failures(xml_value))
-<<<<<<< HEAD
 
-=======
->>>>>>> master
 
 class TestSuiteTest(unittest.TestCase):
 
@@ -124,10 +121,7 @@ class TestWrapTest(unittest.TestCase):
     self.assertRaises(ValueError, test_util.wrap_test, run, t)
     self.assertGreater(t.time, 0)
     self.assertEqual("Test failed; some error", t.failure)
-<<<<<<< HEAD
 
-=======
->>>>>>> master
 
 if __name__ == "__main__":
   unittest.main()

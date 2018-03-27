@@ -62,13 +62,12 @@ def create_finished(success, workflow_phase, ui_urls):
   else:
     result = "FAILED"
   finished = {
-      "timestamp": int(time.time()),
-      "result": result,
-      # Dictionary of extra key value pairs to display to the user.
-      # TODO(jlewi): Perhaps we should add the GCR path of the Docker image
-      # we are running in. We'd have to plumb this in from bootstrap.
-      "metadata": {
-      },
+    "timestamp": int(time.time()),
+    "result": result,
+    # Dictionary of extra key value pairs to display to the user.
+    # TODO(jlewi): Perhaps we should add the GCR path of the Docker image
+    # we are running in. We'd have to plumb this in from bootstrap.
+    "metadata": {},
   }
 
   names = set()
@@ -78,6 +77,7 @@ def create_finished(success, workflow_phase, ui_urls):
     finished["metadata"][n + "-phase"] = workflow_phase.get(n, "")
     finished["metadata"][n + "-ui"] = ui_urls.get(n, "")
   return json.dumps(finished)
+
 
 def create_finished_file(bucket, success, workflow_phase, ui_urls):
   """Create the started file in gcs for gubernator."""
@@ -202,6 +202,7 @@ def check_no_errors(gcs_client, artifacts_dir):
       no_errors = False
 
   return no_errors
+
 
 def finalize_prow_job(bucket, workflow_success, workflow_phase, ui_urls):
   """Finalize a prow job.

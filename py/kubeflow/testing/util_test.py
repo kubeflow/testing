@@ -38,5 +38,6 @@ class UtilTest(unittest.TestCase):
     self.assertEqual("some-bucket", bucket)
     self.assertEqual("", path)
 
+
 if __name__ == "__main__":
   unittest.main()

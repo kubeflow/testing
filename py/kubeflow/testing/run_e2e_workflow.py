@@ -75,11 +75,13 @@ def parse_config_file(config_file, root_dir):
 
   components = []
   for i in results["workflows"]:
-    components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("params", {})))
+    components.append(
+      WorkflowComponent(i["name"], os.path.join(root_dir, i["app_dir"]),
+                        i["component"], i.get("params", {})))
   return components
 
-def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
+
+def run(args, file_handler):  # pylint: disable=too-many-statements,too-many-branches
   # Print ksonnet version
   util.run(["ks", "version"])
   workflows = []
@@ -88,7 +90,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   if args.app_dir and args.component:
     # TODO(jlewi): We can get rid of this branch once all repos are using a prow_config.xml file.
-    workflows.append(WorkflowComponent("legacy", args.app_dir, args.component, {}))
+    workflows.append(
+      WorkflowComponent("legacy", args.app_dir, args.component, {}))
   create_started_file(args.bucket)
 
   util.maybe_activate_service_account()
@@ -169,15 +172,20 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     param_names = w.params.keys()
     param_names.sort()
     for k in param_names:
-      util.run(["ks", "param", "set", "--env=" + env, w.component, k, "{0}".format(w.params[k])],
-               cwd=w.app_dir)
+      util.run(
+        [
+          "ks", "param", "set", "--env=" + env, w.component, k, "{0}".format(
+            w.params[k])
+        ],
+        cwd=w.app_dir)
 
     # For debugging print out the manifest
     util.run(["ks", "show", env, "-c", w.component], cwd=w.app_dir)
     util.run(["ks", "apply", env, "-c", w.component], cwd=w.app_dir)
 
-    ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
-              "?tab=workflow".format(workflow_name))
+    ui_url = (
+      "http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
+      "?tab=workflow".format(workflow_name))
     ui_urls[workflow_name] = ui_url
     logging.info("URL for workflow: %s", ui_url)
 
@@ -201,7 +209,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     logging.error("Time out waiting for Workflows %s to finish",
                   ",".join(workflow_names))
   finally:
-    success = prow_artifacts.finalize_prow_job(args.bucket, success, workflow_phase, ui_urls)
+    success = prow_artifacts.finalize_prow_job(args.bucket, success,
+                                               workflow_phase, ui_urls)
 
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs

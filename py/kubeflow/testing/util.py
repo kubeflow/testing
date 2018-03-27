@@ -26,7 +26,11 @@ from kubernetes.client import rest
 MASTER_REPO_OWNER = "tensorflow"
 MASTER_REPO_NAME = "k8s"
 
-def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds=1)):
+
+def run(command,
+        cwd=None,
+        env=None,
+        polling_interval=datetime.timedelta(seconds=1)):
   """Run a subprocess.
 
   Any subprocess output is emitted through the logging modules.
@@ -67,11 +71,12 @@ def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds
     logging.info(line.strip())
 
   if process.returncode != 0:
-    raise subprocess.CalledProcessError(process.returncode,
-                                        "cmd: {0} exited with code {1}".format(
-                                        " ".join(command), process.returncode), "\n".join(output))
+    raise subprocess.CalledProcessError(
+      process.returncode, "cmd: {0} exited with code {1}".format(
+        " ".join(command), process.returncode), "\n".join(output))
 
   return "\n".join(output)
+
 
 # TODO(jlewi): We should update callers to use run and just delete this function.
 def run_and_output(*args, **argv):
@@ -271,7 +276,8 @@ def wait_for_deployment(api_client, namespace, name, timeout_minutes=2):
     TimeoutError: If timeout waiting for deployment to be ready.
   """
   # Wait for tiller to be ready
-  end_time = datetime.datetime.now() + datetime.timedelta(minutes=timeout_minutes)
+  end_time = datetime.datetime.now() + datetime.timedelta(
+    minutes=timeout_minutes)
 
   ext_client = k8s_client.ExtensionsV1beta1Api(api_client)
 
@@ -439,6 +445,7 @@ def setup_cluster(api_client):
   wait_for_deployment(api_client, "kube-system", "tiller-deploy")
   if use_gpus:
     wait_for_gpu_driver_install(api_client)
+
 
 # TODO(jlewi): TimeoutError should be built in in python3 so once
 # we migrate to Python3 we should be able to get rid of this.
