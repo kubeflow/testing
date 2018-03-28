@@ -12,6 +12,8 @@
 #
 # For a pull request do
 # {REPO_ORG}/{REPO_NAME}@{SHA}:{PULL_NUMBER}
+#
+# You can use HEAD as the sha to get the latest for a pull request.
 set -xe
 
 SRC_DIR=$1

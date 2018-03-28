@@ -325,6 +325,16 @@ kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluste
 ```
 * The service account is used to deploye Kubeflow which entails creating various roles; so it needs sufficient RBAC permission to do so.
 
+Add a clusterrolebinding that uses the numeric id of the service account as a work around for
+[ksonnet/ksonnet#396](https://github.com/ksonnet/ksonnet/issues/396)
+
+
+```
+NUMERIC_ID=`gcloud --project=kubeflow-ci iam service-accounts describe ${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com --format="value(oauth2ClientId)"`
+kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-numeric-id-admin --clusterrole=cluster-admin  \
+    --user=${NUMERIC_ID}
+```
+
 ### Create a GitHub Token
 
 You need to use a GitHub token with ksonnet otherwise the test quickly runs into GitHub API limits.
