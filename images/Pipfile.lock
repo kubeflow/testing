@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c143af5b9ac61796ebf56da5c5ce6299f16d12ca9b70223a730450c3417fc52b"
+            "sha256": "56428975cf0e390449e1eff36e6847bc7e4aa194ac04b7f9bd18dc654109a77e"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -390,5 +390,13 @@
             "version": "==1.10.11"
         }
     },
-    "develop": {}
+    "develop": {
+        "yapf": {
+            "hashes": [
+                "sha256:0ba4765012218b67a8c67da5c045d1fb9171d786ffe8dce6c8d1e11cbbaba8eb",
+                "sha256:7f5efdb7edf0318b91e53721d934580a77153e24a222f52f6e1c3b7629aead43"
+            ],
+            "version": "==0.20.2"
+        }
+    }
 }
