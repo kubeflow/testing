@@ -6,7 +6,6 @@ import logging
 import os
 import re
 import subprocess
-import tempfile
 import time
 import urllib
 import yaml
@@ -31,7 +30,7 @@ def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds
   """Run a subprocess.
 
   Any subprocess output is emitted through the logging modules.
-  
+
   Returns:
     output: A string containing the output.
   """
@@ -46,8 +45,6 @@ def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds
     for k in keys:
       lines.append("{0}={1}".format(k, env[k]))
     logging.info("Running: Environment:\n%s", "\n".join(lines))
-
-  log_file = None
 
   process = subprocess.Popen(
     command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -434,15 +431,23 @@ def split_gcs_uri(gcs_uri):
 
 def _refresh_credentials():
   # userinfo.email scope was insufficient for authorizing requests to K8s.
+  # We need userinfo.email because role bindings can be expressed in terms
+  # of email and these won't work without email scope.
   credentials, _ = google.auth.default(
-    scopes=["https://www.googleapis.com/auth/cloud-platform"])
+    scopes=["https://www.googleapis.com/auth/cloud-platform",
+            "https://www.googleapis.com/auth/userinfo.email"])
   request = google.auth.transport.requests.Request()
   credentials.refresh(request)
   return credentials
 
-# TODO(jlewi): This is a work around for
+# TODO(jlewi): This was originally a work around for
 # https://github.com/kubernetes-incubator/client-python/issues/339.
-# Consider getting rid of this and adopting the solution to that issue.
+#
+# There was a fix (see issue) that sets the scope but userinfo.email scope
+# wasn't included. Which I think will cause problems see
+# https://github.com/kubernetes-client/python-base/issues/54
+#
+# So as a work around we use this function to allow us to specify the scopes.
 #
 # This function is based on
 # https://github.com/kubernetes-client/python-base/blob/master/config/kube_config.py#L331
