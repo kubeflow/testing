@@ -6,7 +6,6 @@ import logging
 import os
 import re
 import subprocess
-import tempfile
 import time
 import urllib
 import yaml
@@ -31,7 +30,7 @@ def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds
   """Run a subprocess.
 
   Any subprocess output is emitted through the logging modules.
-  
+
   Returns:
     output: A string containing the output.
   """
@@ -47,7 +46,7 @@ def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds
       lines.append("{0}={1}".format(k, env[k]))
     logging.info("Running: Environment:\n%s", "\n".join(lines))
 
-  log_file = None
+  # log_file = None
 
   process = subprocess.Popen(
     command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
