@@ -57,7 +57,7 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
     --bash-completion=false \
     --path-update=false \
     --usage-reporting=false && \
-    gcloud components install alpha beta kubectl
+    gcloud components install alpha beta
 
 # Install Helm
 RUN wget -O /tmp/get_helm.sh \
@@ -123,6 +123,12 @@ RUN chmod a+x /usr/local/bin/run_workflows.sh
 
 # Install docker.
 RUN curl  https://get.docker.com/ | sh
+
+# Install kubectl
+# We don't install via gcloud because we want 1.10 which is newer than what's in gcloud.
+RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/bin/linux/amd64/kubectl && \
+    mv kubectl /usr/local/bin && \
+    chmod a+x /usr/local/bin/kubectl
 
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
