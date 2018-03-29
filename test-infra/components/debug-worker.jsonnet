@@ -41,7 +41,7 @@ local ss = {
                     "value": "/secret/gcp-credentials/key.json"
                   }
                 ], 
-                "image": "gcr.io/mlkube-testing/test-worker:latest", 
+                "image": "gcr.io/kubeflow-ci/test-worker:latest", 
                 "name": "test-container", 
                 "volumeMounts": [
                   {
