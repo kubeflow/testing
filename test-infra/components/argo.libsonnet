@@ -188,10 +188,10 @@
       kind: "Ingress",
       metadata: {
         name: "argo-ui",
-        namespace: namespace,
-      },
-      annotations: {
-        "kubernetes.io/ingress.global-static-ip-name": "argo-ui",
+        namespace: namespace,          
+        annotations: {
+          "kubernetes.io/ingress.global-static-ip-name": "argo-ui",
+        },
       },
       spec: {
         rules: [
