@@ -2,8 +2,8 @@ apiVersion: 0.1.0
 environments:
   kubeflow-ci:
     destination:
-      namespace: default
-      server: https://35.185.54.227
+      namespace: kubeflow-test-infra
+      server: https://35.196.213.148
     k8sVersion: v1.7.0
     path: kubeflow-ci
   lunkai-dev2:
@@ -12,12 +12,6 @@ environments:
       server: https://35.194.21.181
     k8sVersion: v1.7.0
     path: lunkai-dev2
-  prow:
-    destination:
-      namespace: kubeflow-testing
-      server: https://35.196.185.88
-    k8sVersion: v1.7.0
-    path: prow
   releasing:
     destination:
       namespace: kubeflow-releasing
