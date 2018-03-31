@@ -163,14 +163,14 @@ configured for the repository (see these [instructions](#prow-setup) for info on
   * The first step in the workflow should checkout the code using [checkout.sh](https://github.com/kubeflow/testing/tree/master/images/checkout.sh)
   * Code should be checked out to a shared NFS volume to make it accessible to subsequent steps
 1. Create a container to use with the Prow job
-  * For an example look at the [tensorflow/k8s](https://github.com/tensorflow/k8s/tree/master/test/test-infra) repository
-  * Image should be based on `gcr.io/mlkube-testing/test-worker`
+  * For an example look at the [kubeflow/testing](https://github.com/kubeflow/testing/blob/master/images/Dockerfile) Dockerfile
+  * Image should be based on `kubeflow-ci/test-worker`
   * Create an entrypoint that does two things
 
     1. Run [checkout.sh](https://github.com/kubeflow/testing/images/checkout.sh) to download the source
     1. Use [kubeflow.testing.run_e2e_workflow](https://github.com/kubeflow/testing/tree/master/py/kubeflow/testing/run_e2e_workflow.py)
        to run the Argo workflow.
-
+  * Add a `prow_config.yaml` file that will be passed into run_e2e_workflow to determine which ksonnet app to use for testing. An example can be seen [here](https://github.com/kubeflow/kubeflow/blob/master/prow_config.yaml).
 1. Create a prow job for that repository
 
   * The command for the prow job should be set via the entrypoint baked into the Docker image
@@ -445,11 +445,11 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
     * Add test dashboards to [testgrid/config/config.yaml](https://github.com/kubernetes/test-infra/pull/4951/files#diff-49f154cd90facc43fda49a99885e6d17)
     * Modify testgrid/cmd/config/config_test.go
        to allow presubmits for the new repo.
-1. Add the k8s bot account, k8s-ci-robot, as an admin on the repository
-    * Admin privileges are needed to update status (but not comment)
-    * Someone with access to the bot will need to accept the request.
+1. Add the `ci-bots` team to the repository with write access
+    * Write access will allow bots in the team to update status
 1. Follow [instructions](https://github.com/kubernetes/test-infra/tree/master/gubernator#adding-a-repository-to-the-pr-dashboard) for adding a repository to the PR
    dashboard.
+1. Add an `OWNERS` to your Kubeflow repository.  The `OWNERS` file, like [this one](https://github.com/kubeflow/kubeflow/blob/master/OWNERS), will specify who can review and approve on this repo.
 
 
 Webhooks for prow should already be configured according to these [instructions](https://github.com/kubernetes/test-infra/blob/master/prow/getting_started.md#add-the-webhook-to-github) for the org so you shouldn't
