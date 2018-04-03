@@ -1,0 +1,114 @@
+labels:
+- color: 00daff
+  name: addition/feature
+- color: 00daff
+  name: area/api
+- color: 00daff
+  name: area/build-release
+  previously:
+  - name: area/releasing
+  - name: area/release-eng
+- color: 00daff
+  name: area/docs
+- color: 00daff
+  name: area/example
+- color: 00daff
+  name: area/front-end
+  previously:
+  - name: area/ui
+- color: 00daff
+  name: area/lifecycle
+- color: 00daff
+  name: area/logging
+- color: 00daff
+  name: area/operator
+- color: 00daff
+  name: community/discussion
+- color: 00daff
+  name: community/question
+  previously:
+  - name: question
+- color: 00daff
+  name: do-not-merge
+- color: 00daff
+  name: duplicate
+- color: 00daff
+  name: high-impact
+- color: 00daff
+  name: improvement/enhancement
+  previously:
+  - name: enhancement
+- color: 00daff
+  name: improvement/optimization
+- color: 00daff
+  name: os/centos
+  previously:
+  - name: area/os/centos
+- color: 00daff
+  name: os/macos
+  previously:
+  - name: area/os/macos
+- color: 00daff
+  name: os/ubuntu
+  previously:
+  - name: area/os/ubuntu
+- color: 00daff
+  name: os/windows
+  previously:
+  - name: area/os/windows
+- color: 00daff
+  name: platform/aws
+  previously:
+  - name: area/platform/aws
+- color: 00daff
+  name: platform/azure
+  previously:
+  - name: cloud/azure
+  - name: area/platform/azure
+- color: 00daff
+  name: platform/gcp
+  previously:
+  - name: area/platform/gke
+  - name: cloud/gke
+- color: 00daff
+  name: platform/minikube
+  previously:
+  - name: area/platform/minikube
+- color: 00daff
+  name: platform/other
+- color: 00daff
+  name: priority/p0
+- color: 00daff
+  name: priority/p1
+- color: 00daff
+  name: priority/p2
+- color: 00daff
+  name: problems/bug
+  previously:
+  - name: bug
+- color: 00daff
+  name: problems/refactor
+- color: 00daff
+  name: problems/security
+- color: 00daff
+  name: starter
+- color: 00daff
+  name: status/approved
+- color: 00daff
+  name: status/backlog
+- color: 00daff
+  name: status/done
+- color: 00daff
+  name: status/icebox
+- color: 00daff
+  name: status/in progress
+  previously:
+  - name: do-not-merge/work-in-progress
+- color: 00daff
+  name: status/lgtm
+- color: 00daff
+  name: testing
+  previously:
+  - name: area/testing
+- color: 00daff
+  name: wontfix
