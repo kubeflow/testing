@@ -23,12 +23,18 @@ APP_NAME=ks-app
 
 
 if [ -d ${DIR}/${APP_NAME} ]; then
-	# TODO(jlewi): Maybe we should prompt to ask if we want to delete?
-	echo "Directory ${DIR}/${APP_NAME} exists; please delete it first"
-	exit 1
-fi
+	# TODO(jlewi): Maybe we should prompt to ask if we want to delete?	
+	echo "Directory ${DIR}/${APP_NAME} exists"
+	echo "Do you want to delete ${DIR}/${APP_NAME} y/n[n]:"
+	read response
 
-# Initialize a ksonnet app. Set the namespace for it's default environment.
+	if [ "${response}"=="y" ]; then
+		rm -r ${DIR}/${APP_NAME}
+	else
+		"Aborting"
+		exit 1
+	fi	
+fi
 
 ks init ${APP_NAME}
 cd ${APP_NAME}
@@ -53,9 +59,8 @@ IP_NAME="kubeflow-tf-hub"
 ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
 ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} \
 	--ipName=${IP_NAME} \
-	--hostname=${FQDN} \
-	--clientID=${CLIENT_ID} \
-	--clientSecret=${CLIENT_SECRET}
+	--hostname=${FQDN} \	
+	--oauthSecretName=kubeflow-oauth
 
 ks param set kubeflow-core jupyterHubAuthenticator iap
 
