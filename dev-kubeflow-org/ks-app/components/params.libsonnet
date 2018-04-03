@@ -9,7 +9,7 @@
     "kubeflow-core": {
       cloud: "null",
       disks: "null",
-      jupyterHubAuthenticator: "null",
+      jupyterHubAuthenticator: "iap",
       jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
       jupyterHubServiceType: "ClusterIP",
       name: "kubeflow-core",

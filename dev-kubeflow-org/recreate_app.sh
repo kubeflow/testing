@@ -57,6 +57,8 @@ ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} \
 	--clientID=${CLIENT_ID} \
 	--clientSecret=${CLIENT_SECRET}
 
+ks param set kubeflow-core jupyterHubAuthenticator iap
+
 # Enable collection of anonymous usage metrics
 # Skip this step if you don't want to enable collection.
 #
