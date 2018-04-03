@@ -40,7 +40,7 @@ kubectl get secret ${SECRET_NAME}
 exists=$?
 set -e
 
-if [ "${exists}" -eq 0]; then
+if [ "${exists}" -eq 0 ]; then
 	kubectl -n ${NAMESPACE} delete secret ${SECRET_NAME}		
 fi
 kubectl -n ${NAMESPACE} create secret generic ${SECRET_NAME} --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}

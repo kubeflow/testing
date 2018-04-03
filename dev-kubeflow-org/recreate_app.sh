@@ -13,7 +13,7 @@ NAMESPACE=kubeflow
 # Which version of Kubeflow to use
 # For a list of releases refer to:
 # https://github.com/kubeflow/kubeflow/releases
-VERSION=v0.1.0-rc.2
+VERSION=v0.1.0-rc.3
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -59,8 +59,8 @@ IP_NAME="kubeflow-tf-hub"
 ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
 ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} \
 	--ipName=${IP_NAME} \
-	--hostname=${FQDN} \	
-	--oauthSecretName=kubeflow-oauth
+	--hostname="${FQDN}" \
+	--oauthSecretName="kubeflow-oauth"
 
 ks param set kubeflow-core jupyterHubAuthenticator iap
 
