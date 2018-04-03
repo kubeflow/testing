@@ -6,8 +6,5 @@ params + {
     //   name: "guestbook-dev",
     //   replicas: params.global.replicas,
     // },
-    "kubeflow-core" +: {
-      cloud: "gke",
-    },
   },
 }
