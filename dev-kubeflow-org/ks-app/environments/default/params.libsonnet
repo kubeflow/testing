@@ -6,5 +6,8 @@ params + {
     //   name: "guestbook-dev",
     //   replicas: params.global.replicas,
     // },
+    "kubeflow-core" +: {
+      disks: "github-issues-data",
+    },
   },
 }
