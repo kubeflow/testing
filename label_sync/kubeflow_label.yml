@@ -1,0 +1,114 @@
+labels:
+- color: d28caa
+  name: addition/feature
+- color: d2b48c
+  name: area/api
+- color: d2b48c
+  name: area/build-release
+  previously:
+  - name: area/release-eng
+  - name: area/releasing
+- color: d2b48c
+  name: area/docs
+- color: d2b48c
+  name: area/example
+- color: d2b48c
+  name: area/front-end
+  previously:
+  - name: area/ui
+- color: d2b48c
+  name: area/lifecycle
+- color: d2b48c
+  name: area/logging
+- color: d2b48c
+  name: area/operator
+- color: ecfc15
+  name: community/discussion
+- color: ecfc15
+  name: community/question
+  previously:
+  - name: question
+- color: 00daff
+  name: do-not-merge
+- color: 00daff
+  name: duplicate
+- color: 00daff
+  name: high-impact
+- color: 00daff
+  name: improvement/enhancement
+  previously:
+  - name: enhancement
+- color: 00daff
+  name: improvement/optimization
+- color: 8cd2b4
+  name: os/centos
+  previously:
+  - name: area/os/centos
+- color: 8cd2b4
+  name: os/macos
+  previously:
+  - name: area/os/macos
+- color: 8cd2b4
+  name: os/ubuntu
+  previously:
+  - name: area/os/ubuntu
+- color: 8cd2b4
+  name: os/windows
+  previously:
+  - name: area/os/windows
+- color: 2515fc
+  name: platform/aws
+  previously:
+  - name: area/platform/aws
+- color: 2515fc
+  name: platform/azure
+  previously:
+  - name: area/platform/azure
+  - name: cloud/azure
+- color: 2515fc
+  name: platform/gcp
+  previously:
+  - name: area/platform/gke
+  - name: cloud/gke
+- color: 2515fc
+  name: platform/minikube
+  previously:
+  - name: area/platform/minikube
+- color: 2515fc
+  name: platform/other
+- color: db1203
+  name: priority/p0
+- color: db03cc
+  name: priority/p1
+- color: fc9915
+  name: priority/p2
+- color: fc2515
+  name: problems/bug
+  previously:
+  - name: bug
+- color: fc2515
+  name: problems/refactor
+- color: fc2515
+  name: problems/security
+- color: 00daff
+  name: starter
+- color: 03db12
+  name: status/approved
+- color: bc9090
+  name: status/backlog
+- color: fca42e
+  name: status/done
+- color: '808080'
+  name: status/icebox
+- color: ffa500
+  name: status/in progress
+  previously:
+  - name: do-not-merge/work-in-progress
+- color: 2efca4
+  name: status/lgtm
+- color: 00daff
+  name: testing
+  previously:
+  - name: area/testing
+- color: 00daff
+  name: wontfix
