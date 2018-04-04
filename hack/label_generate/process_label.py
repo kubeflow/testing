@@ -1,9 +1,12 @@
+"""Script to generate label config yaml file"""
+import argparse
 import os
 
 import yaml
 import requests
+import csv
 
-label_dir = os.path.dirname(os.path.abspath(__file__)) + '/../../label_sync/'
+# label_dir = os.path.dirname(os.path.abspath(__file__)) + '/../../label_sync/'
 
 # old label -> new label mapping
 label_mapping = {
@@ -58,7 +61,7 @@ class LabelColorMapping(object):
   @staticmethod
   def get_color(label):
     color_mapping = LabelColorMapping.color_mapping_general
-    names = '/'.split(label)
+    names = label.split('/')
     if names[0] not in color_mapping:
       return color_mapping['default']
     if isinstance(color_mapping[names[0]], dict):
@@ -70,29 +73,39 @@ class LabelColorMapping(object):
 # Two inputs:
 #   1. csv file exported from community label definition
 #   2. old label -> new label mapping
-def csv_to_yml():
+def csv_to_yml(unparsed_args=None):
+  parser = argparse.ArgumentParser(
+    description="generate label config")
+  parser.add_argument(
+    "--output_dir",
+    default=os.path.dirname(os.path.abspath(__file__)) + '/../../label_sync/',
+    type=str,
+    help="Path to input file.")
+  args = parser.parse_args(unparsed_args)
+
   input_csv = os.path.dirname(
     os.path.abspath(__file__)) + "/kubeflow_label_standard.csv"
-  output_f = label_dir + "kubeflow_label.yml"
+  output_f = os.path.join(args.output_dir, "kubeflow_label.yml")
   name_to_label = {}
-  with open(input_csv) as raw_csv:
+  with open(input_csv, newline='') as raw_csv:
+    csv_content = csv.reader(raw_csv, delimiter=',', quotechar='|')
     pref = ''
     label_list = []
-    for line in raw_csv:
-      words = line.strip(' \t\n\r').split(',')
-      if words[0]:
-        pref = words[0]
-      label_name = ((pref + "/") if pref else '') + words[1]
+    for row in csv_content:
+      # words = line.strip(' \t\n\r').split(',')
+      if row[0]:
+        pref = row[0]
+      label_name = ((pref + "/") if pref else '') + row[1]
       label_ins = {
         'name': label_name.lower(),
         'color': LabelColorMapping.get_color(label_name.lower())
       }
       label_list.append(label_ins)
       name_to_label[label_name.lower()] = label_ins
-      print "label: " + label_name
-    label_list.sort()
+      print("label: " + label_name)
+    label_list.sort(key=lambda label_ins: label_ins['name'])
     labels = {"labels": label_list}
-  for old_name, new_name in label_mapping.iteritems():
+  for old_name, new_name in label_mapping.items():
     if new_name in name_to_label:
       if 'previously' not in name_to_label[new_name]:
         name_to_label[new_name]['previously'] = []
@@ -104,7 +117,7 @@ def csv_to_yml():
 
 # helper function to pull current labels from all repos in kubeflow
 def get_curr_labels():
-  output_f = label_dir + 'curr_labels.yml'
+  output_f = os.path.dirname(os.path.abspath(__file__)) + '/../../label_sync/' + 'curr_labels.yml'
   repo_labels = []
   for repo in [
       str(repo_info['name']) for repo_info in requests.get(
@@ -119,8 +132,8 @@ def get_curr_labels():
   with open(output_f, 'w') as w_file:
     yaml.dump(repo_labels, w_file, default_flow_style=False)
   for label in repo_labels:
-    print "old label: %s," % label
+    print("old label: %s," % label)
 
-
-# get_curr_labels()
-csv_to_yml()
+if __name__ == '__main__':
+  # get_curr_labels()
+  csv_to_yml()

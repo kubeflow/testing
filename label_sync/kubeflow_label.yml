@@ -1,30 +1,30 @@
 labels:
-- color: 00daff
+- color: d28caa
   name: addition/feature
-- color: 00daff
+- color: d2b48c
   name: area/api
-- color: 00daff
+- color: d2b48c
   name: area/build-release
   previously:
-  - name: area/releasing
   - name: area/release-eng
-- color: 00daff
+  - name: area/releasing
+- color: d2b48c
   name: area/docs
-- color: 00daff
+- color: d2b48c
   name: area/example
-- color: 00daff
+- color: d2b48c
   name: area/front-end
   previously:
   - name: area/ui
-- color: 00daff
+- color: d2b48c
   name: area/lifecycle
-- color: 00daff
+- color: d2b48c
   name: area/logging
-- color: 00daff
+- color: d2b48c
   name: area/operator
-- color: 00daff
+- color: ecfc15
   name: community/discussion
-- color: 00daff
+- color: ecfc15
   name: community/question
   previously:
   - name: question
@@ -40,71 +40,71 @@ labels:
   - name: enhancement
 - color: 00daff
   name: improvement/optimization
-- color: 00daff
+- color: 8cd2b4
   name: os/centos
   previously:
   - name: area/os/centos
-- color: 00daff
+- color: 8cd2b4
   name: os/macos
   previously:
   - name: area/os/macos
-- color: 00daff
+- color: 8cd2b4
   name: os/ubuntu
   previously:
   - name: area/os/ubuntu
-- color: 00daff
+- color: 8cd2b4
   name: os/windows
   previously:
   - name: area/os/windows
-- color: 00daff
+- color: 2515fc
   name: platform/aws
   previously:
   - name: area/platform/aws
-- color: 00daff
+- color: 2515fc
   name: platform/azure
   previously:
-  - name: cloud/azure
   - name: area/platform/azure
-- color: 00daff
+  - name: cloud/azure
+- color: 2515fc
   name: platform/gcp
   previously:
   - name: area/platform/gke
   - name: cloud/gke
-- color: 00daff
+- color: 2515fc
   name: platform/minikube
   previously:
   - name: area/platform/minikube
-- color: 00daff
+- color: 2515fc
   name: platform/other
-- color: 00daff
+- color: db1203
   name: priority/p0
-- color: 00daff
+- color: db03cc
   name: priority/p1
-- color: 00daff
+- color: fc9915
   name: priority/p2
-- color: 00daff
+- color: fc2515
   name: problems/bug
   previously:
   - name: bug
-- color: 00daff
+- color: fc2515
   name: problems/refactor
-- color: 00daff
+- color: fc2515
   name: problems/security
 - color: 00daff
   name: starter
-- color: 00daff
+- color: 03db12
   name: status/approved
-- color: 00daff
+- color: bc9090
   name: status/backlog
-- color: 00daff
+- color: fca42e
   name: status/done
-- color: 00daff
+- color: '808080'
   name: status/icebox
-- color: 00daff
+- color: ffa500
   name: status/in progress
   previously:
   - name: do-not-merge/work-in-progress
-- color: 00daff
+- color: 2efca4
   name: status/lgtm
 - color: 00daff
   name: testing
