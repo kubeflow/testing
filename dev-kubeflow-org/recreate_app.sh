@@ -13,7 +13,7 @@ NAMESPACE=kubeflow
 # Which version of Kubeflow to use
 # For a list of releases refer to:
 # https://github.com/kubeflow/kubeflow/releases
-VERSION=v0.1.0-rc.3
+VERSION=v0.1.0-rc.4
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
