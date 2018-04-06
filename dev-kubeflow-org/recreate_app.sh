@@ -23,7 +23,7 @@ APP_NAME=ks-app
 
 
 if [ -d ${DIR}/${APP_NAME} ]; then
-	# TODO(jlewi): Maybe we should prompt to ask if we want to delete?	
+	# TODO(jlewi): Maybe we should prompt to ask if we want to delete?
 	echo "Directory ${DIR}/${APP_NAME} exists"
 	echo "Do you want to delete ${DIR}/${APP_NAME} y/n[n]:"
 	read response
@@ -33,7 +33,7 @@ if [ -d ${DIR}/${APP_NAME} ]; then
 	else
 		"Aborting"
 		exit 1
-	fi	
+	fi
 fi
 
 ks init ${APP_NAME}
@@ -46,6 +46,7 @@ ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
 ks pkg install kubeflow/core@${VERSION}
 ks pkg install kubeflow/tf-serving@${VERSION}
 ks pkg install kubeflow/tf-job@${VERSION}
+ks pkg install kubeflow/seldon@${VERSION}
 
 # Create templates for core components
 ks generate kubeflow-core kubeflow-core
@@ -72,3 +73,7 @@ ks param set kubeflow-core jupyterHubAuthenticator iap
 USAGE_ID=f85740a3-5f60-4146-91b6-2ab7089cf01c
 ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId ${USAGE_ID}
+
+# Set the name of the PD for backing a NFS to hold github issue
+# summarization model data
+ks param set kubeflow-core disks github-issues-data --env=default
