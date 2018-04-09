@@ -7,7 +7,7 @@ params + {
     //   replicas: params.global.replicas,
     // },
     "kubeflow-core" +: {
-      cloud: "gke",
+      disks: "github-issues-data",
     },
   },
 }

@@ -1,7 +1,7 @@
 apiVersion: 0.1.0
 gitVersion:
-  commitSha: 116a63e59869f9c1f5900317af79a4d198840d0b
-  refSpec: v0.1-branch
+  commitSha: 20bdb46ee436b56fb9e3690d2a383b2afc8989f4
+  refSpec: v0.1.0-rc.4
 kind: ksonnet.io/registry
 libraries:
   argo:

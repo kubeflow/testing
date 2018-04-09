@@ -19,7 +19,6 @@ local issuer = params.issuer;
 local envoyImage = params.envoyImage;
 local disableJwtCheckingParam = params.disableJwtChecking;
 local disableJwtChecking = util.toBool(disableJwtCheckingParam);
-local clientID = params.clientID;
-local clientSecret = params.clientSecret;
+local oauthSecretName = params.oauthSecretName;
 
-iap.parts(namespace).ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwtChecking, clientID, clientSecret)
+iap.parts(namespace).ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwtChecking, oauthSecretName)
