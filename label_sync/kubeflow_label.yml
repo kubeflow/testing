@@ -22,6 +22,8 @@ labels:
   name: area/logging
 - color: d2b48c
   name: area/operator
+- color: d2b48c
+  name: area/usage
 - color: ecfc15
   name: community/discussion
 - color: ecfc15
@@ -93,19 +95,24 @@ labels:
 - color: 00daff
   name: starter
 - color: 03db12
-  name: status/approved
+  name: approved
+  previously:
+  - name: status/approved
 - color: bc9090
   name: status/backlog
 - color: fca42e
   name: status/done
 - color: '808080'
   name: status/icebox
-- color: ffa500
-  name: status/in progress
+# Don't remove, this label is being used by prow
 - color: ffa500
   name: do-not-merge/work-in-progress
+  previously:
+  - name: status/in progress
 - color: 2efca4
-  name: status/lgtm
+  name: lgtm
+  previously:
+  - name: status/lgtm
 - color: 00daff
   name: testing
   previously:
