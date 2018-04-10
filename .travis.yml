@@ -5,8 +5,10 @@ python:
 
 install:
   - pip install -U pip wheel
-  - pip install pipenv pylint
+  - pip install pipenv pylint yapf
   - pipenv install --system
 
 script:
+  # run yapf to try to format python code, if any diff then fail
+  - no_diff=$(yapf -r -d py) && [[ -z ${no_diff} ]]
   - pylint py/**/*.py

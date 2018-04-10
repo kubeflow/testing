@@ -13,17 +13,20 @@ VERSION = "v1alpha1"
 PLURAL = "workflows"
 KIND = "Workflow"
 
+
 def log_status(workflow):
   """A callback to use with wait_for_workflow."""
   logging.info("Workflow %s in namespace %s; phase=%s",
-           workflow["metadata"]["name"],
-           workflow["metadata"]["namespace"],
-           workflow["status"]["phase"])
+               workflow["metadata"]["name"], workflow["metadata"]["namespace"],
+               workflow["status"]["phase"])
 
-def wait_for_workflows(client, namespace, names,
-                      timeout=datetime.timedelta(minutes=30),
-                      polling_interval=datetime.timedelta(seconds=30),
-                      status_callback=None):
+
+def wait_for_workflows(client,
+                       namespace,
+                       names,
+                       timeout=datetime.timedelta(minutes=30),
+                       polling_interval=datetime.timedelta(seconds=30),
+                       status_callback=None):
   """Wait for multiple workflows to finish.
 
   Args:
@@ -47,8 +50,8 @@ def wait_for_workflows(client, namespace, names,
     all_results = []
 
     for n in names:
-      results = crd_api.get_namespaced_custom_object(
-          GROUP, VERSION, namespace, PLURAL, n)
+      results = crd_api.get_namespaced_custom_object(GROUP, VERSION, namespace,
+                                                     PLURAL, n)
 
       all_results.append(results)
       if status_callback:
@@ -70,7 +73,10 @@ def wait_for_workflows(client, namespace, names,
 
   return []
 
-def wait_for_workflow(client, namespace, name,
+
+def wait_for_workflow(client,
+                      namespace,
+                      name,
                       timeout=datetime.timedelta(minutes=30),
                       polling_interval=datetime.timedelta(seconds=30),
                       status_callback=None):
@@ -89,6 +95,6 @@ def wait_for_workflow(client, namespace, name,
   Raises:
     TimeoutError: If timeout waiting for the job to finish.
   """
-  results = wait_for_workflows(client, namespace, [name],
-                               timeout, polling_interval, status_callback)
+  results = wait_for_workflows(client, namespace, [name], timeout,
+                               polling_interval, status_callback)
   return results[0]
