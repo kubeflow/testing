@@ -16,9 +16,10 @@ To upgrade the deployment.
 # Istio setup
 
 We use istio to get metrics for TF Serving services, see [doc](https://github.com/kubeflow/kubeflow/blob/master/components/k8s-model-server/istio-integration.md).
-Follow the istio [doc](https://istio.io/docs/setup/kubernetes/quick-start.html#installation-steps) to install istio. Also install [prometheus](https://istio.io/docs/setup/kubernetes/quick-start.html#installation-steps) 
+- Follow the istio [doc](https://istio.io/docs/setup/kubernetes/quick-start.html#installation-steps) to install istio. 
+- Install [prometheus](https://istio.io/docs/setup/kubernetes/quick-start.html#installation-steps) 
 and [grafana](https://istio.io/docs/tasks/telemetry/using-istio-dashboard.html) addons.
-Follow [doc](https://github.com/kubeflow/kubeflow/blob/master/components/k8s-model-server/istio-integration.md#install-and-configure-istio-sidecar-injector) to install auto injector.
+- Follow [doc](https://github.com/kubeflow/kubeflow/blob/master/components/k8s-model-server/istio-integration.md#install-and-configure-istio-sidecar-injector) to install auto injector.
 
 Finally, label the namespace of kubeflow deployment:
 ```
