@@ -107,11 +107,13 @@ RUN cd /tmp && \
 COPY ./Pipfile ./Pipfile.lock /tmp/
 
 # Install various python libraries for both Python 2 and 3 (for now)
+# Don't upgrade pip for now because it seems to be broken
+# https://github.com/pypa/pip/issues/5240
 RUN cd /tmp/ && \
-    pip install -U pip wheel && \
-    pip install pipenv && \
+    pip2 install -U wheel && \
+    pip2 install pipenv && \
     pipenv install --system --two && \
-    pip3 install -U pip wheel && \
+    pip3 install -U wheel && \
     pip3 install pipenv && \
     pipenv install --system --three
 
