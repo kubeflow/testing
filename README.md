@@ -411,7 +411,7 @@ Additionally we need to grant the service account access to the GCR
 registry used to host our images.
 
 ```
-GCR_PROJECT=kubeflow-images-staging
+GCR_PROJECT=kubeflow-images-public
 gcloud projects add-iam-policy-binding ${GCR_PROJECT} \
       --member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
       --role=roles/storage.admin
@@ -420,7 +420,7 @@ gcloud projects add-iam-policy-binding ${GCR_PROJECT} \
 We also need to give access to the GCB service account to the registry
 
 ```
-GCR_PROJECT=kubeflow-images-staging
+GCR_PROJECT=kubeflow-images-public
 GCB_SERVICE_ACCOUNT=${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com
 gcloud projects add-iam-policy-binding ${GCR_PROJECT} \
       --member serviceAccount:${GCB_SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
