@@ -1,12 +1,9 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
 astroid = "==1.6.1"
 cachetools = "==2.0.1"
 certifi = "==2018.1.18"
@@ -48,7 +45,6 @@ uritemplate = "==3.0.0"
 "urllib3" = "==1.22"
 websocket-client = "==0.40.0"
 wrapt = "==1.10.11"
-
+junit-xml = "==1.8"
 
 [dev-packages]
-
