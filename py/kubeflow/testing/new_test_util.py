@@ -24,17 +24,16 @@ class TestCase(junit_xml.TestCase):
     self.test_func = test_func
     super(TestCase, self).__init__(**kwargs)
 
-  def add_failure_info(self, message=None, output=None, failure_type=None):
-    if message:
-      if not self.failure_message:
-        self.failure_message = ''
-      self.failure_message += '\n' + message
+  def add_failure_info(self, output=None):
+    """
+    add_failure_info is used to add failure info to the test cases
+    any message added to this will be logged in the test case failure
+    output in gubernator
+    """
     if output:
       if not self.failure_output:
         self.failure_output = ''
-      self.failure_output += '\n' + output
-    if failure_type:
-      self.failure_type = failure_type
+      self.failure_output +=  output + '\n'
 
 class TestSuite(junit_xml.TestSuite):
   """A suite of test cases."""
@@ -47,8 +46,13 @@ class TestSuite(junit_xml.TestSuite):
   def generate_xml(self):
     output_file = os.path.join(self.artifacts_dir,
                                "junit_" + self.name + ".xml")
-    ET.ElementTree(ET.fromstring(junit_xml.TestSuite.to_xml_string(
-      [self]))[0]).write(output_file)
+    # junit_xml produces a list of test suites, but gubernator
+    # only parses a single test suite. So here we generate
+    # the xml using junit-xml and only output the first test
+    # suite in our output file
+    xml_out = junit_xml.TestSuite.to_xml_string([self])
+    first_test_suite = ET.fromstring(xml_out)[0]
+    ET.ElementTree(first_test_suite).write(output_file)
 
   def run(self):
     """
