@@ -25,7 +25,7 @@ class TestCase(junit_xml.TestCase):
     self.failure_output = ''
     super(TestCase, self).__init__(**kwargs)
 
-  def add_failure_info(self, output=None):
+  def add_failure_info(self, output=None): # pylint: disable=arguments-differ
     """
     add_failure_info is used to add failure info to the test cases
     any message added to this will be logged in the test case failure
