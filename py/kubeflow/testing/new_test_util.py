@@ -70,9 +70,7 @@ class TestSuite(junit_xml.TestSuite):
           if test_case.is_failure():
             logging.getLogger().handlers[-1].flush()
             with open(log_file_name, 'r') as test_log_file:
-              test_case.add_failure_info(
-                output=(
-                  test_case.failure_message + '\n' + test_log_file.read()))
+              test_case.add_failure_info(test_log_file.read())
     finally:
       self.generate_xml()
 
