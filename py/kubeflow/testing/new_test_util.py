@@ -22,6 +22,7 @@ class TestCase(junit_xml.TestCase):
     self.class_name = "Kubeflow"
     self.start_time = time.time()
     self.test_func = test_func
+    self.failure_output = ''
     super(TestCase, self).__init__(**kwargs)
 
   def add_failure_info(self, output=None):
@@ -33,7 +34,7 @@ class TestCase(junit_xml.TestCase):
     if output:
       if not self.failure_output:
         self.failure_output = ''
-      self.failure_output +=  output + '\n'
+      self.failure_output += output + '\n'
 
 class TestSuite(junit_xml.TestSuite):
   """A suite of test cases."""
