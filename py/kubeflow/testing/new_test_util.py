@@ -45,8 +45,12 @@ class TestSuite(junit_xml.TestSuite):
     super(TestSuite, self).__init__(name, **kwargs)
 
   def generate_xml(self):
+    # Test grid has problems with underscores in the name.
+    # https://github.com/kubeflow/kubeflow/issues/631
+    # TestGrid currently uses the regex junit_(^_)*.xml so we only
+    # want one underscore after junit.
     output_file = os.path.join(self.artifacts_dir,
-                               "junit_" + self.name + ".xml")
+                               "junit_" + self.name.replace("_", "-") + ".xml")
     # junit_xml produces a list of test suites, but gubernator
     # only parses a single test suite. So here we generate
     # the xml using junit-xml and only output the first test
