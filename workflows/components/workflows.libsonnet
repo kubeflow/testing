@@ -34,7 +34,7 @@
       // Source directory where all repos should be checked out
       local srcRootDir = testDir + "/src";
       local srcDir = srcRootDir + "/kubeflow/testing";
-      local image = "gcr.io/mlkube-testing/test-worker";
+      local image = "gcr.io/kubeflow-ci/test-worker";
       // The name of the NFS volume claim to use for test files.
       // local nfsVolumeClaim = "kubeflow-testing";
       local nfsVolumeClaim = "nfs-external";
@@ -42,7 +42,7 @@
       local dataVolume = "kubeflow-test-volume";
       local versionTag = name;
       // The directory within the kubeflow_testing submodule containing
-      // py scripts to use.    
+      // py scripts to use.
       local kubeflowPy = srcRootDir + "/kubeflow/testing/py";
 
       {
@@ -144,7 +144,7 @@
                     name: "py-lint",
                     template: "py-lint",
                   },
-                ],                
+                ],
               ],
             },
             {
@@ -176,20 +176,16 @@
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("py-test", [
               "python",
               "-m",
-              "kubeflow.testing.py_checks",
-              "test",
+              "kubeflow.testing.test_py_checks",
+              "--artifacts_dir=" + artifactsDir,
               "--src_dir=" + srcDir,
-              "--project=mlkube-testing",
-              "--junit_path=" + artifactsDir + "/junit_pycheckstest.xml",
             ]),  // py test
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("py-lint", [
               "python",
               "-m",
-              "kubeflow.testing.py_checks",
-              "lint",
+              "kubeflow.testing.test_py_lint",
+              "--artifacts_dir=" + artifactsDir,
               "--src_dir=" + srcDir,
-              "--project=mlkube-testing",
-              "--junit_path=" + artifactsDir + "/junit_pycheckslint.xml",
             ]),  // py lint
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
               "python",
