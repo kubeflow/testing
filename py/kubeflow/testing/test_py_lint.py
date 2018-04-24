@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 
-from kubeflow.testing import new_test_util, util
+from kubeflow.testing import test_helper, util
 
 
 def should_exclude(root, full_dir_excludes):
@@ -74,6 +74,6 @@ def test_lint(test_case): # pylint: disable=redefined-outer-name
 
 
 if __name__ == "__main__":
-  test_case = new_test_util.TestCase(name='test_lint', test_func=test_lint)
-  test_suite = new_test_util.init(name='py_lint', test_cases=[test_case])
+  test_case = test_helper.TestCase(name='test_lint', test_func=test_lint)
+  test_suite = test_helper.init(name='py_lint', test_cases=[test_case])
   test_suite.run()

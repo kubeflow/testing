@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 
-from kubeflow.testing import new_test_util, util
+from kubeflow.testing import test_helper, util
 
 
 def parse_args():
@@ -55,6 +55,6 @@ def py_test(test_case):  # pylint: disable=redefined-outer-name
 
 
 if __name__ == "__main__":
-  test_case = new_test_util.TestCase(name='py_test', test_func=py_test)
-  test_suite = new_test_util.init(name='py_checks', test_cases=[test_case])
+  test_case = test_helper.TestCase(name='py_test', test_func=py_test)
+  test_suite = test_helper.init(name='py_checks', test_cases=[test_case])
   test_suite.run()
