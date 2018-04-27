@@ -160,21 +160,19 @@ We use prow to launch Argo workflows. Here are the steps to create a new E2E tes
 configured for the repository (see these [instructions](#prow-setup) for info on setting up prow).
 
 1. Create a ksonnet App in that repository and define an Argo workflow
-  * The first step in the workflow should checkout the code using [checkout.sh](https://github.com/kubeflow/testing/tree/master/images/checkout.sh)
-  * Code should be checked out to a shared NFS volume to make it accessible to subsequent steps
+   * The first step in the workflow should checkout the code using [checkout.sh](https://github.com/kubeflow/testing/tree/master/images/checkout.sh)
+   * Code should be checked out to a shared NFS volume to make it accessible to subsequent steps
 1. Create a container to use with the Prow job
-  * For an example look at the [kubeflow/testing](https://github.com/kubeflow/testing/blob/master/images/Dockerfile) Dockerfile
-  * Image should be based on `kubeflow-ci/test-worker`
-  * Create an entrypoint that does two things
-
-    1. Run [checkout.sh](https://github.com/kubeflow/testing/images/checkout.sh) to download the source
-    1. Use [kubeflow.testing.run_e2e_workflow](https://github.com/kubeflow/testing/tree/master/py/kubeflow/testing/run_e2e_workflow.py)
-       to run the Argo workflow.
-  * Add a `prow_config.yaml` file that will be passed into run_e2e_workflow to determine which ksonnet app to use for testing. An example can be seen [here](https://github.com/kubeflow/kubeflow/blob/master/prow_config.yaml).
+   * For an example look at the [kubeflow/testing](https://github.com/kubeflow/testing/blob/master/images/Dockerfile) Dockerfile
+   * Image should be based on `kubeflow-ci/test-worker`
+   * Create an entrypoint that does two things
+     1. Run [checkout.sh](https://github.com/kubeflow/testing/tree/master/images/checkout.sh) to download the source
+     1. Use [kubeflow.testing.run_e2e_workflow](https://github.com/kubeflow/testing/tree/master/py/kubeflow/testing/run_e2e_workflow.py)
+        to run the Argo workflow.
+   * Add a `prow_config.yaml` file that will be passed into run_e2e_workflow to determine which ksonnet app to use for testing. An example can be seen [here](https://github.com/kubeflow/kubeflow/blob/master/prow_config.yaml).
 1. Create a prow job for that repository
-
-  * The command for the prow job should be set via the entrypoint baked into the Docker image
-  * This way we can change the Prow job just by pushing a docker image and we don't need to update the prow config.
+   * The command for the prow job should be set via the entrypoint baked into the Docker image
+   * This way we can change the Prow job just by pushing a docker image and we don't need to update the prow config.
 
 ## Testing Changes to the ProwJobs
 
@@ -442,8 +440,8 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 
     * Add prow jobs to [prow/config.yaml](https://github.com/kubernetes/test-infra/pull/4951/files#diff-406185368ba7839d1459d3d51424f104)
     * Add trigger plugin to [prow/plugins.yaml](https://github.com/kubernetes/test-infra/pull/4951/files#diff-ae83e55ccb05896d5229df577d34255d)
-    * Add test dashboards to [testgrid/config/config.yaml](https://github.com/kubernetes/test-infra/pull/4951/files#diff-49f154cd90facc43fda49a99885e6d17)
-    * Modify testgrid/cmd/config/config_test.go
+    * Add test dashboards to [testgrid/config.yaml](https://github.com/kubernetes/test-infra/pull/4951/files#diff-49f154cd90facc43fda49a99885e6d17)
+    * Modify testgrid/cmd/configurator/config_test.go
        to allow presubmits for the new repo.
 1. Add the `ci-bots` team to the repository with write access
     * Write access will allow bots in the team to update status
