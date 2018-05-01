@@ -1,19 +1,19 @@
 local params = import "../../components/params.libsonnet";
-params + {
-  components +: {
+params {
+  components+: {
     // Insert component parameter overrides here. Ex:
     // guestbook +: {
     //   name: "guestbook-dev",
     //   replicas: params.global.replicas,
     // },
-    argo +: {
+    argo+: {
       namespace: "kubeflow-releasing",
     },
-    "debug-worker" +: {
+    "debug-worker"+: {
       namespace: "kubeflow-releasing",
       gcpCredentialsSecretName: "gcp-credentials",
     },
-    "nfs-external" +: {
+    "nfs-external"+: {
       namespace: "kubeflow-releasing",
       nfsServer: "10.128.0.4",
     },
