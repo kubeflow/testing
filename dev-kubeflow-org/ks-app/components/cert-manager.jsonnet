@@ -13,7 +13,7 @@ local acmeUrl = params.acmeUrl;
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
 local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace
+  namespace: if params.namespace == "null" then env.namespace else params.namespace,
 };
 
 certManager.parts(updatedParams.namespace).certManagerParts(acmeEmail, acmeUrl)

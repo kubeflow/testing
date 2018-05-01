@@ -144,6 +144,10 @@
                     name: "py-lint",
                     template: "py-lint",
                   },
+                  {
+                    name: "test-jsonnet-formatting",
+                    template: "test-jsonnet-formatting",
+                  },
                 ],
               ],
             },
@@ -187,6 +191,13 @@
               "--artifacts_dir=" + artifactsDir,
               "--src_dir=" + srcDir,
             ]),  // py lint
+            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("test-jsonnet-formatting", [
+              "python",
+              "-m",
+              "kubeflow.testing.test_jsonnet_formatting",
+              "--artifacts_dir=" + artifactsDir,
+              "--src_dir=" + srcDir,
+            ]),  // test-jsonnet-formatting
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
               "python",
               "-m",
