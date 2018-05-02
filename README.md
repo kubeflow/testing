@@ -249,7 +249,7 @@ This section provides the instructions for setting this up.
 Create a GKE cluster
 
 ```
-PROJECT=mlkube-testing
+PROJECT=kubeflow-ci
 ZONE=us-east1-d
 CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
