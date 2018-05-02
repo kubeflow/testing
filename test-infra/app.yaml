@@ -6,12 +6,6 @@ environments:
       server: https://35.196.213.148
     k8sVersion: v1.7.0
     path: kubeflow-ci
-  lunkai-dev2:
-    destination:
-      namespace: kubeflow-testing
-      server: https://35.194.21.181
-    k8sVersion: v1.7.0
-    path: lunkai-dev2
   releasing:
     destination:
       namespace: kubeflow-releasing
