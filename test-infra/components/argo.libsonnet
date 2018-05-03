@@ -1,13 +1,5 @@
 {
-  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
-  // doesn't support automatically piping in the namespace from the environment to prototypes.
-
-  // TODO(jlewi): Do we need to add parts corresponding to a service account and cluster binding role?
-  // see https://github.com/argoproj/argo/blob/master/cmd/argo/commands/install.go
-
-  parts(namespace):: {
-    // CRD's are not namespace scoped; see
-    // https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/
+  parts(namespace, version):: {
     crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -16,63 +8,157 @@
       },
       spec: {
         group: "argoproj.io",
+        version: "v1alpha1",
+        scope: "Namespaced",
         names: {
           kind: "Workflow",
-          listKind: "WorkflowList",
           plural: "workflows",
           shortNames: [
             "wf",
           ],
-          singular: "workflow",
         },
-        scope: "Namespaced",
-        version: "v1alpha1",
       },
     },  // crd
 
-    // Deploy the controller
-    deploy: {
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
-      labels: {
-        app: "workflow-controller",
+    argoServiceAccount: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "argo",
+        namespace: namespace,
       },
+    },
+
+    argoClusterRole: {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRole",
+      metadata: {
+        name: "argo-cluster-role",
+      },
+      rules: [
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+            "pods/exec",
+          ],
+          verbs: [
+            "create",
+            "get",
+            "list",
+            "watch",
+            "update",
+            "patch",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "configmaps",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "persistentvolumeclaims",
+          ],
+          verbs: [
+            "create",
+            "delete",
+          ],
+        },
+        {
+          apiGroups: [
+            "argoproj.io",
+          ],
+          resources: [
+            "workflows",
+          ],
+          verbs: [
+            "get",
+            "list",
+            "watch",
+            "update",
+            "patch",
+          ],
+        },
+      ],
+    },  // argoClusterRole
+
+    argoClusterRoleBinding: {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        name: "argo-binding",
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "argo-cluster-role",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "argo",
+          namespace: namespace,
+        },
+      ],
+    },
+
+    argoConfigMap: {
+      apiVersion: "v1",
+      kind: "ConfigMap",
+      metadata: {
+        name: "workflow-controller-configmap",
+        namespace: namespace,
+      },
+      data: {
+        config: "artifactRepository: {}\nexecutorImage: argoproj/argoexec:" + version + "\n",
+      },
+    },
+
+    argoDeployment: {
+      apiVersion: "apps/v1beta2",
+      kind: "Deployment",
       metadata: {
         name: "workflow-controller",
         namespace: namespace,
       },
       spec: {
-        progressDeadlineSeconds: 600,
-        replicas: 1,
-        revisionHistoryLimit: 10,
         selector: {
           matchLabels: {
             app: "workflow-controller",
           },
         },
-        strategy: {
-          rollingUpdate: {
-            maxSurge: "25%",
-            maxUnavailable: "25%",
-          },
-          type: "RollingUpdate",
-        },
         template: {
           metadata: {
-            creationTimestamp: null,
             labels: {
               app: "workflow-controller",
             },
           },
           spec: {
+            serviceAccountName: "argo",
             containers: [
               {
+                name: "workflow-controller",
+                image: "argoproj/workflow-controller:" + version,
+                command: [
+                  "workflow-controller",
+                ],
                 args: [
                   "--configmap",
                   "workflow-controller-configmap",
-                ],
-                command: [
-                  "workflow-controller",
                 ],
                 env: [
                   {
@@ -85,63 +171,116 @@
                     },
                   },
                 ],
-                image: "argoproj/workflow-controller:v2.1.0-alpha1",
-                imagePullPolicy: "IfNotPresent",
-                name: "workflow-controller",
-                resources: {},
-                terminationMessagePath: "/dev/termination-log",
-                terminationMessagePolicy: "File",
               },
             ],
-            dnsPolicy: "ClusterFirst",
-            restartPolicy: "Always",
-            schedulerName: "default-scheduler",
-            securityContext: {},
-            serviceAccount: "argo",
-            serviceAccountName: "argo",
-            terminationGracePeriodSeconds: 30,
           },
         },
       },
-    },  // deploy
+    },  // argoDeployment
 
+    argoUiServiceAccount: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "argo-ui",
+        namespace: namespace,
+      },
+    },
 
-    deployUi: {
-      apiVersion: "extensions/v1beta1",
+    argoUiClusterRole: {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRole",
+      metadata: {
+        name: "argo-ui-cluster-role",
+      },
+      rules: [
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+            "pods/exec",
+            "pods/log",
+          ],
+          verbs: [
+            "get",
+            "list",
+            "watch",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "secrets",
+          ],
+          verbs: [
+            "get",
+          ],
+        },
+        {
+          apiGroups: [
+            "argoproj.io",
+          ],
+          resources: [
+            "workflows",
+          ],
+          verbs: [
+            "get",
+            "list",
+            "watch",
+          ],
+        },
+      ],
+    },  // argoUiClusterRole
+
+    argoUiClusterRoleBinding: {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        name: "argo-ui-binding",
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "argo-ui-cluster-role",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "argo-ui",
+          namespace: namespace,
+        },
+      ],
+    },
+
+    argoUiDeployment: {
+      apiVersion: "apps/v1beta2",
       kind: "Deployment",
       metadata: {
-        labels: {
-          app: "argo-ui",
-        },
         name: "argo-ui",
         namespace: namespace,
       },
       spec: {
-        progressDeadlineSeconds: 600,
-        replicas: 1,
-        revisionHistoryLimit: 10,
         selector: {
           matchLabels: {
             app: "argo-ui",
           },
         },
-        strategy: {
-          rollingUpdate: {
-            maxSurge: "25%",
-            maxUnavailable: "25%",
-          },
-          type: "RollingUpdate",
-        },
         template: {
           metadata: {
-            creationTimestamp: null,
             labels: {
               app: "argo-ui",
             },
           },
           spec: {
+            serviceAccountName: "argo-ui",
             containers: [
               {
+                name: "argo-ui",
+                image: "argoproj/argoui:" + version,
                 env: [
                   {
                     name: "ARGO_NAMESPACE",
@@ -156,69 +295,26 @@
                     name: "IN_CLUSTER",
                     value: "true",
                   },
+                  {
+                    name: "ENABLE_WEB_CONSOLE",
+                    value: "false",
+                  },
+                  {
+                    name: "BASE_HREF",
+                    value: "/",
+                  },
                 ],
-                image: "argoproj/argoui:v2.1.0-alpha1",
-                imagePullPolicy: "IfNotPresent",
-                name: "argo-ui",
-                resources: {},
-                terminationMessagePath: "/dev/termination-log",
-                terminationMessagePolicy: "File",
               },
             ],
-            dnsPolicy: "ClusterFirst",
-            restartPolicy: "Always",
-            schedulerName: "default-scheduler",
-            securityContext: {},
-            serviceAccount: "argo",
-            serviceAccountName: "argo",
-            terminationGracePeriodSeconds: 30,
-            readinessProbe: {
-              httpGet: {
-                path: "/",
-                port: 8001,
-              },
-            },
           },
         },
       },
-    },  // deployUi
+    },  // argoUiDeployment
 
-    uiIngress:: {
-      apiVersion: "extensions/v1beta1",
-      kind: "Ingress",
-      metadata: {
-        name: "argo-ui",
-        namespace: namespace,
-        annotations: {
-          "kubernetes.io/ingress.global-static-ip-name": "argo-ui",
-        },
-      },
-      spec: {
-        rules: [
-          {
-            http: {
-              paths: [
-                {
-                  backend: {
-                    serviceName: "argo-ui",
-                    servicePort: 80,
-                  },
-                  path: "/*",
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },  // ingress
-
-    uiService: {
+    argoUiService: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
-        labels: {
-          app: "argo-ui",
-        },
         name: "argo-ui",
         namespace: namespace,
       },
@@ -237,72 +333,23 @@
       },
     },
 
-    config: {
-      apiVersion: "v1",
-      data: {
-        config: @"executorImage: argoproj/argoexec:v2.1.0-alpha1",
-      },
-      kind: "ConfigMap",
+    uiIngress: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Ingress",
       metadata: {
-        name: "workflow-controller-configmap",
+        name: "argo-ui",
         namespace: namespace,
-      },
-    },
-
-    serviceAccount: {
-      apiVersion: "v1",
-      kind: "ServiceAccount",
-      metadata: {
-        name: "argo",
-        namespace: namespace,
-      },
-    },  // service account
-
-    // TODO(jlewi): Do we really need cluster admin privileges? Why?
-    // is this just because workflow controller is trying to create the CRD?
-    roleBinding: {
-      apiVersion: "rbac.authorization.k8s.io/v1",
-      kind: "ClusterRoleBinding",
-      metadata: {
-        name: "argo-cluster-role",
-        namespace: namespace,
-      },
-      roleRef: {
-        apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
-        name: "cluster-admin",
-      },
-      subjects: [
-        {
-          kind: "ServiceAccount",
-          name: "argo",
-          namespace: namespace,
+        annotations: {
+          "kubernetes.io/ingress.global-static-ip-name": "argo-ui",
         },
-      ],
-    },  // role binding
-
-    // The steps in the workflow use the default service account.
-    // The default service account needs sufficient permission in order
-    // to create namespaces and other objects used in the test.
-    defaultRoleBinding: {
-      apiVersion: "rbac.authorization.k8s.io/v1",
-      kind: "ClusterRoleBinding",
-      metadata: {
-        name: "default-role",
-        namespace: namespace,
       },
-      roleRef: {
-        apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
-        name: "cluster-admin",
-      },
-      subjects: [
-        {
-          kind: "ServiceAccount",
-          name: "default",
-          namespace: namespace,
+      spec: {
+        backend: {
+          serviceName: "argo-ui",
+          servicePort: 80,
         },
-      ],
-    },  // default role binding
-  },  // parts
+      },
+    },  // uiIngress
+
+  },
 }
