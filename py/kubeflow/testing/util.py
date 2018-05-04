@@ -60,7 +60,7 @@ def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds
     time.sleep(polling_interval.total_seconds())
 
   process.stdout.flush()
-  for line in iter(process.stdout.readline, ''):
+  for line in iter(process.stdout.readline, b''):
     output.append(line.strip())
     logging.info(line.strip())
 
