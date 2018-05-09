@@ -242,7 +242,7 @@ def wait_for_deployment(api_client, namespace, name, timeout_minutes=2, replicas
     namespace: The name space for the deployment.
     name: The name of the deployment.
     timeout_minutes: Timeout interval in minutes.
-    replicas: number of replicas that must be running.
+    replicas: Number of replicas that must be running.
 
   Returns:
     deploy: The deploy object describing the deployment.
