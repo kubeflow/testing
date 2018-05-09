@@ -276,7 +276,6 @@ def wait_for_statefulset(api_client, namespace, name):
     api_client: K8s api client to use.
     namespace: The name space for the deployment.
     name: The name of the stateful set.
-    replicas: number of replicas that must be running.
 
   Returns:
     deploy: The deploy object describing the deployment.
