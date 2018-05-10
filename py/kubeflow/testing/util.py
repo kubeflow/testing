@@ -234,7 +234,7 @@ def configure_kubectl(project, zone, cluster_name):
   run(["gcloud", "--project=" + project, "container",
        "clusters", "--zone=" + zone, "get-credentials", cluster_name])
 
-def wait_for_deployment(api_client, namespace, name, timeout_minutes=2):
+def wait_for_deployment(api_client, namespace, name, timeout_minutes=2, replicas=1):
   """Wait for deployment to be ready.
 
   Args:
@@ -242,6 +242,7 @@ def wait_for_deployment(api_client, namespace, name, timeout_minutes=2):
     namespace: The name space for the deployment.
     name: The name of the deployment.
     timeout_minutes: Timeout interval in minutes.
+    replicas: Number of replicas that must be running.
 
   Returns:
     deploy: The deploy object describing the deployment.
@@ -256,7 +257,7 @@ def wait_for_deployment(api_client, namespace, name, timeout_minutes=2):
 
   while datetime.datetime.now() < end_time:
     deploy = ext_client.read_namespaced_deployment(name, namespace)
-    if deploy.status.ready_replicas >= 1:
+    if deploy.status.ready_replicas >= replicas:
       logging.info("Deployment %s in namespace %s is ready", name, namespace)
       return deploy
     logging.info("Waiting for deployment %s in namespace %s", name, namespace)
