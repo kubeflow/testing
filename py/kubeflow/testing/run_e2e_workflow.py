@@ -176,6 +176,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   except util.TimeoutError:
     success = False
     logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
+  except Exception as e:
+    # We explicitly log any exceptions so that they will be captured in the
+    # build-log.txt that is uploaded to Gubernator.
+    logging.error("Exception occurred: %s", e)
+    raise
   finally:
     success = prow_artifacts.finalize_prow_job(args.bucket, success, workflow_phase, ui_urls)
 
