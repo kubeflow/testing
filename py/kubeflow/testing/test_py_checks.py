@@ -22,9 +22,6 @@ def parse_args():
 def py_test(test_case):  # pylint: disable=redefined-outer-name
   logging.info('Running py_test')
   args = parse_args()
-  # Print out the pylint version because different versions can produce
-  # different results.
-  util.run(["pylint", "--version"])
 
   # kubeflow_testing is imported as a submodule so we should exclude it
   # TODO(jlewi): Perhaps we should get a list of submodules and exclude

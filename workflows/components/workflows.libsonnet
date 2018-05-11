@@ -182,7 +182,7 @@
               "-m",
               "kubeflow.testing.test_py_checks",
               "--artifacts_dir=" + artifactsDir,
-              "--src_dir=" + srcDir,
+              "--src_dir=" + srcDir + "/py/kubeflow/tests",
             ]),  // py test
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("py-lint", [
               "python",
