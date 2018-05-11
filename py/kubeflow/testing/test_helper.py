@@ -11,7 +11,6 @@ import os
 import subprocess
 import time
 import xml.etree.ElementTree as ET
-
 import junit_xml
 
 
@@ -39,7 +38,8 @@ class TestCase(junit_xml.TestCase):
 class TestSuite(junit_xml.TestSuite):
   """A suite of test cases."""
 
-  def __init__(self, name, artifacts_dir, logs_dir, **kwargs):
+  def __init__(self, name, test_dir, artifacts_dir, logs_dir, **kwargs):
+    self.test_dir = test_dir
     self.artifacts_dir = artifacts_dir
     self.logs_dir = logs_dir
     super(TestSuite, self).__init__(name, **kwargs)
@@ -68,6 +68,7 @@ class TestSuite(junit_xml.TestSuite):
       for test_case in self.test_cases:
         log_file_name = os.path.join(self.logs_dir, test_case.name + '.log')
         update_logging_handler(log_file_name)
+        test_case.test_suite = self
         try:
           wrap_test(test_case)
         finally:
@@ -133,12 +134,27 @@ def init(name, test_cases):
   """
   parser = argparse.ArgumentParser()
   parser.add_argument(
+    "--test_dir",
+    default=os.getcwd(),
+    type=str,
+    help="The test directory"
+    "Defaults to current directory if not set.")
+
+  parser.add_argument(
     "--artifacts_dir",
-    default="",
+    default=os.path.join(os.getcwd(), "output", "artifacts"),
     type=str,
     help="Directory to use for artifacts that should be preserved after "
-    "the test runs. Defaults to test_dir if not set.")
+    "the test runs. Defaults to test_dir/output/artifacts if not set.")
   args, _ = parser.parse_known_args()
+
+  if not os.path.exists(args.artifacts_dir):
+    try:
+      os.makedirs(args.artifacts_dir)
+    # Ignore OSError because sometimes another process
+    # running in parallel creates this directory at the same time
+    except OSError:
+      pass
 
   logging.basicConfig(
     level=logging.INFO,
@@ -157,6 +173,7 @@ def init(name, test_cases):
       pass
   return TestSuite(
     name=name,
+    test_dir=args.test_dir,
     artifacts_dir=args.artifacts_dir,
     logs_dir=logs_dir,
     test_cases=test_cases)
