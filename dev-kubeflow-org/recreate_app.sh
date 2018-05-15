@@ -13,7 +13,7 @@ NAMESPACE=kubeflow
 # Which version of Kubeflow to use
 # For a list of releases refer to:
 # https://github.com/kubeflow/kubeflow/releases
-VERSION=v0.1.0-rc.4
+VERSION=master
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -53,8 +53,6 @@ ks generate kubeflow-core kubeflow-core
 
 # Setup ingress
 ACCOUNT=google-kubeflow-team@google.com
-CLIENT_ID="235037502967-9cpmvs4ljbiqb3ojtnhnhlkkd8d562rl.apps.googleusercontent.com"
-CLIENT_SECRET="eNyoA-ZtqC_HSSx95mGRPLR3"
 FQDN=dev.kubeflow.org
 IP_NAME="kubeflow-tf-hub"
 ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}

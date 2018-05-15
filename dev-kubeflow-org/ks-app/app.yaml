@@ -10,26 +10,26 @@ kind: ksonnet.io/app
 libraries:
   core:
     gitVersion:
-      commitSha: 20bdb46ee436b56fb9e3690d2a383b2afc8989f4
-      refSpec: v0.1.0-rc.4
+      commitSha: 5e3497f26ee356bba0c58b6165992b8b5a31cbcd
+      refSpec: master
     name: core
     registry: kubeflow
   seldon:
     gitVersion:
-      commitSha: 20bdb46ee436b56fb9e3690d2a383b2afc8989f4
-      refSpec: v0.1.0-rc.4
+      commitSha: 5e3497f26ee356bba0c58b6165992b8b5a31cbcd
+      refSpec: master
     name: seldon
     registry: kubeflow
   tf-job:
     gitVersion:
-      commitSha: 20bdb46ee436b56fb9e3690d2a383b2afc8989f4
-      refSpec: v0.1.0-rc.4
+      commitSha: 5e3497f26ee356bba0c58b6165992b8b5a31cbcd
+      refSpec: master
     name: tf-job
     registry: kubeflow
   tf-serving:
     gitVersion:
-      commitSha: 20bdb46ee436b56fb9e3690d2a383b2afc8989f4
-      refSpec: v0.1.0-rc.4
+      commitSha: 5e3497f26ee356bba0c58b6165992b8b5a31cbcd
+      refSpec: master
     name: tf-serving
     registry: kubeflow
 name: ks-app
@@ -42,8 +42,8 @@ registries:
     uri: github.com/ksonnet/parts/tree/master/incubator
   kubeflow:
     gitVersion:
-      commitSha: 20bdb46ee436b56fb9e3690d2a383b2afc8989f4
-      refSpec: v0.1.0-rc.4
+      commitSha: 5e3497f26ee356bba0c58b6165992b8b5a31cbcd
+      refSpec: master
     protocol: github
-    uri: github.com/kubeflow/kubeflow/tree/v0.1.0-rc.4/kubeflow
+    uri: github.com/kubeflow/kubeflow/tree/master/kubeflow
 version: 0.0.1

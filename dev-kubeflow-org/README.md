@@ -11,7 +11,7 @@ To upgrade the deployment.
 
 1. Run `recreate_app.sh`
 
-1. Run `redeploy.sh`
+1. Run `redeploy_app.sh`
 
 # Istio setup
 
