@@ -285,7 +285,13 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
                           "logs", "prow_artifacts." + args.func.__name__ +
                           ".log")
   if not os.path.exists(os.path.dirname(test_log)):
-    os.makedirs(os.path.dirname(test_log))
+    try:
+      os.makedirs(os.path.dirname(test_log))
+    # Ignore OSError because sometimes another process
+    # running in parallel creates this directory at the same time
+    except OSError:
+      pass
+
 
   file_handler = logging.FileHandler(test_log)
   root_logger.addHandler(file_handler)
