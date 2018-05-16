@@ -40,6 +40,24 @@ ks init ${APP_NAME}
 cd ${APP_NAME}
 ks env set default --namespace ${NAMESPACE}
 
+# Checkout versions of the code that shouldn't be overwritten
+raw=`git remote`
+readarray -t remotes <<< "$raw"
+
+repo_name=''
+for r in "${remotes[@]}"
+do
+   url=`git remote get-url ${r}`
+   if [ ${url} = 'git@github.com:kubeflow/testing.git' ]; then
+   	  repo_name=${r}
+   fi
+done
+
+if [ -z "$repo_name" ]; then
+    echo "Could not find remote repository pointing at git@github.com:kubeflow/testing.git"
+fi
+
+
 # Install Kubeflow components
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
 
@@ -57,9 +75,9 @@ FQDN=dev.kubeflow.org
 IP_NAME="kubeflow-tf-hub"
 ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
 ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} \
-	--ipName=${IP_NAME} \
-	--hostname="${FQDN}" \
-	--oauthSecretName="kubeflow-oauth"
+       --ipName=${IP_NAME} \
+       --hostname="${FQDN}" \
+       --oauthSecretName="kubeflow-oauth"
 
 ks param set kubeflow-core jupyterHubAuthenticator iap
 
@@ -76,30 +94,14 @@ ks param set kubeflow-core usageId ${USAGE_ID}
 # summarization model data
 ks param set kubeflow-core disks github-issues-data --env=default
 
-# Checkout versions of the code that shouldn't be overwritten
-
-
-raw=`git remote`
-readarray -t remotes <<< "$raw"
-
-repo_name=''
-for r in "${remotes[@]}"
-do
-   url=`git remote get-url ${r}`
-   if [ ${url} = 'git@github.com:kubeflow/testing.git' ]; then
-   	  repo_name=${r}
-   fi
-done
-
-if [ -z "$repo_name" ]; then
-    echo "Could not find remote repository pointing at git@github.com:kubeflow/testing.git"
-fi
 
 # Checkout files that are manually created from the master branch.
-files=( "issue-summarization.jsonnet" "issue-summarization-ui.jsonnet" "seldon.jsonnet" )
+# Since we restore params.libsonnet we restore all values of params
+files=( "issue-summarization.jsonnet" "issue-summarization-ui.jsonnet" "seldon.jsonnet" "params.libsonnet")
 for f in "${files[@]}"
 do
 git  checkout ${repo_name} components/${f}
 done
+
 
 # TODO(jlewi): We should run autoformat.
