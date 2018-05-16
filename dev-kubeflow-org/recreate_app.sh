@@ -75,3 +75,31 @@ ks param set kubeflow-core usageId ${USAGE_ID}
 # Set the name of the PD for backing a NFS to hold github issue
 # summarization model data
 ks param set kubeflow-core disks github-issues-data --env=default
+
+# Checkout versions of the code that shouldn't be overwritten
+
+
+raw=`git remote`
+readarray -t remotes <<< "$raw"
+
+repo_name=''
+for r in "${remotes[@]}"
+do
+   url=`git remote get-url ${r}`
+   if [ ${url} = 'git@github.com:kubeflow/testing.git' ]; then
+   	  repo_name=${r}
+   fi
+done
+
+if [ -z "$repo_name" ]; then
+    echo "Could not find remote repository pointing at git@github.com:kubeflow/testing.git"
+fi
+
+# Checkout files that are manually created from the master branch.
+files=( "issue-summarization.jsonnet" "issue-summarization-ui.jsonnet" "seldon.jsonnet" )
+for f in "${files[@]}"
+do
+git  checkout ${repo_name} components/${f}
+done
+
+# TODO(jlewi): We should run autoformat.
