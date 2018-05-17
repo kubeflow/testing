@@ -48,9 +48,11 @@ kubectl -n ${NAMESPACE} create secret generic ${SECRET_NAME} --from-literal=CLIE
 # Delete some confimaps so that will get recreated with the new config.
 # TODO(jlewi): If we annotated the objects with a hash of the  config
 # would ks apply automatically update them?
+set +e
 kubectl -n ${NAMESPACE} delete configmap envoy-config
 kubectl -n ${NAMESPACE} delete configmap jupyterhub-config
 kubectl -n ${NAMESPACE} delete configmap tf-job-operator-config
+set -e
 
 # TODO(jlewi): Do we need to delete the statefulset for 
 # JupyterHub so that it will get updated?
