@@ -29,6 +29,7 @@ as a command line argument.
 """
 
 import argparse
+import datetime
 import logging
 from kubernetes import client as k8s_client
 import os
@@ -41,7 +42,10 @@ import sys
 import yaml
 
 # The namespace to launch the Argo workflow in.
-NAMESPACE = "kubeflow-test-infra"
+def get_namespace(args):
+  if args.release:
+    return "kubeflow-releasing"
+  return "kubeflow-test-infra"
 
 class WorkflowComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
@@ -72,9 +76,29 @@ def parse_config_file(config_file, root_dir):
       i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("params", {})))
   return components
 
+def generate_env_from_head(args):
+  commit = util.run(["git", "rev-parse", "HEAD"],
+                    cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
+  pull_base_sha = commit[0:8]
+  date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+  build_number = uuid.uuid4().hex[0:4]
+  version_tag = "{0}-{1}".format(date_str, pull_base_sha)
+  env_var = {
+    "PULL_BASE_SHA": pull_base_sha,
+    "BUILD_NUMBER": build_number,
+    "VERSION_TAG": version_tag,
+  }
+
+  for k in env_var:
+    if os.getenv(k):
+      continue
+    os.environ[k] = env_var.get(k)
+
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
   # Print ksonnet version
   util.run(["ks", "version"])
+  if args.release:
+    generate_env_from_head(args)
   workflows = []
   if args.config_file:
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
@@ -92,6 +116,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   api_client = k8s_client.ApiClient()
   workflow_names = []
   ui_urls = {}
+
   for w in workflows:
     # Create the name for the workflow
     # We truncate sha numbers to prevent the workflow name from being too large.
@@ -138,10 +163,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
     util.run(["ks", "param", "set", "--env=" + env, w.component, "prow_env", ",".join(prow_env)],
              cwd=w.app_dir)
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "namespace", NAMESPACE],
+    util.run(["ks", "param", "set", "--env=" + env, w.component, "namespace", get_namespace(args)],
              cwd=w.app_dir)
     util.run(["ks", "param", "set", "--env=" + env, w.component, "bucket", args.bucket],
              cwd=w.app_dir)
+    if args.release:
+      util.run(["ks", "param", "set", "--env=" + env, w.component, "versionTag", os.getenv("VERSION_TAG")],
+               cwd=w.app_dir)
 
     # Set any extra params. We do this in alphabetical order to make it easier to verify in
     # the unittest.
@@ -163,7 +191,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   success = True
   workflow_phase = {}
   try:
-    results = argo_client.wait_for_workflows(api_client, NAMESPACE,
+    results = argo_client.wait_for_workflows(api_client, get_namespace(args),
                                              workflow_names,
                                              status_callback=argo_client.log_status)
     for r in results:
@@ -172,7 +200,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       workflow_phase[name] = phase
       if phase != "Succeeded":
         success = False
-      logging.info("Workflow %s/%s finished phase: %s", NAMESPACE, name, phase)
+      logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
   except util.TimeoutError:
     success = False
     logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
@@ -249,6 +277,12 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     type=str,
     default="",
     help="The ksonnet component to use.")
+
+  parser.add_argument(
+    "--release",
+    action='store_true',
+    default=False,
+    help="Whether workflow is for image release")
 
   #############################################################################
   # Process the command line arguments.
