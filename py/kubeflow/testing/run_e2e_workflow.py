@@ -77,8 +77,8 @@ def parse_config_file(config_file, root_dir):
   return components
 
 def generate_env_from_head(args):
-  commit = util.run(["git", "rev-parse", "HEAD"],
-                    cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
+  commit = util.run(["git", "rev-parse", "HEAD"], cwd=os.path.join(
+    args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
   pull_base_sha = commit[0:8]
   date_str = datetime.datetime.now().strftime("%Y-%m-%d")
   build_number = uuid.uuid4().hex[0:4]
@@ -168,8 +168,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     util.run(["ks", "param", "set", "--env=" + env, w.component, "bucket", args.bucket],
              cwd=w.app_dir)
     if args.release:
-      util.run(["ks", "param", "set", "--env=" + env, w.component, "versionTag", os.getenv("VERSION_TAG")],
-               cwd=w.app_dir)
+      util.run(["ks", "param", "set", "--env=" + env, w.component, "versionTag",
+                os.getenv("VERSION_TAG")], cwd=w.app_dir)
 
     # Set any extra params. We do this in alphabetical order to make it easier to verify in
     # the unittest.
