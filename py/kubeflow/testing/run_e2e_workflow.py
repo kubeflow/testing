@@ -80,9 +80,9 @@ def generate_env_from_head(args):
   commit = util.run(["git", "rev-parse", "HEAD"], cwd=os.path.join(
     args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
   pull_base_sha = commit[0:8]
-  date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+  date_str = datetime.datetime.now().strftime("%Y%m%d")
   build_number = uuid.uuid4().hex[0:4]
-  version_tag = "{0}-{1}".format(date_str, pull_base_sha)
+  version_tag = "v{0}-{1}".format(date_str, pull_base_sha)
   env_var = {
     "PULL_BASE_SHA": pull_base_sha,
     "BUILD_NUMBER": build_number,
