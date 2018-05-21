@@ -124,6 +124,9 @@ RUN chmod a+x /usr/local/bin/checkout.sh
 COPY run_workflows.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/run_workflows.sh
 
+COPY run_release.sh /usr/local/bin
+RUN chmod a+x /usr/local/bin/run_release.sh
+
 # Install docker.
 RUN curl  https://get.docker.com/ | sh
 
