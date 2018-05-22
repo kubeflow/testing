@@ -13,7 +13,7 @@ NAMESPACE=kubeflow
 # Which version of Kubeflow to use
 # For a list of releases refer to:
 # https://github.com/kubeflow/kubeflow/releases
-VERSION=v0.1.0-rc.4
+VERSION=master
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -40,6 +40,24 @@ ks init ${APP_NAME}
 cd ${APP_NAME}
 ks env set default --namespace ${NAMESPACE}
 
+# Checkout versions of the code that shouldn't be overwritten
+raw=`git remote`
+readarray -t remotes <<< "$raw"
+
+repo_name=''
+for r in "${remotes[@]}"
+do
+   url=`git remote get-url ${r}`
+   if [ ${url} = 'git@github.com:kubeflow/testing.git' ]; then
+   	  repo_name=${r}
+   fi
+done
+
+if [ -z "$repo_name" ]; then
+    echo "Could not find remote repository pointing at git@github.com:kubeflow/testing.git"
+fi
+
+
 # Install Kubeflow components
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
 
@@ -53,15 +71,13 @@ ks generate kubeflow-core kubeflow-core
 
 # Setup ingress
 ACCOUNT=google-kubeflow-team@google.com
-CLIENT_ID="235037502967-9cpmvs4ljbiqb3ojtnhnhlkkd8d562rl.apps.googleusercontent.com"
-CLIENT_SECRET="eNyoA-ZtqC_HSSx95mGRPLR3"
 FQDN=dev.kubeflow.org
 IP_NAME="kubeflow-tf-hub"
 ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
 ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} \
-	--ipName=${IP_NAME} \
-	--hostname="${FQDN}" \
-	--oauthSecretName="kubeflow-oauth"
+       --ipName=${IP_NAME} \
+       --hostname="${FQDN}" \
+       --oauthSecretName="kubeflow-oauth"
 
 ks param set kubeflow-core jupyterHubAuthenticator iap
 
@@ -77,3 +93,15 @@ ks param set kubeflow-core usageId ${USAGE_ID}
 # Set the name of the PD for backing a NFS to hold github issue
 # summarization model data
 ks param set kubeflow-core disks github-issues-data --env=default
+
+
+# Checkout files that are manually created from the master branch.
+# Since we restore params.libsonnet we restore all values of params
+files=( "issue-summarization.jsonnet" "issue-summarization-ui.jsonnet" "seldon.jsonnet" "params.libsonnet")
+for f in "${files[@]}"
+do
+git  checkout ${repo_name} components/${f}
+done
+
+
+# TODO(jlewi): We should run autoformat.

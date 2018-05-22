@@ -8,6 +8,7 @@ approvers:
   - lluunn
   - pdmack
   - ScorpioCPH
+  - kunmingg
 reviewers:
   - ankushagarwal
   - DjangoPeng
@@ -18,3 +19,4 @@ reviewers:
   - ScorpioCPH
   - wbuchwalter
   - zjj2wry
+  - kunmingg
