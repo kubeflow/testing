@@ -130,7 +130,7 @@ The pod logs are available in StackDriver but only the Google Kubeflow Team has 
 
 To access the stackdriver logs 
   
-  * Open stackdriver for project **k8s-prow-builds**
+  * Open stackdriver for project [k8s-prow-builds](https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project=k8s-prow-builds&folder&minLogLevel=0&expandAll=false&timestamp=2018-05-22T17:09:26.625000000Z&customFacets&limitCustomFacetWidth=true&dateRangeStart=2018-05-22T11:09:27.032Z&dateRangeEnd=2018-05-22T17:09:27.032Z&interval=PT6H&resource=gce_firewall_rule&scrollTimestamp=2018-05-22T15:40:23.000000000Z&advancedFilter=resource.type%3D"container"%0Aresource.labels.pod_id%3D"15f5a424-5dd6-11e8-826c-0a580a6c0117"%0A)
   * Get the pod ID by clicking on the build log in the [prow jobs UI](https://prow.k8s.io/)
   * Filter the logs using 
 
