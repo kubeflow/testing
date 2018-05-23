@@ -14,6 +14,7 @@ NAMESPACE=kubeflow
 # For a list of releases refer to:
 # https://github.com/kubeflow/kubeflow/releases
 VERSION=master
+API_VERSION=v1.7.0
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -36,7 +37,7 @@ if [ -d ${DIR}/${APP_NAME} ]; then
 	fi
 fi
 
-ks init ${APP_NAME}
+ks init ${APP_NAME} --api-spec=version:${API_VERSION}
 cd ${APP_NAME}
 ks env set default --namespace ${NAMESPACE}
 
@@ -94,6 +95,8 @@ ks param set kubeflow-core usageId ${USAGE_ID}
 # summarization model data
 ks param set kubeflow-core disks github-issues-data --env=default
 
+# Enable a PVC backed by the default StorageClass
+ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan
 
 # Checkout files that are manually created from the master branch.
 # Since we restore params.libsonnet we restore all values of params
@@ -104,4 +107,6 @@ git  checkout ${repo_name} components/${f}
 done
 
 
-# TODO(jlewi): We should run autoformat.
+# Run autoformat from the git root
+cd ${DIR}/..
+bash <(curl -s https://raw.githubusercontent.com/kubeflow/kubeflow/${VERSION}/scripts/autoformat_jsonnet.sh)
