@@ -14,5 +14,6 @@ local image = params.image;
 local namespace = updatedParams.namespace;
 local replicas = params.replicas;
 local endpoint = params.endpoint;
+local pvcName = params.endpoint;
 
-k.core.v1.list.new(serve.parts(namespace).serve(name, image, replicas, endpoint))
+k.core.v1.list.new(serve.parts(namespace).serve(name, image, replicas, endpoint, pvcName))
