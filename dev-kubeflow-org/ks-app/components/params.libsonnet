@@ -12,7 +12,7 @@
       jupyterHubAuthenticator: "iap",
       jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
       jupyterHubServiceType: "ClusterIP",
-      jupyterNotebookPVCMount: "null",
+      jupyterNotebookPVCMount: "/home/jovyan",
       name: "kubeflow-core",
       namespace: "null",
       reportUsage: "true",
@@ -20,6 +20,7 @@
       tfDefaultImage: "null",
       tfJobImage: "gcr.io/kubeflow-images-public/tf_operator:v20180329-a7511ff",
       tfJobUiServiceType: "ClusterIP",
+      tfJobVersion: "v1alpha1",
       usageId: "f85740a3-5f60-4146-91b6-2ab7089cf01c",
     },
     "cert-manager": {
@@ -56,6 +57,7 @@
       image: "gcr.io/kubeflow-images-public/issue-summarization:0.1",
       name: "issue-summarization",
       namespace: "kubeflow",
+      pvcName: "github-issues-data",
       replicas: 1,
     },
     "issue-summarization-ui": {
