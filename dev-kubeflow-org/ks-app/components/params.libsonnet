@@ -65,7 +65,8 @@
       namespace: "kubeflow",
       replicas: 1,
       servicePort: 80,
-      type: "ClusterIP",
+      // Need node port to expose it via ingress.
+      type: "NodePort",
     },
   },
 }
