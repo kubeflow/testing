@@ -98,6 +98,12 @@ labels:
   name: approved
   previously:
   - name: status/approved
+- color: ef1ad6
+  name: release/0.2.0
+- color: ef1ad6
+  name: release/0.3.0
+- color: ef1ad6
+  name: release/1.0.0
 - color: bc9090
   name: status/backlog
 - color: fca42e
