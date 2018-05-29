@@ -1,9 +1,9 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: label-sync-fix
+  name: label-sync-cron
 spec:
-  schedule: "17 23 * * *"    # Every day 23:17 / 11:17PM
+  schedule: "0 */6 * * *"    # Every day 23:17 / 11:17PM
   concurrencyPolicy: Forbid
   jobTemplate:
     metadata:
@@ -20,7 +20,6 @@ spec:
               - --confirm=true
               - --orgs=kubeflow
               - --token=/etc/github/bot-token
-              - --skip=kubeflow/kubeflow,kubeflow/tf-operator,kubeflow/testing,kubeflow/example-seldon,kubeflow/experimental-kvc
               volumeMounts:
               - name: oauth
                 mountPath: /etc/github
