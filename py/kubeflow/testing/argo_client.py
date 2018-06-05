@@ -44,23 +44,26 @@ def wait_for_workflows(client, namespace, names,
   crd_api = k8s_client.CustomObjectsApi(client)
   end_time = datetime.datetime.now() + timeout
   while True:
-    all_results = []
+    try:
+      all_results = []
 
-    for n in names:
-      results = crd_api.get_namespaced_custom_object(
-          GROUP, VERSION, namespace, PLURAL, n)
+      for n in names:
+        results = crd_api.get_namespaced_custom_object(
+            GROUP, VERSION, namespace, PLURAL, n)
 
-      all_results.append(results)
-      if status_callback:
-        status_callback(results)
+        all_results.append(results)
+        if status_callback:
+          status_callback(results)
 
-    done = True
-    for results in all_results:
-      if results["status"]["phase"] not in ["Failed", "Succeeded"]:
-        done = False
+      done = True
+      for results in all_results:
+        if results["status"]["phase"] not in ["Failed", "Succeeded"]:
+          done = False
 
-    if done:
-      return all_results
+      if done:
+        return all_results
+    except Exception as e:
+      logging.warning("Caught Exception %s. Ignoring and retrying.", e)
     if datetime.datetime.now() + polling_interval > end_time:
       raise util.TimeoutError(
         "Timeout waiting for workflows {0} in namespace {1} to finish.".format(
