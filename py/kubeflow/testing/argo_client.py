@@ -62,7 +62,7 @@ def wait_for_workflows(client, namespace, names,
 
       if done:
         return all_results
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-except
       logging.warning("Caught Exception %s. Ignoring and retrying.", e)
     if datetime.datetime.now() + polling_interval > end_time:
       raise util.TimeoutError(
