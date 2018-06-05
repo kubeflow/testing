@@ -21,7 +21,8 @@ def log_status(workflow):
            workflow["metadata"]["namespace"],
            workflow["status"]["phase"])
 
-@retry(stop_max_attempt_number=3, wait_fixed=2000, retry_on_exception=lambda e: not isinstance(e, util.TimeoutError))
+@retry(stop_max_attempt_number=3, wait_fixed=2000,
+       retry_on_exception=lambda e: not isinstance(e, util.TimeoutError))
 def wait_for_workflows(client, namespace, names,
                       timeout=datetime.timedelta(minutes=30),
                       polling_interval=datetime.timedelta(seconds=30),
