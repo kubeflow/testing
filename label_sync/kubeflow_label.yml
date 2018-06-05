@@ -125,3 +125,11 @@ labels:
   - name: area/testing
 - color: 00daff
   name: wontfix
+- color: 8cd2b4
+  name: sprint/2018-05-29-to-06-08
+- color: 8cd2b4
+  name: sprint/2018-06-11-to-06-22
+- color: 8cd2b4
+  name: sprint/2018-06-25-to-07-06
+- color: 8cd2b4
+  name: sprint/2018-07-09-to-07-20
