@@ -24,6 +24,7 @@ def log_status(workflow):
   except KeyError as e:
     # Ignore the error and just log the stacktrace
     # as sometimes the workflow object does not have all the fields
+    # https://github.com/kubeflow/testing/issues/147
     logging.exception('KeyError: %s', e)
 
 
