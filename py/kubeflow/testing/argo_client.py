@@ -16,10 +16,17 @@ KIND = "Workflow"
 
 def log_status(workflow):
   """A callback to use with wait_for_workflow."""
-  logging.info("Workflow %s in namespace %s; phase=%s",
-           workflow["metadata"]["name"],
-           workflow["metadata"]["namespace"],
-           workflow["status"]["phase"])
+  try:
+    logging.info("Workflow %s in namespace %s; phase=%s",
+                 workflow["metadata"]["name"],
+                 workflow["metadata"]["namespace"],
+                 workflow["status"]["phase"])
+  except KeyError as e:
+    # Ignore the error and just log the stacktrace
+    # as sometimes the workflow object does not have all the fields
+    # https://github.com/kubeflow/testing/issues/147
+    logging.exception('KeyError: %s', e)
+
 
 @retry(stop_max_attempt_number=3, wait_fixed=2000,
        retry_on_exception=lambda e: not isinstance(e, util.TimeoutError))
