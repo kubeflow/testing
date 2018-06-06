@@ -172,7 +172,7 @@ def create_cluster(gke, project, zone, cluster_request):
 
   except errors.HttpError as e:
     logging.exception("Exception occured creating cluster: %s, status: %s", e,
-                  e.resp["status"])
+                      e.resp["status"])
     # Status appears to be a string.
     if e.resp["status"] == '409':
       pass
@@ -201,7 +201,7 @@ def delete_cluster(gke, name, project, zone):
 
   except errors.HttpError as e:
     logging.exception("Exception occured deleting cluster: %s, status: %s", e,
-                  e.resp["status"])
+                      e.resp["status"])
 
 
 def wait_for_operation(client,
