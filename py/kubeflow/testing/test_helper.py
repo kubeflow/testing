@@ -95,11 +95,11 @@ def wrap_test(test_case):
   try:
     test_case.test_func(test_case)
   except subprocess.CalledProcessError as e:
-    logging.error("Subprocess failed;\n%s", e.output)
+    logging.exception("Subprocess failed;\n%s", e.output)
     test_case.add_failure_info("Subprocess failed;\n{0}".format(e.output))
     raise
   except Exception as e:
-    logging.error("Test failed; %s", e.message)
+    logging.exception("Test failed; %s", e.message)
     test_case.add_failure_info("Test failed; " + e.message)
     raise
   finally:
