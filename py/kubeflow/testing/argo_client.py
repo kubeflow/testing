@@ -24,7 +24,7 @@ def log_status(workflow):
   except KeyError as e:
     # Ignore the error and just log the stacktrace
     # as sometimes the workflow object does not have all the fields
-    logging.exception('')
+    logging.exception('KeyError: %s', e)
 
 
 @retry(stop_max_attempt_number=3, wait_fixed=2000,
