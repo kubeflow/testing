@@ -66,7 +66,7 @@ def wait_for_workflows(client, namespace, names,
 
     done = True
     for results in all_results:
-      if results["status"]["phase"] not in ["Failed", "Succeeded"]:
+      if "status" not in results or "phase" not in results["status"] or results["status"]["phase"] not in ["Failed", "Succeeded"]:
         done = False
 
     if done:
