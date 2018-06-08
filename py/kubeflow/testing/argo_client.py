@@ -68,8 +68,7 @@ def wait_for_workflows(client, namespace, names,
     for results in all_results:
       # Sometimes it takes a while for the argo controller to populate
       # the status field of an object.
-      if "status" not in results or "phase" not in results["status"] \
-          or results["status"]["phase"] not in ["Failed", "Succeeded"]:
+      if results.get("status", {}).get("phase", "") not in ["Failed", "Succeeded"]:
         done = False
 
     if done:
