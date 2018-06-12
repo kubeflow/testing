@@ -91,9 +91,9 @@ RUN cd /tmp && \
 # Install ksonnet
 RUN cd /tmp && \
     wget -O ks.tar.gz \
-    https://github.com/ksonnet/ksonnet/releases/download/v0.10.2/ks_0.10.2_linux_amd64.tar.gz && \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_linux_amd64.tar.gz && \
     tar -xvf ks.tar.gz && \
-    mv ks_0.10.2_linux_amd64/ks /usr/local/bin && \
+    mv ks_0.11.0_linux_amd64/ks /usr/local/bin && \
     chmod a+x /usr/local/bin/ks
 
 RUN cd /tmp && \
