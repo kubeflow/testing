@@ -96,7 +96,13 @@ ks param set kubeflow-core usageId ${USAGE_ID}
 ks param set kubeflow-core disks github-issues-data --env=default
 
 # Enable a PVC backed by the default StorageClass
-ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan
+ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan --env=default
+
+ks param set kubeflow-core jupyterNotebookRegistry gcr.io --env=default
+ks param set kubeflow-core jupyterNotebookRepoName kubeflow-images-public --env=default
+
+ks param set kubeflow-core tfAmbassadorImage quay.io/datawire/ambassador:0.30.1 --env=default
+ks param set kubeflow-core tfStatsdImage quay.io/datawire/statsd:0.30.1 --env=default
 
 # Checkout files that are manually created from the master branch.
 # Since we restore params.libsonnet we restore all values of params

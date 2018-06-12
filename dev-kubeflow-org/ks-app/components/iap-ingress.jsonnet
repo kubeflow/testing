@@ -1,5 +1,6 @@
 local env = std.extVar("__ksonnet/environments");
 local params = std.extVar("__ksonnet/params").components["iap-ingress"];
+
 local k = import "k.libsonnet";
 local iap = import "kubeflow/core/iap.libsonnet";
 local util = import "kubeflow/core/util.libsonnet";

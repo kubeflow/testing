@@ -12,7 +12,6 @@
       jupyterHubAuthenticator: "iap",
       jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
       jupyterHubServiceType: "ClusterIP",
-      jupyterNotebookPVCMount: "/home/jovyan",
       name: "kubeflow-core",
       namespace: "null",
       reportUsage: "true",
