@@ -48,7 +48,7 @@ def test_lint(test_case): # pylint: disable=redefined-outer-name
   includes = ["*.py"]
   failed_files = []
   rc_file = os.path.join(args.src_dir, ".pylintrc")
-  for root, dirs, files in os.walk(os.path.abspath(args.src_dir), topdown=True):    
+  for root, dirs, files in os.walk(os.path.abspath(args.src_dir), topdown=True):
     # Exclude vendor directories and all sub files.
     if "vendor" in root.split(os.sep):
       continue
