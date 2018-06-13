@@ -14,6 +14,12 @@ libraries:
       refSpec: master
     name: core
     registry: kubeflow
+  katib:
+    gitVersion:
+      commitSha: e88ef99c6d64d2509fdb094c9aee6a4c99bb65c9
+      refSpec: master
+    name: katib
+    registry: kubeflow
   seldon:
     gitVersion:
       commitSha: 21550cace3f4b1ef68d21609236026aeb528a36d
