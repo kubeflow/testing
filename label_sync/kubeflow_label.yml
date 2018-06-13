@@ -23,6 +23,10 @@ labels:
 - color: d2b48c
   name: area/operator
 - color: d2b48c
+  name: area/inference
+  previously:
+  - name: inference
+- color: d2b48c
   name: area/usage
 - color: ecfc15
   name: community/discussion
