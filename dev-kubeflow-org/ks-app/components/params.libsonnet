@@ -70,5 +70,15 @@
       // Need node port to expose it via ingress.
       type: "NodePort",
     },
+    katib: {
+      modeldbDatabaseImage: "mongo:3.4",
+      modeldbFrontendImage: "katib/katib-frontend",
+      modeldbImage: "mitdbg/modeldb-backend:latest",
+      name: "katib",
+      suggestionGridImage: "katib/suggestion-grid",
+      suggestionRandomImage: "katib/suggestion-random",
+      vizierCoreImage: "katib/vizier-core",
+      vizierDbImage: "mysql:8.0.3",
+    },
   },
 }
