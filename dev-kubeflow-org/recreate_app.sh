@@ -100,7 +100,7 @@ ks param set kubeflow-core usageId ${USAGE_ID}
 ks param set kubeflow-core disks github-issues-data --env=default
 
 # Enable a PVC backed by the default StorageClass
-ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan
+ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan --env=default
 
 # Checkout files that are manually created from the master branch.
 # Since we restore params.libsonnet we restore all values of params

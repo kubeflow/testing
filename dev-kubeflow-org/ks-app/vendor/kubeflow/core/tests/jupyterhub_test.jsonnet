@@ -6,6 +6,8 @@ local params = {
   jupyterHubServiceType:: "ClusterIP",
   jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
   jupyterNotebookPVCMount: "/home/jovyan",
+  jupyterNotebookRegistry: "gcr.io",
+  jupyterNotebookRepoName: "kubeflow-images-public",
   cloud: null,
 };
 
@@ -91,6 +93,27 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params
                     },
                     name: "tf-hub-lb",
                     namespace: "test-kf-001",
+                    annotations: {
+                      "getambassador.io/config":
+                        std.join("\n", [
+                          "---",
+                          "apiVersion: ambassador/v0",
+                          "kind:  Mapping",
+                          "name: tf-hub-lb-hub-mapping",
+                          "prefix: /hub/",
+                          "rewrite: /hub/",
+                          "timeout_ms: 300000",
+                          "service: tf-hub-lb." + params.namespace,
+                          "---",
+                          "apiVersion: ambassador/v0",
+                          "kind:  Mapping",
+                          "name: tf-hub-lb-user-mapping",
+                          "prefix: /user/",
+                          "rewrite: /user/",
+                          "timeout_ms: 300000",
+                          "service: tf-hub-lb." + params.namespace,
+                        ]),
+                    },  //annotations
                   },
                   spec: {
                     ports: [
@@ -107,7 +130,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params
                   },
                 }) &&
 
-std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount, params.cloud),
+std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount, params.cloud, params.jupyterNotebookRegistry, params.jupyterNotebookRepoName),
                 {
                   apiVersion: "apps/v1beta1",
                   kind: "StatefulSet",
@@ -140,6 +163,14 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                               {
                                 name: "CLOUD_NAME",
                                 value: null,
+                              },
+                              {
+                                name: "REGISTRY",
+                                value: params.jupyterNotebookRegistry,
+                              },
+                              {
+                                name: "REPO_NAME",
+                                value: params.jupyterNotebookRepoName,
                               },
                             ],
                             image: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
@@ -191,10 +222,28 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubRole,
                         "*",
                       ],
                       resources: [
-                        "*",
+                        "pods",
+                        "persistentvolumeclaims",
                       ],
                       verbs: [
+                        "get",
+                        "watch",
+                        "list",
+                        "create",
+                        "delete",
+                      ],
+                    },
+                    {
+                      apiGroups: [
                         "*",
+                      ],
+                      resources: [
+                        "events",
+                      ],
+                      verbs: [
+                        "get",
+                        "watch",
+                        "list",
                       ],
                     },
                   ],

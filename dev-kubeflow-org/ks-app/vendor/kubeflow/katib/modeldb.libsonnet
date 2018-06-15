@@ -215,7 +215,7 @@
                 env: [
                   {
                     name: "ROOT_PATH",
-                    value: "/",
+                    value: "/katib",
                   },
                 ],
                 image: params.modeldbFrontendImage,
