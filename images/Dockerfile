@@ -111,10 +111,10 @@ COPY ./Pipfile ./Pipfile.lock /tmp/
 # Don't upgrade pip for now because it seems to be broken
 # https://github.com/pypa/pip/issues/5240
 RUN cd /tmp/ && \
-    pip2 install -U wheel && \
+    pip2 install -U wheel filelock && \
     pip2 install pipenv && \
     pipenv install --system --two && \
-    pip3 install -U wheel && \
+    pip3 install -U wheel filelock && \
     pip3 install pipenv && \
     pipenv install --system --three
 
