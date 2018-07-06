@@ -193,6 +193,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   try:
     results = argo_client.wait_for_workflows(api_client, get_namespace(args),
                                              workflow_names,
+                                             timeout=datetime.timedelta(minutes=60),
                                              status_callback=argo_client.log_status)
     for r in results:
       phase = r.get("status", {}).get("phase")
