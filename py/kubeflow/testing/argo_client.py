@@ -28,7 +28,11 @@ def log_status(workflow):
     logging.exception('KeyError: %s', e)
 
 
-@retry(stop_max_attempt_number=3, wait_fixed=2000,
+# Wait 2^x * 1 second between retries up to a max of 10 seconds between
+# retries.
+# Retry for a maximum of 3 minutes.
+@retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
+       stop_max_delay=3*60*1000,
        retry_on_exception=lambda e: not isinstance(e, util.TimeoutError))
 def wait_for_workflows(client, namespace, names,
                       timeout=datetime.timedelta(minutes=30),
