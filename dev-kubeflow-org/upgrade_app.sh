@@ -17,56 +17,33 @@ VERSION=master
 API_VERSION=v1.7.0
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+GIT_ROOT="$(git rev-parse --show-toplevel)"
 cd ${DIR}
 
 APP_NAME=ks-app
-
-
-if [ -d ${DIR}/${APP_NAME} ]; then
-	# TODO(jlewi): Maybe we should prompt to ask if we want to delete?
-	echo "Directory ${DIR}/${APP_NAME} exists"
-	echo "Do you want to delete ${DIR}/${APP_NAME} y/n[n]:"
-	read response
-
-	if [ "${response}"=="y" ]; then
-		rm -r ${DIR}/${APP_NAME}
-	else
-		"Aborting"
-		exit 1
-	fi
-fi
-
-ks init ${APP_NAME} --api-spec=version:${API_VERSION}
+APP_DIR=${DIR}/${APP_NAME}
 cd ${APP_NAME}
-ks env set default --namespace ${NAMESPACE}
 
-# Checkout versions of the code that shouldn't be overwritten
-raw=`git remote`
-readarray -t remotes <<< "$raw"
+# TODO(jlewi): Right now we are assuming the Kubeflow repository
+# is checked out as git_kubeflow and we use that to get the upgrade
+# script. We need a better solution. Should we download it via
+# curl/wget once its committed.
+DEFAULT_KUBEFLOW_DIR="$(cd ${GIT_ROOT}/../git_kubeflow && pwd)"
+KUBEFLOW_DIR=${KUBEFLOW_DIR:-${DEFAULT_KUBEFLOW_DIR}}
 
-repo_name=''
-for r in "${remotes[@]}"
-do
-   url=`git remote get-url ${r}`
-   if [ ${url} = 'git@github.com:kubeflow/testing.git' ]; then
-   	  repo_name=${r}
-   fi
-done
+REGISTRY=github.com/kubeflow/kubeflow/tree/v0.2-branch/kubeflow
 
-if [ -z "$repo_name" ]; then
-    echo "Could not find remote repository pointing at git@github.com:kubeflow/testing.git"
-fi
+# TODO(jlewi): We might want to specify the registry version.
+python ${KUBEFLOW_DIR}/scripts/upgrade_ks_app.py \
+	--app_dir=${APP_DIR} \
+	--registry=${REGISTRY}
 
-
-# Install Kubeflow components
-ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
-
-ks pkg install kubeflow/core@${VERSION}
-ks pkg install kubeflow/tf-serving@${VERSION}
-ks pkg install kubeflow/tf-job@${VERSION}
-ks pkg install kubeflow/seldon@${VERSION}
-ks pkg install kubeflow/katib@${VERSION}
+# Remove components so we can regenerate them from the updated
+# prototypes
+ks component rm kubeflow-core
+ks component rm cert-manager
+ks component rm iap-ingress
+ks component rm katib
 
 # Create templates for core components
 ks generate kubeflow-core kubeflow-core
@@ -102,15 +79,6 @@ ks param set kubeflow-core disks github-issues-data --env=default
 # Enable a PVC backed by the default StorageClass
 ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan --env=default
 
-# Checkout files that are manually created from the master branch.
-# Since we restore params.libsonnet we restore all values of params
-files=( "issue-summarization.jsonnet" "issue-summarization-ui.jsonnet" "seldon.jsonnet" "params.libsonnet")
-for f in "${files[@]}"
-do
-git  checkout ${repo_name} components/${f}
-done
-
-
-# Run autoformat from the git root
-cd ${DIR}/..
+# Run autoformat from the git root	
+cd ${GIT_ROOT}	
 bash <(curl -s https://raw.githubusercontent.com/kubeflow/kubeflow/${VERSION}/scripts/autoformat_jsonnet.sh)

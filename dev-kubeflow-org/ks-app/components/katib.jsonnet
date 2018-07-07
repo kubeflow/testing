@@ -1,5 +1,6 @@
 local env = std.extVar("__ksonnet/environments");
 local params = std.extVar("__ksonnet/params").components.katib;
+
 local k = import "k.libsonnet";
 
 local vizier = import "kubeflow/katib/vizier.libsonnet";
