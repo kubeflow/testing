@@ -1,5 +1,6 @@
 local env = std.extVar("__ksonnet/environments");
 local params = std.extVar("__ksonnet/params").components["cert-manager"];
+
 local k = import "k.libsonnet";
 local certManager = import "kubeflow/core/cert-manager.libsonnet";
 
