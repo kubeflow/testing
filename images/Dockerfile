@@ -17,6 +17,7 @@ RUN set -ex \
     build-essential \
     curl \
     locales \
+    uuid-runtime \
     wget \
     ca-certificates \
     git \
