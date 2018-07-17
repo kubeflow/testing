@@ -57,7 +57,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
 
     expected_calls = [
       ["ks", "version"],
-      ["git",  "diff", "--name-only", "master"],
+      ["git", "diff", "--name-only", "master"],
       ["ks", "env", "add", "kubeflow-presubmit-legacy-77-123abc-1234-.*"],
       ["ks", "param", "set", "--env=.*", "workflows", "name",
            "kubeflow-presubmit-legacy-77-123abc-1234-[0-9a-z]{4}"],
@@ -82,7 +82,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
       self.assertItemsMatchRegex(
         expected,
         mock_run.call_args_list[i][0][0])
-      if i > 0:
+      if i > 1:
         self.assertEqual(
            "/some/dir",
            mock_run.call_args_list[i][1]["cwd"])
@@ -135,7 +135,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
 
     expected_calls = [
       ["ks", "version"],
-      ["git",  "diff", "--name-only", "master"],
+      ["git", "diff", "--name-only", "master"],
       ["ks", "env", "add", "kubeflow-presubmit-wf-77-123abc-1234-.*"],
       ["ks", "param", "set", "--env=.*", "workflows", "name",
            "kubeflow-presubmit-wf-77-123abc-1234-[0-9a-z]{4}"],
@@ -166,7 +166,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
       self.assertItemsMatchRegex(
         expected,
         mock_run.call_args_list[i][0][0])
-      if i > 0:
+      if i > 1:
         self.assertEqual(
            "/src/kubeflow/testing/workflows",
            mock_run.call_args_list[i][1]["cwd"])
