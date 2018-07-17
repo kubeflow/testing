@@ -57,6 +57,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
 
     expected_calls = [
       ["ks", "version"],
+      ["git",  "diff", "--name-only", "master"],
       ["ks", "env", "add", "kubeflow-presubmit-legacy-77-123abc-1234-.*"],
       ["ks", "param", "set", "--env=.*", "workflows", "name",
            "kubeflow-presubmit-legacy-77-123abc-1234-[0-9a-z]{4}"],
@@ -134,6 +135,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
 
     expected_calls = [
       ["ks", "version"],
+      ["git",  "diff", "--name-only", "master"],
       ["ks", "env", "add", "kubeflow-presubmit-wf-77-123abc-1234-.*"],
       ["ks", "param", "set", "--env=.*", "workflows", "name",
            "kubeflow-presubmit-wf-77-123abc-1234-[0-9a-z]{4}"],

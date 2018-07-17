@@ -34,7 +34,6 @@ import fnmatch
 import logging
 from kubernetes import client as k8s_client
 import os
-import subprocess
 import tempfile
 from kubeflow.testing import argo_client
 from kubeflow.testing import prow_artifacts
@@ -83,7 +82,8 @@ def parse_config_file(config_file, root_dir):
     if i.get("include_dirs"):
       include_dirs = i.get("include_dirs").split(",")
     components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], job_types, include_dirs, i.get("params", {})))
+      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], job_types, include_dirs,
+      i.get("params", {})))
   return components
 
 def generate_env_from_head(args):
@@ -134,11 +134,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
     job_type = os.getenv("JOB_TYPE")
-    changed_files = util.run(["git", "diff", "--name-only", "master"], cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
+    changed_files = util.run(["git", "diff", "--name-only", "master"],
+      cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
 
     # [debug]
     logging.info("Diff-files output: %s", changed_files)
-    for f in changed_files:
+    for f in changed_files.splitlines():
       logging.info("Detected changed file: %s", f)
 
     # Skip this workflow if it is scoped to a different job type.
@@ -150,7 +151,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # modified match the specified regex patterns.
     dir_modified = False
     if w.include_dirs:
-      for f in changed_files:
+      for f in changed_files.splitlines():
         for d in w.include_dirs:
           if fnmatch.fnmatch(f, d):
             logging.info("Pattern matched: %s %s", f, d)
@@ -158,9 +159,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
             break
         if dir_modified:
           break
-          
+
     if w.include_dirs and not dir_modified:
-      logging.info("Skipping workflow %s because of include_dirs.", w.name)        
+      logging.info("Skipping workflow %s because of include_dirs.", w.name)
       continue
 
     if job_type == "presubmit":
