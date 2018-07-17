@@ -134,8 +134,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
     job_type = os.getenv("JOB_TYPE")
-    changed_files = subprocess.check_output('git diff-files --name-only', shell=True).splitlines() 
-   
+    # changed_files = subprocess.check_output('git diff-files --name-only', shell=True).splitlines() 
+    changed_files = util.run(["git", "diff-files", "--name-only"], cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
+
     # [debug]
     for f in changed_files:
       logging.info("Detected changed file: %s", f)
