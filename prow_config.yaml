@@ -4,3 +4,4 @@ workflows:
   - app_dir: kubeflow/testing/workflows
     component: workflows
     name: unittests
+    job_types: presubmit

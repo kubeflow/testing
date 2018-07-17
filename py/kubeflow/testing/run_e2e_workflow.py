@@ -30,9 +30,11 @@ as a command line argument.
 
 import argparse
 import datetime
+import fnmatch
 import logging
 from kubernetes import client as k8s_client
 import os
+import subprocess
 import tempfile
 from kubeflow.testing import argo_client
 from kubeflow.testing import prow_artifacts
@@ -50,10 +52,12 @@ def get_namespace(args):
 class WorkflowComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
-  def __init__(self, name, app_dir, component, params):
+  def __init__(self, name, app_dir, component, job_types, include_dirs, params):
     self.name = name
     self.app_dir = app_dir
     self.component = component
+    self.job_types = job_types
+    self.include_dirs = include_dirs
     self.params = params
 
 def _get_src_dir():
@@ -72,8 +76,14 @@ def parse_config_file(config_file, root_dir):
 
   components = []
   for i in results["workflows"]:
+    job_types = []
+    if i.get("job_types"):
+      job_types = i.get("job_types").split(",")
+    include_dirs = []
+    if i.get("include_dirs"):
+      include_dirs = i.get("include_dirs").split(",")
     components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("params", {})))
+      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], job_types, include_dirs, i.get("params", {})))
   return components
 
 def generate_env_from_head(args):
@@ -124,6 +134,32 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
     job_type = os.getenv("JOB_TYPE")
+    changed_files = subprocess.check_output('git diff-files --name-only', shell=True).splitlines() 
+   
+    # [debug]
+    for f in changed_files:
+      logging.info("Detected changed file: %s", f)
+
+    # Skip this workflow if it is scoped to a different job type.
+    if w.job_types and not job_type in w.job_types:
+      continue
+
+    # If we are scoping this workflow to specific directories, check if any files
+    # modified match the specified regex patterns.
+    dir_modified = False
+    if w.include_dirs:
+      for f in changed_files:
+        for d in w.include_dirs:
+          if fnmatch.fnmatch(f, d):
+            logging.info("Pattern matched: %s %s", f, d)
+            dir_modified = True
+            break
+        if dir_modified:
+          break
+          
+    if w.include_dirs and not dir_modified:
+      continue
+
     if job_type == "presubmit":
       workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
       workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
