@@ -138,6 +138,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     changed_files = util.run(["git", "diff-files", "--name-only"], cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
 
     # [debug]
+    logging.info("Diff-files output: %s", changed_files)
     for f in changed_files:
       logging.info("Detected changed file: %s", f)
 
