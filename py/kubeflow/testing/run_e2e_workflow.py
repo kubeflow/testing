@@ -149,7 +149,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # modified match the specified regex patterns.
     dir_modified = False
     if w.include_dirs:
-      for f in changed_files.splitlines():
+      for f in changed_files:
         for d in w.include_dirs:
           if fnmatch.fnmatch(f, d):
             dir_modified = True
