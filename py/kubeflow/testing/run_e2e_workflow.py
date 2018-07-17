@@ -107,6 +107,11 @@ def generate_env_from_head(args):
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
   # Print ksonnet version
   util.run(["ks", "version"])
+
+  # Compare with master branch and get changed files.
+  changed_files = util.run(["git", "diff", "--name-only", "master"],
+    cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME"))).splitlines()
+  
   if args.release:
     generate_env_from_head(args)
   workflows = []
@@ -134,17 +139,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
     job_type = os.getenv("JOB_TYPE")
-    changed_files = util.run(["git", "diff", "--name-only", "master"],
-      cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
-
-    # [debug]
-    logging.info("Diff-files output: %s", changed_files)
-    for f in changed_files.splitlines():
-      logging.info("Detected changed file: %s", f)
 
     # Skip this workflow if it is scoped to a different job type.
     if w.job_types and not job_type in w.job_types:
-      logging.info("Skipping workflow %s because of job type.", w.name)
+      logging.info("Skipping workflow %s.", w.name)
       continue
 
     # If we are scoping this workflow to specific directories, check if any files
@@ -154,14 +152,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       for f in changed_files.splitlines():
         for d in w.include_dirs:
           if fnmatch.fnmatch(f, d):
-            logging.info("Pattern matched: %s %s", f, d)
             dir_modified = True
             break
         if dir_modified:
           break
 
     if w.include_dirs and not dir_modified:
-      logging.info("Skipping workflow %s because of include_dirs.", w.name)
+      logging.info("Skipping workflow %s.", w.name)
       continue
 
     if job_type == "presubmit":
