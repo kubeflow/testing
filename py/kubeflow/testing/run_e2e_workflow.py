@@ -111,7 +111,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   # Compare with master branch and get changed files.
   changed_files = util.run(["git", "diff", "--name-only", "master"],
     cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME"))).splitlines()
-  
+
   if args.release:
     generate_env_from_head(args)
   workflows = []

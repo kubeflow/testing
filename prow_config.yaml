@@ -4,18 +4,3 @@ workflows:
   - app_dir: kubeflow/testing/workflows
     component: workflows
     name: unittests
-    job_types: presubmit
-    include_dirs: dev-kubeflow-org/*,py/kubeflow/*
-  - app_dir: kubeflow/testing/workflows
-    component: workflows
-    name: unittests2
-    job_types: postsubmit
-  - app_dir: kubeflow/testing/workflows
-    component: workflows
-    name: unittests3
-    job_types: presubmit
-  - app_dir: kubeflow/testing/workflows
-    component: workflows
-    name: unittests4
-    job_types: presubmit
-    include_dirs: dev-kubeflow-org/*,hack/*
