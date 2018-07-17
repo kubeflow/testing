@@ -115,7 +115,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   if args.app_dir and args.component:
     # TODO(jlewi): We can get rid of this branch once all repos are using a prow_config.xml file.
-    workflows.append(WorkflowComponent("legacy", args.app_dir, args.component, {}))
+    workflows.append(WorkflowComponent("legacy", args.app_dir, args.component, [], [], {}))
   create_started_file(args.bucket)
 
   util.maybe_activate_service_account()
@@ -134,8 +134,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
     job_type = os.getenv("JOB_TYPE")
-    # changed_files = subprocess.check_output('git diff-files --name-only', shell=True).splitlines() 
-    changed_files = util.run(["git", "diff-files", "--name-only"], cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
+    changed_files = util.run(["git", "diff", "--name-only", "master"], cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
 
     # [debug]
     logging.info("Diff-files output: %s", changed_files)
