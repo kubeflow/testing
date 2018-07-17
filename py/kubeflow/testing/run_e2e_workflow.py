@@ -142,6 +142,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
     # Skip this workflow if it is scoped to a different job type.
     if w.job_types and not job_type in w.job_types:
+      logging.info("Skipping workflow %s because of job type.", w.name)
       continue
 
     # If we are scoping this workflow to specific directories, check if any files
@@ -158,6 +159,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           break
           
     if w.include_dirs and not dir_modified:
+      logging.info("Skipping workflow %s because of include_dirs.", w.name)        
       continue
 
     if job_type == "presubmit":
