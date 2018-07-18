@@ -12,6 +12,10 @@ workflows:
   - name: e2e-test
     app_dir: tensorflow/k8s/test/workflows
     component: workflows
+    job_types:
+      presubmit
+    include_dirs:
+      tensorflow/*
 
   - name: lint
     app_dir: kubeflow/kubeflow/testing/workflows
@@ -22,6 +26,12 @@ app_dir is expected to be in the form of
 
 component is the name of the ksonnet component corresponding
 to the workflow to launch.
+
+job_types (optional) is an array of strings representing the job types (presubmit/postsubmit)
+that should run this workflow.
+
+include_dirs (optional) is an array of strings that specify which directories, if modified,
+should run this workflow.
 
 The script expects that the directories
 {repos_dir}/{app_dir} exists. Where repos_dir is provided
@@ -291,21 +301,6 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     default="",
     type=str,
     help="The directory where the different repos are checked out.")
-
-  # TODO(jlewi): app_dir and component predate the use of a config
-  # file we should consider getting rid of them once all repos
-  # have been updated to run multiple workflows.
-  parser.add_argument(
-    "--app_dir",
-    type=str,
-    default="",
-    help="The directory where the ksonnet app is stored.")
-
-  parser.add_argument(
-    "--component",
-    type=str,
-    default="",
-    help="The ksonnet component to use.")
 
   parser.add_argument(
     "--release",
