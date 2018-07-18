@@ -177,8 +177,11 @@ configured for the repository (see these [instructions](#prow-setup) for info on
         - app_dir: kubeflow/testing/workflows
           component: workflows
           name: unittests
-          job_types: presubmit
-          include_dirs: foo/*,bar/*
+          job_types:
+            - presubmit
+          include_dirs:
+            - foo/*
+            - bar/*
        ```
        This configures the `unittests` workflow to only run during presubmit jobs, and only if there are changes under directories `foo` or `bar`.
 

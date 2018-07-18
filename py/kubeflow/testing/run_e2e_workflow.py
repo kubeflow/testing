@@ -75,14 +75,8 @@ def parse_config_file(config_file, root_dir):
 
   components = []
   for i in results["workflows"]:
-    job_types = []
-    if i.get("job_types"):
-      job_types = i.get("job_types").split(",")
-    include_dirs = []
-    if i.get("include_dirs"):
-      include_dirs = i.get("include_dirs").split(",")
     components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], job_types, include_dirs,
+      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("job_types", []), i.get("include_dirs", []),
       i.get("params", {})))
   return components
 
@@ -118,9 +112,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   if args.config_file:
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
 
-  if args.app_dir and args.component:
-    # TODO(jlewi): We can get rid of this branch once all repos are using a prow_config.xml file.
-    workflows.append(WorkflowComponent("legacy", args.app_dir, args.component, [], [], {}))
   create_started_file(args.bucket)
 
   util.maybe_activate_service_account()
