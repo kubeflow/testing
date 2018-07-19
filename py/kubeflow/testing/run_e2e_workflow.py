@@ -12,6 +12,10 @@ workflows:
   - name: e2e-test
     app_dir: tensorflow/k8s/test/workflows
     component: workflows
+    job_types:
+      presubmit
+    include_dirs:
+      tensorflow/*
 
   - name: lint
     app_dir: kubeflow/kubeflow/testing/workflows
@@ -23,6 +27,12 @@ app_dir is expected to be in the form of
 component is the name of the ksonnet component corresponding
 to the workflow to launch.
 
+job_types (optional) is an array of strings representing the job types (presubmit/postsubmit)
+that should run this workflow.
+
+include_dirs (optional) is an array of strings that specify which directories, if modified,
+should run this workflow.
+
 The script expects that the directories
 {repos_dir}/{app_dir} exists. Where repos_dir is provided
 as a command line argument.
@@ -30,6 +40,7 @@ as a command line argument.
 
 import argparse
 import datetime
+import fnmatch
 import logging
 from kubernetes import client as k8s_client
 import os
@@ -50,10 +61,12 @@ def get_namespace(args):
 class WorkflowComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
-  def __init__(self, name, app_dir, component, params):
+  def __init__(self, name, app_dir, component, job_types, include_dirs, params):
     self.name = name
     self.app_dir = app_dir
     self.component = component
+    self.job_types = job_types
+    self.include_dirs = include_dirs
     self.params = params
 
 def _get_src_dir():
@@ -73,7 +86,8 @@ def parse_config_file(config_file, root_dir):
   components = []
   for i in results["workflows"]:
     components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("params", {})))
+      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("job_types", []),
+      i.get("include_dirs", []), i.get("params", {})))
   return components
 
 def generate_env_from_head(args):
@@ -97,15 +111,17 @@ def generate_env_from_head(args):
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
   # Print ksonnet version
   util.run(["ks", "version"])
+
+  # Compare with master branch and get changed files.
+  changed_files = util.run(["git", "diff", "--name-only", "master"],
+    cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME"))).splitlines()
+
   if args.release:
     generate_env_from_head(args)
   workflows = []
   if args.config_file:
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
 
-  if args.app_dir and args.component:
-    # TODO(jlewi): We can get rid of this branch once all repos are using a prow_config.xml file.
-    workflows.append(WorkflowComponent("legacy", args.app_dir, args.component, {}))
   create_started_file(args.bucket)
 
   util.maybe_activate_service_account()
@@ -124,6 +140,28 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
     job_type = os.getenv("JOB_TYPE")
+
+    # Skip this workflow if it is scoped to a different job type.
+    if w.job_types and not job_type in w.job_types:
+      logging.info("Skipping workflow %s.", w.name)
+      continue
+
+    # If we are scoping this workflow to specific directories, check if any files
+    # modified match the specified regex patterns.
+    dir_modified = False
+    if w.include_dirs:
+      for f in changed_files:
+        for d in w.include_dirs:
+          if fnmatch.fnmatch(f, d):
+            dir_modified = True
+            break
+        if dir_modified:
+          break
+
+    if w.include_dirs and not dir_modified:
+      logging.info("Skipping workflow %s.", w.name)
+      continue
+
     if job_type == "presubmit":
       workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
       workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
@@ -263,21 +301,6 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     default="",
     type=str,
     help="The directory where the different repos are checked out.")
-
-  # TODO(jlewi): app_dir and component predate the use of a config
-  # file we should consider getting rid of them once all repos
-  # have been updated to run multiple workflows.
-  parser.add_argument(
-    "--app_dir",
-    type=str,
-    default="",
-    help="The directory where the ksonnet app is stored.")
-
-  parser.add_argument(
-    "--component",
-    type=str,
-    default="",
-    help="The ksonnet component to use.")
 
   parser.add_argument(
     "--release",

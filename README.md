@@ -32,7 +32,7 @@ Quick Links
 
 ## Anatomy of our Tests
 
-* Our prow jobs are defined in [config.yaml](https://github.com/kubernetes/test-infra/blob/master/prow/config.yaml)
+* Our prow jobs are defined [here](https://github.com/kubernetes/test-infra/tree/master/config/jobs/kubeflow)
 * Each prow job defines a K8s PodSpec indicating a command to run
 * Our prow jobs use [run_e2e_workflow.py](https://github.com/kubeflow/testing/blob/master/py/kubeflow/testing/run_e2e_workflow.py)
   to trigger an Argo workflow that checks out our code and runs our tests.
@@ -170,6 +170,21 @@ configured for the repository (see these [instructions](#prow-setup) for info on
      1. Use [kubeflow.testing.run_e2e_workflow](https://github.com/kubeflow/testing/tree/master/py/kubeflow/testing/run_e2e_workflow.py)
         to run the Argo workflow.
    * Add a `prow_config.yaml` file that will be passed into run_e2e_workflow to determine which ksonnet app to use for testing. An example can be seen [here](https://github.com/kubeflow/kubeflow/blob/master/prow_config.yaml).
+     * Workflows can optionally be scoped by job type (presubmit/postsubmit) or modified directories. For example:
+
+       ```
+       workflows:
+        - app_dir: kubeflow/testing/workflows
+          component: workflows
+          name: unittests
+          job_types:
+            - presubmit
+          include_dirs:
+            - foo/*
+            - bar/*
+       ```
+       This configures the `unittests` workflow to only run during presubmit jobs, and only if there are changes under directories `foo` or `bar`.
+
 1. Create a prow job for that repository
    * The command for the prow job should be set via the entrypoint baked into the Docker image
    * This way we can change the Prow job just by pushing a docker image and we don't need to update the prow config.
