@@ -136,11 +136,11 @@ def copy_artifacts(args):
 
   if args.suffix:
     logging.info("Renaming all artifact files to include %s", args.suffix)
-    for dirpath, _, files in os.walk("./TREE/"):
+    for dirpath, _, files in os.walk(args.artifacts_dir):
       for filename in files:
         full_path = os.path.join(dirpath, filename)
 
-        name, ext = os.path.splitext(f)
+        name, ext = os.path.splitext(filename)
         new_name = "{0}-{1}{2}".format(name, args.suffix, ext)
         new_path = os.path.join(dirpath, new_name)
         logging.info("Rename %s to %s", full_path, new_path)
