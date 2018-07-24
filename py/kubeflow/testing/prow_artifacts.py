@@ -134,6 +134,17 @@ def copy_artifacts(args):
 
   output = get_gcs_dir(args.bucket)
 
+  if args.suffix:
+    logging.info("Renaming all artifact files to include %s", args.suffix)
+    for dirpath, _, files in os.walk(args.artifacts_dir):
+      for filename in files:
+        full_path = os.path.join(dirpath, filename)
+
+        name, ext = os.path.splitext(filename)
+        new_name = "{0}-{1}{2}".format(name, args.suffix, ext)
+        new_path = os.path.join(dirpath, new_name)
+        logging.info("Rename %s to %s", full_path, new_path)
+        os.rename(full_path, new_path)
   util.maybe_activate_service_account()
   util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
 
@@ -254,6 +265,13 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     default="",
     type=str,
     help="Bucket to copy the artifacts to.")
+
+  parser_copy.add_argument(
+    "--suffix",
+    default="",
+    type=str,
+    help=("Optional if supplied add this suffix to the names of all artifact "
+          "files before copying them to the GCS bucket."))
 
   parser_copy.set_defaults(func=copy_artifacts)
 
