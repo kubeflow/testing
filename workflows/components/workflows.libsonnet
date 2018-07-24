@@ -213,6 +213,7 @@
               "--artifacts_dir=" + outputDir,
               "copy_artifacts",
               "--bucket=" + bucket,
+              "--suffix=fakesuffix",
             ]),  // copy-artifacts
           ],  // templates
         },
