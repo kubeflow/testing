@@ -1,10 +1,10 @@
-local params = std.extVar('__ksonnet/params');
-local globals = import 'globals.libsonnet';
-local envParams = params + {
+local params = std.extVar("__ksonnet/params");
+local globals = import "globals.libsonnet";
+local envParams = params {
   components+: {
     jupyterhub+: {
-      disks: 'github-issues-data',
-      jupyterNotebookPVCMount: '/home/jovyan',
+      disks: "github-issues-data",
+      jupyterNotebookPVCMount: "/home/jovyan",
     },
   },
 };
