@@ -22,7 +22,8 @@ then
   NAMESPACE=kubeflow-latest
   APP_NAME=kubeflow-latest_ks_app
   FQDN=dev-latest.kubeflow.org
-  IP_NAME="kubeflow-latest-ip"  
+  IP_NAME="kubeflow-latest-ip"
+  USAGE_ID=a9cfe6c1-0e75-44aa-8fc0-a44db63611dc
 elif [ "$1" = "stable" ]
 then
   # Which version of Kubeflow to use
@@ -33,10 +34,22 @@ then
   APP_NAME=ks-app
   FQDN=dev.kubeflow.org
   IP_NAME="kubeflow-tf-hub"
+  USAGE_ID=f85740a3-5f60-4146-91b6-2ab7089cf01c
 else
   echo "Must specify either 'latest' or 'stable'"
   exit -1	
 fi
+
+KUBEFLOW_CLOUD="gke"
+ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
+ZONE=${ZONE:-"us-central1-a"}
+GCFS_INSTANCE=${GCFS_INSTANCE:-"${DEPLOYMENT_NAME}"}
+GCFS_STORAGE=${GCFS_STORAGE:-"1T"}
+GCFS_INSTANCE_IP_ADDRESS=$(gcloud beta filestore instances describe \
+  ${GCFS_INSTANCE} --location ${ZONE} | \
+  grep --after-context=1 ipAddresses | \
+  tail -1 | \
+  awk '{print $2}')
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GIT_ROOT="$(git rev-parse --show-toplevel)"
@@ -53,6 +66,8 @@ python <(curl -s https://raw.githubusercontent.com/kubeflow/kubeflow/${VERSION}/
 
 # Remove components so we can regenerate them from the updated
 # prototypes
+ks component rm google-cloud-filestore-pv
+ks component rm pytorch-operator
 ks component rm jupyterhub
 ks component rm ambassador
 ks component rm centraldashboard
@@ -61,9 +76,23 @@ ks component rm spartakus
 ks component rm cert-manager
 ks component rm iap-ingress
 
+# Install all required packages
+set +e
+ks pkg install kubeflow/argo
+ks pkg install kubeflow/core
+ks pkg install kubeflow/examples
+ks pkg install kubeflow/katib
+ks pkg install kubeflow/mpi-job
+ks pkg install kubeflow/pytorch-job
+ks pkg install kubeflow/seldon
+ks pkg install kubeflow/tf-serving
+set -e
+
 # Create templates for core components
-ks generate jupyterhub jupyterhub
-ks generate ambassador ambassador
+ks generate google-cloud-filestore-pv google-cloud-filestore-pv --name="kubeflow-gcfs" --storageCapacity="${GCFS_STORAGE}" --serverIP="${GCFS_INSTANCE_IP_ADDRESS}"
+ks generate pytorch-operator pytorch-operator
+ks generate ambassador ambassador --ambassadorImage="gcr.io/kubeflow-images-public/ambassador:0.30.1" --statsdImage="gcr.io/kubeflow-images-public/statsd:0.30.1" --cloud=${KUBEFLOW_CLOUD}
+ks generate jupyterhub jupyterhub --cloud=${KUBEFLOW_CLOUD} --disks="kubeflow-gcfs"
 ks generate centraldashboard centraldashboard
 ks generate tf-job-operator tf-job-operator
 ks generate spartakus spartakus
@@ -91,8 +120,6 @@ ks param set jupyterhub jupyterNotebookPVCMount /home/jovyan --env=default
 #
 # We use the same usage id on redeployments so we won't conflate
 # redeployments with unique clusters.
-USAGE_ID=a9cfe6c1-0e75-44aa-8fc0-a44db63611dc
-
 ks param set spartakus reportUsage true
 ks param set spartakus usageId ${USAGE_ID}
 

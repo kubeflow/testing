@@ -3,6 +3,12 @@
   components: {
     // Component-level parameters, defined initially from 'ks prototype use ...'
     // Each object below should correspond to a component in the components/ directory
+    "google-cloud-filestore-pv": {
+      name: "kubeflow-gcfs",
+      path: "/kubeflow",
+      serverIP: "10.157.130.242",
+      storageCapacity: "1T",
+    },
     "pytorch-operator": {
       cloud: "null",
       disks: "null",
@@ -11,15 +17,16 @@
       pytorchDefaultImage: "null",
       pytorchJobImage: "gcr.io/kubeflow-images-public/pytorch-operator:v20180619-2e19016",
     },
-    "google-cloud-filestore-pv": {
-      name: "kubeflow-gcfs",
-      path: "/kubeflow",
-      serverIP: "10.157.130.242",
-      storageCapacity: "1T",
+    ambassador: {
+      ambassadorImage: "gcr.io/kubeflow-images-public/ambassador:0.30.1",
+      ambassadorServiceType: "ClusterIP",
+      cloud: "gke",
+      name: "ambassador",
+      statsdImage: "gcr.io/kubeflow-images-public/statsd:0.30.1",
     },
     jupyterhub: {
-      cloud: "null",
-      disks: "null",
+      cloud: "gke",
+      disks: "kubeflow-gcfs",
       gcpSecretName: "user-gcp-sa",
       image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
       jupyterHubAuthenticator: "iap",
@@ -29,13 +36,6 @@
       registry: "gcr.io",
       repoName: "kubeflow-images-public",
       serviceType: "ClusterIP",
-    },
-    ambassador: {
-      ambassadorImage: "quay.io/datawire/ambassador:0.30.1",
-      ambassadorServiceType: "ClusterIP",
-      cloud: "null",
-      name: "ambassador",
-      statsdImage: "quay.io/datawire/statsd:0.30.1",
     },
     centraldashboard: {
       image: "gcr.io/kubeflow-images-public/centraldashboard:v0.2.1",

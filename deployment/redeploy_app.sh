@@ -122,13 +122,14 @@ kubectl -n ${NAMESPACE} delete service vizier-core
 set -e
 
 applyIapIngress ${KS_ENV} ${NAMESPACE}
+runApply ${KS_ENV} google-cloud-filestore-pv
 runApply ${KS_ENV} cert-manager
 runApply ${KS_ENV} jupyterhub
 runApply ${KS_ENV} ambassador
 runApply ${KS_ENV} centraldashboard
 runApply ${KS_ENV} tf-operator-job
 runApply ${KS_ENV} spartakus
-runApply ${KS_ENV} seldon
+runApply ${KS_ENV} pytorch-operator
 
 # TODO(jlewi): Is deleting the pod sufficient?
 kubectl -n ${NAMESPACE} delete pods tf-hub-0
