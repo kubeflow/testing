@@ -36,7 +36,12 @@ if [ ! -z ${PULL_NUMBER} ]; then
  else
  	git checkout pr
  fi
- 
+ git merge -m "Merging origin/${PULL_BASE_REF}" origin/${PULL_BASE_REF}
+ if [[ $? -gt 0 ]]
+ then
+   echo "There are conflicts in this branch with ${PULL_BASE_REF} branch. Manually merge ${PULL_BASE_REF} branch into this branch"
+   exit 1
+ fi
 else
  if [ ! -z ${PULL_BASE_SHA} ]; then
  	# Its a post submit; checkout the commit to test.
@@ -92,4 +97,4 @@ done
 # an EXTRA_REPOS.
 if [ ! -d ${SRC_DIR}/kubeflow/testing ]; then
 	git clone https://github.com/kubeflow/testing.git ${SRC_DIR}/kubeflow/testing
-fi	
+fi
