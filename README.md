@@ -139,6 +139,14 @@ To access the stackdriver logs
   resource.labels.pod_id=${POD_ID}
   ```
 
+  * For example, if the TF serving workflow failed, filter the logs using
+  ```
+  resource.type="container"
+  resource.labels.cluster_name="kubeflow-testing"
+  labels."container.googleapi.com/namespace_name"=WORKFLOW_NAME
+  resource.labels.container_name="mnist-cpu"
+  ```
+
 ### Debugging Failed Deployments
 
 If an E2E test fails because a pod doesn't start (e.g JupyterHub) we can debug this by looking at the events associated with the pod.
