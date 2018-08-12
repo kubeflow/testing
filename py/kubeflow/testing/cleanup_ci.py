@@ -2,23 +2,18 @@
 import argparse
 import datetime
 import logging
-import json
 import os
-import pprint
 import re
 import subprocess
 import tempfile
 
-from google.api_core import datetime_helpers
-from googleapiclient import discovery, errors
+from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
 # Regexes that select matching deployments
 MATCHING = [re.compile("e2e-.*"), re.compile("kfctl.*")]
 
 def is_match(name):
-  is_match = False
-
   for m in MATCHING:
     if m.match(name):
       return True
@@ -64,8 +59,8 @@ def main():
 
   for d in deployments.get("deployments", []):
     if not d.get("insertTime", None):
-      logging.warn("Deployment %s doesn't have a deployment time "
-                   "skipping it", d["name"])
+      logging.warning("Deployment %s doesn't have a deployment time "
+                      "skipping it", d["name"])
       continue
 
     name = d["name"]
