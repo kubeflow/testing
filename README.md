@@ -237,6 +237,20 @@ To monitor the job open Prow's UI by navigating to the external IP
 associated with the ingress for your Prow cluster or using
 kubectl proxy.
 
+## Cleaning up leaked resources
+
+Test failures sometimes leave resources (GCP deployments, VMs, GKE clusters) still running. 
+The following scripts can be used to garbage collect leaked resources.
+
+```
+py/testing/kubeflow/testing/cleanup_ci.py --delete_script=${DELETE_SCRIPT}
+```
+
+  * **DELETE_SCRIPT** should be the path to a copy of [delete_deployment.sh](https://github.com/kubeflow/kubeflow/blob/master/scripts/gke/delete_deployment.sh)
+
+There's a second script [cleanup_kubeflow_ci](https://github.com/kubeflow/kubeflow/blob/master/scripts/cleanup_kubeflow_ci.sh)
+in the kubeflow repository to cleanup resources left by ingresses.
+
 ## Integration with K8s Prow Infrastructure.
 
 We rely on K8s instance of Prow to actually run our jobs.
