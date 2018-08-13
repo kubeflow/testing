@@ -20,7 +20,7 @@ def is_match(name):
 
   return False
 
-def main():
+def main(): # pylint: disable=too-many-locals,too-many-statements
   parser = argparse.ArgumentParser()
   parser.add_argument(
     "--project", default="kubeflow-ci", type=str, help=("The project."))
@@ -89,7 +89,7 @@ def main():
 
     age = datetime.datetime.utcnow()- insert_time_utc
 
-    if age > datetime.timedelta(hours = args.max_age_hours):
+    if age > datetime.timedelta(hours=args.max_age_hours):
       command = [args.delete_script, args.project, name]
       cwd = None
       # If we download the manifests first delete_deployment will issue
@@ -150,7 +150,7 @@ def main():
       insert_time_utc = insert_time + datetime.timedelta(hours=-1 * hours_offset)
       age = datetime.datetime.utcnow()- insert_time_utc
 
-      if age > datetime.timedelta(hours = args.max_age_hours):
+      if age > datetime.timedelta(hours=args.max_age_hours):
         logging.info("Deleting cluster %s in zone %s", name, zone)
 
         clusters_client.delete(projectId=args.project, zone=zone,
