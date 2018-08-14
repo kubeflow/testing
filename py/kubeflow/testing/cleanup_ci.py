@@ -11,7 +11,8 @@ from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
 # Regexes that select matching deployments
-MATCHING = [re.compile("e2e-.*"), re.compile("kfctl.*")]
+MATCHING = [re.compile("e2e-.*"), re.compile("kfctl.*"),
+            re.compile("z-.*"), re.compile(".*presubmit.*")]
 
 def is_match(name):
   for m in MATCHING:
@@ -42,6 +43,9 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     help="Comma separated list of zones to check.")
 
   args = parser.parse_args()
+
+  if not args.delete_script:
+    raise ValueError("--delete_script must be specified.")
 
   logging.basicConfig(level=logging.INFO,
                       format=('%(levelname)s|%(asctime)s'
