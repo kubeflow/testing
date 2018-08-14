@@ -1,0 +1,39 @@
+apiVersion: 0.1.0
+gitVersion:
+  commitSha: 3b5c7861bdfb8a4f73d583f08d7ca8c9066d9190
+  refSpec: v0.2-branch
+kind: ksonnet.io/registry
+libraries:
+  argo:
+    path: argo
+    version: master
+  automation:
+    path: automation
+    version: master
+  core:
+    path: core
+    version: master
+  katib:
+    path: katib
+    version: master
+  mpi-job:
+    path: mpi-job
+    version: master
+  new-package-stub:
+    path: new-package-stub
+    version: master
+  openmpi:
+    path: openmpi
+    version: master
+  pachyderm:
+    path: pachyderm
+    version: master
+  pytorch-job:
+    path: pytorch-job
+    version: master
+  seldon:
+    path: seldon
+    version: master
+  tf-serving:
+    path: tf-serving
+    version: master
