@@ -50,7 +50,6 @@ GCFS_INSTANCE_IP_ADDRESS=$(gcloud beta filestore instances describe \
   grep --after-context=1 ipAddresses | \
   tail -1 | \
   awk '{print $2}')
-GCFS_INSTANCE_IP_ADDRESS=10.157.130.242
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GIT_ROOT="$(git rev-parse --show-toplevel)"
@@ -108,6 +107,10 @@ ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} \
        --oauthSecretName="kubeflow-oauth"
 
 ks param set jupyterhub jupyterHubAuthenticator iap
+
+# Set the name of the PD for backing a NFS to hold github issue
+# summarization model data
+ks param set jupyterhub disks github-issues-data --env=default
 
 # Enable a PVC backed by the default StorageClass
 ks param set jupyterhub jupyterNotebookPVCMount /home/jovyan --env=default

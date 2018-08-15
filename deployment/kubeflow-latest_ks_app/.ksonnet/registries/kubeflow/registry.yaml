@@ -3,35 +3,35 @@ kind: ksonnet.io/registry
 libraries:
   argo:
     path: argo
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   automation:
     path: automation
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   core:
     path: core
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   katib:
     path: katib
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   mpi-job:
     path: mpi-job
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   new-package-stub:
     path: new-package-stub
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   openmpi:
     path: openmpi
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   pachyderm:
     path: pachyderm
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   pytorch-job:
     path: pytorch-job
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   seldon:
     path: seldon
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   tf-serving:
     path: tf-serving
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
-version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
+version: 177377f154475e797ebf2c9bb7d156862f8e1231

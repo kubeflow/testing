@@ -11,35 +11,35 @@ libraries:
   argo:
     name: argo
     registry: kubeflow
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   core:
     name: core
     registry: kubeflow
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   examples:
     name: examples
     registry: kubeflow
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   katib:
     name: katib
     registry: kubeflow
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   mpi-job:
     name: mpi-job
     registry: kubeflow
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   pytorch-job:
     name: pytorch-job
     registry: kubeflow
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   seldon:
     name: seldon
     registry: kubeflow
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
   tf-serving:
     name: tf-serving
     registry: kubeflow
-    version: ac649bff69dbce9c4169cff5ec09d7b8da017f1c
+    version: 177377f154475e797ebf2c9bb7d156862f8e1231
 name: kubeflow-latest_ks_app
 registries:
   incubator:

@@ -263,7 +263,7 @@ in the kubeflow repository to cleanup resources left by ingresses.
 
 We rely on K8s instance of Prow to actually run our jobs.
 
-Here's [the dashboard](https://k8s-testgrid.appspot.com/sig-big-data) with
+Here's [a dashboard](https://k8s-testgrid.appspot.com/sig-big-data) with
 the results.
 
 Our jobs should be added to
