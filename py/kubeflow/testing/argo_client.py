@@ -39,6 +39,19 @@ def log_status(workflow):
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
        stop_max_delay=20*60*1000,
        retry_on_exception=lambda e: not isinstance(e, util.TimeoutError))
+def get_namespaced_custom_object_with_retries(client, namespace, name):
+  """Call get_namespaced_customer_object API with retries.
+
+  Args:
+    client: K8s api client.
+    namespace: namespace for the workflow.
+    name: name of the workflow.
+  """
+  crd_api = k8s_client.CustomObjectsApi(client)
+  return crd_api.get_namespaced_custom_object(
+    GROUP, VERSION, namespace, PLURAL, name)
+
+
 def wait_for_workflows(client, namespace, names,
                       timeout=datetime.timedelta(minutes=30),
                       polling_interval=datetime.timedelta(seconds=30),
@@ -60,15 +73,12 @@ def wait_for_workflows(client, namespace, names,
   Raises:
     TimeoutError: If timeout waiting for the job to finish.
   """
-  crd_api = k8s_client.CustomObjectsApi(client)
   end_time = datetime.datetime.now() + timeout
   while True:
     all_results = []
 
     for n in names:
-      results = crd_api.get_namespaced_custom_object(
-          GROUP, VERSION, namespace, PLURAL, n)
-
+      results = get_namespaced_custom_object_with_retries(client, namespace, n)
       all_results.append(results)
       if status_callback:
         status_callback(results)
