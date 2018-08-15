@@ -4,3 +4,13 @@ workflows:
   - app_dir: kubeflow/testing/workflows
     component: workflows
     name: unittests
+  - app_dir: kubeflow/testing/workflows
+    component: workflows
+    name: unittests2
+    include_dirs:
+      - *.md
+  - app_dir: kubeflow/testing/workflows
+    component: workflows
+    name: unittests3
+    include_dirs:
+      - kubeflow/*/*.py
