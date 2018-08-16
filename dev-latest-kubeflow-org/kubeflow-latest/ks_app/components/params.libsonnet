@@ -1,0 +1,75 @@
+{
+  global: {},
+  components: {
+    // Component-level parameters, defined initially from 'ks prototype use ...'
+    // Each object below should correspond to a component in the components/ directory
+    "pytorch-operator": {
+      cloud: 'null',
+      disks: 'null',
+      name: 'pytorch-operator',
+      namespace: 'null',
+      pytorchDefaultImage: 'null',
+      pytorchJobImage: 'gcr.io/kubeflow-images-public/pytorch-operator:v20180619-2e19016',
+    },
+    ambassador: {
+      ambassadorImage: 'quay.io/datawire/ambassador:0.37.0',
+      ambassadorServiceType: 'ClusterIP',
+      cloud: 'gke',
+      name: 'ambassador',
+      statsdImage: 'quay.io/datawire/statsd:0.37.0',
+    },
+    jupyterhub: {
+      cloud: 'gke',
+      disks: 'null',
+      gcpSecretName: 'user-gcp-sa',
+      image: 'gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1',
+      jupyterHubAuthenticator: 'iap',
+      name: 'jupyterhub',
+      namespace: 'null',
+      notebookPVCMount: '/home/jovyan',
+      registry: 'gcr.io',
+      repoName: 'kubeflow-images-public',
+      serviceType: 'ClusterIP',
+    },
+    centraldashboard: {
+      image: 'gcr.io/kubeflow-images-public/centraldashboard:v0.2.1',
+      name: 'centraldashboard',
+    },
+    "tf-job-operator": {
+      cloud: 'null',
+      name: 'tf-job-operator',
+      namespace: 'null',
+      tfDefaultImage: 'null',
+      tfJobImage: 'gcr.io/kubeflow-images-public/tf_operator:v20180809-d2509aa',
+      tfJobUiServiceType: 'ClusterIP',
+      tfJobVersion: 'v1alpha2',
+    },
+    argo: {
+      imageTag: 'latest',
+      name: 'argo',
+      namespace: 'null',
+    },
+    spartakus: {
+      name: 'spartakus',
+      reportUsage: '',
+      usageId: '91FB94E6-8EFF-4B68-9494-B89DA812F2BD',
+    },
+    "cert-manager": {
+      acmeEmail: 'sanyamkapoor@google.com',
+      acmeUrl: 'https://acme-v01.api.letsencrypt.org/directory',
+      name: 'cert-manager',
+      namespace: 'null',
+    },
+    "iap-ingress": {
+      disableJwtChecking: 'false',
+      envoyImage: 'gcr.io/kubeflow-images-public/envoy:v20180309-0fb4886b463698702b6a08955045731903a18738',
+      hostname: 'dev-latest.kubeflow.org',
+      ipName: 'kubeflow-latest-ip',
+      issuer: 'letsencrypt-prod',
+      name: 'iap-ingress',
+      namespace: 'null',
+      oauthSecretName: 'kubeflow-oauth',
+      secretName: 'envoy-ingress-tls',
+    },
+  },
+}
