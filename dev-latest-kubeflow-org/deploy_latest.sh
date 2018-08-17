@@ -6,6 +6,7 @@ export PROJECT=${PROJECT:-}
 export DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-}
 export CLIENT_ID=${CLIENT_ID:-}
 export CLIENT_SECRET=${CLIENT_SECRET:-}
+export K8S_NAMESPACE=${K8S_NAMESPACE:-kubeflow}
 
 _SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
