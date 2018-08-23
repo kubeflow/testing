@@ -193,6 +193,8 @@ configured for the repository (see these [instructions](#prow-setup) for info on
        ```
        This configures the `unittests` workflow to only run during presubmit jobs, and only if there are changes under directories `foo` or `bar`.
 
+     * **include_dirs** is only considered for presubmit jobs
+
 1. Create a prow job for that repository
    * The command for the prow job should be set via the entrypoint baked into the Docker image
    * This way we can change the Prow job just by pushing a docker image and we don't need to update the prow config.
