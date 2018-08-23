@@ -143,7 +143,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
     # Skip this workflow if it is scoped to a different job type.
     if w.job_types and not job_type in w.job_types:
-      logging.info("Skipping workflow %s.", w.name)
+      logging.info("Skipping workflow %s because job type %s is not one of "
+                   "%s.", w.name, job_type, w.job_types)
       continue
 
     # If we are scoping this workflow to specific directories, check if any files
@@ -158,9 +159,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         if dir_modified:
           break
 
-    if w.include_dirs and not dir_modified:
-      logging.info("Skipping workflow %s.", w.name)
-      continue
+    # Only consider modified files on presubmit. On postsubmit we run
+    # all tests.
+    if job_type == "presubmit":
+      if w.include_dirs and not dir_modified:
+        logging.info("Skipping workflow %s because no code modified in %s.",
+                     w.name, w.include_dirs)
+        continue
 
     if job_type == "presubmit":
       workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
