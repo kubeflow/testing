@@ -57,6 +57,7 @@ class TestSuite(junit_xml.TestSuite):
     # suite in our output file
     xml_out = junit_xml.TestSuite.to_xml_string([self])
     first_test_suite = ET.fromstring(xml_out)[0]
+    logging.info("Writing file: %s", output_file)
     ET.ElementTree(first_test_suite).write(output_file)
 
   def run(self):
