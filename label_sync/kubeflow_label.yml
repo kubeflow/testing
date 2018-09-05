@@ -4,6 +4,8 @@ labels:
 - color: d2b48c
   name: area/api
 - color: d2b48c
+  name: area/0.4.0
+- color: d2b48c
   name: area/build-release
   previously:
   - name: area/release-eng
