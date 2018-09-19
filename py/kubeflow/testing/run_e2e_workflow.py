@@ -54,6 +54,9 @@ import yaml
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
+  if args.namespace:
+    return args.namespace
+
   if args.release:
     return "kubeflow-releasing"
   return "kubeflow-test-infra"
@@ -312,6 +315,12 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     action='store_true',
     default=False,
     help="Whether workflow is for image release")
+
+  parser.add_argument(
+    "--namespace",
+    default=None,
+    type=str,
+    help="Optional namespace to use")
 
   #############################################################################
   # Process the command line arguments.
