@@ -39,6 +39,8 @@ class TestSuite(junit_xml.TestSuite):
   """A suite of test cases."""
 
   def __init__(self, name, test_dir, artifacts_dir, logs_dir, **kwargs):
+    if not name:
+      raise ValueError("name must be set.")
     self.test_dir = test_dir
     self.artifacts_dir = artifacts_dir
     self.logs_dir = logs_dir
@@ -57,6 +59,7 @@ class TestSuite(junit_xml.TestSuite):
     # suite in our output file
     xml_out = junit_xml.TestSuite.to_xml_string([self])
     first_test_suite = ET.fromstring(xml_out)[0]
+    logging.info("Writing file: %s", output_file)
     ET.ElementTree(first_test_suite).write(output_file)
 
   def run(self):

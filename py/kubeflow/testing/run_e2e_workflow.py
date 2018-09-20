@@ -54,6 +54,9 @@ import yaml
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
+  if args.namespace:
+    return args.namespace
+
   if args.release:
     return "kubeflow-releasing"
   return "kubeflow-test-infra"
@@ -143,7 +146,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
     # Skip this workflow if it is scoped to a different job type.
     if w.job_types and not job_type in w.job_types:
-      logging.info("Skipping workflow %s.", w.name)
+      logging.info("Skipping workflow %s because job type %s is not one of "
+                   "%s.", w.name, job_type, w.job_types)
       continue
 
     # If we are scoping this workflow to specific directories, check if any files
@@ -158,9 +162,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         if dir_modified:
           break
 
-    if w.include_dirs and not dir_modified:
-      logging.info("Skipping workflow %s.", w.name)
-      continue
+    # Only consider modified files on presubmit. On postsubmit we run
+    # all tests.
+    if job_type == "presubmit":
+      if w.include_dirs and not dir_modified:
+        logging.info("Skipping workflow %s because no code modified in %s.",
+                     w.name, w.include_dirs)
+        continue
 
     if job_type == "presubmit":
       workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
@@ -307,6 +315,12 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     action='store_true',
     default=False,
     help="Whether workflow is for image release")
+
+  parser.add_argument(
+    "--namespace",
+    default=None,
+    type=str,
+    help="Optional namespace to use")
 
   #############################################################################
   # Process the command line arguments.
