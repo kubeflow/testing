@@ -484,6 +484,9 @@ def load_kube_config(config_file=None,
 
     config_persister = _save_kube_config
 
+  with open(config_file, "r") as f:
+    logging.info("[DEBUG]: %s", yaml.load(f))
+
   loader = kube_config._get_kube_config_loader_for_yaml_file(  # pylint: disable=protected-access
     config_file,
     active_context=context,
