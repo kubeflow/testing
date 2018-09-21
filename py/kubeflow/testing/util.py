@@ -497,6 +497,8 @@ def load_kube_config(config_file=None,
     kubernetes_configuration.Configuration.set_default(config)
   else:
     loader.load_and_set(client_configuration) # pylint: disable=too-many-function-args
+  # Dump the loaded config.
+  run(["kubectl", "config", "view"])
 
 
 def maybe_activate_service_account():

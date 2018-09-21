@@ -51,6 +51,7 @@ from kubeflow.testing import util
 import uuid
 import sys
 import yaml
+import time
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
@@ -161,6 +162,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
             break
         if dir_modified:
           break
+
+    logging.info("Sleeping...")
+    time.sleep(3660)
 
     # Only consider modified files on presubmit. On postsubmit we run
     # all tests.
