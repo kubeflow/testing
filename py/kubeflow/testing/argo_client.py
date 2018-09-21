@@ -6,6 +6,7 @@ from retrying import retry
 import time
 
 from kubernetes import client as k8s_client
+from kubernetes.client import rest
 
 from kubeflow.testing import util
 
@@ -28,6 +29,15 @@ def log_status(workflow):
     logging.exception('KeyError: %s', e)
 
 
+def handle_retriable_exception(exception):
+  if isinstance(exception, rest.ApiException) and exception.status == 401:
+    # See https://github.com/kubeflow/testing/issues/207.
+    # If we get an unauthorized response, just reload the kubeconfig and retry.
+    util.load_kube_config()
+    return True
+  return not isinstance(exception, util.TimeoutError)
+
+
 # Wait 2^x * 1 second between retries up to a max of 10 seconds between
 # retries.
 # Retry for a maximum of 5 minutes.
@@ -38,7 +48,7 @@ def log_status(workflow):
 # https://github.com/kubeflow/testing/issues/171
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
        stop_max_delay=5*60*1000,
-       retry_on_exception=lambda e: not isinstance(e, util.TimeoutError))
+       retry_on_exception=handle_retriable_exception)
 def get_namespaced_custom_object_with_retries(client, namespace, name):
   """Call get_namespaced_customer_object API with retries.
 
