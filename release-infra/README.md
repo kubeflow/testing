@@ -3,7 +3,7 @@
 
 This page describes our release infrastructure.
 
-It also contains various config files for our release infrastruce.
+It also contains various config files for our release instrastructure.
 
 ## IAM Policies
 
