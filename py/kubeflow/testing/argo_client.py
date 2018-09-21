@@ -34,7 +34,6 @@ def handle_retriable_exception(exception):
     # See https://github.com/kubeflow/testing/issues/207.
     # If we get an unauthorized response, just reload the kubeconfig and retry.
     util.load_kube_config()
-    util.run(["kubectl", "config", "view"])
     return True
   return not isinstance(exception, util.TimeoutError)
 
@@ -50,27 +49,26 @@ def handle_retriable_exception(exception):
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
        stop_max_delay=5*60*1000,
        retry_on_exception=handle_retriable_exception)
-def get_namespaced_custom_object_with_retries(client, namespace, name):
+def get_namespaced_custom_object_with_retries(namespace, name):
   """Call get_namespaced_customer_object API with retries.
 
   Args:
-    client: K8s api client.
     namespace: namespace for the workflow.
     name: name of the workflow.
   """
+  client = k8s_client.ApiClient()
   crd_api = k8s_client.CustomObjectsApi(client)
   return crd_api.get_namespaced_custom_object(
     GROUP, VERSION, namespace, PLURAL, name)
 
 
-def wait_for_workflows(client, namespace, names,
+def wait_for_workflows(namespace, names,
                       timeout=datetime.timedelta(minutes=30),
                       polling_interval=datetime.timedelta(seconds=30),
                       status_callback=None):
   """Wait for multiple workflows to finish.
 
   Args:
-    client: K8s api client.
     namespace: namespace for the workflow.
     names: Names of the workflows to wait for.
     timeout: How long to wait for the workflow.
@@ -89,7 +87,7 @@ def wait_for_workflows(client, namespace, names,
     all_results = []
 
     for n in names:
-      results = get_namespaced_custom_object_with_retries(client, namespace, n)
+      results = get_namespaced_custom_object_with_retries(namespace, n)
       all_results.append(results)
       if status_callback:
         status_callback(results)
@@ -112,14 +110,13 @@ def wait_for_workflows(client, namespace, names,
 
   return []
 
-def wait_for_workflow(client, namespace, name,
+def wait_for_workflow(namespace, name,
                       timeout=datetime.timedelta(minutes=30),
                       polling_interval=datetime.timedelta(seconds=30),
                       status_callback=None):
   """Wait for the specified workflow to finish.
 
   Args:
-    client: K8s api client.
     namespace: namespace for the workflow.
     name: Name of the workflow
     timeout: How long to wait for the workflow.
@@ -131,6 +128,6 @@ def wait_for_workflow(client, namespace, name,
   Raises:
     TimeoutError: If timeout waiting for the job to finish.
   """
-  results = wait_for_workflows(client, namespace, [name],
+  results = wait_for_workflows(namespace, [name],
                                timeout, polling_interval, status_callback)
   return results[0]
