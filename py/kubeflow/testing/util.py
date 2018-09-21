@@ -484,6 +484,9 @@ def load_kube_config(config_file=None,
 
     config_persister = _save_kube_config
 
+  with open(config_file, "r") as f:
+    logging.info("[DEBUG]: %s", yaml.load(f))
+
   loader = kube_config._get_kube_config_loader_for_yaml_file(  # pylint: disable=protected-access
     config_file,
     active_context=context,
@@ -497,6 +500,8 @@ def load_kube_config(config_file=None,
     kubernetes_configuration.Configuration.set_default(config)
   else:
     loader.load_and_set(client_configuration) # pylint: disable=too-many-function-args
+  # Dump the loaded config.
+  run(["kubectl", "config", "view"])
 
 
 def maybe_activate_service_account():
