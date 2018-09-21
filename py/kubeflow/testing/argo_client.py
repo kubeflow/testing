@@ -34,6 +34,7 @@ def handle_retriable_exception(exception):
     # See https://github.com/kubeflow/testing/issues/207.
     # If we get an unauthorized response, just reload the kubeconfig and retry.
     util.load_kube_config()
+    util.run("kubectl", "config", "view")
     return True
   return not isinstance(exception, util.TimeoutError)
 
