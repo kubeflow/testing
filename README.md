@@ -437,33 +437,6 @@ Create the PVs corresponding to external NFS
 ks apply ${ENV} -c nfs-external
 ```
 
-### Release infrastructure
-
-Our release infrastructure is largely identical to our test infrastructure
-except its more locked down.
-
-In particular, we don't expose the Argo UI publicly.
-
-Additionally we need to grant the service account access to the GCR
-registry used to host our images.
-
-```
-GCR_PROJECT=kubeflow-images-public
-gcloud projects add-iam-policy-binding ${GCR_PROJECT} \
-      --member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
-      --role=roles/storage.admin
-```
-
-We also need to give access to the GCB service account to the registry
-
-```
-GCR_PROJECT=kubeflow-images-public
-GCB_SERVICE_ACCOUNT=${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com
-gcloud projects add-iam-policy-binding ${GCR_PROJECT} \
-      --member serviceAccount:${GCB_SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
-      --role=roles/storage.admin
-```
-
 #### Troubleshooting
 
 User or service account deploying the test infrastructure needs sufficient permissions to create the roles that are created as part deploying the test infrastructure. So you may need to run the following command before using ksonnet to deploy the test infrastructure.

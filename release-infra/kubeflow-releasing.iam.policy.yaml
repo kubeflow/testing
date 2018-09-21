@@ -1,0 +1,42 @@
+bindings:
+- members:
+  - serviceAccount:67369850431@cloudbuild.gserviceaccount.com
+  role: roles/cloudbuild.builds.builder
+- members:
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  role: roles/cloudbuild.builds.editor
+- members:
+  - serviceAccount:service-67369850431@compute-system.iam.gserviceaccount.com
+  role: roles/compute.serviceAgent
+- members:
+  - group:release-team@kubeflow.org
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  role: roles/container.admin
+- members:
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  role: roles/container.developer
+- members:
+  - serviceAccount:service-67369850431@container-engine-robot.iam.gserviceaccount.com
+  role: roles/container.serviceAgent
+- members:
+  - group:release-team@kubeflow.org
+  - serviceAccount:67369850431-compute@developer.gserviceaccount.com
+  - serviceAccount:67369850431@cloudservices.gserviceaccount.com
+  - serviceAccount:service-67369850431@containerregistry.iam.gserviceaccount.com
+  - serviceAccount:67369850431-compute@developer.gserviceaccount.com
+  - serviceAccount:67369850431@cloudservices.gserviceaccount.com
+  role: roles/editor
+- members:
+  - serviceAccount:service-67369850431@cloud-ml.google.com.iam.gserviceaccount.com
+  role: roles/ml.serviceAgent
+- members:
+  - user:jlewi@kubeflow.org
+  role: roles/owner
+- members:
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  role: roles/storage.admin
+- members:
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  role: roles/viewer
+etag: BwVvUQ9A2Hg=
+version: 1
