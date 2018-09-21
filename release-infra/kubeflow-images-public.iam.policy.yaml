@@ -20,7 +20,9 @@ bindings:
   role: roles/sourcerepo.serviceAgent
 - members:
   - serviceAccount:67369850431@cloudbuild.gserviceaccount.com
-  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com   
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:593963025935@cloudbuild.gserviceaccount.com
   role: roles/storage.admin
-etag: BwVvQG9zuiE=
+etag: BwV2XFYyoKs=
 version: 1
