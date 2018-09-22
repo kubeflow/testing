@@ -42,7 +42,6 @@ import argparse
 import datetime
 import fnmatch
 import logging
-from kubernetes import client as k8s_client
 import os
 import tempfile
 from kubeflow.testing import argo_client
@@ -132,7 +131,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   util.configure_kubectl(args.project, args.zone, args.cluster)
   util.load_kube_config()
 
-  api_client = k8s_client.ApiClient()
   workflow_names = []
   ui_urls = {}
 
@@ -237,7 +235,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   success = True
   workflow_phase = {}
   try:
-    results = argo_client.wait_for_workflows(api_client, get_namespace(args),
+    results = argo_client.wait_for_workflows(get_namespace(args),
                                              workflow_names,
                                              timeout=datetime.timedelta(minutes=60),
                                              status_callback=argo_client.log_status)
