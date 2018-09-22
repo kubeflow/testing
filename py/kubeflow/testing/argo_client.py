@@ -29,6 +29,18 @@ def log_status(workflow):
     logging.exception('KeyError: %s', e)
 
 
+def handle_retriable_exception(exception):
+  if isinstance(exception, rest.ApiException)
+    and (exception.status == 401 or exception.status == 403):
+    # Due to https://github.com/kubernetes-client/python-base/issues/59,
+    # we need to reload the kube config (which refreshes the GCP token).
+    # TODO(richardsliu): Remove this workaround when the k8s client issue
+    # is resolved.
+    util.load_kube_config()
+    return True
+  return not isinstance(exception, util.TimeoutError)
+
+
 # Wait 2^x * 1 second between retries up to a max of 10 seconds between
 # retries.
 # Retry for a maximum of 5 minutes.
@@ -39,38 +51,32 @@ def log_status(workflow):
 # https://github.com/kubeflow/testing/issues/171
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
        stop_max_delay=5*60*1000,
-       retry_on_exception=lambda e: not isinstance(e, util.TimeoutError))
-def get_namespaced_custom_object_with_retries(client, namespace, name):
+       retry_on_exception=handle_retriable_exception)
+def get_namespaced_custom_object_with_retries(namespace, name):
   """Call get_namespaced_customer_object API with retries.
 
   Args:
-    client: K8s api client.
     namespace: namespace for the workflow.
     name: name of the workflow.
   """
-  try:
-    crd_api = k8s_client.CustomObjectsApi(client)
-    return crd_api.get_namespaced_custom_object(
-      GROUP, VERSION, namespace, PLURAL, name)
-  except rest.ApiException as e:
-    logging.exception("ApiException: %s", e)
-    if e.status == 401 or e.status == 403:
-      # Due to https://github.com/kubernetes-client/python-base/issues/59,
-      # we need to manually refresh the GCP token and recreate the k8s client.
-      util.load_kube_config()
-      client = k8s_client.ApiClient()
-    # Raise the same exception since it will be retried.
-    raise
+  # Due to https://github.com/kubernetes-client/python-base/issues/59,
+  # we need to recreate the API client since it may contain stale auth
+  # tokens.
+  # TODO(richardsliu): Remove this workaround when the k8s client issue
+  # is resolved.
+  client = k8s_client.ApiClient()
+  crd_api = k8s_client.CustomObjectsApi(client)
+  return crd_api.get_namespaced_custom_object(
+    GROUP, VERSION, namespace, PLURAL, name)
 
 
-def wait_for_workflows(client, namespace, names,
+def wait_for_workflows(namespace, names,
                       timeout=datetime.timedelta(minutes=30),
                       polling_interval=datetime.timedelta(seconds=30),
                       status_callback=None):
   """Wait for multiple workflows to finish.
 
   Args:
-    client: K8s api client.
     namespace: namespace for the workflow.
     names: Names of the workflows to wait for.
     timeout: How long to wait for the workflow.
@@ -89,7 +95,7 @@ def wait_for_workflows(client, namespace, names,
     all_results = []
 
     for n in names:
-      results = get_namespaced_custom_object_with_retries(client, namespace, n)
+      results = get_namespaced_custom_object_with_retries(namespace, n)
       all_results.append(results)
       if status_callback:
         status_callback(results)
@@ -112,14 +118,13 @@ def wait_for_workflows(client, namespace, names,
 
   return []
 
-def wait_for_workflow(client, namespace, name,
+def wait_for_workflow(namespace, name,
                       timeout=datetime.timedelta(minutes=30),
                       polling_interval=datetime.timedelta(seconds=30),
                       status_callback=None):
   """Wait for the specified workflow to finish.
 
   Args:
-    client: K8s api client.
     namespace: namespace for the workflow.
     name: Name of the workflow
     timeout: How long to wait for the workflow.
@@ -131,6 +136,6 @@ def wait_for_workflow(client, namespace, name,
   Raises:
     TimeoutError: If timeout waiting for the job to finish.
   """
-  results = wait_for_workflows(client, namespace, [name],
+  results = wait_for_workflows(namespace, [name],
                                timeout, polling_interval, status_callback)
   return results[0]
