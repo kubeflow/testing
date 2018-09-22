@@ -30,8 +30,8 @@ def log_status(workflow):
 
 
 def handle_retriable_exception(exception):
-  if isinstance(exception, rest.ApiException)
-    and (exception.status == 401 or exception.status == 403):
+  if (isinstance(exception, rest.ApiException) and
+    (exception.status == 401 or exception.status == 403)):
     # Due to https://github.com/kubernetes-client/python-base/issues/59,
     # we need to reload the kube config (which refreshes the GCP token).
     # TODO(richardsliu): Remove this workaround when the k8s client issue
