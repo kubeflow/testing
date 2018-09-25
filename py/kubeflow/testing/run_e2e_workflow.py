@@ -113,9 +113,16 @@ def generate_env_from_head(args):
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
   # Print ksonnet version
   util.run(["ks", "version"])
+  job_type = os.getenv("JOB_TYPE")
 
   # Compare with master branch and get changed files.
-  changed_files = util.run(["git", "diff", "--name-only", "master"],
+  diff_command = []
+  if job_type == "presubmit":
+    diff_command = ["git", "diff", "--name-only", "master"]
+  else:
+    diff_command = ["git", "diff", "--name-only", "HEAD^", "HEAD"]
+
+  changed_files = util.run(diff_command,
     cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME"))).splitlines()
 
   if args.release:
@@ -140,7 +147,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Workflow name should not be more than 63 characters because its used
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
-    job_type = os.getenv("JOB_TYPE")
 
     # Skip this workflow if it is scoped to a different job type.
     if w.job_types and not job_type in w.job_types:
@@ -162,13 +168,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         if dir_modified:
           break
 
-    # Only consider modified files on presubmit. On postsubmit we run
-    # all tests.
-    if job_type == "presubmit":
-      if w.include_dirs and not dir_modified:
-        logging.info("Skipping workflow %s because no code modified in %s.",
-                     w.name, w.include_dirs)
-        continue
+    if w.include_dirs and not dir_modified:
+      logging.info("Skipping workflow %s because no code modified in %s.",
+                   w.name, w.include_dirs)
+      continue
 
     if job_type == "presubmit":
       workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
