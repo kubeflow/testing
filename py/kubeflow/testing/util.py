@@ -294,6 +294,7 @@ def wait_for_deployment(api_client,
 
   logging.error("Timeout waiting for deployment %s in namespace %s to be "
                 "ready", name, namespace)
+  run(["kubectl", "describe", "deployment", "-n", namespace, name])
   raise TimeoutError(
     "Timeout waiting for deployment {0} in namespace {1}".format(
       name, namespace))

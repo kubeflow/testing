@@ -156,6 +156,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         for d in w.include_dirs:
           if fnmatch.fnmatch(f, d):
             dir_modified = True
+            logging.info("Triggering workflow %s because %s in dir %s is modified.",
+                         w.name, f, d)
             break
         if dir_modified:
           break
