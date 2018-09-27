@@ -14,6 +14,9 @@
 # {REPO_ORG}/{REPO_NAME}@{SHA}:{PULL_NUMBER}
 #
 # You can use HEAD as the sha to get the latest for a pull request.
+#
+# To checkout a specific branch (e.g. "v0.3-branch"), set the
+# {BRANCH_NAME} environment variable.
 set -xe
 
 SRC_DIR=$1
@@ -36,6 +39,12 @@ if [ ! -z ${PULL_NUMBER} ]; then
  else
  	git checkout pr
  fi
+
+elif [ ! -z ${BRANCH_NAME} ]; then
+  # Periodic jobs don't have pull numbers or commit SHAs, so we pass in the
+  # branch name from the config yaml file.
+  git fetch origin
+  git checkout ${BRANCH_NAME}
  
 else
  if [ ! -z ${PULL_BASE_SHA} ]; then
