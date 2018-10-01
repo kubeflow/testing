@@ -176,7 +176,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         if dir_modified:
           break
 
-    if w.include_dirs and not dir_modified:
+    # Only consider modified files when the job is pre or post submit, and if
+    # the include_dirs stanza is defined.
+    if job_type != "periodic" and w.include_dirs and not dir_modified:
       logging.info("Skipping workflow %s because no code modified in %s.",
                    w.name, w.include_dirs)
       continue
