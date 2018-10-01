@@ -114,16 +114,24 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   # Print ksonnet version
   util.run(["ks", "version"])
   job_type = os.getenv("JOB_TYPE")
+  repo_owner = os.getenv("REPO_OWNER")
+  repo_name = os.getenv("REPO_NAME")
+  pull_base_sha = os.getenv("PULL_BASE_SHA")
 
-  # Compare with master branch and get changed files.
+  # For presubmit/postsubmit jobs, find the list of files changed by the PR.
   diff_command = []
   if job_type == "presubmit":
     diff_command = ["git", "diff", "--name-only", "master"]
-  else:
-    diff_command = ["git", "diff", "--name-only", "HEAD^", "HEAD"]
+  elif job_type == "postsubmit":
+    diff_command = ["git", "diff", "--name-only", pull_base_sha + "^", pull_base_sha]
 
-  changed_files = util.run(diff_command,
-    cwd=os.path.join(args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME"))).splitlines()
+  changed_files = []
+  if job_type == "presubmit" or job_type == "postsubmit":
+    changed_files = util.run(diff_command,
+      cwd=os.path.join(args.repos_dir, repo_owner, repo_name)).splitlines()
+
+  for f in changed_files:
+    logging.info("File %s is modified.", f)
 
   if args.release:
     generate_env_from_head(args)
