@@ -89,13 +89,21 @@ RUN cd /tmp && \
     tar -xvf glide-v0.13.0-linux-amd64.tar.gz && \
     mv ./linux-amd64/glide /usr/local/bin/
 
-# Install ksonnet
+# Install ksonnet. We install both 0.11.0 and 0.12.0 due to compatibility issues
+# (see https://github.com/kubeflow/testing/issues/220).
 RUN cd /tmp && \
     wget -O ks.tar.gz \
-    https://github.com/ksonnet/ksonnet/releases/download/v0.12.0/ks_0.12.0_linux_amd64.tar.gz && \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_linux_amd64.tar.gz && \
     tar -xvf ks.tar.gz && \
-    mv ks_0.12.0_linux_amd64/ks /usr/local/bin && \
+    mv ks_0.11.0_linux_amd64/ks /usr/local/bin && \
     chmod a+x /usr/local/bin/ks
+
+RUN cd /tmp && \
+    wget -O ks-12.tar.gz \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.12.0/ks_0.12.0_linux_amd64.tar.gz && \
+    tar -xvf ks-12.tar.gz && \
+    mv ks_0.12.0_linux_amd64/ks /usr/local/bin/ks-12 && \
+    chmod a+x /usr/local/bin/ks-12
 
 RUN cd /tmp && \
     wget https://github.com/google/jsonnet/archive/v0.11.2.tar.gz && \
