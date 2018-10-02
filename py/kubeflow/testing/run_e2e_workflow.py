@@ -16,6 +16,7 @@ workflows:
       presubmit
     include_dirs:
       tensorflow/*
+    ks_version: 0.11.0
 
   - name: lint
     app_dir: kubeflow/kubeflow/testing/workflows
@@ -32,6 +33,9 @@ that should run this workflow.
 
 include_dirs (optional) is an array of strings that specify which directories, if modified,
 should run this workflow.
+
+ks_version (optional) is a string representing the version of Ksonnet. Current supported versions
+are 0.11.0 and 0.12.0.
 
 The script expects that the directories
 {repos_dir}/{app_dir} exists. Where repos_dir is provided
@@ -63,7 +67,9 @@ def get_namespace(args):
 class WorkflowComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
-  def __init__(self, name, app_dir, component, job_types, include_dirs, ks_version, params):
+  def __init__(self, name, app_dir, component,
+               job_types, include_dirs, ks_version,
+               params):  # pylint: disable=too-many-arguments
     self.name = name
     self.app_dir = app_dir
     self.component = component
