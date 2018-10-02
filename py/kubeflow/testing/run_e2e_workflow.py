@@ -67,9 +67,8 @@ def get_namespace(args):
 class WorkflowComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
-  def __init__(self, name, app_dir, component,
-               job_types, include_dirs, ks_version,
-               params):  # pylint: disable=too-many-arguments
+  def __init__(self, name, app_dir, component, # pylint: disable=too-many-arguments
+               job_types, include_dirs, ks_version, params):
     self.name = name
     self.app_dir = app_dir
     self.component = component
