@@ -16,7 +16,6 @@ workflows:
       presubmit
     include_dirs:
       tensorflow/*
-    ks_version: 0.11.0
 
   - name: lint
     app_dir: kubeflow/kubeflow/testing/workflows
@@ -33,9 +32,6 @@ that should run this workflow.
 
 include_dirs (optional) is an array of strings that specify which directories, if modified,
 should run this workflow.
-
-ks_version (optional) is a string representing the version of Ksonnet. Current supported versions
-are 0.11.0 and 0.12.0.
 
 The script expects that the directories
 {repos_dir}/{app_dir} exists. Where repos_dir is provided
@@ -67,14 +63,12 @@ def get_namespace(args):
 class WorkflowComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
-  def __init__(self, name, app_dir, component, # pylint: disable=too-many-arguments
-               job_types, include_dirs, ks_version, params):
+  def __init__(self, name, app_dir, component, job_types, include_dirs, params):
     self.name = name
     self.app_dir = app_dir
     self.component = component
     self.job_types = job_types
     self.include_dirs = include_dirs
-    self.ks_version = ks_version
     self.params = params
 
 def _get_src_dir():
@@ -95,7 +89,7 @@ def parse_config_file(config_file, root_dir):
   for i in results["workflows"]:
     components.append(WorkflowComponent(
       i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("job_types", []),
-      i.get("include_dirs", []), i.get("ks_version"), i.get("params", {})))
+      i.get("include_dirs", []), i.get("params", {})))
   return components
 
 def generate_env_from_head(args):
@@ -116,9 +110,16 @@ def generate_env_from_head(args):
       continue
     os.environ[k] = env_var.get(k)
 
-# Get the ksonnet cmd name based on desired version (if specified).
+# Get the ksonnet cmd name based on apiVersion in app.yaml.
 def get_ksonnet_cmd(workflow):
-  if workflow.ks_version == "0.12.0":
+  app_yaml_file = workflow.app_dir + "/app.yaml"
+  with open(app_yaml_file) as app_yaml:
+    results = yaml.load(app_yaml)
+
+  if results["apiVersion"] == "0.1.0":
+    return "ks"
+
+  if results["apiVersion"] == "0.2.0":
     return "ks-12"
 
   # For compatibility reasons we'll keep the default cmd as "ks".
@@ -167,9 +168,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Workflow name should not be more than 63 characters because its used
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
+    ks_cmd = get_ksonnet_cmd(w)
 
     # Print ksonnet version
-    util.run([get_ksonnet_cmd(w), "version"])
+    util.run([ks_cmd, "version"])
 
     # Skip this workflow if it is scoped to a different job type.
     if w.job_types and not job_type in w.job_types:
@@ -217,9 +219,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Create a new environment for this run
     env = workflow_name
 
-    util.run([get_ksonnet_cmd(w), "env", "add", env], cwd=w.app_dir)
+    util.run([ks_cmd, "env", "add", env], cwd=w.app_dir)
 
-    util.run([get_ksonnet_cmd(w), "param", "set", "--env=" + env, w.component,
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component,
               "name", workflow_name],
              cwd=w.app_dir)
 
@@ -235,14 +237,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         continue
       prow_env.append("{0}={1}".format(v, os.getenv(v)))
 
-    util.run([get_ksonnet_cmd(w), "param", "set", "--env=" + env, w.component, "prow_env",
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "prow_env",
              ",".join(prow_env)], cwd=w.app_dir)
-    util.run([get_ksonnet_cmd(w), "param", "set", "--env=" + env, w.component, "namespace",
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "namespace",
              get_namespace(args)], cwd=w.app_dir)
-    util.run([get_ksonnet_cmd(w), "param", "set", "--env=" + env, w.component, "bucket",
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "bucket",
              args.bucket], cwd=w.app_dir)
     if args.release:
-      util.run([get_ksonnet_cmd(w), "param", "set", "--env=" + env, w.component, "versionTag",
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
                 os.getenv("VERSION_TAG")], cwd=w.app_dir)
 
     # Set any extra params. We do this in alphabetical order to make it easier to verify in
@@ -250,12 +252,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     param_names = w.params.keys()
     param_names.sort()
     for k in param_names:
-      util.run([get_ksonnet_cmd(w), "param", "set", "--env=" + env, w.component, k,
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, k,
                "{0}".format(w.params[k])], cwd=w.app_dir)
 
     # For debugging print out the manifest
-    util.run([get_ksonnet_cmd(w), "show", env, "-c", w.component], cwd=w.app_dir)
-    util.run([get_ksonnet_cmd(w), "apply", env, "-c", w.component], cwd=w.app_dir)
+    util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
+    util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
 
     ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))
