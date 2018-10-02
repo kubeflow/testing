@@ -1,3 +1,4 @@
+import logging
 import os
 import unittest
 import mock
@@ -60,10 +61,13 @@ class TestRunE2eWorkflow(unittest.TestCase):
     os.environ["BUILD_NUMBER"] = "1234"
     os.environ["BUILD_ID"] = "11"
 
+    cwd = os.getcwd()
+    logging.info("Current working directory: %s", cwd)
+
     args = ["--project=some-project", "--cluster=some-cluster",
             "--zone=us-east1-d", "--bucket=some-bucket",
             "--config_file=" + name,
-            "--repos_dir=/src"]
+            "--repos_dir=" + cwd + "/../../../../.."]
     run_e2e_workflow.main(args)
 
     mock_configure.assert_called_once_with("some-project", "us-east1-d",
