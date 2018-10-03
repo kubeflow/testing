@@ -87,22 +87,15 @@ def create_finished_file(bucket, success, workflow_phase, ui_urls):
 
 def get_gcs_dir(bucket):
   """Return the GCS directory for this job."""
-  pull_number = os.getenv("PULL_NUMBER")
-
-  repo_owner = os.getenv("REPO_OWNER")
-  repo_name = os.getenv("REPO_NAME")
-
-
-  job_name = os.getenv("JOB_NAME")
-
   # GCS layout is defined here:
   # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
   pull_number = os.getenv("PULL_NUMBER")
-
   repo_owner = os.getenv("REPO_OWNER")
   repo_name = os.getenv("REPO_NAME")
+  job_name = os.getenv("JOB_NAME")
+  job_type = os.getenv("JOB_TYPE")
 
-  if pull_number:
+  if job_type == "presubmit":
     output = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
               "{pull_number}/{job}/{build}").format(
               bucket=bucket,
@@ -110,8 +103,7 @@ def get_gcs_dir(bucket):
               pull_number=pull_number,
               job=os.getenv("JOB_NAME"),
               build=os.getenv("BUILD_NUMBER"))
-
-  elif repo_owner:
+  elif job_type == "postsubmit":
     # It is a postsubmit job
     output = ("gs://{bucket}/logs/{owner}_{repo}/"
               "{job}/{build}").format(
