@@ -110,9 +110,22 @@ def generate_env_from_head(args):
       continue
     os.environ[k] = env_var.get(k)
 
+# Get the ksonnet cmd name based on apiVersion in app.yaml.
+def get_ksonnet_cmd(workflow):
+  app_yaml_file = workflow.app_dir + "/app.yaml"
+  with open(app_yaml_file) as app_yaml:
+    results = yaml.load(app_yaml)
+
+  if results["apiVersion"] == "0.1.0":
+    return "ks"
+
+  if results["apiVersion"] == "0.2.0":
+    return "ks-12"
+
+  # For compatibility reasons we'll keep the default cmd as "ks".
+  return "ks"
+
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
-  # Print ksonnet version
-  util.run(["ks", "version"])
   job_type = os.getenv("JOB_TYPE")
   repo_owner = os.getenv("REPO_OWNER")
   repo_name = os.getenv("REPO_NAME")
@@ -155,6 +168,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Workflow name should not be more than 63 characters because its used
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
+    ks_cmd = get_ksonnet_cmd(w)
+
+    # Print ksonnet version
+    util.run([ks_cmd, "version"])
 
     # Skip this workflow if it is scoped to a different job type.
     if w.job_types and not job_type in w.job_types:
@@ -202,9 +219,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Create a new environment for this run
     env = workflow_name
 
-    util.run(["ks", "env", "add", env], cwd=w.app_dir)
+    util.run([ks_cmd, "env", "add", env], cwd=w.app_dir)
 
-    util.run(["ks", "param", "set", "--env=" + env, w.component,
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component,
               "name", workflow_name],
              cwd=w.app_dir)
 
@@ -220,14 +237,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         continue
       prow_env.append("{0}={1}".format(v, os.getenv(v)))
 
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "prow_env", ",".join(prow_env)],
-             cwd=w.app_dir)
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "namespace", get_namespace(args)],
-             cwd=w.app_dir)
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "bucket", args.bucket],
-             cwd=w.app_dir)
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "prow_env",
+             ",".join(prow_env)], cwd=w.app_dir)
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "namespace",
+             get_namespace(args)], cwd=w.app_dir)
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "bucket",
+             args.bucket], cwd=w.app_dir)
     if args.release:
-      util.run(["ks", "param", "set", "--env=" + env, w.component, "versionTag",
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
                 os.getenv("VERSION_TAG")], cwd=w.app_dir)
 
     # Set any extra params. We do this in alphabetical order to make it easier to verify in
@@ -235,12 +252,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     param_names = w.params.keys()
     param_names.sort()
     for k in param_names:
-      util.run(["ks", "param", "set", "--env=" + env, w.component, k, "{0}".format(w.params[k])],
-               cwd=w.app_dir)
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, k,
+               "{0}".format(w.params[k])], cwd=w.app_dir)
 
     # For debugging print out the manifest
-    util.run(["ks", "show", env, "-c", w.component], cwd=w.app_dir)
-    util.run(["ks", "apply", env, "-c", w.component], cwd=w.app_dir)
+    util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
+    util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
 
     ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))

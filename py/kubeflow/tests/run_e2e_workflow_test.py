@@ -60,18 +60,24 @@ class TestRunE2eWorkflow(unittest.TestCase):
     os.environ["BUILD_NUMBER"] = "1234"
     os.environ["BUILD_ID"] = "11"
 
+    cwd = os.getcwd()
+    # Current directory is in the format:
+    # "/mnt/test-data-volume/kubeflow-testing-12345/src/kubeflow/testing"
+    # We need to parse the actual repo root here.
+    repo_dir = cwd[:cwd.index("/kubeflow/testing")]
+
     args = ["--project=some-project", "--cluster=some-cluster",
             "--zone=us-east1-d", "--bucket=some-bucket",
             "--config_file=" + name,
-            "--repos_dir=/src"]
+            "--repos_dir=" + repo_dir]
     run_e2e_workflow.main(args)
 
     mock_configure.assert_called_once_with("some-project", "us-east1-d",
                                            "some-cluster",)
 
     expected_calls = [
-      ["ks", "version"],
       ["git", "diff", "--name-only", "master"],
+      ["ks", "version"],
       ["ks", "env", "add", "kubeflow-presubmit-wf-77-123abc-1234-.*"],
       ["ks", "param", "set", "--env=.*", "workflows", "name",
            "kubeflow-presubmit-wf-77-123abc-1234-[0-9a-z]{4}"],
@@ -104,7 +110,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
         mock_run.call_args_list[i][0][0])
       if i > 1:
         self.assertEqual(
-           "/src/kubeflow/testing/workflows",
+           repo_dir + "/kubeflow/testing/workflows",
            mock_run.call_args_list[i][1]["cwd"])
 
 if __name__ == "__main__":
