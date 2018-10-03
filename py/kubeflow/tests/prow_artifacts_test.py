@@ -59,6 +59,7 @@ class TestProw(unittest.TestCase):
     os.environ["BUILD_NUMBER"] = "100"
     os.environ["PULL_PULL_SHA"] = "123abc"
     os.environ["JOB_NAME"] = "kubeflow-presubmit"
+    os.environ["JOB_TYPE"] = "presubmit"
 
     args = ["--artifacts_dir=/tmp/some/dir", "copy_artifacts",
             "--bucket=some_bucket"]
@@ -89,6 +90,7 @@ class TestProw(unittest.TestCase):
       os.environ["BUILD_NUMBER"] = "100"
       os.environ["PULL_PULL_SHA"] = "123abc"
       os.environ["JOB_NAME"] = "kubeflow-presubmit"
+      os.environ["JOB_TYPE"] = "presubmit"
 
       args = ["--artifacts_dir=/tmp/some/dir", "create_pr_symlink",
               "--bucket=some-bucket"]
