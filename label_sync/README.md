@@ -22,6 +22,6 @@ After making changes to `kubeflow_label.yml`, we need to update the configmap
 ```
 # Setup kubectl to point to kubeflow-testing cluster in kubeflow-ci
 kubectl delete configmap label-config-v2
-kubectl create configmap --from-file=kubeflow_label.yml
+kubectl create configmap label-config-v2 --from-file=kubeflow_label.yml
 ```
 

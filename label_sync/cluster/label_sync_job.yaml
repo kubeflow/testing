@@ -3,7 +3,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: label-sync
+  name: label-sync-1008-002
 spec:
   template:
     spec:
