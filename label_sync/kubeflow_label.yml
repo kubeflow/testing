@@ -2,12 +2,25 @@ default:
   labels:
   - color: d28caa
     name: addition/feature
-  - color: d2b48c
-    name: area/api
-  - color: d2b48c
+  - color: ef1ad6
+    name: area/0.2.0
+    previously:
+    - name: release/0.2.0
+  - color: ef1ad6
+    name: area/0.3.0
+    previously:
+    - name: release/0.3.0
+  - color: ef1ad6
     name: area/0.4.0
     previously:
     - name: release/0.4.0
+  - color: ef1ad6
+    name: area/1.0.0
+    previously:
+    - name: release/1.0.0
+  - color: d2b48c
+    name: area/api
+  - color: d2b48c
     name: area/build-release
     previously:
     - name: area/release-eng
@@ -29,7 +42,7 @@ default:
   - color: d2b48c
     name: area/inference
     previously:
-    - name: inference
+    - name: inference  
   - color: d2b48c
     name: area/usage
   - color: ecfc15
@@ -109,18 +122,6 @@ default:
     name: approved
     previously:
     - name: status/approved
-  - color: ef1ad6
-    name: area/0.2.0
-    previously:
-    - name: release/0.2.0
-  - color: ef1ad6
-    name: area/0.3.0
-    previously:
-    - name: release/0.3.0
-  - color: ef1ad6
-    name: area/1.0.0
-    previously:
-    - name: release/1.0.0
   - color: bc9090
     name: status/backlog
   - color: fca42e
