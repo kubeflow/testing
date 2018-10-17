@@ -1,3 +1,35 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Test Infrastructure](#test-infrastructure)
+  - [Anatomy of our Tests](#anatomy-of-our-tests)
+  - [Accessing The Argo UI](#accessing-the-argo-ui)
+  - [Working with the test infrastructure](#working-with-the-test-infrastructure)
+  - [Logs](#logs)
+    - [Prow](#prow)
+    - [Argo UI](#argo-ui)
+    - [Stackdriver logs](#stackdriver-logs)
+  - [Debugging Failed Tests](#debugging-failed-tests)
+    - [No results show up in Gubernator](#no-results-show-up-in-gubernator)
+    - [No Logs in Argo UI or Pod Id missing in Argo Logs](#no-logs-in-argo-ui-or-pod-id-missing-in-argo-logs)
+    - [Debugging Failed Deployments](#debugging-failed-deployments)
+  - [Adding an E2E test for a new repository](#adding-an-e2e-test-for-a-new-repository)
+  - [Testing Changes to the ProwJobs](#testing-changes-to-the-prowjobs)
+  - [Cleaning up leaked resources](#cleaning-up-leaked-resources)
+  - [Integration with K8s Prow Infrastructure.](#integration-with-k8s-prow-infrastructure)
+  - [Setting up Kubeflow Test Infrastructure](#setting-up-kubeflow-test-infrastructure)
+    - [Create a static ip for the Argo UI](#create-a-static-ip-for-the-argo-ui)
+    - [Enable GCP APIs](#enable-gcp-apis)
+    - [Create a GCP service account](#create-a-gcp-service-account)
+    - [Create a GitHub Token](#create-a-github-token)
+    - [Deploy NFS](#deploy-nfs)
+    - [Create K8s Resources for Testing](#create-k8s-resources-for-testing)
+      - [Troubleshooting](#troubleshooting)
+  - [Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>](#setting-up-a-kubeflow-repository-to-use-prow-a-idprow-setupa)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Test Infrastructure
 
 This directory contains the Kubeflow test Infrastructure.
