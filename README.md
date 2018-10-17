@@ -147,7 +147,7 @@ To access the stackdriver logs
   resource.labels.container_name="mnist-cpu"
   ```
 
-### No Logs or Pod Id in Argo UI
+### No Logs in Argo UI or Pod Id missing in Argo Logs
 
 An Argo workflow fails and you click on the failed step in the Argo UI to get the logs
 and you see the error
@@ -166,6 +166,8 @@ The logs should be in StackDriver but to get them we need to identify the pod
    ```
    kubectl get wf -o yaml ${WF_NAME} > /tmp/${WF_NAME}.yaml
    ```
+
+   * This requires appropriate K8s RBAC permissions
 
 1. Search the YAML spec for the pod information for the failed step
 
@@ -186,7 +188,7 @@ The logs should be in StackDriver but to get them we need to identify the pod
    * You can use displayName to match the text shown in the UI
    * **id** will be the id of the pod.
 
-1. Follow the [instructions below](https://github.com/kubeflow/testing#stackdriver-logs) to 
+1. Follow the [instructions](https://github.com/kubeflow/testing#stackdriver-logs) to 
    get the stackdriver logs for the pod.
 
 ### Debugging Failed Deployments
