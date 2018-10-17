@@ -33,10 +33,12 @@ build:
 # first.
 push: build
 	gcloud docker -- push $(IMG):$(TAG)	
-	@echo Pushed $(IMG) with  :$(TAG) tags
-	# Tagging into a new project can be very slow but it appears to work.
-	gcloud container images add-tag --quiet $(IMG):$(TAG) $(RELEASE_WORKER):$(TAG) --verbosity=info
-	echo created $(RELEASE_WORKER):$(TAG)
+	@echo Pushed $(IMG):$(TAG)
+	# Add tag starting hitting problems so tag and push
+	docker tag $(IMG):$(TAG) $(RELEASE_WORKER):$(TAG) 
+	gcloud docker -- push $(RELEASE_WORKER):$(TAG) 
+	@echo Pushed $(IMG):$(TAG)
+	@echo Pushed $(RELEASE_WORKER):$(TAG)
 	
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
