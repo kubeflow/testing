@@ -147,6 +147,48 @@ To access the stackdriver logs
   resource.labels.container_name="mnist-cpu"
   ```
 
+### No Logs or Pod Id in Argo UI
+
+An Argo workflow fails and you click on the failed step in the Argo UI to get the logs
+and you see the error
+
+```
+failed to get container status {"docker" "b84b751b0102b5658080a520c9a5c2655855960c4695cf557c0c1e45999f7429"}: rpc error: code = Unknown desc = Error: No such container: b84b751b0102b56580
+80a520c9a5c2655855960c4695cf557c0c1e45999f7429
+```
+
+This error is a red herring; it means the pod is probably gone so Argo couldn't get the logs.
+
+The logs should be in StackDriver but to get them we need to identify the pod
+
+1. Get the workflow using kubectl
+
+   ```
+   kubectl get wf -o yaml ${WF_NAME} > /tmp/${WF_NAME}.yaml
+   ```
+
+1. Search the YAML spec for the pod information for the failed step
+
+   ```
+   kubeflow-presubmit-kfctl-1810-70210d5-3900-218a-2243590372:
+   boundaryID: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a
+   displayName: kfctl-apply-gcp
+   finishedAt: 2018-10-17T05:07:58Z
+   id: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a-2243590372
+   message: failed with exit code 1
+   name: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a.kfctl-apply-gcp
+   phase: Failed
+   startedAt: 2018-10-17T05:04:20Z
+   templateName: kfctl-apply-gcp
+   type: Pod
+   ```
+
+   * You can use displayName to match the text shown in the UI
+   * **id** will be the id of the pod.
+
+1. Follow the [instructions below](https://github.com/kubeflow/testing#stackdriver-logs) to 
+   get the stackdriver logs for the pod.
+
 ### Debugging Failed Deployments
 
 If an E2E test fails because a pod doesn't start (e.g JupyterHub) we can debug this by looking at the events associated with the pod.
