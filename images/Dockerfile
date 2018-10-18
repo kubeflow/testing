@@ -123,6 +123,9 @@ COPY ./Pipfile ./Pipfile.lock /tmp/
 RUN cd /tmp/ && \
     pip2 install -U wheel filelock && \
     pip2 install pipenv && \
+    pip2 install requests && \
+    pip2 install google-api-python-client && \
+    pip2 install prometheus_client && \
     pipenv install --system --two && \
     pip3 install -U wheel filelock
 
