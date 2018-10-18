@@ -200,6 +200,9 @@ The logs should be in StackDriver but to get them we need to identify the pod
    ```
 
    * This requires appropriate K8s RBAC permissions
+   * You'll need to be added to the Google group **ci-team@kubeflow.org**
+
+     * Create a PR adding yourself to [ci-team](https://github.com/kubeflow/internal-acls/blob/master/ci-team.members.txt)
 
 1. Search the YAML spec for the pod information for the failed step
 
@@ -218,7 +221,7 @@ The logs should be in StackDriver but to get them we need to identify the pod
    ```
 
    * You can use displayName to match the text shown in the UI
-   * **id** will be the id of the pod.
+   * **id** will be the name of the pod.
 
 1. Follow the [instructions](https://github.com/kubeflow/testing#stackdriver-logs) to 
    get the stackdriver logs for the pod.
