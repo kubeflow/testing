@@ -21,6 +21,7 @@ RUN set -ex \
     wget \
     ca-certificates \
     git \
+    jq \
     zip \
     unzip \
     gcc \
@@ -123,9 +124,12 @@ RUN cd /tmp/ && \
     pip2 install -U wheel filelock && \
     pip2 install pipenv && \
     pipenv install --system --two && \
-    pip3 install -U wheel filelock && \
-    pip3 install pipenv && \
-    pipenv install --system --three
+    pip3 install -U wheel filelock
+
+RUN pip3 install pipenv==2018.10.9
+RUN cd /tmp/ && pipenv install --system --three
+
+RUN pip install yq 
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
