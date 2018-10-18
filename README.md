@@ -1,3 +1,35 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Test Infrastructure](#test-infrastructure)
+  - [Anatomy of our Tests](#anatomy-of-our-tests)
+  - [Accessing The Argo UI](#accessing-the-argo-ui)
+  - [Working with the test infrastructure](#working-with-the-test-infrastructure)
+  - [Logs](#logs)
+    - [Prow](#prow)
+    - [Argo UI](#argo-ui)
+    - [Stackdriver logs](#stackdriver-logs)
+  - [Debugging Failed Tests](#debugging-failed-tests)
+    - [No results show up in Gubernator](#no-results-show-up-in-gubernator)
+    - [No Logs in Argo UI or Pod Id missing in Argo Logs](#no-logs-in-argo-ui-or-pod-id-missing-in-argo-logs)
+    - [Debugging Failed Deployments](#debugging-failed-deployments)
+  - [Adding an E2E test for a new repository](#adding-an-e2e-test-for-a-new-repository)
+  - [Testing Changes to the ProwJobs](#testing-changes-to-the-prowjobs)
+  - [Cleaning up leaked resources](#cleaning-up-leaked-resources)
+  - [Integration with K8s Prow Infrastructure.](#integration-with-k8s-prow-infrastructure)
+  - [Setting up Kubeflow Test Infrastructure](#setting-up-kubeflow-test-infrastructure)
+    - [Create a static ip for the Argo UI](#create-a-static-ip-for-the-argo-ui)
+    - [Enable GCP APIs](#enable-gcp-apis)
+    - [Create a GCP service account](#create-a-gcp-service-account)
+    - [Create a GitHub Token](#create-a-github-token)
+    - [Deploy NFS](#deploy-nfs)
+    - [Create K8s Resources for Testing](#create-k8s-resources-for-testing)
+      - [Troubleshooting](#troubleshooting)
+  - [Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>](#setting-up-a-kubeflow-repository-to-use-prow-a-idprow-setupa)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Test Infrastructure
 
 This directory contains the Kubeflow test Infrastructure.
@@ -146,6 +178,53 @@ To access the stackdriver logs
   labels."container.googleapi.com/namespace_name"=WORKFLOW_NAME
   resource.labels.container_name="mnist-cpu"
   ```
+
+### No Logs in Argo UI or Pod Id missing in Argo Logs
+
+An Argo workflow fails and you click on the failed step in the Argo UI to get the logs
+and you see the error
+
+```
+failed to get container status {"docker" "b84b751b0102b5658080a520c9a5c2655855960c4695cf557c0c1e45999f7429"}: rpc error: code = Unknown desc = Error: No such container: b84b751b0102b56580
+80a520c9a5c2655855960c4695cf557c0c1e45999f7429
+```
+
+This error is a red herring; it means the pod is probably gone so Argo couldn't get the logs.
+
+The logs should be in StackDriver but to get them we need to identify the pod
+
+1. Get the workflow using kubectl
+
+   ```
+   kubectl get wf -o yaml ${WF_NAME} > /tmp/${WF_NAME}.yaml
+   ```
+
+   * This requires appropriate K8s RBAC permissions
+   * You'll need to be added to the Google group **ci-team@kubeflow.org**
+
+     * Create a PR adding yourself to [ci-team](https://github.com/kubeflow/internal-acls/blob/master/ci-team.members.txt)
+
+1. Search the YAML spec for the pod information for the failed step
+
+   ```
+   kubeflow-presubmit-kfctl-1810-70210d5-3900-218a-2243590372:
+   boundaryID: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a
+   displayName: kfctl-apply-gcp
+   finishedAt: 2018-10-17T05:07:58Z
+   id: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a-2243590372
+   message: failed with exit code 1
+   name: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a.kfctl-apply-gcp
+   phase: Failed
+   startedAt: 2018-10-17T05:04:20Z
+   templateName: kfctl-apply-gcp
+   type: Pod
+   ```
+
+   * You can use displayName to match the text shown in the UI
+   * **id** will be the name of the pod.
+
+1. Follow the [instructions](https://github.com/kubeflow/testing#stackdriver-logs) to 
+   get the stackdriver logs for the pod.
 
 ### Debugging Failed Deployments
 
