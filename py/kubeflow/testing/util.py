@@ -345,7 +345,7 @@ def install_gpu_drivers(api_client):
   """
   logging.info("Install GPU Drivers.")
   # Fetch the daemonset to install the drivers.
-  link = "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/k8s-1.10/daemonset.yaml"  # pylint: disable=line-too-long
+  link = "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/k8s-1.9/daemonset.yaml"  # pylint: disable=line-too-long
   logging.info("Using daemonset file: %s", link)
   f = urllib.urlopen(link)
   daemonset_spec = yaml.load(f)
