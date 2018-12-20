@@ -74,7 +74,8 @@ def cleanup_service_accounts(args):
   logging.info("Unmatched emails:\n%s", "\n".join(unmatched_emails))
   logging.info("Unexpired emails:\n%s", "\n".join(unexpired_emails))
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
-def cleanup_deployments(args):
+
+def cleanup_deployments(args): # pylint: disable=too-many-statements
   if not args.delete_script:
     raise ValueError("--delete_script must be specified.")
 
@@ -186,7 +187,7 @@ def cleanup_deployments(args):
         clusters_client.delete(projectId=args.project, zone=zone,
                                clusterId=name).execute()
 
-def main(): # pylint: disable=too-many-locals,too-many-statements
+def main():
   logging.basicConfig(level=logging.INFO,
                       format=('%(levelname)s|%(asctime)s'
                               '|%(pathname)s|%(lineno)d| %(message)s'),
