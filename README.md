@@ -543,3 +543,83 @@ Webhooks for prow should already be configured according to these [instructions]
 need to set hooks per repository.
     * Use https://prow.k8s.io/hook as the target
     * Get HMAC token from k8s test team
+
+## Guidelines For Writing An Argo Workflow For An E2E Test
+
+This section provides guidelines for writing Argo workflows to use as E2E tests
+
+Some examples to look at
+
+  * code_search.jsonnet in kubeflow/examples
+
+
+* Argo workflows should have standard labels corresponding to prow variables; for example
+
+  ```
+  labels: {
+    org: prowEnv["REPO_OWNER"],
+    repo: prowEnv["REPO_ENV"],
+    workflow: "code_search",
+    [if std.objectHas(prowEnv, "PULL_NUMBER") then "pr"]: prowEnv["PULL_NUMBER"],
+  },
+  ```
+
+* If the test needs a Kubernetes cluster (e.g. your test creates K8s resources) then 
+
+  * There should be a step in the workflow that creates a KubeConfig file to talk to the cluster
+  * The Kubeconfig file should be stored in the NFS test directory so it can be used in subsequent steps
+  * Set the environment variable `KUBE_CONFIG` on your steps to use the KubeConfig file
+
+### NFS Directory
+
+An NFS volume is used to create a shared filesystem between steps in the workflow.
+
+* Your Argo workflows should use a PVC claim to mount the NFS filesystem into each step
+
+  * The current PVC name is `nfs-external`
+  * This should be a parameter to allow different PVC names in different environments.
+
+* Use the following directory structure 
+
+  ```
+  ${MOUNT_POINT}/${WORKFLOW_NAME}
+                                 /src
+                                     /${REPO_ORG}/${REPO_NAME}
+                                 /outputs
+                                 /outputs/artifacts
+  ```
+
+  * **MOUNT_PATH**: Location inside the pod where the NFS volume is mounted
+  * **WORKFLOW_NAME**: The name of the Argo workflow
+    * Each Argo workflow job has a unique name (enforced by APIServer)
+    * So using WORKFLOW_NAME as root for all results associated with a particular job ensures there
+      are no conflicts
+  * **/src**: Any repositories that are checked out should be checked out here
+     * Each repo should be checked out to the sub-directory **${REPO_ORG}/${REPO_NAME}**
+  * **/outputs**: Any files that should be sync'd to GCS for Gubernator should be written here
+
+### Step Image
+
+* The Docker image used by the Argo steps should be a ksonnet parameter `stepImage`
+* The Docker image should use an immutable image tag e.g `gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0`
+
+  * This ensures tests don't break if someone pushes a new test image
+
+* The ksonnet parameter `stepImage` should be set in the `prow_config.yaml` file defining the E2E tests
+
+  * This makes it easy to update all the workflows to use some new image.
+
+
+### Checking out code
+
+* The first step in the Argo workflow should checkout out the source repos to the NFS directory
+* Use [checkout.sh](https://github.com/kubeflow/testing/blob/master/images/checkout.sh) to checkout the repos  
+* checkout.sh environment variable `EXTRA_REPOS` allows checking out additional repositories in addition
+  to the repository that triggered the pre/post submit test
+
+  * This allows your test to use source code located in a different repository
+  * You can specify whether to checkout the repository at HEAD or pin to a specific commit
+
+* Most E2E tests will want to checkout kubeflow/testing in order to use various test utilities
+
+
