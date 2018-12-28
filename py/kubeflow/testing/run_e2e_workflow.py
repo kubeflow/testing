@@ -134,8 +134,15 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   # For presubmit/postsubmit jobs, find the list of files changed by the PR.
   diff_command = []
   if job_type == "presubmit":
-    diff_command = ["git", "diff", "--name-only", "master"]
+    # We need to get a common ancestor for the PR and the master branch
+    common_ancestor = util.run(
+      ["git", "merge-base", "HEAD", "master"],
+      cwd=os.path.join(args.repos_dir, repo_owner, repo_name))
+    diff_command = ["git", "diff", "--name-only", common_ancestor]
   elif job_type == "postsubmit":
+    # See: https://git-scm.com/docs/git-diff
+    # This syntax compares the commit before pull_base_sha with the commit
+    # at pull_base_sha
     diff_command = ["git", "diff", "--name-only", pull_base_sha + "^", pull_base_sha]
 
   changed_files = []

@@ -35,10 +35,18 @@ class TestRunE2eWorkflow(unittest.TestCase):
   @mock.patch("kubeflow.testing.run_e2e_workflow.util.run")
   def testWithConfig(self, mock_run, mock_configure, *unused_mocks):  # pylint: disable=no-self-use,unused-argument
     """Test creating a workflow from a config file."""
-
+    # We need to set cwd and the app_dir in the config file consistenly.
+    # The app_dir will be relative to the working dir.
+    # We set cwd to the root of the repo and then app dir relative to that.
+    this_dir = os.path.basename(__file__)
+    cwd = os.path.abspath(os.path.join(this_dir, "..", "..", "..", ".."))
+    # Current directory is in the format:
+    # "/mnt/test-data-volume/kubeflow-testing-12345/src/kubeflow/testing"
+    # We need to parse the actual repo root here.
+    repo_dir = cwd
     config = {
       "workflows": [
-        {"app_dir": "kubeflow/testing/workflows",
+        {"app_dir": "workflows",
          "component": "workflows",
          "name": "wf",
          "params": {
@@ -60,11 +68,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
     os.environ["BUILD_NUMBER"] = "1234"
     os.environ["BUILD_ID"] = "11"
 
-    cwd = os.getcwd()
-    # Current directory is in the format:
-    # "/mnt/test-data-volume/kubeflow-testing-12345/src/kubeflow/testing"
-    # We need to parse the actual repo root here.
-    repo_dir = cwd[:cwd.index("/kubeflow/testing")]
+    mock_run.return_value = "ab1234"
 
     args = ["--project=some-project", "--cluster=some-cluster",
             "--zone=us-east1-d", "--bucket=some-bucket",
@@ -76,7 +80,8 @@ class TestRunE2eWorkflow(unittest.TestCase):
                                            "some-cluster",)
 
     expected_calls = [
-      ["git", "diff", "--name-only", "master"],
+      ["git", "merge-base", "HEAD", "master"],
+      ["git", "diff", "--name-only", "ab1234"],
       ["ks", "version"],
       ["ks", "env", "add", "kubeflow-presubmit-wf-77-123abc-1234-.*"],
       ["ks", "param", "set", "--env=.*", "workflows", "name",
@@ -108,9 +113,9 @@ class TestRunE2eWorkflow(unittest.TestCase):
       self.assertItemsMatchRegex(
         expected,
         mock_run.call_args_list[i][0][0])
-      if i > 1:
+      if i > 2:
         self.assertEqual(
-           repo_dir + "/kubeflow/testing/workflows",
+           os.path.join(cwd, "workflows"),
            mock_run.call_args_list[i][1]["cwd"])
 
 if __name__ == "__main__":
