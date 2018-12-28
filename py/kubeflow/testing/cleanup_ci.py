@@ -11,7 +11,6 @@ import tempfile
 from kubeflow.testing import argo_client
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
-from kubernetes.config import kube_config
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
