@@ -467,10 +467,9 @@ kubectl create secret generic github-token --namespace=${NAMESPACE} --from-liter
 
 ### Deploy NFS
 
-We use GCP Cloud Launcher to create a single node NFS share; current settings
+We use GCP Cloud FileStore to create an NFS filesystem.
 
-  * 8 VCPU
-  * 1 TB disk
+There is a deployment manager config in the directory test-infra/gcp_configs
 
 ### Create K8s Resources for Testing
 
