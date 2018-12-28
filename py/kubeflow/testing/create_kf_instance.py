@@ -60,14 +60,12 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   oauth_info = yaml.load(contents)
 
-  git_commit = util.run(["git", "log", "--pretty=format:'%h'", "-n", "1"],
-                        cwd=args.kubeflow_repo).strip("'")
-
   git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
                           cwd=args.kubeflow_repo).strip("'")
 
 
-  # TODO(jlewi): We want to cycle between N different names e.g.
+  # TODO(https://github.com/kubeflow/testing/issues/95): We want to cycle
+  # between N different names e.g.
   # kf-vX-Y-n00, kf-vX-Y-n01, ... kf-vX-Y-n05
   # The reason to reuse names is because for IAP we need to manually
   # set the redirect URIs. So we want to cycle between a set of known
