@@ -13,7 +13,7 @@
     "nfs-external": {
       name: "nfs-external",
       namespace: "kubeflow-test-infra",
-      nfsServer: "10.142.0.6",
+      nfsServer: "",
     },
     "debug-worker": {
       name: "debug-worker",

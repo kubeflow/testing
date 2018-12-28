@@ -10,11 +10,13 @@ local name = params.name;
 local namespace = params.namespace;
 local nfsServer = params.nfsServer;
 
+local storageClassName = "gcfs-storage";
+
 local pv = {
   apiVersion: "v1",
   kind: "PersistentVolume",
   metadata: {
-    name: "nfs-data",
+    name: "gcfs",
     namespace: namespace,
   },
   spec: {
@@ -24,16 +26,12 @@ local pv = {
     capacity: {
       storage: "5Gi",
     },
-    mountOptions: [
-      "hard",
-      "nfsvers=4.1",
-    ],
     nfs: {
-      path: "/data",
+      path: "/kubeflow",
       server: nfsServer,
     },
-    persistentVolumeReclaimPolicy: "Recycle",
-    storageClassName: "nfs-external",
+    persistentVolumeReclaimPolicy: "Retain",
+    storageClassName: storageClassName,
   },
 };
 
@@ -42,7 +40,7 @@ local pvc = {
   kind: "PersistentVolumeClaim",
   metadata: {
     annotations: {
-      "volume.beta.kubernetes.io/storage-class": "nfs-external",
+      "volume.beta.kubernetes.io/storage-class": storageClassName,
     },
     name: "nfs-external",
     namespace: namespace,
