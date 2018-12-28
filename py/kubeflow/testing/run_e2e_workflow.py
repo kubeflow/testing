@@ -226,7 +226,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Create a new environment for this run
     env = workflow_name
 
-    util.run([ks_cmd, "env", "add", env], cwd=w.app_dir)
+    util.run([ks_cmd, "env", "add", env, "--namespace=" + get_namespace(args)],
+              cwd=w.app_dir)
 
     util.run([ks_cmd, "param", "set", "--env=" + env, w.component,
               "name", workflow_name],
