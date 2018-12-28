@@ -1,6 +1,7 @@
 """Cleanup Kubeflow deployments in our ci system."""
 import argparse
 import datetime
+from dateutil import parser as date_parser
 import logging
 import os
 import re
@@ -21,38 +22,62 @@ def is_match(name):
 
   return False
 
-def main(): # pylint: disable=too-many-locals,too-many-statements
-  parser = argparse.ArgumentParser()
-  parser.add_argument(
-    "--project", default="kubeflow-ci", type=str, help=("The project."))
+def cleanup_service_accounts(args):
+  credentials = GoogleCredentials.get_application_default()
 
-  parser.add_argument(
-    "--max_age_hours", default=3, type=int, help=("The age of deployments to gc."))
+  iam = discovery.build('iam', 'v1', credentials=credentials)
+  projects = iam.projects()
+  accounts = []
+  next_page_token = None
+  while True:
+    service_accounts = iam.projects().serviceAccounts().list(
+           name='projects/' + args.project, pageToken=next_page_token).execute()
+    accounts.extend(service_accounts["accounts"])
+    if not "nextPageToken" in service_accounts:
+      break
+    next_page_token = service_accounts["nextPageToken"]
 
-  parser.add_argument(
-    "--update_first", default=False, type=bool,
-    help="Whether to update the deployment first.")
+  keys_client = projects.serviceAccounts().keys()
 
-  parser.add_argument(
-    "--delete_script", default="", type=str,
-    help=("The path to the delete_deployment.sh script which is in the "
-          "Kubeflow repository."))
+  unmatched_emails = []
+  expired_emails = []
+  unexpired_emails = []
+  # Service accounts don't specify the creation date time. So we
+  # use the creation time of the key associated with the account.
+  for a in accounts:
+    if not is_match(a["email"]):
+      logging.info("Skipping key %s; it does not match expected names.",
+                   a["email"])
 
-  parser.add_argument(
-    "--zones", default="us-east1-d,us-central1-a", type=str,
-    help="Comma separated list of zones to check.")
+      unmatched_emails.append(a["email"])
+      continue
 
-  args = parser.parse_args()
+    keys = keys_client.list(name=a["name"]).execute()
 
+    is_expired = False
+    for k in keys["keys"]:
+      valid_time = date_parser.parse(k["validAfterTime"])
+      now = datetime.datetime.now(valid_time.tzinfo)
+
+      age = now - valid_time
+      if age > datetime.timedelta(hours=args.max_age_hours):
+        logging.info("Deleting account: %s", a["email"])
+        iam.projects().serviceAccounts().delete(name=a["name"]).execute()
+        is_expired = True
+        break
+
+    if is_expired:
+      expired_emails.append(a["email"])
+    else:
+      unexpired_emails.append(a["email"])
+
+  logging.info("Unmatched emails:\n%s", "\n".join(unmatched_emails))
+  logging.info("Unexpired emails:\n%s", "\n".join(unexpired_emails))
+  logging.info("expired emails:\n%s", "\n".join(expired_emails))
+
+def cleanup_deployments(args): # pylint: disable=too-many-statements
   if not args.delete_script:
     raise ValueError("--delete_script must be specified.")
-
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
-  logging.getLogger().setLevel(logging.INFO)
 
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
@@ -81,7 +106,9 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     # uses (no colon).
     # https://cloud.google.com/deployment-manager/docs/reference/latest/deployments/insert
     #
-    # So we parse out the ours.
+    # So we parse out the hours.
+    #
+    # TODO(jlewi): Can we use date_parser like we do in cleanup_service_accounts
     insert_time_str = full_insert_time[:-6]
     tz_offset = full_insert_time[-6:]
     hours_offset = int(tz_offset.split(":", 1)[0])
@@ -159,6 +186,53 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
         clusters_client.delete(projectId=args.project, zone=zone,
                                clusterId=name).execute()
+
+def main():
+  logging.basicConfig(level=logging.INFO,
+                      format=('%(levelname)s|%(asctime)s'
+                              '|%(pathname)s|%(lineno)d| %(message)s'),
+                      datefmt='%Y-%m-%dT%H:%M:%S',
+                      )
+  logging.getLogger().setLevel(logging.INFO)
+
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--project", default="kubeflow-ci", type=str, help=("The project."))
+
+  parser.add_argument(
+    "--max_age_hours", default=3, type=int, help=("The age of deployments to gc."))
+
+  subparsers = parser.add_subparsers()
+
+  ######################################################
+  # Parser for service accounts
+  parser_service_account = subparsers.add_parser(
+    "service_accounts", help="Cleanup service accounts")
+
+  parser_service_account.set_defaults(func=cleanup_service_accounts)
+
+  ######################################################
+  # Parser for deployments
+  parser_deployments = subparsers.add_parser(
+    "deployments", help="Cleanup deployments")
+
+  parser_deployments.add_argument(
+    "--update_first", default=False, type=bool,
+    help="Whether to update the deployment first.")
+
+  parser_deployments.add_argument(
+    "--delete_script", default="", type=str,
+    help=("The path to the delete_deployment.sh script which is in the "
+          "Kubeflow repository."))
+
+  parser_deployments.add_argument(
+    "--zones", default="us-east1-d,us-central1-a", type=str,
+    help="Comma separated list of zones to check.")
+
+  parser_deployments.set_defaults(func=cleanup_deployments)
+  args = parser.parse_args()
+
+  args.func(args)
 
 if __name__ == "__main__":
   main()
