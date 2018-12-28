@@ -136,7 +136,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   if job_type == "presubmit":
     # We need to get a common ancestor for the PR and the master branch
     common_ancestor = util.run(
-      ["git", "merge-base", "--fork-point", "master"],
+      ["git", "merge-base", "HEAD", "master"],
       cwd=os.path.join(args.repos_dir, repo_owner, repo_name))
     diff_command = ["git", "diff", "--name-only", common_ancestor]
   elif job_type == "postsubmit":
