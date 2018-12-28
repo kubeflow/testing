@@ -198,7 +198,7 @@
               "--artifacts_dir=" + artifactsDir,
               "--src_dir=" + srcDir,
               // Exclude the test-infra directory because it contains auto-generated Kubeflow apps.
-              "--exclude_dir=" + srcDir + "test-infra/",
+              "--exclude_dirs=" + srcDir + "test-infra/",
             ]),  // test-jsonnet-formatting
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
               "python",
