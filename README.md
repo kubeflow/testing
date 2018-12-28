@@ -623,3 +623,25 @@ An NFS volume is used to create a shared filesystem between steps in the workflo
 * Most E2E tests will want to checkout kubeflow/testing in order to use various test utilities
 
 
+### Building Docker Images
+
+There are lots of different ways to build Docker images (e.g. GCB, Docker in Docker). Current recommendation
+is
+
+* Define a Makefile to provide a convenient way to invoke Docker builds
+* Using Google Container Builder (GCB) to run builds in Kubeflow's CI system generally works better
+  than alternatives (e.g. Docker in Docker, Kaniko)
+
+  * Your Makefile can have alternative rules to support building locally via Docker for developers
+
+* Use jsonnet if needed to define GCB workflows if needed
+
+  * Example [jsonnet file](https://github.com/kubeflow/examples/blob/master/code_search/docker/t2t/build.jsonnet)
+    and associated [Makefile](https://github.com/kubeflow/examples/blob/master/code_search/Makefile)
+
+* Makefile should expose variables for the following
+
+  * Registry where image is pushed
+  * TAG used for the images
+
+* Argo workflow should define the image paths and tag so that subsequent steps can use the newly built images
