@@ -522,6 +522,41 @@ User or service account deploying the test infrastructure needs sufficient permi
 kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
 ```
 
+## Setting up Kubeflow Release Clusters For Testing
+
+We maintain a pool of Kubeflow clusters corresponding to different releases of Kubeflow.
+These can be used for
+
+* Running continuous integration of our examples against a particular release
+* Manual testing of features in each release
+
+The configs for each deployment are stored in the [test-infra](https://github.com/kubeflow/testing/tree/master/test-infra) directory
+
+The deployments should be named using one of the following patterns
+
+  * `kf-vX.Y-n??` - For clusters corresponding to a particular release
+  * `kf-vmaster-n??` - For clusters corresponding to master
+
+This naming scheme is chosen to allow us to cycle through a fixed set of names e.g.
+
+  ```
+  kf-v0.4-n00
+  ...
+  kf-v0.4-n04
+  ```
+The reason we want to cycle through names is because the endpoint name for the deployment needs to be manually set in the OAuth
+credential used for IAP. By cycling through a fixed set of names we can automate redeployment without having to manually
+configure the OAuth credential.
+
+
+1. Get kfctl for the desired release
+1. Run the following command
+
+   ```
+   python -m kubeflow.testing.create_kf_instance --base_name=<kf-vX.Y|kf-vmaster>
+   ```
+1. Create a PR with the resulting config.  
+
 ## Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>
 
 
