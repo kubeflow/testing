@@ -26,7 +26,7 @@ def parse_args():
     default="",
     type=str,
     help="Comma separated directories which should be excluded from the test")
-  args, _ = parser.parse_args()
+  args = parser.parse_args()
   return args
 
 
