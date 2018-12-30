@@ -161,7 +161,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Workflow name should not be more than 63 characters because its used
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
-    ks_cmd = get_ksonnet_cmd(w)
+    ks_cmd = ks_util.get_ksonnet_cmd(w)
 
     # Print ksonnet version
     util.run([ks_cmd, "version"])
