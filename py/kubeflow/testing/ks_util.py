@@ -5,6 +5,8 @@ import logging
 import os
 import re
 import subprocess
+import yaml
+
 from kubeflow.testing import util
 
 def setup_ks_app(app_dir, env, namespace, component, params, ks_cmd=None):
