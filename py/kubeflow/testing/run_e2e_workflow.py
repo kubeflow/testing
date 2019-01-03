@@ -45,6 +45,7 @@ import logging
 import os
 import tempfile
 from kubeflow.testing import argo_client
+from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
 import uuid
@@ -110,21 +111,6 @@ def generate_env_from_head(args):
       continue
     os.environ[k] = env_var.get(k)
 
-# Get the ksonnet cmd name based on apiVersion in app.yaml.
-def get_ksonnet_cmd(workflow):
-  app_yaml_file = workflow.app_dir + "/app.yaml"
-  with open(app_yaml_file) as app_yaml:
-    results = yaml.load(app_yaml)
-
-  if results["apiVersion"] == "0.1.0":
-    return "ks"
-
-  if results["apiVersion"] == "0.2.0":
-    return "ks-12"
-
-  # For compatibility reasons we'll keep the default cmd as "ks".
-  return "ks"
-
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
   job_type = os.getenv("JOB_TYPE")
   repo_owner = os.getenv("REPO_OWNER")
@@ -175,7 +161,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Workflow name should not be more than 63 characters because its used
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
-    ks_cmd = get_ksonnet_cmd(w)
+    ks_cmd = ks_util.get_ksonnet_cmd(w.app_dir)
 
     # Print ksonnet version
     util.run([ks_cmd, "version"])
