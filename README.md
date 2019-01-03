@@ -27,6 +27,11 @@
     - [Create K8s Resources for Testing](#create-k8s-resources-for-testing)
       - [Troubleshooting](#troubleshooting)
   - [Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>](#setting-up-a-kubeflow-repository-to-use-prow-a-idprow-setupa)
+  - [Guidelines For Writing An Argo Workflow For An E2E Test](#guidelines-for-writing-an-argo-workflow-for-an-e2e-test)
+    - [NFS Directory](#nfs-directory)
+    - [Step Image](#step-image)
+    - [Checking out code](#checking-out-code)
+    - [Building Docker Images](#building-docker-images)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -548,6 +553,9 @@ need to set hooks per repository.
 
 This section provides guidelines for writing Argo workflows to use as E2E tests
 
+This guide is complementary to the [E2E testing guide for TFJob operator](https://github.com/kubeflow/tf-operator/blob/master/e2e_testing.md)
+which describes how to author tests to performed as individual steps in the workflow.
+
 Some examples to look at
 
   * code_search.jsonnet in kubeflow/examples
@@ -564,9 +572,40 @@ Some examples to look at
   },
   ```
 
-* If the test needs a Kubernetes cluster (e.g. your test creates K8s resources) then 
+### Creating K8s resources in tests.
 
-  * There should be a step in the workflow that creates a KubeConfig file to talk to the cluster
+Tests often need a K8s/Kubeflow deployment on which to create resources and run various tests.
+
+Depending on the change being tested
+
+  * The test might need exclusive access to a Kubeflow/Kubernetes cluster
+
+    * e.g. Testing a change to a custom resource usually requires exclusive access to a K8s cluster 
+      because only one CRD and controller can be installed per cluster. So trying to test two different
+      changes to an operator (e.g. tf-operator) on the same cluster is not good.
+
+  * The test might need a Kubeflow/K8s deployment but doesn't need exclusive access
+
+    * e.g. When running tests for Kubeflow examples we can isolate each test using namespaces or
+      other mechanisms.
+
+* If the test needs exclusive access to the Kubernetes cluster then there should be a step in the workflow 
+  that creates a KubeConfig file to talk to the cluster.
+
+  * e.g. E2E tests for most operators should probably spin up a new Kubeflow cluster
+
+* If the test just needs a known version of Kubeflow (e.g. master or v0.4) then it should use
+  one of the test clusters in project kubeflow-ci for this
+
+  * The infrasture to support this is not fully implemented see [kubeflow/testing#95](https://github.com/kubeflow/testing/issues/95)
+    and [kubeflow/testing#273](https://github.com/kubeflow/testing/issues/273)
+
+
+To connect to the cluster:
+  * The Argo workflow should have a step that configures the `KUBE_CONFIG` file to talk to the cluster
+
+    * e.g. by running `gcloud container clusters get-credentials`
+
   * The Kubeconfig file should be stored in the NFS test directory so it can be used in subsequent steps
   * Set the environment variable `KUBE_CONFIG` on your steps to use the KubeConfig file
 
