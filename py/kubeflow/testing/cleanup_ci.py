@@ -106,8 +106,10 @@ def cleanup_endpoints(args):
         expired.append(name)
       else:
         unexpired.append(name)
+
     if not "nextPageToken" in results:
-      next_page_token = results["nextPageToken"]
+      break
+    next_page_token = results["nextPageToken"]
 
 
   logging.info("Unmatched services:\n%s", "\n".join(unmatched))
