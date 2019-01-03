@@ -246,41 +246,6 @@ jsonPayload.involvedObject.namespace = "kubeflow-presubmit-tf-serving-image-299-
 
   * Change the namespace to be the actual namespace used for the test
 
-## Adding an E2E test for a new repository
-
-We use prow to launch Argo workflows. Here are the steps to create a new E2E test for a repository. This assumes prow is already
-configured for the repository (see these [instructions](#prow-setup) for info on setting up prow).
-
-1. Create a ksonnet App in that repository and define an Argo workflow
-   * The first step in the workflow should checkout the code using [checkout.sh](https://github.com/kubeflow/testing/tree/master/images/checkout.sh)
-   * Code should be checked out to a shared NFS volume to make it accessible to subsequent steps
-1. Create a container to use with the Prow job
-   * For an example look at the [kubeflow/testing](https://github.com/kubeflow/testing/blob/master/images/Dockerfile) Dockerfile
-   * Image should be based on `kubeflow-ci/test-worker`
-   * Create an entrypoint that does two things
-     1. Run [checkout.sh](https://github.com/kubeflow/testing/tree/master/images/checkout.sh) to download the source
-     1. Use [kubeflow.testing.run_e2e_workflow](https://github.com/kubeflow/testing/tree/master/py/kubeflow/testing/run_e2e_workflow.py)
-        to run the Argo workflow.
-   * Add a `prow_config.yaml` file that will be passed into run_e2e_workflow to determine which ksonnet app to use for testing. An example can be seen [here](https://github.com/kubeflow/kubeflow/blob/master/prow_config.yaml).
-     * Workflows can optionally be scoped by job type (presubmit/postsubmit) or modified directories. For example:
-
-       ```
-       workflows:
-        - app_dir: kubeflow/testing/workflows
-          component: workflows
-          name: unittests
-          job_types:
-            - presubmit
-          include_dirs:
-            - foo/*
-            - bar/*
-       ```
-       This configures the `unittests` workflow to only run during presubmit jobs, and only if there are changes under directories `foo` or `bar`.
-
-1. Create a prow job for that repository
-   * The command for the prow job should be set via the entrypoint baked into the Docker image
-   * This way we can change the Prow job just by pushing a docker image and we don't need to update the prow config.
-
 ## Testing Changes to the ProwJobs
 
 Changes to our ProwJob configs in [config.yaml](https://github.com/kubernetes/test-infra/blob/master/prow/config.yaml)
@@ -560,17 +525,108 @@ Some examples to look at
 
   * code_search.jsonnet in kubeflow/examples
 
+## Adding an E2E test for a new repository
+
+We use prow to launch Argo workflows. Here are the steps to create a new E2E test for a repository. This assumes prow is already
+configured for the repository (see these [instructions](#prow-setup) for info on setting up prow).
+
+### Adding an E2E test to a repository
+
+Follow these steps to add a new test to a repository.
+
+1. Create a ksonnet App in that repository and define an Argo workflow if one doesn't already exist
+   * We use ksonnet apps defined in each repository to define the Argo workflows corresponding to E2E tests
+   * If a ksonnet app already exists you can just define a new component in that app
+
+     1. Create a .jsonnet file (e.g by copying an existing .jsonnet file)
+
+        * Change the import for the params to use the newly defined component
+
+     1. Update the `params.libsonnet` to add a stanza to define params for the new component
+
+   * You can look at `prow_config.yaml` (see below) to see which ksonnet apps are already defined in a repository.
+
+1. Modify the `prow_config.yaml` at the root of the repo to trigger your new test.
+
+   * If `prow_config.yaml` doesn't exist (e.g. the repository is new) copy one from an existing repository ([example](https://github.com/kubeflow/kubeflow/blob/master/prow_config.yaml)).
+     
+   * `prow_config.yaml` contains an array of workflows where each workflow defines an E2E test to run; example
+
+       ```
+       workflows:
+        - app_dir: kubeflow/testing/workflows
+          component: workflows
+          name: unittests
+          job_types:
+            - presubmit
+          include_dirs:
+            - foo/*
+            - bar/*
+              params:
+          params:
+            platform: gke
+            gkeApiVersion: v1beta1
+       ```
+
+       * **app_dir**: Is the path to the ksonnet directory within the repository. This should be of the form `${GITHUB_ORG}/${GITHUB_REPO_NAME}/${PATH_WITHIN_REPO_TO_KS_APP}`
+       * **component**: This is the name of the ksonnet component to use for the Argo workflow
+       * **name**: This is the base name to use for the submitted Argo workflow. A unique suffix is added to give each run a unique name.
+       * **job_types**: This is an array specifying for which types of [prow jobs](https://github.com/kubernetes/test-infra/blob/master/prow/jobs.md)
+          this workflow should be triggered on.
+
+          * Currently allowed values are **presubmit**, **postsubmit**, and **periodic**.
+
+      * **include_dirs**: If specified, the pre and postsubmit jobs will only trigger this test if the PR changed at least one file matching at least one
+         of the listed directories.
+
+         * Python's [fnmatch function](https://docs.python.org/2/library/fnmatch.html) is used to compare the listed patterns against the full path
+           of modified files (see [here](https://github.com/kubeflow/testing/blob/46c5d0daa6d161e52f61b8fcaa448870945bea6d/py/kubeflow/testing/run_e2e_workflow.py#L181))
+
+         * This functionality should be used to ensure that expensive tests are only run when test impacting changes are made; particularly if its an expensive or flaky presubmit       
+
+     * **params**: A dictionary of parameters to set on the ksonnet component e.g. by running `ks param set ${COMPONENT} ${PARAM_NAME} ${PARAM_VALUE}`
+
+
+### Prow Variables
+
+* For each test run PROW defines several variables that pass useful information to your job.
+
+* The list of variables is defined [in the prow docs](https://github.com/kubernetes/test-infra/blob/master/prow/jobs.md#job-environment-variables).
+
+* These variables are often used to assign unique names to each test run to ensure isolation (e.g. by appending the BUILD_NUMBER)
+
+* The prow variables are passed via ksonnet parameter `prow_env` to your workflows
+
+  * You can copy the macros defined in [util.libsonnet](https://github.com/kubeflow/examples/blob/70a22d6d7bbb8bf126cc581d89d6cf40937e07f5/test/workflows/components/util.libsonnet#L30)
+    to parse the ksonnet parameter into a jsonnet map that can be used in your workflow.
+
+  * **Important** Always define defaults for the prow variables in the dict e.g. like
+
+    ```
+    local prowDict = {
+      BUILD_ID: "notset",
+      BUILD_NUMBER: "notset",
+      REPO_OWNER: "notset",
+      REPO_NAME: "notset",
+      JOB_NAME: "notset",
+      JOB_TYPE: "notset",
+      PULL_NUMBER: "notset",  
+     } + util.listOfDictToMap(prowEnv);
+    ```
+
+    * This prevents jsonnet from failing in a hard to debug way in the event that you try to access a key which is not in the map.
+
+### Argo Spec
 
 * Argo workflows should have standard labels corresponding to prow variables; for example
 
   ```
-  labels: {
-    org: prowEnv["REPO_OWNER"],
-    repo: prowEnv["REPO_ENV"],
-    workflow: "code_search",
-    [if std.objectHas(prowEnv, "PULL_NUMBER") then "pr"]: prowEnv["PULL_NUMBER"],
+  labels: prowDict + {    
+    workflow: "code_search",    
   },
   ```
+
+  * This makes it easy to query for Argo workflows based on prow job info.
 
 ### Creating K8s resources in tests.
 
@@ -647,6 +703,9 @@ An NFS volume is used to create a shared filesystem between steps in the workflo
 * The ksonnet parameter `stepImage` should be set in the `prow_config.yaml` file defining the E2E tests
 
   * This makes it easy to update all the workflows to use some new image.
+
+* A common runtime is defined [here](https://github.com/kubeflow/testing/tree/master/images) and published to 
+  [gcr.io/kubeflow-ci/test-worker](https://gcr.io/kubeflow-ci/test-worker)
 
 
 ### Checking out code
