@@ -527,7 +527,7 @@ which describes how to author tests to performed as individual steps in the work
 
 Some examples to look at
 
-  * code_search.jsonnet in kubeflow/examples
+  * [gis.jsonnet](https://github.com/kubeflow/examples/blob/master/test/workflows/components/gis.jsonnet) in kubeflow/examples
 
 ## Adding an E2E test for a new repository
 
@@ -546,7 +546,11 @@ Follow these steps to add a new test to a repository.
 
         * Change the import for the params to use the newly defined component
 
+        * See [gis.jsonnet in kubeflow/examples#449](https://github.com/kubeflow/examples/blob/d99abc23d10851fe8f3a19732ab5078f5edc0397/test/workflows/components/gis.jsonnet)
+
      1. Update the `params.libsonnet` to add a stanza to define params for the new component
+
+       * See [params.jsonnet in kubeflow/examples#449](https://github.com/kubeflow/examples/blob/d99abc23d10851fe8f3a19732ab5078f5edc0397/test/workflows/components/params.libsonnet)
 
    * You can look at `prow_config.yaml` (see below) to see which ksonnet apps are already defined in a repository.
 
@@ -574,7 +578,18 @@ Follow these steps to add a new test to a repository.
 
        * **app_dir**: Is the path to the ksonnet directory within the repository. This should be of the form `${GITHUB_ORG}/${GITHUB_REPO_NAME}/${PATH_WITHIN_REPO_TO_KS_APP}`
        * **component**: This is the name of the ksonnet component to use for the Argo workflow
-       * **name**: This is the base name to use for the submitted Argo workflow. A unique suffix is added to give each run a unique name.
+       * **name**: This is the base name to use for the submitted Argo workflow.         
+
+         * The test infrastructure appends a suffix of 22 characters (see [here](https://github.com/kubeflow/testing/blob/master/py/kubeflow/testing/run_e2e_workflow.py#L196))
+         
+         * The result is passed to your ksonnet component via the name parameter
+
+         * Your ksonnet component should truncate the name if necessary to satisfy
+           K8s naming constraints.
+
+           * e.g. Argo workflow names should be less than 63 characters because
+             they are used as pod labels
+
        * **job_types**: This is an array specifying for which types of [prow jobs](https://github.com/kubernetes/test-infra/blob/master/prow/jobs.md)
           this workflow should be triggered on.
 
@@ -586,7 +601,18 @@ Follow these steps to add a new test to a repository.
          * Python's [fnmatch function](https://docs.python.org/2/library/fnmatch.html) is used to compare the listed patterns against the full path
            of modified files (see [here](https://github.com/kubeflow/testing/blob/46c5d0daa6d161e52f61b8fcaa448870945bea6d/py/kubeflow/testing/run_e2e_workflow.py#L181))
 
-         * This functionality should be used to ensure that expensive tests are only run when test impacting changes are made; particularly if its an expensive or flaky presubmit       
+         * This functionality should be used to ensure that expensive tests are only run when test impacting changes are made; particularly if its an expensive or flaky presubmit
+
+         * periodic runs ignore **include_dirs**; a periodic run will trigger all
+           workflows that include job_type **periodic**
+
+      * A given ksonnet component can have multiple workflow entries to allow different
+        triggering conditions on pre/postsubmit
+
+        * For example, on presubmit we might run a test on a single platform (GKE) but on
+          postsubmit that same test might run on GKE and minikube
+        * this can be accomplished with different entries pointing at the same ksonnet
+          component but with different `job_types` and `params`.
 
      * **params**: A dictionary of parameters to set on the ksonnet component e.g. by running `ks param set ${COMPONENT} ${PARAM_NAME} ${PARAM_VALUE}`
 
@@ -621,6 +647,19 @@ Follow these steps to add a new test to a repository.
     * This prevents jsonnet from failing in a hard to debug way in the event that you try to access a key which is not in the map.
 
 ### Argo Spec
+
+* Guard against long names by truncating the name and using the BUILD_ID to ensure the
+  name remains unique e.g
+
+  ```
+  local name = std.substr(params.name, 0, std.min(58, std.lenght(params.name))) + "-" + prowDict["BUILD_ID"];            
+  ```
+
+  * Argo workflow names need to be less than 63 characters because they are used as pod 
+    labels
+
+  * BUILD_ID are unique for each run per repo; we suggest reserving 5 characters for
+    the BUILD_ID.
 
 * Argo workflows should have standard labels corresponding to prow variables; for example
 
@@ -736,7 +775,7 @@ is
 
   * Your Makefile can have alternative rules to support building locally via Docker for developers
 
-* Use jsonnet if needed to define GCB workflows if needed
+* Use jsonnet if needed to define GCB workflows
 
   * Example [jsonnet file](https://github.com/kubeflow/examples/blob/master/code_search/docker/t2t/build.jsonnet)
     and associated [Makefile](https://github.com/kubeflow/examples/blob/master/code_search/Makefile)
