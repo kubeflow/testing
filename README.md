@@ -26,8 +26,7 @@
     - [Create K8s Resources for Testing](#create-k8s-resources-for-testing)
       - [Troubleshooting](#troubleshooting)
   - [Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>](#setting-up-a-kubeflow-repository-to-use-prow-a-idprow-setupa)
-  - [Guidelines For Writing An Argo Workflow For An E2E Test](#guidelines-for-writing-an-argo-workflow-for-an-e2e-test)
-  - [Adding an E2E test for a new repository](#adding-an-e2e-test-for-a-new-repository)
+  - [Writing An Argo Workflow For An E2E Test](#writing-an-argo-workflow-for-an-e2e-test)
     - [Adding an E2E test to a repository](#adding-an-e2e-test-to-a-repository)
     - [Prow Variables](#prow-variables)
     - [Argo Spec](#argo-spec)
@@ -518,7 +517,7 @@ need to set hooks per repository.
     * Use https://prow.k8s.io/hook as the target
     * Get HMAC token from k8s test team
 
-## Guidelines For Writing An Argo Workflow For An E2E Test
+## Writing An Argo Workflow For An E2E Test
 
 This section provides guidelines for writing Argo workflows to use as E2E tests
 
@@ -529,10 +528,6 @@ Some examples to look at
 
   * [gis.jsonnet](https://github.com/kubeflow/examples/blob/master/test/workflows/components/gis.jsonnet) in kubeflow/examples
 
-## Adding an E2E test for a new repository
-
-We use prow to launch Argo workflows. Here are the steps to create a new E2E test for a repository. This assumes prow is already
-configured for the repository (see these [instructions](#prow-setup) for info on setting up prow).
 
 ### Adding an E2E test to a repository
 
