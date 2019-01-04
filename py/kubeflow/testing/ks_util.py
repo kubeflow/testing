@@ -51,5 +51,8 @@ def get_ksonnet_cmd(app_dir):
   if results["apiVersion"] == "0.2.0":
     return "ks-12"
 
+  if results["apiVersion"] >= "0.3.0":
+    return "ks-13"
+
   # For compatibility reasons we'll keep the default cmd as "ks".
   return "ks"
