@@ -112,7 +112,7 @@ RUN cd /tmp && \
     wget -O ks-13.tar.gz \
     https://github.com/ksonnet/ksonnet/releases/download/v0.13.1/ks_0.13.1_linux_amd64.tar.gz && \
     tar -xvf ks-13.tar.gz && \
-    mv ks_0.12.0_linux_amd64/ks /usr/local/bin/ks-13 && \
+    mv ks_0.13.1_linux_amd64/ks /usr/local/bin/ks-13 && \
     chmod a+x /usr/local/bin/ks-13
 
 RUN cd /tmp && \
