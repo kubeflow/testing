@@ -660,11 +660,36 @@ Follow these steps to add a new test to a repository.
 
   ```
   labels: prowDict + {    
-    workflow: "code_search",    
+    workflow_template: "code_search",    
   },
   ```
 
   * This makes it easy to query for Argo workflows based on prow job info.
+  * In addition the convention is to use the following labels
+
+    * **workflow_template**: The name of the ksonnet component from which the workflow is created.
+
+* The templates for the individual steps in the argo workflow should also have standard labels
+
+  ```
+  labels: prowDict + {
+    step_name: stepName,
+    workflow_template: "code_search",
+    workflow: workflowName,
+  },
+  ```
+
+  * **step_name**: Name of the step (e.g. what shows up in the Argo graph)
+  * **workflow_template**: The name of the ksonnet component from which the workflow is created.
+  * **workflow**: The name of the Argo workflow that owns this pod.
+
+
+* Following the above conventions make it very easy to get logs for specific steps
+
+  ```
+  kubectl logs -l step_name=checkout,REPO_OWNER=kubeflow,REPO_NAME=examples,BUILD_ID=0104-064201 -c main
+
+  ```
 
 ### Creating K8s resources in tests.
 
