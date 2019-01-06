@@ -101,7 +101,7 @@ default:
     name: platform/other
   - color: db1203
     name: priority/p0
-  - color: db03cc
+  - color: cb03cc
     name: priority/p1
   - color: fc9915
     name: priority/p2
@@ -126,7 +126,7 @@ default:
     name: status/backlog
   - color: fca42e
     name: status/done
-  - color: '808080'
+  - color: '707070'
     name: status/icebox
   # Don't remove, this label is being used by prow
   - color: ffa500
