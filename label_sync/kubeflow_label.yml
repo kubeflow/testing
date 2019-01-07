@@ -1,7 +1,5 @@
 default:
   labels:
-  - color: d28caa
-    name: addition/feature
   - color: ef1ad6
     name: area/0.2.0
     previously:
@@ -48,37 +46,19 @@ default:
   - color: ecfc15
     name: community/discussion
   - color: ecfc15
+    name: community/maintenance
+  - color: 2515fc
     name: community/question
     previously:
     - name: question
+  - color: ecfc15
+    name: cuj/build-train-deploy
+  - color: 00daff
+    name: cuj/multi-user
   - color: 00daff
     name: do-not-merge
   - color: 00daff
     name: duplicate
-  - color: 00daff
-    name: high-impact
-  - color: 00daff
-    name: improvement/enhancement
-    previously:
-    - name: enhancement
-  - color: 00daff
-    name: improvement/optimization
-  - color: 8cd2b4
-    name: os/centos
-    previously:
-    - name: area/os/centos
-  - color: 8cd2b4
-    name: os/macos
-    previously:
-    - name: area/os/macos
-  - color: 8cd2b4
-    name: os/ubuntu
-    previously:
-    - name: area/os/ubuntu
-  - color: 8cd2b4
-    name: os/windows
-    previously:
-    - name: area/os/windows
   - color: 2515fc
     name: platform/aws
     previously:
@@ -110,12 +90,6 @@ default:
     previously:
     - name: bug
     - name: problem/bug
-  - color: fc2515
-    name: problems/refactor
-    previously:
-    - name: bug  
-  - color: fc2515
-    name: problems/security
   - color: 00daff
     name: starter
   - color: 03db12
