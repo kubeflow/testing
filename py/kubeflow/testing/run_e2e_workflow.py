@@ -12,6 +12,10 @@ workflows:
   - name: e2e-test
     app_dir: tensorflow/k8s/test/workflows
     component: workflows
+    job_types:
+      presubmit
+    include_dirs:
+      tensorflow/*
 
   - name: lint
     app_dir: kubeflow/kubeflow/testing/workflows
@@ -23,6 +27,12 @@ app_dir is expected to be in the form of
 component is the name of the ksonnet component corresponding
 to the workflow to launch.
 
+job_types (optional) is an array of strings representing the job types (presubmit/postsubmit)
+that should run this workflow.
+
+include_dirs (optional) is an array of strings that specify which directories, if modified,
+should run this workflow.
+
 The script expects that the directories
 {repos_dir}/{app_dir} exists. Where repos_dir is provided
 as a command line argument.
@@ -30,11 +40,12 @@ as a command line argument.
 
 import argparse
 import datetime
+import fnmatch
 import logging
-from kubernetes import client as k8s_client
 import os
 import tempfile
 from kubeflow.testing import argo_client
+from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
 import uuid
@@ -43,6 +54,9 @@ import yaml
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
+  if args.namespace:
+    return args.namespace
+
   if args.release:
     return "kubeflow-releasing"
   return "kubeflow-test-infra"
@@ -50,10 +64,12 @@ def get_namespace(args):
 class WorkflowComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
-  def __init__(self, name, app_dir, component, params):
+  def __init__(self, name, app_dir, component, job_types, include_dirs, params):
     self.name = name
     self.app_dir = app_dir
     self.component = component
+    self.job_types = job_types
+    self.include_dirs = include_dirs
     self.params = params
 
 def _get_src_dir():
@@ -73,7 +89,8 @@ def parse_config_file(config_file, root_dir):
   components = []
   for i in results["workflows"]:
     components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("params", {})))
+      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("job_types", []),
+      i.get("include_dirs", []), i.get("params", {})))
   return components
 
 def generate_env_from_head(args):
@@ -95,17 +112,39 @@ def generate_env_from_head(args):
     os.environ[k] = env_var.get(k)
 
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
-  # Print ksonnet version
-  util.run(["ks", "version"])
+  job_type = os.getenv("JOB_TYPE")
+  repo_owner = os.getenv("REPO_OWNER")
+  repo_name = os.getenv("REPO_NAME")
+  pull_base_sha = os.getenv("PULL_BASE_SHA")
+
+  # For presubmit/postsubmit jobs, find the list of files changed by the PR.
+  diff_command = []
+  if job_type == "presubmit":
+    # We need to get a common ancestor for the PR and the master branch
+    common_ancestor = util.run(
+      ["git", "merge-base", "HEAD", "master"],
+      cwd=os.path.join(args.repos_dir, repo_owner, repo_name))
+    diff_command = ["git", "diff", "--name-only", common_ancestor]
+  elif job_type == "postsubmit":
+    # See: https://git-scm.com/docs/git-diff
+    # This syntax compares the commit before pull_base_sha with the commit
+    # at pull_base_sha
+    diff_command = ["git", "diff", "--name-only", pull_base_sha + "^", pull_base_sha]
+
+  changed_files = []
+  if job_type == "presubmit" or job_type == "postsubmit":
+    changed_files = util.run(diff_command,
+      cwd=os.path.join(args.repos_dir, repo_owner, repo_name)).splitlines()
+
+  for f in changed_files:
+    logging.info("File %s is modified.", f)
+
   if args.release:
     generate_env_from_head(args)
   workflows = []
   if args.config_file:
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
 
-  if args.app_dir and args.component:
-    # TODO(jlewi): We can get rid of this branch once all repos are using a prow_config.xml file.
-    workflows.append(WorkflowComponent("legacy", args.app_dir, args.component, {}))
   create_started_file(args.bucket)
 
   util.maybe_activate_service_account()
@@ -113,7 +152,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   util.configure_kubectl(args.project, args.zone, args.cluster)
   util.load_kube_config()
 
-  api_client = k8s_client.ApiClient()
   workflow_names = []
   ui_urls = {}
 
@@ -123,7 +161,38 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Workflow name should not be more than 63 characters because its used
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
-    job_type = os.getenv("JOB_TYPE")
+    ks_cmd = ks_util.get_ksonnet_cmd(w.app_dir)
+
+    # Print ksonnet version
+    util.run([ks_cmd, "version"])
+
+    # Skip this workflow if it is scoped to a different job type.
+    if w.job_types and not job_type in w.job_types:
+      logging.info("Skipping workflow %s because job type %s is not one of "
+                   "%s.", w.name, job_type, w.job_types)
+      continue
+
+    # If we are scoping this workflow to specific directories, check if any files
+    # modified match the specified regex patterns.
+    dir_modified = False
+    if w.include_dirs:
+      for f in changed_files:
+        for d in w.include_dirs:
+          if fnmatch.fnmatch(f, d):
+            dir_modified = True
+            logging.info("Triggering workflow %s because %s in dir %s is modified.",
+                         w.name, f, d)
+            break
+        if dir_modified:
+          break
+
+    # Only consider modified files when the job is pre or post submit, and if
+    # the include_dirs stanza is defined.
+    if job_type != "periodic" and w.include_dirs and not dir_modified:
+      logging.info("Skipping workflow %s because no code modified in %s.",
+                   w.name, w.include_dirs)
+      continue
+
     if job_type == "presubmit":
       workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
       workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
@@ -143,9 +212,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Create a new environment for this run
     env = workflow_name
 
-    util.run(["ks", "env", "add", env], cwd=w.app_dir)
+    util.run([ks_cmd, "env", "add", env, "--namespace=" + get_namespace(args)],
+              cwd=w.app_dir)
 
-    util.run(["ks", "param", "set", "--env=" + env, w.component,
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component,
               "name", workflow_name],
              cwd=w.app_dir)
 
@@ -161,14 +231,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         continue
       prow_env.append("{0}={1}".format(v, os.getenv(v)))
 
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "prow_env", ",".join(prow_env)],
-             cwd=w.app_dir)
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "namespace", get_namespace(args)],
-             cwd=w.app_dir)
-    util.run(["ks", "param", "set", "--env=" + env, w.component, "bucket", args.bucket],
-             cwd=w.app_dir)
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "prow_env",
+             ",".join(prow_env)], cwd=w.app_dir)
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "namespace",
+             get_namespace(args)], cwd=w.app_dir)
+    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "bucket",
+             args.bucket], cwd=w.app_dir)
     if args.release:
-      util.run(["ks", "param", "set", "--env=" + env, w.component, "versionTag",
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
                 os.getenv("VERSION_TAG")], cwd=w.app_dir)
 
     # Set any extra params. We do this in alphabetical order to make it easier to verify in
@@ -176,12 +246,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     param_names = w.params.keys()
     param_names.sort()
     for k in param_names:
-      util.run(["ks", "param", "set", "--env=" + env, w.component, k, "{0}".format(w.params[k])],
-               cwd=w.app_dir)
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, k,
+               "{0}".format(w.params[k])], cwd=w.app_dir)
 
     # For debugging print out the manifest
-    util.run(["ks", "show", env, "-c", w.component], cwd=w.app_dir)
-    util.run(["ks", "apply", env, "-c", w.component], cwd=w.app_dir)
+    util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
+    util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
 
     ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))
@@ -191,8 +261,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   success = True
   workflow_phase = {}
   try:
-    results = argo_client.wait_for_workflows(api_client, get_namespace(args),
+    results = argo_client.wait_for_workflows(get_namespace(args),
                                              workflow_names,
+                                             timeout=datetime.timedelta(minutes=180),
                                              status_callback=argo_client.log_status)
     for r in results:
       phase = r.get("status", {}).get("phase")
@@ -203,11 +274,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
   except util.TimeoutError:
     success = False
-    logging.error("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
+    logging.exception("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
   except Exception as e:
     # We explicitly log any exceptions so that they will be captured in the
     # build-log.txt that is uploaded to Gubernator.
-    logging.error("Exception occurred: %s", e)
+    logging.exception("Exception occurred: %s", e)
     raise
   finally:
     success = prow_artifacts.finalize_prow_job(args.bucket, success, workflow_phase, ui_urls)
@@ -263,26 +334,17 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     type=str,
     help="The directory where the different repos are checked out.")
 
-  # TODO(jlewi): app_dir and component predate the use of a config
-  # file we should consider getting rid of them once all repos
-  # have been updated to run multiple workflows.
-  parser.add_argument(
-    "--app_dir",
-    type=str,
-    default="",
-    help="The directory where the ksonnet app is stored.")
-
-  parser.add_argument(
-    "--component",
-    type=str,
-    default="",
-    help="The ksonnet component to use.")
-
   parser.add_argument(
     "--release",
     action='store_true',
     default=False,
     help="Whether workflow is for image release")
+
+  parser.add_argument(
+    "--namespace",
+    default=None,
+    type=str,
+    help="Optional namespace to use")
 
   #############################################################################
   # Process the command line arguments.

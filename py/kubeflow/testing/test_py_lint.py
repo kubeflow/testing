@@ -38,7 +38,7 @@ def test_lint(test_case): # pylint: disable=redefined-outer-name
   dir_excludes = [
     "dashboard/frontend/node_modules",
     "kubeflow_testing",
-    "vendor",
+    "dev-kubeflow-org/ks-app/vendor",
   ]
   full_dir_excludes = [
     os.path.join(os.path.abspath(args.src_dir), f) for f in dir_excludes
@@ -49,6 +49,10 @@ def test_lint(test_case): # pylint: disable=redefined-outer-name
   failed_files = []
   rc_file = os.path.join(args.src_dir, ".pylintrc")
   for root, dirs, files in os.walk(os.path.abspath(args.src_dir), topdown=True):
+    # Exclude vendor directories and all sub files.
+    if "vendor" in root.split(os.sep):
+      continue
+
     # excludes can be done with fnmatch.filter and complementary set,
     # but it's more annoying to read.
     if should_exclude(root, full_dir_excludes):

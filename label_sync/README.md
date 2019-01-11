@@ -14,3 +14,14 @@ bazel run //label_sync -- \
   --token /path/to/github_oauth_token \
   --orgs kubeflow
 ```
+
+We have a CronJob to sync the labels, defined
+[here](https://github.com/kubeflow/testing/blob/master/label_sync/cluster/label_sync_job.yaml).
+After making changes to `kubeflow_label.yml`, we need to update the configmap
+[label-config-v2](https://github.com/kubeflow/testing/blob/master/label_sync/cluster/label_sync_job.yaml#L37):
+```
+# Setup kubectl to point to kubeflow-testing cluster in kubeflow-ci
+kubectl delete configmap label-config-v2
+kubectl create configmap label-config-v2 --from-file=kubeflow_label.yml
+```
+

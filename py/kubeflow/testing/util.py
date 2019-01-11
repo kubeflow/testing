@@ -171,8 +171,8 @@ def create_cluster(gke, project, zone, cluster_request):
     logging.info("Cluster creation done.\n %s", create_op)
 
   except errors.HttpError as e:
-    logging.error("Exception occured creating cluster: %s, status: %s", e,
-                  e.resp["status"])
+    logging.exception("Exception occured creating cluster: %s, status: %s", e,
+                      e.resp["status"])
     # Status appears to be a string.
     if e.resp["status"] == '409':
       pass
@@ -200,8 +200,8 @@ def delete_cluster(gke, name, project, zone):
     logging.info("Cluster deletion done.\n %s", delete_op)
 
   except errors.HttpError as e:
-    logging.error("Exception occured deleting cluster: %s, status: %s", e,
-                  e.resp["status"])
+    logging.exception("Exception occured deleting cluster: %s, status: %s", e,
+                      e.resp["status"])
 
 
 def wait_for_operation(client,
@@ -294,6 +294,7 @@ def wait_for_deployment(api_client,
 
   logging.error("Timeout waiting for deployment %s in namespace %s to be "
                 "ready", name, namespace)
+  run(["kubectl", "describe", "deployment", "-n", namespace, name])
   raise TimeoutError(
     "Timeout waiting for deployment {0} in namespace {1}".format(
       name, namespace))
@@ -344,7 +345,8 @@ def install_gpu_drivers(api_client):
   """
   logging.info("Install GPU Drivers.")
   # Fetch the daemonset to install the drivers.
-  link = "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/k8s-1.8/device-plugin-daemonset.yaml"  # pylint: disable=line-too-long
+  link = "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml"  # pylint: disable=line-too-long
+  logging.info("Using daemonset file: %s", link)
   f = urllib.urlopen(link)
   daemonset_spec = yaml.load(f)
   ext_client = k8s_client.ExtensionsV1beta1Api(api_client)
@@ -388,44 +390,6 @@ def cluster_has_gpu_nodes(api_client):
   return False
 
 
-def create_tiller_service_accounts(api_client):
-  logging.info("Creating service account for tiller.")
-  api = k8s_client.CoreV1Api(api_client)
-  body = yaml.load("""apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: tiller
-  namespace: kube-system""")
-  try:
-    api.create_namespaced_service_account("kube-system", body)
-  except rest.ApiException as e:
-    if e.status == 409:
-      logging.info("Service account tiller already exists.")
-    else:
-      raise
-  body = yaml.load("""apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: tiller
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-  - kind: ServiceAccount
-    name: tiller
-    namespace: kube-system
-""")
-  rbac_api = k8s_client.RbacAuthorizationV1beta1Api(api_client)
-  try:
-    rbac_api.create_cluster_role_binding(body)
-  except rest.ApiException as e:
-    if e.status == 409:
-      logging.info("Role binding for service account tiller already exists.")
-    else:
-      raise
-
-
 def setup_cluster(api_client):
   """Setup a cluster.
 
@@ -435,8 +399,6 @@ def setup_cluster(api_client):
   Args:
     use_gpus
   """
-  create_tiller_service_accounts(api_client)
-  run(["helm", "init", "--service-account=tiller"])
   use_gpus = cluster_has_gpu_nodes(api_client)
   if use_gpus:
     logging.info("GPUs detected in cluster.")
@@ -445,7 +407,6 @@ def setup_cluster(api_client):
 
   if use_gpus:
     install_gpu_drivers(api_client)
-  wait_for_deployment(api_client, "kube-system", "tiller-deploy")
   if use_gpus:
     wait_for_gpu_driver_install(api_client)
 
@@ -538,6 +499,8 @@ def load_kube_config(config_file=None,
     kubernetes_configuration.Configuration.set_default(config)
   else:
     loader.load_and_set(client_configuration) # pylint: disable=too-many-function-args
+  # Dump the loaded config.
+  run(["kubectl", "config", "view"])
 
 
 def maybe_activate_service_account():

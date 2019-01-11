@@ -1,0 +1,282 @@
+bindings:
+- members:
+  - serviceAccount:e2e-2f35-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-user@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/bigquery.admin
+- members:
+  - serviceAccount:593963025935@cloudbuild.gserviceaccount.com
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  role: roles/cloudbuild.builds.builder
+- members:
+  - serviceAccount:e2e-2f35-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-user@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/cloudbuild.builds.editor
+- members:
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  role: roles/cloudbuild.builds.viewer
+- members:
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/compute.instanceAdmin.v1
+- members:
+  - serviceAccount:e2e-2f35-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-admin@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/compute.networkAdmin
+- members:
+  - serviceAccount:service-593963025935@compute-system.iam.gserviceaccount.com
+  role: roles/compute.serviceAgent
+- members:
+  - serviceAccount:593963025935@cloudservices.gserviceaccount.com
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/container.admin
+- members:
+  - serviceAccount:688881552167-compute@developer.gserviceaccount.com
+  - serviceAccount:pr-kubekins@kubernetes-jenkins-pull.iam.gserviceaccount.com
+  role: roles/container.developer
+- members:
+  - serviceAccount:service-593963025935@container-engine-robot.iam.gserviceaccount.com
+  role: roles/container.serviceAgent
+- members:
+  - serviceAccount:e2e-2f35-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-user@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/dataflow.admin
+- members:
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/deploymentmanager.editor
+- members:
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/deploymentmanager.typeEditor
+- members:
+  - serviceAccount:593963025935-compute@developer.gserviceaccount.com
+  - serviceAccount:593963025935@cloudservices.gserviceaccount.com
+  - serviceAccount:service-593963025935@containerregistry.iam.gserviceaccount.com
+  role: roles/editor
+- members:
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/file.editor
+- members:
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:service-593963025935@cloud-filer.iam.gserviceaccount.com
+  role: roles/file.serviceAgent
+- members:
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/iam.serviceAccountAdmin
+- members:
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/iam.serviceAccountKeyAdmin
+- members:
+  - serviceAccount:e2e-2f35-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-vm@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/logging.logWriter
+- members:
+  - group:ci-viewer@kubeflow.org
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/logging.viewer
+- members:
+  - serviceAccount:service-593963025935@cloud-ml.google.com.iam.gserviceaccount.com
+  role: roles/ml.serviceAgent
+- members:
+  - serviceAccount:e2e-2f35-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-vm@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/monitoring.metricWriter
+- members:
+  - group:ci-team@kubeflow.org
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  - user:jlewi@kubeflow.org
+  role: roles/owner
+- members:
+  - serviceAccount:593963025935@cloudservices.gserviceaccount.com
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/resourcemanager.projectIamAdmin
+- members:
+  - serviceAccount:e2e-2f35-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-admin@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/servicemanagement.admin
+- members:
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/serviceusage.serviceUsageAdmin
+- members:
+  - serviceAccount:e2e-2f35-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-2f35-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-admin@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-user@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/source.admin
+- members:
+  - serviceAccount:e2e-2f35-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-user@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/storage.admin
+- members:
+  - serviceAccount:67369850431-compute@developer.gserviceaccount.com
+  - serviceAccount:688881552167-compute@developer.gserviceaccount.com
+  - serviceAccount:e2e-2f35-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:pr-kubekins@kubernetes-jenkins-pull.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-vm@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-vm@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/storage.objectViewer
+- members:
+  - serviceAccount:e2e-2f35-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-3dc8-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-5260-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-8c33-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-a3e9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dcf0-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:e2e-dee9-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-7132-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-8337-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-dc2f-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-e5f4-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-f23e-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  - serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-19-3580caf-26-1324-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-2ed7199-67-0a05-user@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:z-26-ed2fa0e-70-e265-user@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/viewer
+etag: BwV2V1Zf0qA=
+version: 1

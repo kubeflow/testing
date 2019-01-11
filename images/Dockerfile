@@ -17,9 +17,11 @@ RUN set -ex \
     build-essential \
     curl \
     locales \
+    uuid-runtime \
     wget \
     ca-certificates \
     git \
+    jq \
     zip \
     unzip \
     gcc \
@@ -88,22 +90,39 @@ RUN cd /tmp && \
     tar -xvf glide-v0.13.0-linux-amd64.tar.gz && \
     mv ./linux-amd64/glide /usr/local/bin/
 
-# Install ksonnet
+# Install ksonnet. We install multiple versions of ks to support different versions
+# of ksonnet applications. Newer versions of ksonnet are backwards compatible but
+# that can require upgrading the app which isn't something we want to be forced to.
+# (see https://github.com/kubeflow/testing/issues/220).
 RUN cd /tmp && \
     wget -O ks.tar.gz \
-    https://github.com/ksonnet/ksonnet/releases/download/v0.10.2/ks_0.10.2_linux_amd64.tar.gz && \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_linux_amd64.tar.gz && \
     tar -xvf ks.tar.gz && \
-    mv ks_0.10.2_linux_amd64/ks /usr/local/bin && \
+    mv ks_0.11.0_linux_amd64/ks /usr/local/bin && \
     chmod a+x /usr/local/bin/ks
 
 RUN cd /tmp && \
-    wget https://github.com/google/jsonnet/archive/v0.9.5.tar.gz && \
-    tar -xvf v0.9.5.tar.gz && \
-    cd jsonnet-0.9.5 && \
+    wget -O ks-12.tar.gz \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.12.0/ks_0.12.0_linux_amd64.tar.gz && \
+    tar -xvf ks-12.tar.gz && \
+    mv ks_0.12.0_linux_amd64/ks /usr/local/bin/ks-12 && \
+    chmod a+x /usr/local/bin/ks-12
+
+RUN cd /tmp && \
+    wget -O ks-13.tar.gz \
+    https://github.com/ksonnet/ksonnet/releases/download/v0.13.1/ks_0.13.1_linux_amd64.tar.gz && \
+    tar -xvf ks-13.tar.gz && \
+    mv ks_0.13.1_linux_amd64/ks /usr/local/bin/ks-13 && \
+    chmod a+x /usr/local/bin/ks-13
+
+RUN cd /tmp && \
+    wget https://github.com/google/jsonnet/archive/v0.11.2.tar.gz && \
+    tar -xvf v0.11.2.tar.gz && \
+    cd jsonnet-0.11.2 && \
     make && \
     mv jsonnet /usr/local/bin && \
-    rm -rf /tmp/v0.9.5.tar.gz && \
-    rm -rf /tmp/jsonnet-0.9.5
+    rm -rf /tmp/v0.11.2.tar.gz && \
+    rm -rf /tmp/jsonnet-0.11.2
 
 COPY ./Pipfile ./Pipfile.lock /tmp/
 
@@ -111,12 +130,18 @@ COPY ./Pipfile ./Pipfile.lock /tmp/
 # Don't upgrade pip for now because it seems to be broken
 # https://github.com/pypa/pip/issues/5240
 RUN cd /tmp/ && \
-    pip2 install -U wheel && \
+    pip2 install -U wheel filelock && \
     pip2 install pipenv && \
+    pip2 install requests && \
+    pip2 install google-api-python-client && \
+    pip2 install prometheus_client && \
     pipenv install --system --two && \
-    pip3 install -U wheel && \
-    pip3 install pipenv && \
-    pipenv install --system --three
+    pip3 install -U wheel filelock
+
+RUN pip3 install pipenv==2018.10.9
+RUN cd /tmp/ && pipenv install --system --three
+
+RUN pip install yq 
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
