@@ -6,13 +6,13 @@ SRC_DIR=$1
 CHECKOUT_REPO_OWNER=$2
 CHECKOUT_REPO_NAME=$3
 
-mkdir -p ${SRC_DIR}
-
-echo "Checking out git repo: ${CHECKOUT_REPO_OWNER}/${CHECKOUT_REPO_NAME}.git"
-git clone https://github.com/${CHECKOUT_REPO_OWNER}/${CHECKOUT_REPO_NAME}.git \
-  ${SRC_DIR}/${CHECKOUT_REPO_NAME}
+mkdir -p ${SRC_DIR}/${CHECKOUT_REPO_OWNER}
 
 REPO_DIR=${SRC_DIR}/${CHECKOUT_REPO_OWNER}/${CHECKOUT_REPO_NAME}
+
+echo "Checking out git repo: ${CHECKOUT_REPO_OWNER}/${CHECKOUT_REPO_NAME}.git"
+git clone https://github.com/${CHECKOUT_REPO_OWNER}/${CHECKOUT_REPO_NAME}.git REPO_DIR
+
 cd ${REPO_DIR}
 if [ ! -z ${PULL_NUMBER} ]; then
  git fetch origin  pull/${PULL_NUMBER}/head:pr

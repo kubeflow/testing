@@ -6,6 +6,9 @@
 set -ex
 
 # Check out repos we need.
-/usr/local/bin/checkout.sh /src
+/usr/local/bin/checkout.sh /src kubeflow kubeflow
+/usr/local/bin/checkout.sh /src kubeflow testing
+
+ls -R /src
 
 # TODO(gabrielwen): Trigger create_kf_instance.py here.
