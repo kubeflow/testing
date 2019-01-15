@@ -140,7 +140,7 @@ RUN cd /tmp/ && \
 RUN pip3 install pipenv==2018.10.9
 RUN cd /tmp/ && pipenv install --system --three
 
-RUN pip install yq 
+RUN pip install yq
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
@@ -161,4 +161,4 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
 ENV USER root
 
 # TODO(gabrielwen): Add PYTHONPATH here.
-# TODO(gabrielwen): Add ENTRYPOINT here.
+ENTRYPOINT ["/usr/local/bin/workflows.sh"]
