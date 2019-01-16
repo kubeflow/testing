@@ -5,6 +5,7 @@ import datetime
 import logging
 import os
 import re
+import six
 import subprocess
 import time
 import urllib
@@ -57,16 +58,25 @@ def run(command,
   output = []
   while process.poll() is None:
     process.stdout.flush()
-    for line in iter(process.stdout.readline, ''):
-      output.append(line.strip())
-      logging.info(line.strip())
+    for line in iter(process.stdout.readline, b''):
+      if six.PY2:
+        line = line.strip()
+      else:
+        line = line.decode().strip()
+
+      output.append(line)
+      logging.info(line)
 
     time.sleep(polling_interval.total_seconds())
 
   process.stdout.flush()
   for line in iter(process.stdout.readline, b''):
-    output.append(line.strip())
-    logging.info(line.strip())
+    if six.PY2:
+      line = line.strip()
+    else:
+      line = line.decode().strip()
+    output.append(line)
+    logging.info(line)
 
   if process.returncode != 0:
     raise subprocess.CalledProcessError(
