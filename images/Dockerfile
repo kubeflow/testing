@@ -90,6 +90,12 @@ RUN cd /tmp && \
     tar -xvf glide-v0.13.0-linux-amd64.tar.gz && \
     mv ./linux-amd64/glide /usr/local/bin/
 
+# Install s2i
+RUN cd /tmp && \
+    wget -O s2i.tar.gz https://github.com/openshift/source-to-image/releases/download/v1.1.13/source-to-image-v1.1.13-b54d75d3-linux-amd64.tar.gz && \
+    tar -xvf s2i.tar.gz && \
+    mv ./s2i /usr/local/bin
+
 # Install ksonnet. We install multiple versions of ks to support different versions
 # of ksonnet applications. Newer versions of ksonnet are backwards compatible but
 # that can require upgrading the app which isn't something we want to be forced to.
