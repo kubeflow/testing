@@ -160,5 +160,5 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
 
-# TODO(gabrielwen): Add PYTHONPATH here.
+ENV PYTHONPATH /src/kubeflow/testing/py
 ENTRYPOINT ["/usr/local/bin/workflows.sh"]

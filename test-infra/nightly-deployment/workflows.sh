@@ -5,10 +5,15 @@
 # repo and uses that to run one or more workflows.
 set -ex
 
+SRC_DIR=/src
+REPO_OWNER=kubeflow
+
 # Check out repos we need.
-/usr/local/bin/checkout.sh /src kubeflow kubeflow
-/usr/local/bin/checkout.sh /src kubeflow testing
+/usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} kubeflow
+/usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} testing
 
-ls -R /src
-
-# TODO(gabrielwen): Trigger create_kf_instance.py here.
+# Trigger create_kf_instance.
+python -m kubeflow.testing.create_kf_instance \
+  --base=kf-v0-4 \
+  --kubeflow_repo=/src/kubeflow/kubeflow \
+  --apps_dir=/src/kubeflow/testing/test-infra
