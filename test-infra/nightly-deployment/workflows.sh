@@ -16,4 +16,6 @@ REPO_OWNER=kubeflow
 python -m kubeflow.testing.create_kf_instance \
   --base=kf-v0-4 \
   --kubeflow_repo=/src/kubeflow/kubeflow \
-  --apps_dir=/src/kubeflow/testing/test-infra
+  --apps_dir=/src/kubeflow/testing/test-infra \
+  --project=gabrielwen-learning \
+  --oauth_file=gs://deployment-worker-data/kf-iap-oauth.gabrielwen-learning.yaml
