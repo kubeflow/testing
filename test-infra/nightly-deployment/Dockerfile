@@ -161,4 +161,5 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
 ENV USER root
 
 ENV PYTHONPATH /src/kubeflow/testing/py
+
 ENTRYPOINT ["/usr/local/bin/workflows.sh"]
