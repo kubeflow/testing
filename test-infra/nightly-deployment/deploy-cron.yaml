@@ -15,4 +15,12 @@ spec:
             - /bin/sh
             - -c
             - date; echo Hello from the Kubernetes cluster
+            volumeMounts:
+            - name: gcp-credentials
+              mountPath: "/secret/gcp-credentials"
+              readOnly: true
           restartPolicy: Never
+          volumes:
+          - name: gcp-credentials
+            secret:
+              secretName: gcp-credentials
