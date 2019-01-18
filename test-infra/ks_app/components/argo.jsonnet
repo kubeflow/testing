@@ -4,7 +4,7 @@ local k = import "k.libsonnet";
 local argo = import "argo.libsonnet";
 local namespace = params.namespace;
 
-local version = "v2.1.0";
+local version = "v2.2.1";
 
 local ingress = if params.exposeUi then
   [argo.parts(namespace, version).uiIngress]
