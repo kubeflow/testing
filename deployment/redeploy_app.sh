@@ -63,13 +63,13 @@ function applyIapIngress() {
 }
 
 # Configure parameters for latest and stable environments
-if [ "$1" = "latest" ]
+if [[ "$1" == "latest" ]]
 then
   NAMESPACE=kubeflow-latest
   APP_NAME=kubeflow-latest_ks_app
   FQDN=dev-latest.kubeflow.org
   IP_NAME="kubeflow-latest-ip"  
-elif [ "$1" = "stable" ]
+elif [[ "$1" == "stable" ]]
 then
   NAMESPACE=kubeflow
   APP_NAME=ks-app
