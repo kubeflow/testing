@@ -100,7 +100,7 @@ if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
   echo "Please configure the context to match ks environment ${KS_ENV}"
   exit -1
 else
-  echo kubectl context matches ks environment ${KS_ENV}
+  echo "kubectl context matches ks environment ${KS_ENV}"
 fi
 
 # Delete some confimaps so that will get recreated with the new config.
