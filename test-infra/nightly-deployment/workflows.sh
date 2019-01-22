@@ -12,6 +12,7 @@ REPO_OWNER=kubeflow
 /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} kubeflow
 /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} testing
 
+# TODO(gabrielwen): Move this to create_kf_instance.py
 rm -rf /src/kubeflow/testing/test-infra/kf-v0-4-n00
 
 # Activate service account auth.
@@ -19,6 +20,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud config list
 
+# TODO(gabrielwen): Move this to create_kf_instance.py or make it generic.
 gcloud container clusters get-credentials gabrielwen-playground \
   --zone us-east1-d \
   --project gabrielwen-learning

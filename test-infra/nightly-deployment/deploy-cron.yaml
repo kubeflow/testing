@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: auto-deploy
 spec:
-  schedule: "*/20 * * * *"
+  schedule: "*/3 * * * *"
   jobTemplate:
     spec:
       template:
