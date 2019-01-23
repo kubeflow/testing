@@ -25,3 +25,5 @@ python -m kubeflow.testing.create_kf_instance \
   --apps_dir=/src/kubeflow/testing/test-infra \
   --project=kubeflow-ci \
   --deployment_worker_cluster=kubeflow-testing
+
+# TODO(gabrielwen): Push changes to app folders to git.
