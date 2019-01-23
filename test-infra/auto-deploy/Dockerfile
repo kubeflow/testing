@@ -152,8 +152,7 @@ RUN chmod a+x /usr/local/bin/workflows.sh
 RUN curl  https://get.docker.com/ | sh
 
 # Install kubectl
-# We don't install via gcloud because we want 1.10 which is newer than what's in gcloud.
-RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/bin/linux/amd64/kubectl && \
+RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl && \
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
