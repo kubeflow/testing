@@ -9,6 +9,7 @@ SRC_DIR=/src
 REPO_OWNER=kubeflow
 
 # Check out repos we need.
+# TODO(gabrielwen): Need to make a seperate workflow to snapshot repos.
 /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} kubeflow
 /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} testing
 
