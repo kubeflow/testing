@@ -22,6 +22,5 @@ python -m kubeflow.testing.create_kf_instance \
   --base=kf-v0-4 \
   --kubeflow_repo=/src/kubeflow/kubeflow \
   --apps_dir=/src/kubeflow/testing/test-infra \
-  --project=gabrielwen-learning \
-  --deployment_worker_cluster=gabrielwen-playground \
-  --oauth_file=gs://deployment-worker-data/kf-iap-oauth.gabrielwen-learning.yaml
+  --project=kubeflow-ci \
+  --deployment_worker_cluster=kubeflow-testing
