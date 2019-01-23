@@ -12,12 +12,6 @@ REPO_OWNER=kubeflow
 /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} kubeflow
 /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} testing
 
-# TODO(gabrielwen): Move this to create_kf_instance.py
-# cd /src/kubeflow/testing/test-infra/kf-v0-4-n00
-# /src/kubeflow/kubeflow/scripts/kfctl.sh delete all
-# cd -
-rm -rf /src/kubeflow/testing/test-infra/kf-v0-4-n00
-
 # Activate service account auth.
 export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}

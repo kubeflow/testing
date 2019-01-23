@@ -73,6 +73,12 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # i.e. we should find the oldest one and reuse that.
   num = 0
   name = "{0}-n{1:02d}".format(args.base_name, num)
+  # Clean up previous deployment. We are not able to run "kfctl delete all"
+  # since we are not able to guarantee apps config in repository is up to date.
+  util.run(["rm", "-rf", name], cwd=args.apps_dir)
+  util.run(["gcloud", "deployment-manager", "deployments", "delete", name,
+            "--project=" + args.project], cwd=args.apps_dir)
+
   app_dir = os.path.join(args.apps_dir, name)
   kfctl = os.path.join(args.kubeflow_repo, "scripts", "kfctl.sh")
   util.run([kfctl, "init", name, "--project", args.project, "--zone", args.zone,
