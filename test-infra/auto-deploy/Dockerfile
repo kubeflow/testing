@@ -142,12 +142,6 @@ RUN cd /tmp/ && pipenv install --system --three
 
 RUN pip install yq
 
-COPY checkout.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/checkout.sh
-
-COPY workflows.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/workflows.sh
-
 # Install docker.
 RUN curl  https://get.docker.com/ | sh
 
