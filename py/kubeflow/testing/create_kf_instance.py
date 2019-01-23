@@ -13,6 +13,11 @@ import yaml
 
 from google.cloud import storage
 from kubeflow.testing import util
+from retrying import retry
+
+@retry(wait_fixed=60000, stop_max_attempt_number=5)
+def kfctl_apply_with_retry(cwd, env):
+  util.run([kfctl, "apply", "all"], cwd=app_dir, env=env)
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
@@ -98,14 +103,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   env.update(oauth_info)
   # kfctl apply all might break during cronjob invocation when depending
   # components are not ready. Make it retry several times should be enough.
-  for i in range(5):
-    try:
-      util.run([kfctl, "apply", "all"], cwd=app_dir, env=env)
-      break
-    except subprocess.CalledProcessError as e:
-      logging.error("kfctl apply all having error in %d attempt: %s\nSleep and retry...",
-                    i + 1, str(e))
-      time.sleep(60)
+  kfctl_apply_with_retry(app_dir, env)
 
 
 if __name__ == "__main__":
