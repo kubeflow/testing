@@ -48,6 +48,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     default=os.getcwd(),
     type=str, help=("Directory to store kubeflow apps."))
 
+  parser.add_argument(
+    "--deployment_worker_cluster",
+    default="kubeflow-testing",
+    type=str, help=("Name of cluster deployment cronjob workers use."))
+
   args = parser.parse_args()
 
   bucket, blob_path = util.split_gcs_uri(args.oauth_file)
@@ -63,7 +68,6 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
                           cwd=args.kubeflow_repo).strip("'")
 
-
   # TODO(https://github.com/kubeflow/testing/issues/95): We want to cycle
   # between N different names e.g.
   # kf-vX-Y-n00, kf-vX-Y-n01, ... kf-vX-Y-n05
@@ -77,7 +81,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # since we are not able to guarantee apps config in repository is up to date.
   util.run(["rm", "-rf", name], cwd=args.apps_dir)
   util.run(["gcloud", "deployment-manager", "deployments", "delete", name,
-            "--project=" + args.project], cwd=args.apps_dir)
+            "--project", args.project], cwd=args.apps_dir)
+
+  # Create a dummy kubeconfig in cronjob worker.
+  util.run(["gcloud", "container", "clusters", "get-credentials", args.deployment_worker_cluster,
+            "--zone", args.zone, "--project", args.project], cwd=args.apps_dir)
 
   app_dir = os.path.join(args.apps_dir, name)
   kfctl = os.path.join(args.kubeflow_repo, "scripts", "kfctl.sh")
