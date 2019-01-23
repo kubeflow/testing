@@ -7,8 +7,6 @@ import argparse
 import getpass
 import logging
 import os
-import subprocess
-import time
 import yaml
 
 from google.cloud import storage
