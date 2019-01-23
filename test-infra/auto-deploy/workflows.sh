@@ -5,25 +5,30 @@
 # repo and uses that to run one or more workflows.
 set -ex
 
-SRC_DIR=/src
-REPO_OWNER=kubeflow
+SRC_DIR=$1
+REPO_OWNER=$2
+PROJECT=$3
+WORKER_CLUSTER=$4
 
 # Check out repos we need.
 # TODO(gabrielwen): Need to make a seperate workflow to snapshot repos.
-/usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} kubeflow
-/usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} testing
+${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy/checkout.sh \
+  ${SRC_DIR} ${REPO_OWNER} kubeflow
 
 # Activate service account auth.
 export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud config list
 
+APPS_DIR=${SRC_DIR}/${REPO_OWNER}/testing/test-infra
+KF_DIR=${SRC_DIR}/${REPO_OWNER}/kubeflow
+
 # Trigger create_kf_instance.
 python -m kubeflow.testing.create_kf_instance \
   --base=kf-v0-4 \
-  --kubeflow_repo=/src/kubeflow/kubeflow \
-  --apps_dir=/src/kubeflow/testing/test-infra \
-  --project=kubeflow-ci \
-  --deployment_worker_cluster=kubeflow-testing
+  --kubeflow_repo=${KF_DIR} \
+  --apps_dir=${APPS_DIR} \
+  --project=${PROJECT} \
+  --deployment_worker_cluster=${WORKER_CLUSTER}
 
 # TODO(gabrielwen): Push changes to app folders to git.

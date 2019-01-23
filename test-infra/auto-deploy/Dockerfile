@@ -159,6 +159,17 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.13.0/
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
 
+# Deployment related configs.
+ARG SRC_DIR=/src
+ARG REPO_OWNER=kubeflow
+ARG PROJECT=kubeflow-ci
+ARG WORKER_CLUSTER=kubeflow-testing
+
+# Check out a fresh copy of testing repo and use workflows in it.
+RUN mkdir -p ${SRC_DIR}/${REPO_OWNER}
+RUN git clone https://github.com/${REPO_OWNER}/testing.git $SRC_DIR/${REPO_OWNER}/testing
+
 ENV PYTHONPATH /src/kubeflow/testing/py
 
-ENTRYPOINT ["/usr/local/bin/workflows.sh"]
+ENTRYPOINT ["${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy/workflows.sh", \
+            ${SRC_DIR}, ${REPO_OWNER}, ${WORKER_CLUSTER}]
