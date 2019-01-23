@@ -7,6 +7,8 @@ import argparse
 import getpass
 import logging
 import os
+import subprocess
+import time
 import yaml
 
 from google.cloud import storage
@@ -94,7 +96,17 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   env = {}
   env.update(os.environ)
   env.update(oauth_info)
-  util.run([kfctl, "apply", "all"], cwd=app_dir, env=env)
+  # kfctl apply all might break during cronjob invocation when depending
+  # components are not ready. Make it retry several times should be enough.
+  for i in range(5):
+    try:
+      util.run([kfctl, "apply", "all"], cwd=app_dir, env=env)
+      break
+    except subprocess.CalledProcessError as e:
+      logging.error("kfctl apply all having error in %d attempt: %s\nSleep and retry...",
+                    i + 1, str(e))
+      time.sleep(60)
+
 
 if __name__ == "__main__":
   main()
