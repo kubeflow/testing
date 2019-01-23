@@ -2,8 +2,11 @@ apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: auto-deploy
+  clusterName: kubeflow-testing
+  namespace: kubeflow-test-infra
 spec:
-  schedule: "*/3 * * * *"
+  # Daily at 10p
+  schedule: "0 22 * * *"
   jobTemplate:
     spec:
       template:
@@ -11,10 +14,6 @@ spec:
           containers:
           - name: deploy-worker
             image: gcr.io/gabrielwen-learning/deploy-worker:latest
-            args:
-            - /bin/sh
-            - -c
-            - date; echo Hello from the Kubernetes cluster
             volumeMounts:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"
