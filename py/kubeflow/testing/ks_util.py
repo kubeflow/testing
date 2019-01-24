@@ -27,10 +27,11 @@ def setup_ks_app(app_dir, env, namespace, component, params, ks_cmd=None):
       if not re.search(".*environment.*already exists.*", e.output):
         raise
 
-    for pair in params.split(","):
-      k, v = pair.split("=", 1)
-      util.run([ks_cmd, "param", "set", "--env=" + env, component, k, v],
-                cwd=app_dir)
+    if params:
+      for pair in params.split(","):
+        k, v = pair.split("=", 1)
+        util.run([ks_cmd, "param", "set", "--env=" + env, component, k, v],
+                  cwd=app_dir)
 
 def get_ksonnet_cmd(app_dir):
   """Get the ksonnet command based on the apiVersion in app.yaml.
