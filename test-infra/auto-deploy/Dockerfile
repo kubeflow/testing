@@ -163,7 +163,7 @@ ARG WORKER_CLUSTER=kubeflow-testing
 RUN mkdir -p ${SRC_DIR}/${REPO_OWNER}
 RUN git clone https://github.com/${REPO_OWNER}/testing.git $SRC_DIR/${REPO_OWNER}/testing
 
-ENV PYTHONPATH /src/kubeflow/testing/py
+ENV PYTHONPATH ${SRC_DIR}/${REPO_OWNER}/testing/py
 
 ENTRYPOINT ["${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy/workflows.sh", \
             ${SRC_DIR}, ${REPO_OWNER}, ${WORKER_CLUSTER}]
