@@ -276,7 +276,7 @@ def wait_for_cr_condition(client,
           return results
 
     if datetime.datetime.now() + polling_interval > end_time:
-      raise util.JobTimeoutError(
+      raise JobTimeoutError(
         "Timeout waiting for job {0} in namespace {1} to enter one of the "
         "conditions {2}.".format(name, namespace, conditions), results)
 
@@ -630,3 +630,13 @@ def makedirs(path):
   except OSError as e:
     if 'File exists' not in str(e):
       raise
+
+
+class JobTimeoutError(TimeoutError):
+  """An error indicating the job timed out.
+  The job spec/status can be found in .job.
+  """
+
+  def __init__(self, message, job):
+    super(JobTimeoutError, self).__init__(message)
+    self.job = job
