@@ -1,5 +1,5 @@
 {
-  parts(namespace, version):: {
+  parts(env, params):: {
     crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -25,7 +25,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "argo",
-        namespace: namespace,
+        namespace: env.namespace,
       },
     },
 
@@ -111,7 +111,7 @@
         {
           kind: "ServiceAccount",
           name: "argo",
-          namespace: namespace,
+          namespace: env.namespace,
         },
       ],
     },
@@ -121,10 +121,10 @@
       kind: "ConfigMap",
       metadata: {
         name: "workflow-controller-configmap",
-        namespace: namespace,
+        namespace: env.namespace,
       },
       data: {
-        config: "artifactRepository: {}\nexecutorImage: argoproj/argoexec:" + version + "\n",
+        config: "artifactRepository: {}\nexecutorImage: argoproj/argoexec:" + params.version + "\n",
       },
     },
 
@@ -133,7 +133,7 @@
       kind: "Deployment",
       metadata: {
         name: "workflow-controller",
-        namespace: namespace,
+        namespace: env.namespace,
       },
       spec: {
         selector: {
@@ -152,7 +152,7 @@
             containers: [
               {
                 name: "workflow-controller",
-                image: "argoproj/workflow-controller:" + version,
+                image: params.image,
                 command: [
                   "workflow-controller",
                 ],
@@ -183,7 +183,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "argo-ui",
-        namespace: namespace,
+        namespace: env.namespace,
       },
     },
 
@@ -251,7 +251,7 @@
         {
           kind: "ServiceAccount",
           name: "argo-ui",
-          namespace: namespace,
+          namespace: env.namespace,
         },
       ],
     },
@@ -261,7 +261,7 @@
       kind: "Deployment",
       metadata: {
         name: "argo-ui",
-        namespace: namespace,
+        namespace: env.namespace,
       },
       spec: {
         selector: {
@@ -280,7 +280,7 @@
             containers: [
               {
                 name: "argo-ui",
-                image: "argoproj/argoui:" + version,
+                image: params.imageUi,
                 env: [
                   {
                     name: "ARGO_NAMESPACE",
@@ -316,7 +316,7 @@
       kind: "Service",
       metadata: {
         name: "argo-ui",
-        namespace: namespace,
+        namespace: env.namespace,
       },
       spec: {
         ports: [
@@ -338,7 +338,7 @@
       kind: "Ingress",
       metadata: {
         name: "argo-ui",
-        namespace: namespace,
+        namespace: env.namespace,
         annotations: {
           "kubernetes.io/ingress.global-static-ip-name": "argo-ui",
         },
