@@ -18,6 +18,9 @@
 IMG = gcr.io/kubeflow-ci/test-worker
 RELEASE_WORKER = gcr.io/kubeflow-releasing/worker
 
+# Whether to use cached images with GCB
+USE_IMAGE_CACHE ?= true
+
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 DIR := ${CURDIR}
 
@@ -46,3 +49,20 @@ push-latest: push
 	# Tagging into a new project can be very slow but it appears to work.	
 	gcloud container images add-tag --quiet $(RELEASE_WORKER):$(TAG) $(RELEASE_WORKER):latest --verbosity=info
 	echo created $(RELEASE_WORKER):latest
+
+# Build the GCB workflow
+build-gcb-spec:
+	rm -rf ./build
+	mkdir  -p build
+	jsonnet ./image_build.jsonnet --ext-str imageBase=$(IMG) \
+	  --ext-str gitVersion=$(GIT_VERSION) --ext-str tag=$(TAG) \
+	  --ext-str useImageCache=$(USE_IMAGE_CACHE) \
+	  > ./build/image_build.json
+
+# Build using GCB. This is useful if we are on a slow internet connection
+# and don't want to pull images locally.
+# Its also used to build from our CI system.
+build-gcb: build-gcb-spec		
+	gcloud builds submit --machine-type=n1-highcpu-32 --project=kubeflow-ci \
+	    --config=./build/image_build.json \
+		--timeout=3600 .
