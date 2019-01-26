@@ -145,6 +145,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   if args.config_file:
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
 
+  # Create an initial version of the file with no urls
+  create_started_file(args.bucket, {})
+
   util.maybe_activate_service_account()
 
   util.configure_kubectl(args.project, args.zone, args.cluster)

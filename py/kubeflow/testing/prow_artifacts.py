@@ -28,6 +28,8 @@ def create_started(ui_urls):
       "timestamp": int(time.time()),
       "repos": {
       },
+      "metadata": {
+      },
   }
 
   repo_owner = os.getenv("REPO_OWNER", "")
