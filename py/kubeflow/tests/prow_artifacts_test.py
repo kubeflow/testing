@@ -19,9 +19,15 @@ class TestProw(unittest.TestCase):
         "repos": {
             "fake_org/fake_name": "123abc",
         },
+        "metadata": {
+          "workflow1-ui": "http://argo",
+        },
     }
 
-    actual = prow_artifacts.create_started()
+    ui_urls = {
+      "workflow1": "http://argo",
+    }
+    actual = prow_artifacts.create_started(ui_urls)
 
     self.assertEqual(expected, json.loads(actual))
 
