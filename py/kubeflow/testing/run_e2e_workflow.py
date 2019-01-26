@@ -75,9 +75,9 @@ class WorkflowComponent(object):
 def _get_src_dir():
   return os.path.abspath(os.path.join(__file__, "..",))
 
-def create_started_file(bucket):
+def create_started_file(bucket, ui_urls):
   """Create the started file in gcs for gubernator."""
-  contents = prow_artifacts.create_started()
+  contents = prow_artifacts.create_started(ui_urls)
 
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "started.json")
   util.upload_to_gcs(contents, target)
@@ -144,8 +144,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   workflows = []
   if args.config_file:
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
-
-  create_started_file(args.bucket)
 
   util.maybe_activate_service_account()
 
@@ -257,6 +255,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
               "?tab=workflow".format(workflow_name))
     ui_urls[workflow_name] = ui_url
     logging.info("URL for workflow: %s", ui_url)
+
+  # We delay creating started.json until we know the Argo workflow URLs
+  create_started_file(args.bucket, ui_urls)
 
   success = True
   workflow_phase = {}
