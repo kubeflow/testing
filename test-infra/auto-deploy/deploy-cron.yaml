@@ -14,6 +14,11 @@ spec:
           containers:
           - name: deploy-worker
             image: gcr.io/kubeflow-ci/deploy-worker:latest
+            args:
+            - /src # SRC_DIR
+            - kubeflow # REPO_OWNER
+            - kubeflow-ci # PROJECT
+            - kubeflow-testing # WORKER_CLUSTER
             volumeMounts:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"
