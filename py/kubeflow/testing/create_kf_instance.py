@@ -85,6 +85,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # Clean up previous deployment. We are not able to run "kfctl delete all"
   # since we are not able to guarantee apps config in repository is up to date.
   util.run(["rm", "-rf", name], cwd=args.apps_dir)
+  # TODO(gabrielwen):
+  # 1. Is deployment deletion still needed?
+  # 2. If it is, figure out permission set up for it before uncomment lines
+  #    below.
   # util.run(["gcloud", "deployment-manager", "deployments", "delete", name,
   #           "--project", args.project], cwd=args.apps_dir)
 
