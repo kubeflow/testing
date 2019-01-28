@@ -5,6 +5,7 @@ metadata:
   clusterName: kubeflow-testing
   namespace: kubeflow-test-infra
 spec:
+  concurrencyPolicy: "Forbid"
   # Daily at 10p
   schedule: "0 22 * * *"
   jobTemplate:
