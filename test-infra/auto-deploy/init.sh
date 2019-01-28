@@ -14,6 +14,9 @@ git clone --single-branch --branch version-snapshot \
   https://github.com/gabrielwen/testing.git ${SRC_DIR}/${REPO_OWNER}/testing
 # /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} testing
 
+PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/py"
+export PYTHONPATH
+
 # Initiate deployment workflow.
 ${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy/workflows.sh \
   ${SRC_DIR} \
