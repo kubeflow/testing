@@ -13,7 +13,7 @@ spec:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/gabrielwen-learning/deploy-worker:latest
+            image: gcr.io/kubeflow-ci/deploy-worker:latest
             volumeMounts:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"
