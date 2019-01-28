@@ -267,6 +267,8 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements
   for zone in args.zones.split(","):
     clusters = clusters_client.list(projectId=args.project, zone=zone).execute()
 
+    if not clusters:
+      continue
     for c in clusters["clusters"]:
       name = c["name"]
       if not is_match(name):
