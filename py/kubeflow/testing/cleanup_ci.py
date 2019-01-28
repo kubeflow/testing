@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import tempfile
+import yaml
 
 from kubeflow.testing import argo_client
 from kubeflow.testing import util
@@ -215,7 +216,31 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements
     age = datetime.datetime.utcnow()- insert_time_utc
 
     if age > datetime.timedelta(hours=args.max_age_hours):
-      command = [args.delete_script, args.project, name]
+      # Get the zone.
+      if "update" in d:
+        manifest_url = d["update"]["manifest"]
+      else:
+        manifest_url = d["manifest"]
+      manifest_name = manifest_url.split("/")[-1]
+      manifest = manifests_client.get(
+        project=args.project, deployment=name, manifest=manifest_name).execute()
+
+      # Create a temporary directory to store the deployment.
+      manifest_dir = tempfile.mkdtemp(prefix="tmp" + name)
+      logging.info("Creating directory %s to store manifests for deployment %s",
+                   manifest_dir, name)
+      with open(os.path.join(manifest_dir, "cluster-kubeflow.yaml"), "w") as hf:
+        hf.write(manifest["config"]["content"])
+
+      for i in manifest["imports"]:
+        with open(os.path.join(manifest_dir, i["name"]), "w") as hf:
+          hf.write(i["content"])
+
+      config = yaml.load(manifest["config"]["content"])
+      zone = config["resources"][0]["properties"]["zone"]
+      command = [args.delete_script,
+                 "--project=" + args.project, "--deployment=" + name,
+                 "--zone=" + zone]
       cwd = None
       # If we download the manifests first delete_deployment will issue
       # an update before the delete which can help do a clean delete.
@@ -225,22 +250,6 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements
         # Download the manifest for this deployment.
         # We want to do an update and then a delete because this is necessary
         # for deleting role bindings.
-        manifest_url = d["manifest"]
-        manifest_name = manifest_url.split("/")[-1]
-        manifest = manifests_client.get(
-          project=args.project, deployment=name, manifest=manifest_name).execute()
-
-        # Create a temporary directory to store the deployment.
-        manifest_dir = tempfile.mkdtemp(prefix="tmp" + name)
-        logging.info("Creating directory %s to store manifests for deployment %s",
-                     manifest_dir, name)
-        with open(os.path.join(manifest_dir, "cluster-kubeflow.yaml"), "w") as hf:
-          hf.write(manifest["config"]["content"])
-
-        for i in manifest["imports"]:
-          with open(os.path.join(manifest_dir, i["name"]), "w") as hf:
-            hf.write(i["content"])
-
         command.append("cluster-kubeflow.yaml")
         cwd = manifest_dir
       logging.info("Deleting deployment %s; inserted at %s", name,
@@ -252,6 +261,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements
 
   gke = discovery.build("container", "v1", credentials=credentials)
 
+  # Collect clusters for which deployment might no longer exist.
   clusters_client = gke.projects().zones().clusters()
 
   for zone in args.zones.split(","):
