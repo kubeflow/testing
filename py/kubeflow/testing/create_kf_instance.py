@@ -85,8 +85,8 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # Clean up previous deployment. We are not able to run "kfctl delete all"
   # since we are not able to guarantee apps config in repository is up to date.
   util.run(["rm", "-rf", name], cwd=args.apps_dir)
-  util.run(["gcloud", "deployment-manager", "deployments", "delete", name,
-            "--project", args.project], cwd=args.apps_dir)
+  # util.run(["gcloud", "deployment-manager", "deployments", "delete", name,
+  #           "--project", args.project], cwd=args.apps_dir)
 
   # Create a dummy kubeconfig in cronjob worker.
   util.run(["gcloud", "container", "clusters", "get-credentials", args.deployment_worker_cluster,
