@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import datetime
 import logging
+import multiprocessing
 import os
 import re
 import six
@@ -27,6 +28,8 @@ from kubernetes.client import rest
 MASTER_REPO_OWNER = "tensorflow"
 MASTER_REPO_NAME = "k8s"
 
+# How long to wait in seconds for requests to the ApiServer
+TIMEOUT = 120
 
 def run(command,
         cwd=None,
@@ -213,6 +216,75 @@ def delete_cluster(gke, name, project, zone):
     logging.exception("Exception occured deleting cluster: %s, status: %s", e,
                       e.resp["status"])
 
+# pylint: disable=too-many-arguments
+def wait_for_cr_condition(client,
+                          group,
+                          plural,
+                          version,
+                          namespace,
+                          name,
+                          expected_condition,
+                          timeout=datetime.timedelta(minutes=10),
+                          polling_interval=datetime.timedelta(seconds=30),
+                          status_callback=None):
+  """Waits until any of the specified conditions occur for the specified
+     custom resource.
+
+  Args:
+    client: K8s api client.
+    group: Resource group.
+    plural: Resource plural
+    namespace: namespace for the job.
+    name: Name of the job.
+    expected_condition: A list of conditions. Function waits until any of the
+      supplied conditions is reached.
+    timeout: How long to wait for the job.
+    polling_interval: How often to poll for the status of the job.
+    status_callback: (Optional): Callable. If supplied this callable is
+      invoked after we poll the job. Callable takes a single argument which
+      is the job.
+  """
+  crd_api = k8s_client.CustomObjectsApi(client)
+  end_time = datetime.datetime.now() + timeout
+  while True:
+    # By setting async_req=True ApiClient returns multiprocessing.pool.AsyncResult
+    # If we don't set async_req=True then it could potentially block forever.
+    thread = crd_api.get_namespaced_custom_object(
+      group, version, namespace, plural, name, async_req=True)
+
+    # Try to get the result but timeout.
+    results = None
+    try:
+      results = thread.get(TIMEOUT)
+    except multiprocessing.TimeoutError:
+      logging.error("Timeout trying to get TFJob.")
+    except Exception as e:
+      logging.error("There was a problem waiting for Job %s.%s; Exception; %s",
+                    name, name, e)
+      raise
+
+    if results:
+      if status_callback:
+        status_callback(results)
+
+      # If we poll the CRD quick enough status won't have been set yet.
+      conditions = results.get("status", {}).get("conditions", [])
+      # Conditions might have a value of None in status.
+      conditions = conditions or []
+      for c in conditions:
+        if c.get("type", "") in expected_condition:
+          return results
+
+    if datetime.datetime.now() + polling_interval > end_time:
+      raise JobTimeoutError(
+        "Timeout waiting for job {0} in namespace {1} to enter one of the "
+        "conditions {2}.".format(name, namespace, conditions), results)
+
+    time.sleep(polling_interval.seconds)
+
+  # Linter complains if we don't have a return statement even though
+  # this code is unreachable.
+  return None
 
 def wait_for_operation(client,
                        project,
@@ -558,3 +630,13 @@ def makedirs(path):
   except OSError as e:
     if 'File exists' not in str(e):
       raise
+
+
+class JobTimeoutError(TimeoutError):
+  """An error indicating the job timed out.
+  The job spec/status can be found in .job.
+  """
+
+  def __init__(self, message, job):
+    super(JobTimeoutError, self).__init__(message)
+    self.job = job
