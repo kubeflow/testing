@@ -10,11 +10,6 @@ REPO_OWNER=$2
 PROJECT=$3
 WORKER_CLUSTER=$4
 
-# Check out repos we need.
-# TODO(gabrielwen): Need to make a seperate workflow to snapshot repos.
-${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy/checkout.sh \
-  ${SRC_DIR} ${REPO_OWNER} kubeflow
-
 # Activate service account auth.
 export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
