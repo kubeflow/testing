@@ -8,6 +8,9 @@
     // Each object below should correspond to a component in the components/ directory
     argo: {
       namespace: "kubeflow-test-infra",
+      imageUi: "argoproj/argoui:v2.2.1-37808b1",
+      image: "argoproj/workflow-controller:v2.2.1",
+      version: "v2.2.1",
       exposeUi: false,
     },
     "nfs-external": {
