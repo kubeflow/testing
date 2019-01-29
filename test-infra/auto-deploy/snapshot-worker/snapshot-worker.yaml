@@ -1,0 +1,23 @@
+apiVersion: batch/v1beta1
+kind: Job
+metadata:
+  name: deployment-snapshot
+  clusterName: kubeflow-testing
+  namespace: kubeflow-test-infra
+spec:
+  template:
+    spec:
+      containers:
+      - name: snapshot-worker
+        image: gcr.io/kubeflow-ci/snapshot-worker:latest
+        command:
+        - python
+        - /usr/local/bin/snapshot_kf_deployment.py
+        volumeMounts:
+        - name: github-token
+          mountPath: "/secret/github-token"
+          readOnly: true
+      volumes:
+      - name: github-token
+        secret:
+          secretName: github-token
