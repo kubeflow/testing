@@ -86,11 +86,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # since we are not able to guarantee apps config in repository is up to date.
   util.run(["rm", "-rf", name], cwd=args.apps_dir)
   # TODO(gabrielwen):
+  # https://github.com/kubeflow/testing/issues/295
   # 1. Is deployment deletion still needed?
-  # 2. If it is, figure out permission set up for it before uncomment lines
-  #    below.
-  # util.run(["gcloud", "deployment-manager", "deployments", "delete", name,
-  #           "--project", args.project], cwd=args.apps_dir)
+  # 2. If it is, figure out permission set up for it.
+  # 3. Should use
+  # https://github.com/kubeflow/kubeflow/blob/master/scripts/gke/delete_deployment.sh
 
   # Create a dummy kubeconfig in cronjob worker.
   util.run(["gcloud", "container", "clusters", "get-credentials", args.deployment_worker_cluster,
