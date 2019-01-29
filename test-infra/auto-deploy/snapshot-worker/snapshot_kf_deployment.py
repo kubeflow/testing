@@ -28,7 +28,7 @@ def main():
     type=str, help=("The file containing Github API token."))
 
   args = parser.parse_args()
-  token_file = open(args..github_token_file, "r")
+  token_file = open(args.github_token_file, "r")
   logging.info("Github token read: %s", token_file.readline())
 
 
