@@ -159,5 +159,3 @@ COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
 COPY init.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/init.sh
-
-ENTRYPOINT ["/usr/local/bin/init.sh"]
