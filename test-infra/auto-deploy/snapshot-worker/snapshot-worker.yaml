@@ -13,8 +13,10 @@ spec:
         command:
         - python
         - /usr/local/bin/snapshot_kf_deployment.py
-        - foo bar baz
-        - --project gabrielwen-learning
+        - kubeflow
+        - testing
+        - --project=kubeflow-ci
+        - --repo_owner=kubeflow
         volumeMounts:
         - name: github-token
           mountPath: "/secret/github-token"

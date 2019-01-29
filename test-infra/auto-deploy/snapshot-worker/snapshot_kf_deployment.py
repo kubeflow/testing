@@ -20,8 +20,7 @@ def main():
   parser = argparse.ArgumentParser()
 
   parser.add_argument(
-    "snapshot_repos", default="", type=str, nargs="*",
-    help=("Repositories needed to take snapshot as list separated by comma."))
+    "snapshot_repos", nargs="+", help=("Repositories needed to take snapshot."))
 
   parser.add_argument(
     "--project", default="kubeflow-ci", type=str, help=("The GCP project."))
