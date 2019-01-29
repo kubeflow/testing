@@ -5,6 +5,6 @@ name = "pypi"
 
 [packages]
 pyyaml = "*"
-PyGithub = "*"
+requests = "==2.18.4"
 
 [dev-packages]
