@@ -170,7 +170,7 @@ def cleanup_service_accounts(args):
   logging.info("Unexpired emails:\n%s", "\n".join(unexpired_emails))
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
 
-def cleanup_deployments(args): # pylint: disable=too-many-statements
+def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
   if not args.delete_script:
     raise ValueError("--delete_script must be specified.")
 
