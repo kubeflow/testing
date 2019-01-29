@@ -27,6 +27,9 @@ def main():
     default="/secret/github-token/github_token",
     type=str, help=("The file containing Github API token."))
 
+  token_file = open(parser.github_token_file, "r")
+  logging.info("Github token read: %s", token_file.readline())
+
 
 if __name__ == '__main__':
   main()
