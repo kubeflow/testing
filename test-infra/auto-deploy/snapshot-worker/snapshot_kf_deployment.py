@@ -5,8 +5,9 @@ TODO(gabrielwen): DO NOT SUBMIT without a detailed description of snapshot_kf_de
 
 import argparse
 import logging
-import requests
 import yaml
+
+from github import Github
 
 def main():
   logging.basicConfig(level=logging.INFO,
