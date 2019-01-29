@@ -14,7 +14,8 @@ spec:
           containers:
           - name: deploy-worker
             image: gcr.io/kubeflow-ci/deploy-worker:latest
-            args:
+            command:
+            - /usr/local/bin/init.sh
             - /src # SRC_DIR
             - kubeflow # REPO_OWNER
             - kubeflow-ci # PROJECT
