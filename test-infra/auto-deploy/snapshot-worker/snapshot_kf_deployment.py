@@ -20,7 +20,14 @@ def main():
   parser = argparse.ArgumentParser()
 
   parser.add_argument(
-    "--project", default="kubeflow-ci", type=str, help=("The project."))
+    "snapshot_repos", default="", type=str, nargs="*",
+    help=("Repositories needed to take snapshot as list separated by comma."))
+
+  parser.add_argument(
+    "--project", default="kubeflow-ci", type=str, help=("The GCP project."))
+
+  parser.add_argument(
+    "--repo_owner", default="kubeflow", type=str, help=("Github repo owner."))
 
   parser.add_argument(
     "--github_token_file",
@@ -29,7 +36,12 @@ def main():
 
   args = parser.parse_args()
   token_file = open(args.github_token_file, "r")
-  logging.info("Github token read: %s", token_file.readline())
+  github_token = token_file.readline()
+  token_file.close()
+
+  logging.info("Repos: %s", str(args.snapshot_repos))
+  logging.info("Project: %s", args.project)
+  logging.info("Repo owner: %s", args.repo_owner)
 
 
 if __name__ == '__main__':
