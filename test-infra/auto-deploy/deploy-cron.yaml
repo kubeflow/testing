@@ -13,7 +13,7 @@ spec:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:latest
+            image: gcr.io/kubeflow-ci/deploy-worker:live
             command:
             - /usr/local/bin/init.sh
             - /src # SRC_DIR
