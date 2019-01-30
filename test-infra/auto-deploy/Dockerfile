@@ -153,17 +153,9 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.13.0/
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
 
-# Deployment related configs.
-ARG SRC_DIR=/src
-ARG REPO_OWNER=kubeflow
-ARG PROJECT=kubeflow-ci
-ARG WORKER_CLUSTER=kubeflow-testing
-
-# Check out a fresh copy of testing repo and use workflows in it.
-RUN mkdir -p ${SRC_DIR}/${REPO_OWNER}
-RUN git clone https://github.com/${REPO_OWNER}/testing.git $SRC_DIR/${REPO_OWNER}/testing
-
-ENV PYTHONPATH ${SRC_DIR}/${REPO_OWNER}/testing/py
-
-ENTRYPOINT ["${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy/workflows.sh", \
-            ${SRC_DIR}, ${REPO_OWNER}, ${WORKER_CLUSTER}]
+# Purpose of init.sh is to have a script as kickstarter. This script is used to pull fresh copy from
+# Github and run with them.
+COPY checkout.sh /usr/local/bin
+RUN chmod a+x /usr/local/bin/checkout.sh
+COPY init.sh /usr/local/bin
+RUN chmod a+x /usr/local/bin/init.sh
