@@ -7,7 +7,7 @@ metadata:
 spec:
   concurrencyPolicy: "Forbid"
   # Daily at 10p
-  schedule: "*/3 * * * *"
+  schedule: "0 22 * * *"
   jobTemplate:
     spec:
       template:
