@@ -14,6 +14,7 @@ RUN set -ex \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
     git \
+    wget \
     python-dev \
     python-setuptools \
     python-pip \
@@ -30,6 +31,26 @@ RUN set -ex \
     /usr/share/man \
     /usr/share/doc \
     /usr/share/doc-base
+
+# Install go
+RUN cd /tmp && \
+    wget -O /tmp/go.tar.gz https://redirector.gvt1.com/edgedl/go/go1.9.2.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go.tar.gz
+
+# Install gcloud
+ENV PATH=/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
+    CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
+RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
+    tar xzf google-cloud-sdk.tar.gz -C / && \
+    rm google-cloud-sdk.tar.gz && \
+    /google-cloud-sdk/install.sh \
+    --disable-installation-options \
+    --bash-completion=false \
+    --path-update=false \
+    --usage-reporting=false && \
+    gcloud components install alpha beta
+
 
 # Use Pipfile to manage Python deps.
 COPY ./Pipfile ./Pipfile.lock /tmp/

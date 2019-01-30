@@ -8,7 +8,9 @@ import datetime
 import json
 import logging
 import requests
-import yaml
+import subprocess
+
+from google.cloud import storage
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   headers = {
@@ -72,14 +74,19 @@ def main():
     type=str, help=("The file containing Github API token."))
 
   parser.add_argument(
-    "--output_path",
-    default="gs://kubeflow-ci_deployment-snapshot",
-    type=str, help=("Path to GCP bucket output is writing to."))
+    "--output_bucket",
+    default="kubeflow-ci_deployment-snapshot",
+    type=str, help=("GCP bucket output is writing to."))
 
   args = parser.parse_args()
   token_file = open(args.github_token_file, "r")
   github_token = token_file.readline()
   token_file.close()
+
+  subprocess.call(("gcloud auth activate-service-account"
+                   " --key-file=$GOOGLE_APPLICATION_CREDENTIALS"),
+                  shell=True)
+  subprocess.call("gcloud config list", shell=True)
 
   logging.info("Repos: %s", str(args.snapshot_repos))
   logging.info("Project: %s", args.project)
@@ -88,9 +95,17 @@ def main():
   snapshot_time = datetime.datetime.utcnow().isoformat()
   logging.info("Snapshotting at %s", snapshot_time)
 
+  repo_snapshot = {}
   for repo in args.snapshot_repos:
     sha = repo_snapshot_hash(github_token, args.repo_owner, repo, snapshot_time)
     logging.info("Snapshot repo %s at %s", repo, sha)
+    repo_snapshot[repo] = sha
+
+  gs_client = storage.Client(project=args.project)
+  bucket = gs_client.get_bucket(args.output_bucket)
+  blob = bucket.blob(snapshot_time + ".json")
+  blob.upload_from_string(json.dumps(repo_snapshot))
+
 
 if __name__ == '__main__':
   main()

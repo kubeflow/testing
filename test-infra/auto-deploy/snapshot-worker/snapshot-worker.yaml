@@ -10,6 +10,9 @@ spec:
       containers:
       - name: snapshot-worker
         image: gcr.io/kubeflow-ci/snapshot-worker:latest
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/gcp-credentials/key.json
         command:
         - python
         - /usr/local/bin/snapshot_kf_deployment.py
@@ -21,8 +24,14 @@ spec:
         - name: github-token
           mountPath: "/secret/github-token"
           readOnly: true
+        - name: gcp-credentials
+          mountPath: "/secret/gcp-credentials"
+          readOnly: true
       restartPolicy: "Never"
       volumes:
       - name: github-token
         secret:
           secretName: github-token
+      - name: gcp-credentials
+        secret:
+          secretName: gcp-credentials
