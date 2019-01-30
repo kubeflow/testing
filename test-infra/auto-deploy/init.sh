@@ -7,8 +7,6 @@ REPO_OWNER=$2
 PROJECT=$3
 WORKER_CLUSTER=$4
 
-env
-
 # Check out fresh copy of KF and deployment workflow.
 # TODO(gabrielwen): Need to make a seperate workflow to snapshot repos.
 /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} kubeflow
