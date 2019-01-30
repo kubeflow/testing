@@ -15,8 +15,11 @@ from kubeflow.testing import util
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
 # version. We should do that when we switch tensorflow/k8s to use Argo instead
 # of Airflow.
-def create_started():
+def create_started(ui_urls):
   """Return a string containing the contents of started.json for gubernator.
+
+  ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI
+      for the workflows launched.
   """
   # See:
   # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
@@ -24,6 +27,8 @@ def create_started():
   started = {
       "timestamp": int(time.time()),
       "repos": {
+      },
+      "metadata": {
       },
   }
 
@@ -42,6 +47,8 @@ def create_started():
   if PULL_REFS:
     started["pull"] = PULL_REFS
 
+  for n, v in ui_urls.iteritems():
+    started["metadata"][n + "-ui"] = v
   return json.dumps(started)
 
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
