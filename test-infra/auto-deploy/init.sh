@@ -12,11 +12,7 @@ env
 # Check out fresh copy of KF and deployment workflow.
 # TODO(gabrielwen): Need to make a seperate workflow to snapshot repos.
 /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} kubeflow
-git clone https://github.com/gabrielwen/testing.git \
-  ${SRC_DIR}/${REPO_OWNER}/testing \
-  --branch snapshot-cron \
-  --single-branch
-# /usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} testing
+/usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} testing
 
 PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/py"
 export PYTHONPATH
