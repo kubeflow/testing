@@ -146,5 +146,16 @@
       privateGKECluster: 'false',
       secretName: 'envoy-ingress-tls',
     },
+    seldon: {
+      apifeServiceType: "NodePort",
+      grpcMaxMessageSize: "4194304",
+      name: "seldon",
+      operatorJavaOpts: "null",
+      operatorSpringOpts: "null",
+      seldonVersion: "0.2.3",
+      withAmbassador: "false",
+      withApife: "false",
+      withRbac: "true",
+    },
   },
 }
