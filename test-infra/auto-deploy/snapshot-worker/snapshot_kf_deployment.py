@@ -31,7 +31,7 @@ def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   }
   url = ("https://api.github.com/repos/{owner}/{repo}/commits").format(
           owner=repo_owner, repo=repo)
-  params = { "until": snapshot_time }
+  params = {"until": snapshot_time}
 
   r = requests.get(url, headers=headers, params=params, verify=False)
   if r.status_code != requests.codes.OK:
@@ -50,7 +50,7 @@ def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
                                    record.get("commit_date", ""),
                     sha_time)
 
-  if len(sha_time) == 0:
+  if not sha_time:
     msg = ("Not able to find valid commit SHA for repo {0}/{1}"
            "with given time {2}").format(repo_owner, repo, snapshot_time)
     logging.error(msg)
@@ -60,7 +60,7 @@ def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
     return record.get("commit_date", "")
   sha_time.sort(key=sort_by_time, reverse=True)
 
-  return sha_time[0].get("sha", "")
+  return sha_time[0].get("sha", "") # pylint: disable=unsubscriptable-object
 
 def main():
   logging.basicConfig(level=logging.INFO,
