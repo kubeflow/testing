@@ -1,6 +1,8 @@
-"""TODO(gabrielwen): DO NOT SUBMIT without one-line documentation for snapshot_kf_deployment.
+"""To snapshot Github repositories and put commit SHA into files.
 
-TODO(gabrielwen): DO NOT SUBMIT without a detailed description of snapshot_kf_deployment.
+Output file will have file name with the timestamp snapshot is taken.
+Content of file will be key value pairs in the format of JSON, where key
+is the name of repository and value is the SHA snapshot is taken.
 """
 
 import argparse
@@ -13,6 +15,17 @@ import subprocess
 from google.cloud import storage
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
+  """Look into commit history and pick the latest commit SHA.
+
+  Args:
+    github_token: Github API token as string.
+    repo_owner: Owner of repository.
+    repo: Name of repository to take snapshot.
+    snapshot_time: Time to cut snapshot in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ).
+
+  Returns:
+    sha: Commit hash.
+  """
   headers = {
     "Authorization": "token " + github_token
   }
