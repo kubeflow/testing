@@ -71,6 +71,11 @@ def main():
     default="/secret/github-token/github_token",
     type=str, help=("The file containing Github API token."))
 
+  parser.add_argument(
+    "--output_path",
+    default="gs://kubeflow-ci_deployment-snapshot",
+    type=str, help=("Path to GCP bucket output is writing to."))
+
   args = parser.parse_args()
   token_file = open(args.github_token_file, "r")
   github_token = token_file.readline()
