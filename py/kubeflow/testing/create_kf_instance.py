@@ -5,6 +5,7 @@ corresponding to different versions of Kubeflow.
 """
 import argparse
 import getpass
+import json
 import logging
 import os
 import yaml
@@ -58,6 +59,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     default="kubeflow-testing",
     type=str, help=("Name of cluster deployment cronjob workers use."))
 
+  parser.add_argument(
+    "--deployment_metadata",
+    default="",
+    type=str, help=("Path to deployment metadata."))
+
   args = parser.parse_args()
 
   bucket, blob_path = util.split_gcs_uri(args.oauth_file)
@@ -73,6 +79,17 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
                           cwd=args.kubeflow_repo).strip("'")
 
+  deployment_metadata = None
+  with open(args.deployment_metadata, "r") as f:
+    deployment_metadata = json.load(f.read())
+
+  if not deployment_metadata:
+    raise RuntimeError("Not able to read deployment metadata: " +
+                       args.deployment_metadata
+                       )
+
+  logging.info("Deploying with: %s", str(deployment_metadata))
+  """
   # TODO(https://github.com/kubeflow/testing/issues/95): We want to cycle
   # between N different names e.g.
   # kf-vX-Y-n00, kf-vX-Y-n01, ... kf-vX-Y-n05
@@ -120,6 +137,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # kfctl apply all might break during cronjob invocation when depending
   # components are not ready. Make it retry several times should be enough.
   kfctl_apply_with_retry(kfctl, app_dir, env)
+  """
 
 
 if __name__ == "__main__":
