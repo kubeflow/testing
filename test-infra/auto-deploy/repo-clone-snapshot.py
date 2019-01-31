@@ -34,10 +34,17 @@ def main():
 
   parser.add_argument(
     "--repo_owner", default="kubeflow", type=str, help=("Repository owner."))
+
   parser.add_argument(
     "--snapshot_bucket",
     default="kubeflow-ci_deployment-snapshot",
     type=str, help=("GCP bucket snapshot files written to."))
+
+  parser.add_argument(
+    "--metadata_filename",
+    default="deployment_metadata.json",
+    type=str, help=("Path and file name to metadata that is used for"
+                    " deployment."))
 
   args = parser.parse_args()
   gs_client = storage.Client(project=args.project)
@@ -62,9 +69,11 @@ def main():
     "deployment_num": 0
   }
 
-  if not os.path.exists(args.src_dir):
-    os.makedirs(args.src_dir)
-  with open(os.path.join(args.src_dir, "deployment_metadata.json"), "w") as f:
+  logging.info("Writing deployment metadata at %s", args.metadata_filename)
+  dirname = os.path.dirname(args.metadata_filename)
+  if not os.path.exists(dirname):
+    os.makedirs(dirname)
+  with open(args.metadata_filename, "w") as f:
     f.write(json.dumps(metadata))
 
   logging.info("Snapshot profile: %s", str(snapshot))
