@@ -7,6 +7,7 @@ as requested.
 import argparse
 import json
 import logging
+import os
 import subprocess
 
 from google.cloud import storage
@@ -52,6 +53,19 @@ def main():
   blob_name = filenames[0] # pylint: disable=unsubscriptable-object
 
   snapshot = json.loads(bucket.get_blob(blob_name).download_as_string())
+
+  # TODO(gabrielwen): Read deployment_num from blob after it's written.
+  metadata = {
+    "labels": {
+      "snapshot_data": blob_name,
+    },
+    "deployment_num": 0
+  }
+
+  if not os.path.exists(args.src_dir):
+    os.makedirs(args.src_dir)
+  with open(os.path.join(args.src_dir, "deployment_metadata.json"), "w") as f:
+    f.write(json.dumps(metadata))
 
   logging.info("Snapshot profile: %s", str(snapshot))
   for repo in snapshot:
