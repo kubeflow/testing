@@ -8,9 +8,10 @@ PROJECT=$3
 WORKER_CLUSTER=$4
 
 # Check out fresh copy of KF and deployment workflow.
-# TODO(gabrielwen): Need to make a seperate workflow to snapshot repos.
-/usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} kubeflow
-/usr/local/bin/checkout.sh ${SRC_DIR} ${REPO_OWNER} testing
+python /usr/local/bin/repo-clone-snapshot.py \
+  --src_dir=${SRC_DIR} \
+  --project=${PROJECT} \
+  --repo_owner=${REPO_OWNER}
 
 PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/py"
 export PYTHONPATH
