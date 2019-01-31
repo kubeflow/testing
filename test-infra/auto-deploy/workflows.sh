@@ -9,6 +9,7 @@ SRC_DIR=$1
 REPO_OWNER=$2
 PROJECT=$3
 WORKER_CLUSTER=$4
+DEPLOYMENT_METADATA=$5
 
 # Activate service account auth.
 export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
@@ -24,6 +25,7 @@ python -m kubeflow.testing.create_kf_instance \
   --kubeflow_repo=${KF_DIR} \
   --apps_dir=${APPS_DIR} \
   --project=${PROJECT} \
-  --deployment_worker_cluster=${WORKER_CLUSTER}
+  --deployment_worker_cluster=${WORKER_CLUSTER} \
+  --deployment_metadata=${DEPLOYMENT_METADATA}
 
 # TODO(gabrielwen): Push changes to app folders to git.

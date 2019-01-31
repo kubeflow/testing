@@ -16,12 +16,18 @@ python /usr/local/bin/repo-clone-snapshot.py \
   --repo_owner=${REPO_OWNER} \
   --metadata_filename=${DEPLOYMENT_METADATA}
 
+git clone https://github.com/gabrielwen/testing.git \
+  ${SRC_DIR}/${REPO_OWNER}/testing2 \
+  --branch cluster-label \
+  --single-branch
+
 PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/py"
 export PYTHONPATH
 
-# Initiate deployment workflow.
-# ${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy/workflows.sh \
-#   ${SRC_DIR} \
-#   ${REPO_OWNER} \
-#   ${PROJECT} \
-#   ${WORKER_CLUSTER}
+Initiate deployment workflow.
+${SRC_DIR}/${REPO_OWNER}/testing2/test-infra/auto-deploy/workflows.sh \
+  ${SRC_DIR} \
+  ${REPO_OWNER} \
+  ${PROJECT} \
+  ${WORKER_CLUSTER} \
+  ${DEPLOYMENT_METADATA}
