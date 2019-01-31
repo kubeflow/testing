@@ -159,3 +159,6 @@ COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
 COPY init.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/init.sh
+COPY repo-clone-snapshot.py /usr/local/bin
+COPY checkout-snapshot.sh /usr/local/bin
+RUN chmod a+x /usr/local/bin/checkout-snapshot.sh
