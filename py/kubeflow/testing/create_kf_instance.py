@@ -113,6 +113,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     yaml.dump(app, hf)
 
   util.run([kfctl, "generate", "all"], cwd=app_dir)
+  util.run([kfctl, "generate", "seldon", "seldon"], cwd=app_dir)
 
   env = {}
   env.update(os.environ)
