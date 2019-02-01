@@ -7,34 +7,34 @@ metadata:
 spec:
   concurrencyPolicy: "Forbid"
   # Daily at 10p
-  schedule: "0 22 * * *"
+  schedule: "*/3 * * * *"
   jobTemplate:
     spec:
       template:
         spec:
-          initContainers:
-          - name: snapshot-worker
-            image: gcr.io/kubeflow-ci/snapshot-worker:latest
-            env:
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /secret/gcp-credentials/key.json
-            command:
-            - python
-            - /usr/local/bin/snapshot_kf_deployment.py
-            - kubeflow
-            - testing
-            - --project=kubeflow-ci
-            - --repo_owner=kubeflow
-            volumeMounts:
-            - name: github-token
-              mountPath: "/secret/github-token"
-              readOnly: true
-            - name: gcp-credentials
-              mountPath: "/secret/gcp-credentials"
-              readOnly: true
+#          initContainers:
+#          - name: snapshot-worker
+#            image: gcr.io/kubeflow-ci/snapshot-worker:latest
+#            env:
+#            - name: GOOGLE_APPLICATION_CREDENTIALS
+#              value: /secret/gcp-credentials/key.json
+#            command:
+#            - python
+#            - /usr/local/bin/snapshot_kf_deployment.py
+#            - kubeflow
+#            - testing
+#            - --project=kubeflow-ci
+#            - --repo_owner=kubeflow
+#            volumeMounts:
+#            - name: github-token
+#              mountPath: "/secret/github-token"
+#              readOnly: true
+#            - name: gcp-credentials
+#              mountPath: "/secret/gcp-credentials"
+#              readOnly: true
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:live
+            image: gcr.io/kubeflow-ci/deploy-worker:latest
             command:
             - /usr/local/bin/init.sh
             - /src # SRC_DIR
@@ -45,6 +45,9 @@ spec:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"
               readOnly: true
+            - name: pod-info
+              mountPath: "/etc/pod-info"
+              readOnly: true
           restartPolicy: Never
           volumes:
           - name: gcp-credentials
@@ -53,3 +56,9 @@ spec:
           - name: github-token
             secret:
               secretName: github-token
+          - name: pod-info
+            downwardAPI:
+              items:
+                - path: "labels"
+                  fieldRef:
+                    fieldPath: metadata.labels
