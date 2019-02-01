@@ -10,11 +10,6 @@ REPO_OWNER=$2
 PROJECT=$3
 WORKER_CLUSTER=$4
 
-# Activate service account auth.
-export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
-gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
-gcloud config list
-
 APPS_DIR=${SRC_DIR}/${REPO_OWNER}/testing/test-infra
 KF_DIR=${SRC_DIR}/${REPO_OWNER}/kubeflow
 

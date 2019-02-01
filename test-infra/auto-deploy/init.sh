@@ -6,11 +6,18 @@ SRC_DIR=$1
 REPO_OWNER=$2
 PROJECT=$3
 WORKER_CLUSTER=$4
+JOB_LABELS=$5
 
-ls -R /etc/pod-info
+# Activate service account auth.
+export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
+gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+gcloud config list
 
-cat /etc/pod-info/annotations
-cat /etc/pod-info/labels
+python /usr/local/bin/snapshot-kf-deployment.py \
+  kubeflow testing \
+  --project=${PROJECT} \
+  --repo_owner=${REPO_OWNER} \
+  --job_labels=${JOB_LABELS}
 
 # Check out fresh copy of KF and deployment workflow.
 # python /usr/local/bin/repo-clone-snapshot.py \

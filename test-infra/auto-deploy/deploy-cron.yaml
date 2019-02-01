@@ -41,12 +41,16 @@ spec:
             - kubeflow # REPO_OWNER
             - kubeflow-ci # PROJECT
             - kubeflow-testing # WORKER_CLUSTER
+            - /etc/pod-info/labels # JOB_LABELS
             volumeMounts:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"
               readOnly: true
             - name: pod-info
               mountPath: "/etc/pod-info"
+              readOnly: true
+            - name: github-token
+              mountPath: "/secret/github-token"
               readOnly: true
           restartPolicy: Never
           volumes:
