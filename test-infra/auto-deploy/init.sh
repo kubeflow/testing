@@ -7,6 +7,9 @@ REPO_OWNER=$2
 PROJECT=$3
 WORKER_CLUSTER=$4
 JOB_LABELS=$5
+NFS_MNT=$6
+
+ls -R ${NFS_MNT}
 
 # Activate service account auth.
 export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
