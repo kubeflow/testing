@@ -102,6 +102,10 @@ def main():
     type=str, help=("DownwardAPIVolumeFile for job labels."))
 
   parser.add_argument(
+    "--nfs_path",
+    default="", type=str, help=("GCP Filestore PVC mount path."))
+
+  parser.add_argument(
     "--output_bucket",
     default="kubeflow-ci_deployment-snapshot",
     type=str, help=("GCP bucket output is writing to."))

@@ -9,8 +9,6 @@ WORKER_CLUSTER=$4
 JOB_LABELS=$5
 NFS_MNT=$6
 
-ls -R ${NFS_MNT}
-
 # Activate service account auth.
 export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
@@ -20,7 +18,8 @@ python /usr/local/bin/snapshot-kf-deployment.py \
   kubeflow testing \
   --project=${PROJECT} \
   --repo_owner=${REPO_OWNER} \
-  --job_labels=${JOB_LABELS}
+  --job_labels=${JOB_LABELS} \
+  --nfs_path=${NFS_MNT}
 
 # Check out fresh copy of KF and deployment workflow.
 # python /usr/local/bin/repo-clone-snapshot.py \
