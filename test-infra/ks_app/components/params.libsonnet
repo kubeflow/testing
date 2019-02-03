@@ -16,6 +16,9 @@
     "cleanup-ci": {
       name: "cleanup-ci",
     },
+    "cleanup-ci-cron": {
+      name: "cleanup-ci",
+    },
     "nfs-external": {
       name: "nfs-external",
       namespace: "kubeflow-test-infra",

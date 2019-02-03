@@ -13,7 +13,7 @@ local job = {
       name: params.name,
       namespace: env.namespace,
       labels: {
-        job: "cleanup-ci"
+        app: "cleanup-ci"
       },
     }, 
     "spec": cleanup.jobSpec,

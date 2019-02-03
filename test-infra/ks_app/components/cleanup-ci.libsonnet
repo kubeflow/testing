@@ -50,7 +50,7 @@
                   // job we had some changes to cleanup_ci.py that were part of the PR
                   // committing the job.
                   name: "PULL_NUMBER",
-                  value: ""
+                  value: "300",
                 },
                 {
                   name: "PYTHONPATH",

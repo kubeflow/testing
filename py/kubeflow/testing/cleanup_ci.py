@@ -232,10 +232,6 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       with open(os.path.join(manifest_dir, "cluster-kubeflow.yaml"), "w") as hf:
         hf.write(manifest["config"]["content"])
 
-      for i in manifest["imports"]:
-        with open(os.path.join(manifest_dir, i["name"]), "w") as hf:
-          hf.write(i["content"])
-
       config = yaml.load(manifest["config"]["content"])
       zone = config["resources"][0]["properties"]["zone"]
       command = [args.delete_script,
