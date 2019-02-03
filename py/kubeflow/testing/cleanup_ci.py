@@ -233,6 +233,10 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
         hf.write(manifest["config"]["content"])
 
       config = yaml.load(manifest["config"]["content"])
+
+      if not config:
+        logging.warning("Skipping deployment %s because it has no config; "
+                        "is it already being deleted?", name)
       zone = config["resources"][0]["properties"]["zone"]
       command = [args.delete_script,
                  "--project=" + args.project, "--deployment=" + name,
