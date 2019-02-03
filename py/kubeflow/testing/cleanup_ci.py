@@ -375,6 +375,7 @@ def main():
   parser_deployments.set_defaults(func=cleanup_deployments)
   args = parser.parse_args()
 
+  util.maybe_activate_service_account()
   args.func(args)
 
 if __name__ == "__main__":
