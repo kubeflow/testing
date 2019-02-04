@@ -7,8 +7,10 @@ is the name of repository and value is the SHA snapshot is taken.
 
 import argparse
 import datetime
+import filelock
 import json
 import logging
+import os
 import re
 import requests
 import subprocess
@@ -71,6 +73,20 @@ def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   sha_time.sort(key=sort_by_time, reverse=True)
 
   return sha_time[0].get("sha", "") # pylint: disable=unsubscriptable-object
+
+def lock_and_write(folder, timestamp, payload):
+  logging.info("Writing to %s at %s", folder, timestamp)
+  if not os.path.exists(folder):
+    os.makedirs(folder)
+  file_lock = filelock.FileLock(os.path.join(folder, "file.lock"))
+  with file_lock:
+    path = os.path.join(folder, timestamp + ".json")
+    logging.info("Writing to file: %s", path)
+    if os.path.exists(path):
+      return
+    with open(path, "w") as f:
+      f.write(payload)
+
 
 def main():
   logging.basicConfig(level=logging.INFO,
@@ -137,16 +153,14 @@ def main():
   snapshot_time = datetime.datetime.utcnow().isoformat()
   logging.info("Snapshotting at %s", snapshot_time)
 
-  # repo_snapshot = {}
-  # for repo in args.snapshot_repos:
-  #   sha = repo_snapshot_hash(github_token, args.repo_owner, repo, snapshot_time)
-  #   logging.info("Snapshot repo %s at %s", repo, sha)
-  #   repo_snapshot[repo] = sha
+  repo_snapshot = {}
+  for repo in args.snapshot_repos:
+    sha = repo_snapshot_hash(github_token, args.repo_owner, repo, snapshot_time)
+    logging.info("Snapshot repo %s at %s", repo, sha)
+    repo_snapshot[repo] = sha
 
-  # gs_client = storage.Client(project=args.project)
-  # bucket = gs_client.get_bucket(args.output_bucket)
-  # blob = bucket.blob(snapshot_time + ".json")
-  # blob.upload_from_string(json.dumps(repo_snapshot))
+  folder = os.path.join(args.nfs_path, "deployment-snapshot/runs", job_name)
+  lock_and_write(folder, snapshot_time, json.dumps(repo_snapshot))
 
 
 if __name__ == '__main__':

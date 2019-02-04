@@ -21,6 +21,8 @@ python /usr/local/bin/snapshot-kf-deployment.py \
   --job_labels=${JOB_LABELS} \
   --nfs_path=${NFS_MNT}
 
+ls -R ${NFS_MNT}/deployment-snapshot/runs
+
 # Check out fresh copy of KF and deployment workflow.
 # python /usr/local/bin/repo-clone-snapshot.py \
 #   --src_dir=${SRC_DIR} \
