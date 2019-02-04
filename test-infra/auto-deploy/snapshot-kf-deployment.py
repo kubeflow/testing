@@ -120,11 +120,6 @@ def main():
     "--nfs_path",
     default="", type=str, help=("GCP Filestore PVC mount path."))
 
-  parser.add_argument(
-    "--output_bucket",
-    default="kubeflow-ci_deployment-snapshot",
-    type=str, help=("GCP bucket output is writing to."))
-
   args = parser.parse_args()
   token_file = open(args.github_token_file, "r")
   github_token = token_file.readline()
