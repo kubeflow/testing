@@ -72,7 +72,8 @@ def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   return sha_time[0].get("sha", "") # pylint: disable=unsubscriptable-object
 
 def lock_and_write(folder, payload):
-  dir_lock = filelock.FileLock(folder + ".lock")
+  dirname = os.path.dirname(folder)
+  dir_lock = filelock.FileLock(os.path.join(dirname, "dir.lock"))
   with dir_lock:
     if not os.path.exists(folder):
       os.makedirs(folder)
