@@ -23,9 +23,6 @@ def find_job_name(line):
   job_name = JOB_NAME_REGEX.match(line)
   return job_name.group(1) if job_name and job_name.group(1) else ""
 
-def is_snapshot_exists(bucket, job_name):
-  filenames = [b.name for b in bucket.list_blobs()]
-
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   """Look into commit history and pick the latest commit SHA.
 
@@ -74,16 +71,17 @@ def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
 
   return sha_time[0].get("sha", "") # pylint: disable=unsubscriptable-object
 
-def lock_and_write(folder, timestamp, payload):
-  logging.info("Writing to %s at %s", folder, timestamp)
-  if not os.path.exists(folder):
-    os.makedirs(folder)
+def lock_and_write(folder, payload):
+  dir_lock = filelock.FileLock(folder + ".lock")
+  with dir_lock:
+    if not os.path.exists(folder):
+      os.makedirs(folder)
   file_lock = filelock.FileLock(os.path.join(folder, "file.lock"))
   with file_lock:
-    path = os.path.join(folder, timestamp + ".json")
-    logging.info("Writing to file: %s", path)
+    path = os.path.join(folder, "snapshot.json")
     if os.path.exists(path):
       return
+    logging.info("Writing to file: %s", path)
     with open(path, "w") as f:
       f.write(payload)
 
@@ -153,14 +151,18 @@ def main():
   snapshot_time = datetime.datetime.utcnow().isoformat()
   logging.info("Snapshotting at %s", snapshot_time)
 
-  repo_snapshot = {}
+  # TODO(gabrielwen): Add deploying cluster num.
+  repo_snapshot = {
+    "timestamp": snapshot_time,
+    "repos": {},
+  }
   for repo in args.snapshot_repos:
     sha = repo_snapshot_hash(github_token, args.repo_owner, repo, snapshot_time)
     logging.info("Snapshot repo %s at %s", repo, sha)
-    repo_snapshot[repo] = sha
+    repo_snapshot["repos"][repo] = sha
 
   folder = os.path.join(args.nfs_path, "deployment-snapshot/runs", job_name)
-  lock_and_write(folder, snapshot_time, json.dumps(repo_snapshot))
+  lock_and_write(folder, json.dumps(repo_snapshot))
 
 
 if __name__ == '__main__':
