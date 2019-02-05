@@ -11,13 +11,9 @@ import filelock
 import json
 import logging
 import os
-import re
 import requests
-import subprocess
 
 import checkout_util
-
-from google.cloud import storage
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   """Look into commit history and pick the latest commit SHA.
