@@ -52,31 +52,17 @@ def main():
   snapshot = json.load(open(os.path.join(snapshot_path, "snapshot.json"), "r"))
   logging.info("Snapshot: %s", str(snapshot))
 
-  # gs_client = storage.Client(project=args.project)
-  # bucket = gs_client.get_bucket(args.snapshot_bucket)
-
-  # filenames = [b.name for b in bucket.list_blobs()]
-  # if not filenames:
-  #   msg = "Not able to find any snapshot files in " + args.snapshot_bucket
-  #   logging.error(msg)
-  #   raise RuntimeError(msg)
-
-  # filenames.sort(reverse=True)
-  # blob_name = filenames[0] # pylint: disable=unsubscriptable-object
-
-  # snapshot = json.loads(bucket.get_blob(blob_name).download_as_string())
-
-  # logging.info("Snapshot profile: %s", str(snapshot))
-  # for repo in snapshot:
-  #   logging.info("Checking out: %s at %s", repo, snapshot.get(repo, ""))
-  #   subprocess.call(("/usr/local/bin/checkout-snapshot.sh"
-  #                    " {src_dir} {repo_owner} {repo_name} {sha}").format(
-  #                      src_dir=args.src_dir,
-  #                      repo_owner=args.repo_owner,
-  #                      repo_name=repo,
-  #                      sha=snapshot.get(repo, ""),
-  #                    ),
-  #                   shell=True)
+  repos = snapshot.get("repos", {})
+  for repo in repos:
+    logging.info("Checking out: %s at %s", repo, repos.get(repo, ""))
+    subprocess.call(("/usr/local/bin/checkout-snapshot.sh"
+                     " {src_dir} {repo_owner} {repo_name} {sha}").format(
+                       src_dir=args.src_dir,
+                       repo_owner=args.repo_owner,
+                       repo_name=repo,
+                       sha=repos.get(repo, ""),
+                     ),
+                    shell=True)
 
 if __name__ == '__main__':
   main()
