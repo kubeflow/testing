@@ -52,17 +52,17 @@ push-latest: push
 
 # Build the GCB workflow
 build-gcb-spec:
-	rm -rf ./build
-	mkdir  -p build
+	rm -rf ./gcb_build
+	mkdir  -p gcb_build
 	jsonnet ./image_build.jsonnet --ext-str imageBase=$(IMG) \
 	  --ext-str gitVersion=$(GIT_VERSION) --ext-str tag=$(TAG) \
 	  --ext-str useImageCache=$(USE_IMAGE_CACHE) \
-	  > ./build/image_build.json
+	  > ./gcb_build/image_build.json
 
 # Build using GCB. This is useful if we are on a slow internet connection
 # and don't want to pull images locally.
 # Its also used to build from our CI system.
 build-gcb: build-gcb-spec		
 	gcloud builds submit --machine-type=n1-highcpu-32 --project=kubeflow-ci \
-	    --config=./build/image_build.json \
+	    --config=./gcb_build/image_build.json \
 		--timeout=3600 .
