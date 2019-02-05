@@ -14,21 +14,23 @@ export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud config list
 
-python /usr/local/bin/snapshot-kf-deployment.py \
+export PYTHONPATH="${PYTHONPATH}:/usr/local/bin/py"
+
+python -m checkout_lib.snapshot_kf_deployment \
   kubeflow testing \
   --project=${PROJECT} \
   --repo_owner=${REPO_OWNER} \
   --job_labels=${JOB_LABELS} \
   --nfs_path=${NFS_MNT}
 
-ls -R ${NFS_MNT}/deployment-snapshot/runs
-
 # Check out fresh copy of KF and deployment workflow.
-# python /usr/local/bin/repo-clone-snapshot.py \
-#   --src_dir=${SRC_DIR} \
-#   --project=${PROJECT} \
-#   --repo_owner=${REPO_OWNER}
-# 
+python -m checkout_lib.repo_clone_snapshot \
+  --src_dir=${SRC_DIR} \
+  --project=${PROJECT} \
+  --repo_owner=${REPO_OWNER} \
+  --job_labels=${JOB_LABELS} \
+  --nfs_path=${NFS_MNT}
+
 # PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/py"
 # export PYTHONPATH
 # 

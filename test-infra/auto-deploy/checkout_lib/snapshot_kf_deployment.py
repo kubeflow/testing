@@ -15,13 +15,9 @@ import re
 import requests
 import subprocess
 
+import checkout_util
+
 from google.cloud import storage
-
-JOB_NAME_REGEX = re.compile("job-name=\"([a-z0-9-]+)\"")
-
-def find_job_name(line):
-  job_name = JOB_NAME_REGEX.match(line)
-  return job_name.group(1) if job_name and job_name.group(1) else ""
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   """Look into commit history and pick the latest commit SHA.
@@ -125,21 +121,9 @@ def main():
   github_token = token_file.readline()
   token_file.close()
 
-  labels = open(args.job_labels, "r")
-  job_name = ""
-  for line in labels.readlines():
-    logging.info("Line = %s", line)
-    job_name = find_job_name(line)
-    logging.info("job_name = %s", job_name)
-    if job_name:
-      logging.info("break")
-      break
+  job_name = checkout_util.get_job_name(args.job_labels)
 
-  if not job_name:
-    msg = "Not able to find job_name from labels."
-    logging.error(msg)
-    raise RuntimeError(msg)
-
+  logging.info("Job name: %s", job_name)
   logging.info("Repos: %s", str(args.snapshot_repos))
   logging.info("Project: %s", args.project)
   logging.info("Repo owner: %s", args.repo_owner)
@@ -157,7 +141,7 @@ def main():
     logging.info("Snapshot repo %s at %s", repo, sha)
     repo_snapshot["repos"][repo] = sha
 
-  folder = os.path.join(args.nfs_path, "deployment-snapshot/runs", job_name)
+  folder = checkout_util.get_snapshot_path(args.nfs_path, job_name)
   lock_and_write(folder, json.dumps(repo_snapshot))
 
 
