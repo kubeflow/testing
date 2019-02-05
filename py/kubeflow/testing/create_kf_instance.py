@@ -58,6 +58,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     default="kubeflow-testing",
     type=str, help=("Name of cluster deployment cronjob workers use."))
 
+  parser.add_argument(
+    "--cluster_num",
+    default="", type=int, help=("Number of cluster to deploy to."))
+
   args = parser.parse_args()
 
   bucket, blob_path = util.split_gcs_uri(args.oauth_file)
