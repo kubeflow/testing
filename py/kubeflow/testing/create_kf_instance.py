@@ -84,7 +84,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # set the redirect URIs. So we want to cycle between a set of known
   # endpoints. We should add logic to automatically recycle deployments.
   # i.e. we should find the oldest one and reuse that.
-  num = 0
+  num = args.cluster_num
   name = "{0}-n{1:02d}".format(args.base_name, num)
   # Clean up previous deployment. We are not able to run "kfctl delete all"
   # since we are not able to guarantee apps config in repository is up to date.

@@ -27,17 +27,16 @@ get_snapshot_path="${header} print(${get_path})"
 snapshot_path=$(python -c "${get_snapshot_path}")
 
 read_snapshot="cat ${snapshot_path}/snapshot.json"
-eval ${read_snapshot}
 get_cluster_num="jq .cluster_num"
 cluster_num=$(${read_snapshot} | ${get_cluster_num})
-echo "Cluster_num =(${cluster_num})"
 
 # Trigger create_kf_instance.
-# python -m kubeflow.testing.create_kf_instance \
-#   --base=kf-v0-4 \
-#   --kubeflow_repo=${KF_DIR} \
-#   --apps_dir=${APPS_DIR} \
-#   --project=${PROJECT} \
-#   --deployment_worker_cluster=${WORKER_CLUSTER}
+python -m kubeflow.testing.create_kf_instance \
+  --base=kf-v0-4 \
+  --kubeflow_repo=${KF_DIR} \
+  --apps_dir=${APPS_DIR} \
+  --project=${PROJECT} \
+  --deployment_worker_cluster=${WORKER_CLUSTER} \
+  --cluster_num=${cluster_num}
 
 # TODO(gabrielwen): Push changes to app folders to git.
