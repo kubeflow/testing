@@ -16,10 +16,7 @@ RUN set -ex \
     && apt-get install -yqq --no-install-recommends \
     build-essential \
     curl \
-    locales \
-    uuid-runtime \
     wget \
-    ca-certificates \
     git \
     jq \
     zip \
@@ -61,16 +58,6 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
     --path-update=false \
     --usage-reporting=false && \
     gcloud components install alpha beta
-
-# Install Helm
-RUN wget -O /tmp/get_helm.sh \
-    https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get && \
-    chmod 700 /tmp/get_helm.sh && \
-    /tmp/get_helm.sh && \
-    rm /tmp/get_helm.sh
-
-# Initialize helm
-RUN helm init --client-only
 
 # Install yarn
 RUN curl -sS http://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
@@ -127,16 +114,11 @@ COPY ./Pipfile ./Pipfile.lock /tmp/
 RUN cd /tmp/ && \
     pip2 install -U wheel filelock && \
     pip2 install pipenv && \
-    pip2 install requests && \
-    pip2 install google-api-python-client && \
-    pip2 install prometheus_client && \
     pipenv install --system --two && \
     pip3 install -U wheel filelock
 
 RUN pip3 install pipenv==2018.10.9
 RUN cd /tmp/ && pipenv install --system --three
-
-RUN pip install yq
 
 # Install docker.
 RUN curl  https://get.docker.com/ | sh
