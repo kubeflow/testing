@@ -131,9 +131,10 @@ def main():
   snapshot_time = datetime.datetime.utcnow().isoformat()
   logging.info("Snapshotting at %s", snapshot_time)
 
-  # TODO(gabrielwen): Add deploying cluster num.
+  # TODO(gabrielwen): Add logic to choose deploying cluster_num.
   repo_snapshot = {
     "timestamp": snapshot_time,
+    "cluster_num": 1,
     "repos": {},
   }
   for repo in args.snapshot_repos:
