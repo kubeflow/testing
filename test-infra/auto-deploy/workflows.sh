@@ -26,6 +26,7 @@ get_path="checkout_util.get_snapshot_path(\"${NFS_MNT}\", \"${job_name}\")"
 get_snapshot_path="${header} print(${get_path})"
 snapshot_path=$(python -c "${get_snapshot_path}")
 
+# Extract cluster_num from JSON file.
 read_snapshot="cat ${snapshot_path}/snapshot.json"
 get_cluster_num="jq .cluster_num"
 cluster_num=$(${read_snapshot} | ${get_cluster_num})
