@@ -15,7 +15,22 @@ NFS_MNT=$6
 APPS_DIR=${SRC_DIR}/${REPO_OWNER}/testing/test-infra
 KF_DIR=${SRC_DIR}/${REPO_OWNER}/kubeflow
 
-python -c "import checkout_lib; checkout_lib.get_job_name(${JOB_LABELS})"
+# Extract worker job name using checkout_util.
+header="from checkout_lib import checkout_util;"
+job_name="checkout_util.get_job_name(\"${JOB_LABELS}\")"
+get_job_name="${header} print(${job_name})"
+job_name=$(python -c "${get_job_name}")
+
+# Load snapshot JSON.
+get_path="checkout_util.get_snapshot_path(\"${NFS_MNT}\", \"${job_name}\")"
+get_snapshot_path="${header} print(${get_path})"
+snapshot_path=$(python -c "${get_snapshot_path}")
+
+read_snapshot="cat ${snapshot_path}/snapshot.json"
+eval ${read_snapshot}
+get_cluster_num="jq .cluster_num"
+cluster_num=$(${read_snapshot} | ${get_cluster_num})
+echo "Cluster_num =(${cluster_num})"
 
 # Trigger create_kf_instance.
 # python -m kubeflow.testing.create_kf_instance \
