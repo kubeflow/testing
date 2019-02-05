@@ -39,4 +39,6 @@ python -m checkout_lib.repo_clone_snapshot \
 #   ${SRC_DIR} \
 #   ${REPO_OWNER} \
 #   ${PROJECT} \
-#   ${WORKER_CLUSTER}
+#   ${WORKER_CLUSTER} \
+#   ${JOB_LABELS} \
+#   ${NFS_MNT}
