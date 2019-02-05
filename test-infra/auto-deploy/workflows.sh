@@ -15,12 +15,14 @@ NFS_MNT=$6
 APPS_DIR=${SRC_DIR}/${REPO_OWNER}/testing/test-infra
 KF_DIR=${SRC_DIR}/${REPO_OWNER}/kubeflow
 
+python -c "import checkout_lib; checkout_lib.get_job_name(${JOB_LABELS})"
+
 # Trigger create_kf_instance.
-python -m kubeflow.testing.create_kf_instance \
-  --base=kf-v0-4 \
-  --kubeflow_repo=${KF_DIR} \
-  --apps_dir=${APPS_DIR} \
-  --project=${PROJECT} \
-  --deployment_worker_cluster=${WORKER_CLUSTER}
+# python -m kubeflow.testing.create_kf_instance \
+#   --base=kf-v0-4 \
+#   --kubeflow_repo=${KF_DIR} \
+#   --apps_dir=${APPS_DIR} \
+#   --project=${PROJECT} \
+#   --deployment_worker_cluster=${WORKER_CLUSTER}
 
 # TODO(gabrielwen): Push changes to app folders to git.
