@@ -131,7 +131,8 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     labels = app.get("labels", {})
     yaml.dump(app, hf)
 
-  labels = map(lambda k, v: "{key}={val}".format(key=k, val=v), labels.items())
+  labels = map(lambda k: "{key}={val}".format(key=k, val=labels[k]),
+               labels.keys())
   logging.info("Transformed: %s", str(labels))
   logging.info("Args: %s", labels.join(","))
 
