@@ -133,8 +133,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   label_args = []
   for k,v in labels.items():
-    label_args.append("{key}={val}".format(key=k.lowercase(),
-                                           val=v.lowercase()))
+    label_args.append("{key}={val}".format(key=k.lower(), val=v.lower()))
   logging.info("ARGS: %s", ",".join(label_args))
 
   """
