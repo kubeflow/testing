@@ -85,7 +85,27 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
                           cwd=args.kubeflow_repo).strip("'")
+  labels = {}
+  with open(os.path.join(app_dir, "kf_app.yaml"), "w") as hf:
+    app = {
+      "labels": {
+        "GIT_LABEL": git_describe,
+        "PURPOSE": "kf-test-cluster",
+        "CREATOR": getpass.getuser(),
+      },
+    }
+    if args.timestamp:
+      app["labels"]["SNAPSHOT_TIMESTAMP"] = args.timestamp
+    if args.job_name:
+      app["labels"]["DEPLOYMENT_JOB"] = args.job_name
+    labels = app.get("labels", {})
+    yaml.dump(app, hf)
 
+  labels = map(lambda k, v: "{key}={val}".format(key=k, val=v), labels.items())
+  logging.info("Transformed: %s", str(labels))
+  logging.info("Args: %s", labels.join(","))
+
+  """
   # TODO(https://github.com/kubeflow/testing/issues/95): We want to cycle
   # between N different names e.g.
   # kf-vX-Y-n00, kf-vX-Y-n01, ... kf-vX-Y-n05
@@ -115,6 +135,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
             "--platform", "gcp", "--skipInitProject", "true"], cwd=args.apps_dir
            )
 
+  labels = {}
   with open(os.path.join(app_dir, "kf_app.yaml"), "w") as hf:
     app = {
       "labels": {
@@ -127,6 +148,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
       app["labels"]["SNAPSHOT_TIMESTAMP"] = args.timestamp
     if args.job_name:
       app["labels"]["DEPLOYMENT_JOB"] = args.job_name
+    labels = app.get("labels", {})
     yaml.dump(app, hf)
 
   util.run([kfctl, "generate", "all"], cwd=app_dir)
@@ -138,6 +160,8 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # components are not ready. Make it retry several times should be enough.
   kfctl_apply_with_retry(kfctl, app_dir, env)
 
+  logging.info("Annotating cluster with labels: %s", str(labels))
+  """
 
 if __name__ == "__main__":
   main()
