@@ -232,11 +232,11 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       with open(os.path.join(manifest_dir, "cluster-kubeflow.yaml"), "w") as hf:
         hf.write(manifest["config"]["content"])
 
-      for i in manifest["imports"]:
-        with open(os.path.join(manifest_dir, i["name"]), "w") as hf:
-          hf.write(i["content"])
-
       config = yaml.load(manifest["config"]["content"])
+
+      if not config:
+        logging.warning("Skipping deployment %s because it has no config; "
+                        "is it already being deleted?", name)
       zone = config["resources"][0]["properties"]["zone"]
       command = [args.delete_script,
                  "--project=" + args.project, "--deployment=" + name,
@@ -293,6 +293,30 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
         clusters_client.delete(projectId=args.project, zone=zone,
                                clusterId=name).execute()
 
+def cleanup_all(args):
+  cleanup_deployments(args)
+  cleanup_endpoints(args)
+  cleanup_service_accounts(args)
+  cleanup_workflows(args)
+
+def add_workflow_args(parser):
+  parser.add_argument(
+      "--namespace", default="kubeflow-test-infra",
+      help="Namespace to cleanup.")
+
+def add_deployments_args(parser):
+  parser.add_argument(
+    "--update_first", default=False, type=bool,
+    help="Whether to update the deployment first.")
+
+  parser.add_argument(
+    "--delete_script", default="", type=str,
+    help=("The path to the delete_deployment.sh script which is in the "
+          "Kubeflow repository."))
+  parser.add_argument(
+    "--zones", default="us-east1-d,us-central1-a", type=str,
+    help="Comma separated list of zones to check.")
+
 def main():
   logging.basicConfig(level=logging.INFO,
                       format=('%(levelname)s|%(asctime)s'
@@ -311,14 +335,21 @@ def main():
   subparsers = parser.add_subparsers()
 
   ######################################################
+  # Paraser for everything
+  parser_all = subparsers.add_parser(
+    "all", help="Cleanup everything")
+
+  add_deployments_args(parser_all)
+  add_workflow_args(parser_all)
+
+  parser_all.set_defaults(func=cleanup_all)
+
+  ######################################################
   # Parser for argo_workflows
   parser_argo = subparsers.add_parser(
     "workflows", help="Cleanup workflows")
 
-  parser_argo.add_argument(
-      "--namespace", default="kubeflow-test-infra",
-      help="Namespace to cleanup.")
-
+  add_workflow_args(parser_argo)
   parser_argo.set_defaults(func=cleanup_workflows)
 
   ######################################################
@@ -340,22 +371,11 @@ def main():
   parser_deployments = subparsers.add_parser(
     "deployments", help="Cleanup deployments")
 
-  parser_deployments.add_argument(
-    "--update_first", default=False, type=bool,
-    help="Whether to update the deployment first.")
-
-  parser_deployments.add_argument(
-    "--delete_script", default="", type=str,
-    help=("The path to the delete_deployment.sh script which is in the "
-          "Kubeflow repository."))
-
-  parser_deployments.add_argument(
-    "--zones", default="us-east1-d,us-central1-a", type=str,
-    help="Comma separated list of zones to check.")
-
+  add_deployments_args(parser_deployments)
   parser_deployments.set_defaults(func=cleanup_deployments)
   args = parser.parse_args()
 
+  util.maybe_activate_service_account()
   args.func(args)
 
 if __name__ == "__main__":
