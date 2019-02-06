@@ -33,17 +33,17 @@
 
     local template = self,
 
+    local image = std.extVar("imageBase") + ":" + std.extVar("tag"),
+    local imageLatest = std.extVar("imageBase") + ":latest",
+
     local pullStep = if useImageCache then [
       {
         id: "pull-" + template.name,
         name: "gcr.io/cloud-builders/docker",
-        args: ["pull", std.extVar("imageBase") + "/" + template.name + ":latest"],
+        args: ["pull", imageLatest],
         waitFor: ["-"],
       },
     ] else [],
-
-    local image = std.extVar("imageBase") + "/" + template.name + ":" + std.extVar("tag"),
-    local imageLatest = std.extVar("imageBase") + "/" + template.name + ":latest",
 
     images: [image, imageLatest],
     steps: pullStep +

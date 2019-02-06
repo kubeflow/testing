@@ -13,6 +13,12 @@
       version: "v2.2.1",
       exposeUi: false,
     },
+    "cleanup-ci": {
+      name: "cleanup-ci",
+    },
+    "cleanup-ci-cron": {
+      name: "cleanup-ci",
+    },
     "nfs-external": {
       name: "nfs-external",
       namespace: "kubeflow-test-infra",

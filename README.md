@@ -486,7 +486,19 @@ Create the PVs corresponding to external NFS
 ks apply ${ENV} -c nfs-external
 ```
 
-#### Troubleshooting
+### Creating secret for deployapp test
+
+The e2e test that runs click-to-deploy app will test deploying kubeflow to a cluter
+under project kubeflow-ci-deployment.
+So it needs to know a clientID and secret of that project.
+Check out this [page](https://pantheon.corp.google.com/apis/credentials?project=kubeflow-ci-deployment&folder&organizationId=714441643818)
+and look for client ID called deployapp-test-client.
+
+```
+kubectl create secret generic --namespace=${NAMESPACE} kubeflow-oauth --from-literal=client_id=${CLIENT_ID} --from-literal=client_secret=${CLIENT_SECRET}
+```
+
+### Troubleshooting
 
 User or service account deploying the test infrastructure needs sufficient permissions to create the roles that are created as part deploying the test infrastructure. So you may need to run the following command before using ksonnet to deploy the test infrastructure.
 
