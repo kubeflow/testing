@@ -34,10 +34,7 @@ get_timestamp="jq .timestamp"
 cluster_num=3
 timestamp=$(${read_snapshot} | ${get_timestamp})
 
-sh ${KF_DIR}/scripts/gke/delete_deployment.sh \
-  --project=kubeflow-ci \
-  --deployment=kf-v0-4-n03 \
-  --zone=us-east1-d
+sh ${KF_DIR}/scripts/gke/delete_deployment.sh --project=kubeflow-ci --deployment=kf-v0-4-n03 --zone=us-east1-d
 
 # Trigger create_kf_instance.
 # python -m kubeflow.testing.create_kf_instance \
