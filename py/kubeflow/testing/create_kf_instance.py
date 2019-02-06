@@ -85,6 +85,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
                           cwd=args.kubeflow_repo).strip("'")
+
+  num = args.cluster_num
+  name = "{0}-n{1:02d}".format(args.base_name, num)
+  app_dir = os.path.join(args.apps_dir, name)
   labels = {}
   with open(os.path.join(app_dir, "kf_app.yaml"), "w") as hf:
     app = {
