@@ -1,6 +1,4 @@
-"""TODO(gabrielwen): DO NOT SUBMIT without one-line documentation for checkout-util.
-
-TODO(gabrielwen): DO NOT SUBMIT without a detailed description of checkout-util.
+"""Utility function for repositories checkout.
 """
 
 import os
