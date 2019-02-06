@@ -40,7 +40,7 @@ git clone --single-branch --branch cluster-label \
 
 export PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/py"
 
-Initiate deployment workflow.
+# Initiate deployment workflow.
 ${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy/workflows.sh \
   ${SRC_DIR} \
   ${REPO_OWNER} \
