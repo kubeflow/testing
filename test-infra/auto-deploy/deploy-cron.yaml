@@ -7,14 +7,14 @@ metadata:
 spec:
   concurrencyPolicy: "Forbid"
   # Daily at 10p
-  schedule: "*/2 * * * *"
+  schedule: "0 22 * * *"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:latest
+            image: gcr.io/kubeflow-ci/deploy-worker:live
             command:
             - /usr/local/bin/init.sh
             - /src # SRC_DIR
