@@ -34,7 +34,7 @@ get_timestamp="jq .timestamp"
 cluster_num=0
 timestamp=$(${read_snapshot} | ${get_timestamp})
 
-Trigger create_kf_instance.
+# Trigger create_kf_instance.
 python -m kubeflow.testing.create_kf_instance \
   --base=kf-v0-4 \
   --kubeflow_repo=${KF_DIR} \
