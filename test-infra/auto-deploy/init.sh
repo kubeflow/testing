@@ -33,10 +33,15 @@ python -m checkout_lib.repo_clone_snapshot \
   --job_labels=${JOB_LABELS} \
   --nfs_path=${NFS_MNT}
 
+# TODO(gabrielwen): Remove this before sending for review.
+rm -rf ${SRC_DIR}/${REPO_OWNER}/testing
+git clone --single-branch --branch cluster-label \
+  https://github.com/gabrielwen/testing.git ${SRC_DIR}/${REPO_OWNER}/testing
+
 export PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/py"
 
 Initiate deployment workflow.
-${SRC_DIR}/${REPO_OWNER}/testing2/test-infra/auto-deploy/workflows.sh \
+${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy/workflows.sh \
   ${SRC_DIR} \
   ${REPO_OWNER} \
   ${PROJECT} \
