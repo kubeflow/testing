@@ -131,10 +131,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     labels = app.get("labels", {})
     yaml.dump(app, hf)
 
-  labels = map(lambda k: "{key}={val}".format(key=k, val=labels[k]),
-               labels.keys())
-  logging.info("Transformed: %s", str(labels))
-  logging.info("Args: %s", labels.join(","))
+  label_args = []
+  for k,v in labels.items():
+    label_args.append("{key}={val}".format(key=k.lowercase(),
+                                           val=v.lowercase()))
+  logging.info("ARGS: %s", ",".join(label_args))
 
   """
   util.run([kfctl, "generate", "all"], cwd=app_dir)
