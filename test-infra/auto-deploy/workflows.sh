@@ -30,7 +30,9 @@ snapshot_path=$(python -c "${get_snapshot_path}")
 read_snapshot="cat ${snapshot_path}/snapshot.json"
 eval ${read_snapshot}
 get_cluster_num="jq .cluster_num"
+get_timestamp="jq .timestamp"
 cluster_num=$(${read_snapshot} | ${get_cluster_num})
+timestamp=$(${read_snapshot} | ${get_timestamp})
 
 # Trigger create_kf_instance.
 # python -m kubeflow.testing.create_kf_instance \
