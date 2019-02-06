@@ -31,20 +31,18 @@ read_snapshot="cat ${snapshot_path}/snapshot.json"
 get_cluster_num="jq .cluster_num"
 get_timestamp="jq .timestamp"
 # cluster_num=$(${read_snapshot} | ${get_cluster_num})
-cluster_num=3
+cluster_num=0
 timestamp=$(${read_snapshot} | ${get_timestamp})
 
-sh ${KF_DIR}/scripts/gke/delete_deployment.sh --project=kubeflow-ci --deployment=kf-v0-4-n03 --zone=us-east1-d
-
-# Trigger create_kf_instance.
-# python -m kubeflow.testing.create_kf_instance \
-#   --base=kf-v0-4 \
-#   --kubeflow_repo=${KF_DIR} \
-#   --apps_dir=${APPS_DIR} \
-#   --project=${PROJECT} \
-#   --deployment_worker_cluster=${WORKER_CLUSTER} \
-#   --cluster_num=${cluster_num} \
-#   --timestamp=${timestamp} \
-#   --job_name=${job_name}
+Trigger create_kf_instance.
+python -m kubeflow.testing.create_kf_instance \
+  --base=kf-v0-4 \
+  --kubeflow_repo=${KF_DIR} \
+  --apps_dir=${APPS_DIR} \
+  --project=${PROJECT} \
+  --deployment_worker_cluster=${WORKER_CLUSTER} \
+  --cluster_num=${cluster_num} \
+  --timestamp=${timestamp} \
+  --job_name=${job_name}
 
 # TODO(gabrielwen): Push changes to app folders to git.
