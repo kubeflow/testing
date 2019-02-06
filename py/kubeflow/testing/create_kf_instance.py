@@ -121,7 +121,6 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
       "labels": {
         "GIT_LABEL": git_describe,
         "PURPOSE": "kf-test-cluster",
-        "CREATOR": getpass.getuser(),
       },
     }
     if args.timestamp:
@@ -134,9 +133,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   label_args = []
   for k,v in labels.items():
     label_args.append("{key}={val}".format(key=k.lower(), val=v.lower()))
-  logging.info("ARGS: %s", ",".join(label_args))
 
-  """
   util.run([kfctl, "generate", "all"], cwd=app_dir)
 
   env = {}
@@ -146,8 +143,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # components are not ready. Make it retry several times should be enough.
   kfctl_apply_with_retry(kfctl, app_dir, env)
 
-  logging.info("Annotating cluster with labels: %s", str(labels))
-  """
+  logging.info("Annotating cluster with labels: %s", str(label_args))
+  util.run(["gcloud", "container", "clusters", "update", name,
+            "--update-labels", ",".join(label_args)],
+           cwd=app_dir)
 
 if __name__ == "__main__":
   main()

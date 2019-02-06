@@ -31,7 +31,7 @@ read_snapshot="cat ${snapshot_path}/snapshot.json"
 get_cluster_num="jq .cluster_num"
 get_timestamp="jq .timestamp"
 # cluster_num=$(${read_snapshot} | ${get_cluster_num})
-cluster_num=3
+cluster_num=4
 timestamp=$(${read_snapshot} | ${get_timestamp})
 
 # Trigger create_kf_instance.
