@@ -40,6 +40,8 @@ def get_deployment_cluster(project, location, base_name, cluster_nums):
           SNAPSHOT_TIMESTAMP in info.get(RESOURCE_LABELS, {})):
         cluster_timestamps.append({"num": n, "timestamp": info.get(
             RESOURCE_LABELS, {}).get(SNAPSHOT_TIMESTAMP, "")})
+        if n == 4:
+          cluster_timestamps[-1]["timestamp"] = "2019-02-07t02-11-52-400000"
     except googleapiclient.errors.HttpError as e:
       logging.error("Getting cluster %s information error, ignoring: %s",
                     cluster, str(e))
@@ -168,7 +170,7 @@ def main():
                                        args.base_name, [
     n for n in range(args.max_cluster_num+1)])
 
-  logging.info("Deploying to %d", n)
+  logging.info("Deploying to %d", cluster_num)
 
   job_name = checkout_util.get_job_name(args.job_labels)
 
