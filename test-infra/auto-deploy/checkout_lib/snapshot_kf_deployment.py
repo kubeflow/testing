@@ -8,7 +8,6 @@ is the name of repository and value is the SHA snapshot is taken.
 import argparse
 import datetime
 import filelock
-import inspect
 import json
 import logging
 import os
@@ -23,12 +22,10 @@ def get_cluster_labels(project, cluster_names):
   logging.info("%s get_cluster_labels %s", project, str(cluster_names))
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
-  logging.info(inspect.getsource(dm.deployments))
   deployments_client = dm.deployments()
-  logging.info(inspect.getsource(deployments_client.get))
   for name in cluster_names:
     logging.info("%s: get %s", project, name)
-    info = deployments_client.get(project, name)
+    info = deployments_client.get(project=project, deployment=name)
     logging.info("Info returned: %s", str(info))
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
