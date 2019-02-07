@@ -18,8 +18,10 @@ import checkout_util
 from googleapiclient import deploymentmanager
 
 def get_cluster_labels(project, cluster_names):
+  logging.info("%s get_cluster_labels %s", project, str(cluster_names))
   for name in cluster_names:
-    info = deploymentmanager.get(project, name)
+    logging.info("%s: get %s", project, name)
+    info = deploymentmanager.deployments.get(project, name)
     logging.info("Info returned: %s", str(info))
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
@@ -138,7 +140,7 @@ def main():
   snapshot_time = datetime.datetime.utcnow().isoformat()
   logging.info("Snapshotting at %s", snapshot_time)
 
-  # TODO(gabrielwen): Add logic to choose deploying cluster_num.
+# TODO(gabrielwen): Add logic to choose deploying cluster_num.
   repo_snapshot = {
     "timestamp": snapshot_time,
     "cluster_num": 1,

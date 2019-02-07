@@ -34,14 +34,14 @@ cluster_num=$(${read_snapshot} | ${get_cluster_num})
 timestamp=$(${read_snapshot} | ${get_timestamp})
 
 # Trigger create_kf_instance.
-python -m kubeflow.testing.create_kf_instance \
-  --base=kf-v0-4 \
-  --kubeflow_repo=${KF_DIR} \
-  --apps_dir=${APPS_DIR} \
-  --project=${PROJECT} \
-  --deployment_worker_cluster=${WORKER_CLUSTER} \
-  --cluster_num=${n} \
-  --timestamp=${timestamp} \
-  --job_name=${job_name}
+# python -m kubeflow.testing.create_kf_instance \
+#   --base=kf-v0-4 \
+#   --kubeflow_repo=${KF_DIR} \
+#   --apps_dir=${APPS_DIR} \
+#   --project=${PROJECT} \
+#   --deployment_worker_cluster=${WORKER_CLUSTER} \
+#   --cluster_num=${n} \
+#   --timestamp=${timestamp} \
+#   --job_name=${job_name}
 
 # TODO(gabrielwen): Push changes to app folders to git.
