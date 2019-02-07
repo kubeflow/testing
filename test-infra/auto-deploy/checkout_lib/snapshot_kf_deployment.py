@@ -23,7 +23,6 @@ RESOURCE_LABELS = "resourceLabels"
 SNAPSHOT_TIMESTAMP = "snapshot_timestamp"
 
 def get_cluster_labels(project, location, cluster_names):
-  logging.info("%s get_cluster_labels %s", project, str(cluster_names))
   credentials = GoogleCredentials.get_application_default()
   container = discovery.build("container", "v1", credentials=credentials)
   clusters_client = container.projects().locations().clusters()
@@ -126,6 +125,14 @@ def main():
     "snapshot_repos", nargs="+", help=("Repositories needed to take snapshot."))
 
   parser.add_argument(
+    "--base_name", default="kf-v0-4", type=str,
+    help=("The base name for the deployment typically kf-vX-Y or kf-vmaster."))
+
+  parser.add_argument(
+    "--max_cluster_num", default=4, type=int,
+    help=("Max number for testing cluster (included)."))
+
+  parser.add_argument(
     "--project", default="kubeflow-ci", type=str, help=("The GCP project."))
 
   parser.add_argument(
@@ -154,7 +161,8 @@ def main():
   token_file.close()
 
   get_cluster_labels(args.project, args.zone, [
-    "kf-v0-4-n00", "kf-v0-4-n01", "kf-v0-4-n02", "kf-v0-4-n05",
+    "{0}-n{1:02d}".format(args.base_name, n) for n in range(
+      args.max_cluster_num+1)
   ])
 
   job_name = checkout_util.get_job_name(args.job_labels)
