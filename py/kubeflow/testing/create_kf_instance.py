@@ -135,7 +135,8 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   for k,v in labels.items():
     # labels can only take as input alphanumeric characters, hyphens, and
     # underscores. Replace not valid characters with hyphens.
-    val = re.sub(r"[^a-z0-9\-_]", "-", v.lower())
+    val = v.lower().replace("\"", "")
+    val = re.sub(r"[^a-z0-9\-_]", "-", val)
     label_args.append("{key}={val}".format(key=k.lower(), val=val))
 
   util.run([kfctl, "generate", "all"], cwd=app_dir)
