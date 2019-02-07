@@ -147,7 +147,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # components are not ready. Make it retry several times should be enough.
   kfctl_apply_with_retry(kfctl, app_dir, env)
 
-  logging.info("Annotating cluster with labels: %s", label_str)
+  logging.info("Annotating cluster with labels: %s", str(label_args))
   util.run(["gcloud", "container", "clusters", "update", name,
             "--zone", args.zone,
             "--update-labels", ",".join(label_args)],
