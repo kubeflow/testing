@@ -26,6 +26,7 @@ RUN set -ex \
     unzip \
     gcc \
     ssh \
+    mercurial \
     python-dev \
     python-setuptools \
     python-pip \
