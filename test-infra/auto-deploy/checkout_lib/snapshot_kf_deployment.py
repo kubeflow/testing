@@ -138,7 +138,7 @@ def main():
   token_file.close()
 
   get_cluster_labels(args.project, args.zone, [
-    "kf-v0-4-n00", "kf-v0-4-n01", "kf-v0-4-n02",
+    "kf-v0-4-n00", "kf-v0-4-n01", "kf-v0-4-n02", "kf-v0-4-n05",
   ])
 
   job_name = checkout_util.get_job_name(args.job_labels)
