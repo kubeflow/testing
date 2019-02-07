@@ -25,7 +25,7 @@ def get_cluster_labels(project, cluster_names):
   deployments_client = dm.deployments()
   for name in cluster_names:
     logging.info("%s: get %s", project, name)
-    info = deployments_client.get(project=project, deployment=name)
+    info = deployments_client.get(project=project, deployment=name).execute()
     logging.info("Info returned: %s", str(info))
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
