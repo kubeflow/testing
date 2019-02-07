@@ -8,6 +8,7 @@ import getpass
 import json
 import logging
 import os
+import re
 import yaml
 
 from google.cloud import storage
@@ -143,10 +144,13 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # components are not ready. Make it retry several times should be enough.
   kfctl_apply_with_retry(kfctl, app_dir, env)
 
-  logging.info("Annotating cluster with labels: %s", str(label_args))
+  # labels can only take as input alphanumeric characters, hyphens, and
+  # underscores. Replace not valid characters with hyphens.
+  label_str = re.sub(r"[^a-z0-9\-_]", "-", ",".join(label_args))
+  logging.info("Annotating cluster with labels: %s", label_str)
   util.run(["gcloud", "container", "clusters", "update", name,
             "--zone", args.zone,
-            "--update-labels", ",".join(label_args)],
+            "--update-labels", label_str],
            cwd=app_dir)
 
 if __name__ == "__main__":
