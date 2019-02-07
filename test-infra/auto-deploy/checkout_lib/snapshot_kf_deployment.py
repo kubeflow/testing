@@ -23,6 +23,17 @@ RESOURCE_LABELS = "resourceLabels"
 SNAPSHOT_TIMESTAMP = "snapshot_timestamp"
 
 def get_deployment_cluster(project, location, base_name, cluster_nums):
+  """Retrieve deployment metadata from GCP and choose the oldest cluster.
+
+  Args:
+    project: Name of GCP project.
+    location: Cluster location.
+    base_name: Base name of clusters.
+    cluster_nums: A list of integers as suffix of cluster names.
+
+  Returns:
+    integer as the number points to the oldest cluster.
+  """
   credentials = GoogleCredentials.get_application_default()
   container = discovery.build("container", "v1", credentials=credentials)
   clusters_client = container.projects().locations().clusters()
@@ -179,7 +190,6 @@ def main():
   snapshot_time = datetime.datetime.utcnow().isoformat()
   logging.info("Snapshotting at %s", snapshot_time)
 
-  # TODO(gabrielwen): Add logic to choose deploying cluster_num.
   repo_snapshot = {
     "timestamp": snapshot_time,
     "cluster_num": cluster_num,
