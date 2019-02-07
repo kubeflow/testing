@@ -39,7 +39,7 @@ def get_deployment_cluster(project, location, base_name, cluster_nums):
       if (RESOURCE_LABELS in info and
           SNAPSHOT_TIMESTAMP in info.get(RESOURCE_LABELS, {})):
         cluster_timestamps.append({"num": n, "timestamp": info.get(
-            RESOURCE_LABELS, {}).get(SNAPSHOT_TIMESTAMP, ""))
+            RESOURCE_LABELS, {}).get(SNAPSHOT_TIMESTAMP, "")})
     except googleapiclient.errors.HttpError as e:
       logging.error("Getting cluster %s information error, ignoring: %s",
                     cluster, str(e))
