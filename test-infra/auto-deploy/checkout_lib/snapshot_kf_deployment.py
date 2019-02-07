@@ -18,19 +18,34 @@ import checkout_util
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
+RESOURCE_LABELS = "resourceLabels"
+SNAPSHOT_TIMESTAMP = "snapshot_timestamp"
+
 def get_cluster_labels(project, location, cluster_names):
   logging.info("%s get_cluster_labels %s", project, str(cluster_names))
   credentials = GoogleCredentials.get_application_default()
   container = discovery.build("container", "v1", credentials=credentials)
   clusters_client = container.projects().locations().clusters()
+  cluster_labels = {}
   for cluster in cluster_names:
     name = "projects/{p}/locations/{l}/clusters/{c}".format(
       p=project,
       l=location,
       c=cluster)
     logging.info("Getting cluster info: %s", name)
-    info = clusters_client.get(name=name, fields="resourceLabels").execute()
-    logging.info("Info returned: %s", str(info))
+    try:
+      info = clusters_client.get(name=name, fields=RESOURCE_LABELS).execute()
+      if RESOURCE_LABELS in info and
+         SNAPSHOT_TIMESTAMP in info.get(RESOURCE_LABELS, {}):
+        cluster_labels[cluster] = info.get(RESOURCE_LABELS, {})
+                                      .get(SNAPSHOT_TIMESTAMP, "")
+    except googleapiclient.errors.HttpError as e:
+      logging.error("Getting cluster %s information error, ignoring: %s",
+                    cluster, str(e))
+      pass
+
+  logging.info("cluster_labels = %s", str(cluster_labels))
+  return cluster_labels
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   """Look into commit history and pick the latest commit SHA.
