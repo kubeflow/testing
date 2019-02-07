@@ -23,6 +23,7 @@ def get_cluster_labels(project, cluster_names):
   logging.info("%s get_cluster_labels %s", project, str(cluster_names))
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
+  logging.info(dm.deployments())
   deployments_client = dm.deployments()
   logging.info(inspect.getsource(deployments_client.get))
   for name in cluster_names:
