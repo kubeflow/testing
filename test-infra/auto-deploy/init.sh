@@ -39,7 +39,8 @@ mkdir -p ${SRC_DIR}/${REPO_OWNER}
 git clone --single-branch --branch cluster-label \
   https://github.com/gabrielwen/testing.git ${SRC_DIR}/${REPO_OWNER}/testing
 
-export PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/py"
+PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/py"
+export PYTHONPATH="${PYTHONPATH}:${SRC_DIR}/${REPO_OWNER}/testing/test-infra/auto-deploy"
 
 python -m checkout_lib.snapshot_kf_deployment \
   kubeflow testing \
