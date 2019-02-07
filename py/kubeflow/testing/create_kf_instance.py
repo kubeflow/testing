@@ -145,6 +145,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   logging.info("Annotating cluster with labels: %s", str(label_args))
   util.run(["gcloud", "container", "clusters", "update", name,
+            "--zone", args.zone,
             "--update-labels", ",".join(label_args)],
            cwd=app_dir)
 
