@@ -133,7 +133,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   label_args = []
   for k,v in labels.items():
-    label_args.append("{key}={val}".format(key=k.lower(), val=v.lower()))
+    # labels can only take as input alphanumeric characters, hyphens, and
+    # underscores. Replace not valid characters with hyphens.
+    val = re.sub(r"[^a-z0-9\-_]", "-", v.lower())
+    label_args.append("{key}={val}".format(key=k.lower(), val=val))
 
   util.run([kfctl, "generate", "all"], cwd=app_dir)
 
@@ -144,13 +147,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # components are not ready. Make it retry several times should be enough.
   kfctl_apply_with_retry(kfctl, app_dir, env)
 
-  # labels can only take as input alphanumeric characters, hyphens, and
-  # underscores. Replace not valid characters with hyphens.
-  label_str = re.sub(r"[^a-z0-9\-_]", "-", ",".join(label_args))
   logging.info("Annotating cluster with labels: %s", label_str)
   util.run(["gcloud", "container", "clusters", "update", name,
             "--zone", args.zone,
-            "--update-labels", label_str],
+            "--update-labels", ",".join(label_args)],
            cwd=app_dir)
 
 if __name__ == "__main__":
