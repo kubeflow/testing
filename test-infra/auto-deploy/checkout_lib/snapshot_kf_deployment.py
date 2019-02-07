@@ -18,14 +18,18 @@ import checkout_util
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
-def get_cluster_labels(project, cluster_names):
+def get_cluster_labels(project, location, cluster_names):
   logging.info("%s get_cluster_labels %s", project, str(cluster_names))
   credentials = GoogleCredentials.get_application_default()
-  dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
-  deployments_client = dm.deployments()
-  for name in cluster_names:
-    logging.info("%s: get %s", project, name)
-    info = deployments_client.get(project=project, deployment=name).execute()
+  container = discovery.build("container", "v1", credentials=credentials)
+  clusters_client = container.projects().locations().clusters()
+  for cluster in cluster_names:
+    name = "projects/{p}/locations/{l}/clusters/{c}".format(
+      p=project,
+      l=location,
+      c=cluster)
+    logging.info("Getting cluster info: %s", name)
+    info = clusters_client.get(name=name).execute()
     logging.info("Info returned: %s", str(info))
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
@@ -109,6 +113,9 @@ def main():
     "--project", default="kubeflow-ci", type=str, help=("The GCP project."))
 
   parser.add_argument(
+    "--zone", default="us-east1-d", type=str, help=("The zone to deploy in."))
+
+  parser.add_argument(
     "--repo_owner", default="kubeflow", type=str, help=("Github repo owner."))
 
   parser.add_argument(
@@ -130,7 +137,7 @@ def main():
   github_token = token_file.readline()
   token_file.close()
 
-  get_cluster_labels(args.project, [
+  get_cluster_labels(args.project, args.zone, [
     "kf-v0-4-n00", "kf-v0-4-n01", "kf-v0-4-n02",
   ])
 
