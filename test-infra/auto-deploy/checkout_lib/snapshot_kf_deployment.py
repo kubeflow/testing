@@ -15,6 +15,13 @@ import requests
 
 import checkout_util
 
+from googleapiclient import deploymentmanager
+
+def get_cluster_labels(project, cluster_names):
+  for name in cluster_names:
+    info = deploymentmanager.get(project, name)
+    logging.info("Info returned: %s", str(info))
+
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   """Look into commit history and pick the latest commit SHA.
 
@@ -116,6 +123,10 @@ def main():
   token_file = open(args.github_token_file, "r")
   github_token = token_file.readline()
   token_file.close()
+
+  get_cluster_labels(args.project, [
+    "kf-v0-4-n00", "kf-v0-4-n01", "kf-v0-4-n02",
+  ])
 
   job_name = checkout_util.get_job_name(args.job_labels)
 
