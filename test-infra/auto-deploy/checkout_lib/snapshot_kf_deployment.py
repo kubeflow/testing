@@ -40,8 +40,6 @@ def get_deployment_cluster(project, location, base_name, cluster_nums):
           SNAPSHOT_TIMESTAMP in info.get(RESOURCE_LABELS, {})):
         cluster_timestamps.append({"num": n, "timestamp": info.get(
             RESOURCE_LABELS, {}).get(SNAPSHOT_TIMESTAMP, "")})
-        if n == 4:
-          cluster_timestamps[-1]["timestamp"] = "2019-02-07t02-11-52-400000"
     except googleapiclient.errors.HttpError as e:
       logging.error("Getting cluster %s information error, ignoring: %s",
                     cluster, str(e))
@@ -49,8 +47,7 @@ def get_deployment_cluster(project, location, base_name, cluster_nums):
   if not cluster_timestamps:
     raise RuntimeError("Not able to find available cluster to deploy to.")
 
-  cluster_timestamps.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-  logging.info("clusters = %s", str(cluster_timestamps))
+  cluster_timestamps.sort(key=lambda x: x.get("timestamp", ""))
   return cluster_timestamps[0].get("num", 0)
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
@@ -185,7 +182,7 @@ def main():
   # TODO(gabrielwen): Add logic to choose deploying cluster_num.
   repo_snapshot = {
     "timestamp": snapshot_time,
-    "cluster_num": 1,
+    "cluster_num": cluster_num,
     "repos": {},
   }
   for repo in args.snapshot_repos:
@@ -193,6 +190,7 @@ def main():
     logging.info("Snapshot repo %s at %s", repo, sha)
     repo_snapshot["repos"][repo] = sha
 
+  logging.info("Snapshot = %s", str(repo_snapshot))
   folder = checkout_util.get_snapshot_path(args.nfs_path, job_name)
   lock_and_write(folder, json.dumps(repo_snapshot))
 
