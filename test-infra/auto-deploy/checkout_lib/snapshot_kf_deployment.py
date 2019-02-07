@@ -29,7 +29,7 @@ def get_cluster_labels(project, location, cluster_names):
       l=location,
       c=cluster)
     logging.info("Getting cluster info: %s", name)
-    info = clusters_client.get(name=name).execute()
+    info = clusters_client.get(name=name, fields="resourceLabels").execute()
     logging.info("Info returned: %s", str(info))
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
