@@ -37,8 +37,8 @@ def get_cluster_labels(project, location, cluster_names):
       info = clusters_client.get(name=name, fields=RESOURCE_LABELS).execute()
       if (RESOURCE_LABELS in info and
           SNAPSHOT_TIMESTAMP in info.get(RESOURCE_LABELS, {})):
-        cluster_labels[cluster] = info.get(RESOURCE_LABELS, {})
-        .get(SNAPSHOT_TIMESTAMP, "")
+        cluster_labels[cluster] = info.get(RESOURCE_LABELS, {}).get(
+            SNAPSHOT_TIMESTAMP, "")
     except googleapiclient.errors.HttpError as e:
       logging.error("Getting cluster %s information error, ignoring: %s",
                     cluster, str(e))
