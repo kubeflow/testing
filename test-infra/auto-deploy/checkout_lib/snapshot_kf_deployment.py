@@ -22,12 +22,13 @@ from oauth2client.client import GoogleCredentials
 RESOURCE_LABELS = "resourceLabels"
 SNAPSHOT_TIMESTAMP = "snapshot_timestamp"
 
-def get_cluster_labels(project, location, cluster_names):
+def get_deployment_cluster(project, location, base_name, cluster_nums):
   credentials = GoogleCredentials.get_application_default()
   container = discovery.build("container", "v1", credentials=credentials)
   clusters_client = container.projects().locations().clusters()
-  cluster_labels = {}
-  for cluster in cluster_names:
+  cluster_timestamps = []
+  for n in cluster_nums:
+    cluster = "{0}-n{1:02d}".format(base_name, n)
     name = "projects/{p}/locations/{l}/clusters/{c}".format(
       p=project,
       l=location,
@@ -37,15 +38,18 @@ def get_cluster_labels(project, location, cluster_names):
       info = clusters_client.get(name=name, fields=RESOURCE_LABELS).execute()
       if (RESOURCE_LABELS in info and
           SNAPSHOT_TIMESTAMP in info.get(RESOURCE_LABELS, {})):
-        cluster_labels[cluster] = info.get(RESOURCE_LABELS, {}).get(
-            SNAPSHOT_TIMESTAMP, "")
+        cluster_timestamps.append({"num": n, "timestamp": info.get(
+            RESOURCE_LABELS, {}).get(SNAPSHOT_TIMESTAMP, ""))
     except googleapiclient.errors.HttpError as e:
       logging.error("Getting cluster %s information error, ignoring: %s",
                     cluster, str(e))
-      pass
 
-  logging.info("cluster_labels = %s", str(cluster_labels))
-  return cluster_labels
+  if not cluster_timestamps:
+    raise RuntimeError("Not able to find available cluster to deploy to.")
+
+  cluster_timestamps.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+  logging.info("clusters = %s", str(cluster_timestamps))
+  return cluster_timestamps[0].get("num", 0)
 
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   """Look into commit history and pick the latest commit SHA.
@@ -160,10 +164,11 @@ def main():
   github_token = token_file.readline()
   token_file.close()
 
-  get_cluster_labels(args.project, args.zone, [
-    "{0}-n{1:02d}".format(args.base_name, n) for n in range(
-      args.max_cluster_num+1)
-  ])
+  cluster_num = get_deployment_cluster(args.project, args.zone,
+                                       args.base_name, [
+    n for n in range(args.max_cluster_num+1)])
+
+  logging.info("Deploying to %d", n)
 
   job_name = checkout_util.get_job_name(args.job_labels)
 
