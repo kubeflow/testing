@@ -143,8 +143,8 @@ def main():
     help=("The base name for the deployment typically kf-vX-Y or kf-vmaster."))
 
   parser.add_argument(
-    "--max_cluster_num", default=4, type=int,
-    help=("Max number for testing cluster (included)."))
+    "--max_cluster_num", default=1, type=int,
+    help=("Max number for testing cluster(s)."))
 
   parser.add_argument(
     "--project", default="kubeflow-ci", type=str, help=("The GCP project."))
@@ -176,7 +176,7 @@ def main():
 
   cluster_num = get_deployment_cluster(args.project, args.zone,
                                        args.base_name, [
-    n for n in range(args.max_cluster_num+1)])
+    n for n in range(args.max_cluster_num)])
 
   logging.info("Deploying to %d", cluster_num)
 

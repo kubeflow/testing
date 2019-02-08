@@ -9,6 +9,7 @@ WORKER_CLUSTER=$4
 JOB_LABELS=$5
 NFS_MNT=$6
 BASE_NAME=$7
+MAX_NUM_CLUSTER=$8
 
 # Activate service account auth.
 export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
@@ -23,7 +24,8 @@ python -m checkout_lib.snapshot_kf_deployment \
   --project=${PROJECT} \
   --repo_owner=${REPO_OWNER} \
   --job_labels=${JOB_LABELS} \
-  --nfs_path=${NFS_MNT}
+  --nfs_path=${NFS_MNT} \
+  --max_cluster_num=${MAX_NUM_CLUSTER}
 
 # Check out fresh copy of KF and deployment workflow.
 python -m checkout_lib.repo_clone_snapshot \

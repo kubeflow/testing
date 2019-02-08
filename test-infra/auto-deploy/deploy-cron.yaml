@@ -24,6 +24,7 @@ spec:
             - /etc/pod-info/labels # JOB_LABELS
             - /mnt/test-data-volume # NFS_MNT
             - kf-v0-4 # BASE_NAME
+            - 5 # MAX_NUM_CLUSTER
             volumeMounts:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"
