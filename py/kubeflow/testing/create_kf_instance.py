@@ -4,8 +4,6 @@ The purpose of this script is to automate the creation of Kubeflow Deployments
 corresponding to different versions of Kubeflow.
 """
 import argparse
-import getpass
-import json
 import logging
 import os
 import re
@@ -134,7 +132,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     yaml.dump(app, hf)
 
   label_args = []
-  for k,v in labels.items():
+  for k, v in labels.items():
     # labels can only take as input alphanumeric characters, hyphens, and
     # underscores. Replace not valid characters with hyphens.
     val = v.lower().replace("\"", "")
