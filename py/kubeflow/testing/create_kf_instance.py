@@ -100,6 +100,9 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # since we are not able to guarantee apps config in repository is up to date.
   util.run(["rm", "-rf", name], cwd=args.apps_dir)
 
+  # Delete deployment beforehand. If not, updating action might be failed when
+  # resource permission/requirement is changed. It's cleaner to delete and
+  # re-create it.
   delete_deployment = os.path.join(args.kubeflow_repo, "scripts", "gke",
                                    "delete_deployment.sh")
   util.run([delete_deployment, "--project=" + args.project,
