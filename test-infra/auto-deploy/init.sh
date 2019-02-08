@@ -20,8 +20,6 @@ export PYTHONPATH="${PYTHONPATH}:/usr/local/bin/py"
 python -m checkout_lib.snapshot_kf_deployment \
   kubeflow testing \
   --base_name=${BASE_NAME} \
-=======
->>>>>>> master
   --project=${PROJECT} \
   --repo_owner=${REPO_OWNER} \
   --job_labels=${JOB_LABELS} \
