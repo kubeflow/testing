@@ -5,6 +5,7 @@ metadata:
   clusterName: kubeflow-testing
   namespace: kubeflow-test-infra
 spec:
+  concurrencyPolicy: "Forbid"
   # Daily at 10p
   schedule: "0 22 * * *"
   jobTemplate:
@@ -20,12 +21,35 @@ spec:
             - kubeflow # REPO_OWNER
             - kubeflow-ci # PROJECT
             - kubeflow-testing # WORKER_CLUSTER
+            - /etc/pod-info/labels # JOB_LABELS
+            - /mnt/test-data-volume # NFS_MNT
             volumeMounts:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"
               readOnly: true
+            - name: pod-info
+              mountPath: "/etc/pod-info"
+              readOnly: true
+            - name: github-token
+              mountPath: "/secret/github-token"
+              readOnly: true
+            - name: test-data-volume
+              mountPath: "/mnt/test-data-volume"
+              readOnly: false
           restartPolicy: Never
           volumes:
           - name: gcp-credentials
             secret:
               secretName: gcp-credentials
+          - name: github-token
+            secret:
+              secretName: github-token
+          - name: test-data-volume
+            persistentVolumeClaim:
+              claimName: nfs-external
+          - name: pod-info
+            downwardAPI:
+              items:
+                - path: "labels"
+                  fieldRef:
+                    fieldPath: metadata.labels
