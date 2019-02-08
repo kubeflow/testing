@@ -23,6 +23,7 @@ spec:
             - kubeflow-testing # WORKER_CLUSTER
             - /etc/pod-info/labels # JOB_LABELS
             - /mnt/test-data-volume # NFS_MNT
+            - kf-v0-4 # BASE_NAME
             volumeMounts:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"

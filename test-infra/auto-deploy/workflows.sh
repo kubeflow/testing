@@ -11,6 +11,7 @@ PROJECT=$3
 WORKER_CLUSTER=$4
 JOB_LABELS=$5
 NFS_MNT=$6
+BASE_NAME=$7
 
 APPS_DIR=${SRC_DIR}/${REPO_OWNER}/testing/test-infra
 KF_DIR=${SRC_DIR}/${REPO_OWNER}/kubeflow
@@ -33,15 +34,15 @@ get_timestamp="jq .timestamp"
 cluster_num=$(${read_snapshot} | ${get_cluster_num})
 timestamp=$(${read_snapshot} | ${get_timestamp})
 
-# Trigger create_kf_instance.
-# python -m kubeflow.testing.create_kf_instance \
-#   --base=kf-v0-4 \
-#   --kubeflow_repo=${KF_DIR} \
-#   --apps_dir=${APPS_DIR} \
-#   --project=${PROJECT} \
-#   --deployment_worker_cluster=${WORKER_CLUSTER} \
-#   --cluster_num=${n} \
-#   --timestamp=${timestamp} \
-#   --job_name=${job_name}
+Trigger create_kf_instance.
+python -m kubeflow.testing.create_kf_instance \
+  --base={BASE_NAME} \
+  --kubeflow_repo=${KF_DIR} \
+  --apps_dir=${APPS_DIR} \
+  --project=${PROJECT} \
+  --deployment_worker_cluster=${WORKER_CLUSTER} \
+  --cluster_num=${cluster_num} \
+  --timestamp=${timestamp} \
+  --job_name=${job_name}
 
 # TODO(gabrielwen): Push changes to app folders to git.
