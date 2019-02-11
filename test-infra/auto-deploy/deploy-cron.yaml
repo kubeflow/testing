@@ -7,14 +7,14 @@ metadata:
 spec:
   concurrencyPolicy: "Forbid"
   # Daily at 10p
-  schedule: "*/2 * * * *"
+  schedule: "0 22 * * *"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:latest
+            image: gcr.io/kubeflow-ci/deploy-worker:live
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
