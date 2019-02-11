@@ -12,7 +12,6 @@ parseArgs $*
 validateRequiredArgs ${required_args}
 
 # Activate service account auth.
-export GOOGLE_APPLICATION_CREDENTIALS=/secret/gcp-credentials/key.json
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud config list
 

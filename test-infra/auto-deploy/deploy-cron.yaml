@@ -15,6 +15,9 @@ spec:
           containers:
           - name: deploy-worker
             image: gcr.io/kubeflow-ci/deploy-worker:latest
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /secret/gcp-credentials/key.json
             command:
             - /usr/local/bin/init.sh
             - --src_dir=/src
