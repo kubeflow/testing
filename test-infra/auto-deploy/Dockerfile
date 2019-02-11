@@ -134,6 +134,8 @@ ENV USER root
 # Purpose of init.sh is to have a script as kickstarter. This script is used to pull fresh copy from
 # Github and run with them.
 COPY checkout_lib /usr/local/bin/py/checkout_lib
+COPY lib-args.sh /usr/local/lib
+RUN chmod a+x /usr/local/lib/lib-args.sh
 COPY init.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/init.sh
 COPY checkout-snapshot.sh /usr/local/bin

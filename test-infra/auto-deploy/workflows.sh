@@ -1,29 +1,28 @@
 #!/bin/bash
-#
-# This script is meant to be the entrypoint for a prow job.
-# It checkos out a repo and then looks for prow_config.yaml in that
-# repo and uses that to run one or more workflows.
+# Workflow used to invoke deployment process.
 set -ex
 
-SRC_DIR=$1
-REPO_OWNER=$2
-PROJECT=$3
-WORKER_CLUSTER=$4
-JOB_LABELS=$5
-NFS_MNT=$6
-BASE_NAME=$7
+# Include library that helps on argument parsing.
+. /usr/local/lib/lib-args.sh
 
-APPS_DIR=${SRC_DIR}/${REPO_OWNER}/testing/test-infra
-KF_DIR=${SRC_DIR}/${REPO_OWNER}/kubeflow
+# Deployment configs.
+required_args=(src_dir repo_owner project worker_cluster job_labels nfs_mnt \
+  base_name)
+
+parseArgs $*
+validateRequiredArgs ${required_args}
+
+APPS_DIR=${src_dir}/${repo_owner}/testing/test-infra
+KF_DIR=${src_dir}/${repo_owner}/kubeflow
 
 # Extract worker job name using checkout_util.
 header="from checkout_lib import checkout_util;"
-job_name="checkout_util.get_job_name(\"${JOB_LABELS}\")"
+job_name="checkout_util.get_job_name(\"${job_labels}\")"
 get_job_name="${header} print(${job_name})"
 job_name=$(python -c "${get_job_name}")
 
 # Load snapshot JSON.
-get_path="checkout_util.get_snapshot_path(\"${NFS_MNT}\", \"${job_name}\")"
+get_path="checkout_util.get_snapshot_path(\"${nfs_mnt}\", \"${job_name}\")"
 get_snapshot_path="${header} print(${get_path})"
 snapshot_path=$(python -c "${get_snapshot_path}")
 
@@ -36,11 +35,11 @@ timestamp=$(${read_snapshot} | ${get_timestamp})
 
 # Trigger create_kf_instance.
 python -m kubeflow.testing.create_kf_instance \
-  --base=${BASE_NAME} \
+  --base=${base_name} \
   --kubeflow_repo=${KF_DIR} \
   --apps_dir=${APPS_DIR} \
-  --project=${PROJECT} \
-  --deployment_worker_cluster=${WORKER_CLUSTER} \
+  --project=${project} \
+  --deployment_worker_cluster=${worker_cluster} \
   --cluster_num=${cluster_num} \
   --timestamp=${timestamp} \
   --job_name=${job_name}
