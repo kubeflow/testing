@@ -15,13 +15,37 @@ bazel run //label_sync -- \
   --orgs kubeflow
 ```
 
+## Cron Job
+
+We currently run a cron job synchronize labels in
+
+  * **Project**: kubeflow-admin
+  * **Cluster**: kf-admin-cluster
+  * **Namespace**: github-admin
+
+We use a separate cluster in a restricted project because modifying the labels requires write permission on all repos.
+
 We have a CronJob to sync the labels, defined
 [here](https://github.com/kubeflow/testing/blob/master/label_sync/cluster/label_sync_job.yaml).
 After making changes to `kubeflow_label.yml`, we need to update the configmap
 [label-config-v2](https://github.com/kubeflow/testing/blob/master/label_sync/cluster/label_sync_job.yaml#L37):
 ```
 # Setup kubectl to point to kubeflow-testing cluster in kubeflow-ci
-kubectl delete configmap label-config-v2
-kubectl create configmap label-config-v2 --from-file=kubeflow_label.yml
+kubectl -n github-admin delete configmap label-config-v2
+kubectl -n github-admin create configmap label-config-v2 --from-file=kubeflow_label.yml
 ```
+### Create a GitHub OAuth token
 
+Use GitHub to create an OAuth token
+ 
+  * You need repo scope in order to modify labels on issues
+
+
+```
+kubectl -n github-admin create secret generic bot-token-github --from-literal=bot-token=${GITHUB_TOKEN}
+```
+## Create the cron job
+
+```
+kubectl -n github-admin apply -f cluster/label_sync_cron_job.yaml
+```
