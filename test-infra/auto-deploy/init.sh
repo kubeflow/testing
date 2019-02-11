@@ -35,7 +35,7 @@ python -m checkout_lib.repo_clone_snapshot \
   --job_labels=${job_labels} \
   --nfs_path=${nfs_mnt}
 
-rm ${src_dir}/${repo_owner}/testing
+rm -rf ${src_dir}/${repo_owner}/testing
 git clone --single-branch --branch cluster-label \
   https://github.com/gabrielwen/testing.git ${src_dir}/${repo_owner}/testing
 
