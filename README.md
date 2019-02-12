@@ -131,27 +131,46 @@ The argo UI is publicly accessible at http://testing-argo.kubeflow.org/timeline.
 
 ### Stackdriver logs
 
-Since we run our E2E tests on GKE, all logs are persisted in [Stackdriver logging](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci&resource=container%2Fcluster_name%2Fkubeflow-testing&advancedFilter=resource.type%3D"container"%0Aresource.labels.cluster_name%3D"kubeflow-testing"%0A).
+Since we run our E2E tests on GKE, all logs are persisted in [Stackdriver logging](https://pantheon.corp.google.com/logs/viewer?project=kubeflow-ci&organizationId=714441643818&minLogLevel=0&expandAll=false&timestamp=2019-02-12T13:52:11.264000000Z&customFacets=&limitCustomFacetWidth=true&dateRangeStart=2019-02-12T12:52:20.819Z&dateRangeEnd=2019-02-12T13:52:20.819Z&interval=PT1H&resource=k8s_container%2Fcluster_name%2Fkf-v0-4-n00%2Fnamespace_name%2Fkubeflow%2Fcontainer_name%2Ftensorflow&advancedFilter=resource.type%3D"k8s_container"%0Aresource.labels.cluster_name%3D"kubeflow-testing").
 
 Viewer access to Stackdriver logs is available by joining one of the following groups
 
   * ci-viewer@kubeflow.org
   * ci-team@kubeflow.org
 
-If you know the pod id corresponding to the step of interest then you can use the following Stackdriver filter
+
+We use the new stackdriver Kubernetes logging which means we use the [k8s_pod](https://cloud.google.com/monitoring/api/resources#tag_k8s_pod)
+ and [k8s_container](https://cloud.google.com/monitoring/api/resources#tag_k8s_container) resource types.
+
+
+Below are some relevant filters:
+
+Get container logs for a specific pod
 
 ```
-resource.type="container"
+resource.type="k8s_container"
 resource.labels.cluster_name="kubeflow-testing"
-resource.labels.container_name = "main"
-resource.labels.pod_id=${POD_ID}
+resource.labels.pod_name="${POD_NAME}"
 ```
 
-The ${POD_ID} is of the form
+Get logs using pod label
 
 ```
-${WORKFLOW_ID}-${RANDOM_ID}
+resource.type="k8s_container"
+resource.labels.cluster_name="kubeflow-testing"
+metadata.userLabels.${LABEL_KEY}="${LABEL_VALUE}"
 ```
+
+Get events for a pod
+
+```
+resource.type="k8s_pod"
+resource.labels.cluster_name="${CLUSTER}"
+resource.labels.pod_name="${POD_NAME}"
+```
+
+The [Kubeflow docs](https://www.kubeflow.org/docs/other-guides/monitoring/#stackdriver-kubernetes) have some useful
+gcloud one liners for fetching logs.
 
 ## Debugging Failed Tests
 
