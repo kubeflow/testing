@@ -6,8 +6,8 @@ metadata:
   namespace: kubeflow-test-infra
 spec:
   concurrencyPolicy: "Forbid"
-  # Daily at 10p
-  schedule: "0 22 * * *"
+  # Deploy every 8 hours.
+  schedule: "*/8 * * * *"
   jobTemplate:
     spec:
       template:
