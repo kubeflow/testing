@@ -36,6 +36,8 @@ def get_deployment_cluster(project, location, base_name, cluster_nums):
   """
   credentials = GoogleCredentials.get_application_default()
   container = discovery.build("container", "v1", credentials=credentials)
+  # Using clusters client instead of deployments as deployments API doesn't
+  # return deployment labels anymore.
   clusters_client = container.projects().locations().clusters()
   cluster_timestamps = []
   for n in cluster_nums:
