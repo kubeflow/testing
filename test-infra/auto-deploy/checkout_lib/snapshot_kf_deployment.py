@@ -54,8 +54,9 @@ def get_deployment_cluster(project, location, base_name, cluster_nums):
         cluster_timestamps.append({"num": n, "timestamp": info.get(
             RESOURCE_LABELS, {}).get(SNAPSHOT_TIMESTAMP, "")})
     except googleapiclient.errors.HttpError as e:
-      logging.error("Getting cluster %s information error, ignoring: %s",
+      logging.error("Cluster %s not reachable, deploying to it: %s",
                     cluster, str(e))
+      return n
 
   if not cluster_timestamps:
     raise RuntimeError("Not able to find available cluster to deploy to.")
