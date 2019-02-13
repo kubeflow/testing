@@ -19,6 +19,16 @@ from oauth2client.client import GoogleCredentials
 MATCHING = [re.compile("e2e-.*"), re.compile("kfctl.*"),
             re.compile("z-.*"), re.compile(".*presubmit.*")]
 
+# Regexes that select matching disks
+MATCHING_DISK = [re.compile(".*e2e-.*"), re.compile(".*presubmit.*")]
+
+def is_match_disk(name):
+  for m in MATCHING_DISK:
+    if m.match(name):
+      return True
+
+  return False
+
 def is_match(name):
   for m in MATCHING:
     if m.match(name):
@@ -117,6 +127,47 @@ def cleanup_endpoints(args):
   logging.info("Unexpired services:\n%s", "\n".join(unexpired))
   logging.info("expired services:\n%s", "\n".join(expired))
 
+
+def cleanup_disks(args):
+  credentials = GoogleCredentials.get_application_default()
+
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  disks = compute.disks()
+  next_page_token = None
+
+  expired = []
+  unexpired = []
+  unmatched = []
+
+  for zone in args.zones.split(","):
+    while True:
+      results = disks.list(project=args.project,
+                           zone=zone,
+                           pageToken=next_page_token).execute()
+      if not "items" in results:
+        break
+      for d in results["items"]:
+        name = d["name"]
+        if not is_match_disk(name):
+          unmatched.append(name)
+          continue
+
+        age = getAge(d["creationTimestamp"])
+        if age > datetime.timedelta(hours=args.max_age_hours):
+          logging.info("Deleting disk: %s, age = %r", name, age)
+          disks.delete(project=args.project, zone=zone, disk=name)
+          expired.append(name)
+        else:
+          unexpired.append(name)
+      if not "nextPageToken" in results:
+        break
+      next_page_token = results["nextPageToken"]
+
+  logging.info("Unmatched disks:\n%s", "\n".join(unmatched))
+  logging.info("Unexpired disks:\n%s", "\n".join(unexpired))
+  logging.info("expired disks:\n%s", "\n".join(expired))
+
+
 def cleanup_service_accounts(args):
   credentials = GoogleCredentials.get_application_default()
 
@@ -170,6 +221,28 @@ def cleanup_service_accounts(args):
   logging.info("Unexpired emails:\n%s", "\n".join(unexpired_emails))
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
 
+def getAge(tsInRFC3339):
+  # The docs say insert time will be in RFC339 format.
+  # But it looks like it also includes a time zone offset in the form
+  # -HH:MM; which is slightly different from what datetime strftime %z
+  # uses (no colon).
+  # https://cloud.google.com/deployment-manager/docs/reference/latest/deployments/insert
+  #
+  # So we parse out the hours.
+  #
+  # TODO(jlewi): Can we use date_parser like we do in cleanup_service_accounts
+  insert_time_str = tsInRFC3339[:-6]
+  tz_offset = tsInRFC3339[-6:]
+  hours_offset = int(tz_offset.split(":", 1)[0])
+  RFC3339 = "%Y-%m-%dT%H:%M:%S.%f"
+  insert_time = datetime.datetime.strptime(insert_time_str, RFC3339)
+
+  # Convert the time to UTC
+  insert_time_utc = insert_time + datetime.timedelta(hours=-1 * hours_offset)
+  age = datetime.datetime.utcnow()- insert_time_utc
+  return age
+
+
 def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
   if not args.delete_script:
     raise ValueError("--delete_script must be specified.")
@@ -195,25 +268,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       continue
 
     full_insert_time = d.get("insertTime")
-    # The docs say insert time will be in RFC339 format.
-    # But it looks like it also includes a time zone offset in the form
-    # -HH:MM; which is slightly different from what datetime strftime %z
-    # uses (no colon).
-    # https://cloud.google.com/deployment-manager/docs/reference/latest/deployments/insert
-    #
-    # So we parse out the hours.
-    #
-    # TODO(jlewi): Can we use date_parser like we do in cleanup_service_accounts
-    insert_time_str = full_insert_time[:-6]
-    tz_offset = full_insert_time[-6:]
-    hours_offset = int(tz_offset.split(":", 1)[0])
-    RFC3339 = "%Y-%m-%dT%H:%M:%S.%f"
-    insert_time = datetime.datetime.strptime(insert_time_str, RFC3339)
-
-    # Convert the time to UTC
-    insert_time_utc = insert_time + datetime.timedelta(hours=-1 * hours_offset)
-
-    age = datetime.datetime.utcnow()- insert_time_utc
+    age = getAge(full_insert_time)
 
     if age > datetime.timedelta(hours=args.max_age_hours):
       # Get the zone.
@@ -298,6 +353,7 @@ def cleanup_all(args):
   cleanup_endpoints(args)
   cleanup_service_accounts(args)
   cleanup_workflows(args)
+  cleanup_disks(args)
 
 def add_workflow_args(parser):
   parser.add_argument(
