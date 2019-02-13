@@ -155,7 +155,8 @@ def cleanup_disks(args):
         age = getAge(d["creationTimestamp"])
         if age > datetime.timedelta(hours=args.max_age_hours):
           logging.info("Deleting disk: %s, age = %r", name, age)
-          disks.delete(project=args.project, zone=zone, disk=name)
+          response = disks.delete(project=args.project, zone=zone, disk=name)
+          logging.info("respone = %s", response)
           expired.append(name)
         else:
           unexpired.append(name)
