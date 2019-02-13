@@ -4,9 +4,9 @@ The purpose of this script is to automate the creation of Kubeflow Deployments
 corresponding to different versions of Kubeflow.
 """
 import argparse
-import getpass
 import logging
 import os
+import re
 import yaml
 
 from google.cloud import storage
@@ -62,6 +62,14 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     "--cluster_num",
     default="", type=int, help=("Number of cluster to deploy to."))
 
+  parser.add_argument(
+    "--timestamp",
+    default="", type=str, help=("Timestamp deployment takes snapshot."))
+
+  parser.add_argument(
+    "--job_name",
+    default="", type=str, help=("Pod name running the job."))
+
   args = parser.parse_args()
 
   bucket, blob_path = util.split_gcs_uri(args.oauth_file)
@@ -89,12 +97,14 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # Clean up previous deployment. We are not able to run "kfctl delete all"
   # since we are not able to guarantee apps config in repository is up to date.
   util.run(["rm", "-rf", name], cwd=args.apps_dir)
-  # TODO(gabrielwen):
-  # https://github.com/kubeflow/testing/issues/295
-  # 1. Is deployment deletion still needed?
-  # 2. If it is, figure out permission set up for it.
-  # 3. Should use
-  # https://github.com/kubeflow/kubeflow/blob/master/scripts/gke/delete_deployment.sh
+
+  # Delete deployment beforehand. If not, updating action might be failed when
+  # resource permission/requirement is changed. It's cleaner to delete and
+  # re-create it.
+  delete_deployment = os.path.join(args.kubeflow_repo, "scripts", "gke",
+                                   "delete_deployment.sh")
+  util.run([delete_deployment, "--project=" + args.project,
+            "--deployment=" + name, "--zone=" + args.zone], cwd=args.apps_dir)
 
   # Create a dummy kubeconfig in cronjob worker.
   util.run(["gcloud", "container", "clusters", "get-credentials", args.deployment_worker_cluster,
@@ -106,15 +116,28 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
             "--platform", "gcp", "--skipInitProject", "true"], cwd=args.apps_dir
            )
 
+  labels = {}
   with open(os.path.join(app_dir, "kf_app.yaml"), "w") as hf:
     app = {
       "labels": {
         "GIT_LABEL": git_describe,
         "PURPOSE": "kf-test-cluster",
-        "CREATOR": getpass.getuser(),
       },
     }
+    if args.timestamp:
+      app["labels"]["SNAPSHOT_TIMESTAMP"] = args.timestamp
+    if args.job_name:
+      app["labels"]["DEPLOYMENT_JOB"] = args.job_name
+    labels = app.get("labels", {})
     yaml.dump(app, hf)
+
+  label_args = []
+  for k, v in labels.items():
+    # labels can only take as input alphanumeric characters, hyphens, and
+    # underscores. Replace not valid characters with hyphens.
+    val = v.lower().replace("\"", "")
+    val = re.sub(r"[^a-z0-9\-_]", "-", val)
+    label_args.append("{key}={val}".format(key=k.lower(), val=val))
 
   util.run([kfctl, "generate", "all"], cwd=app_dir)
 
@@ -125,6 +148,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # components are not ready. Make it retry several times should be enough.
   kfctl_apply_with_retry(kfctl, app_dir, env)
 
+  logging.info("Annotating cluster with labels: %s", str(label_args))
+  util.run(["gcloud", "container", "clusters", "update", name,
+            "--zone", args.zone,
+            "--update-labels", ",".join(label_args)],
+           cwd=app_dir)
 
 if __name__ == "__main__":
   main()

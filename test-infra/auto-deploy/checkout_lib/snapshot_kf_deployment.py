@@ -15,6 +15,55 @@ import requests
 
 import checkout_util
 
+import googleapiclient
+from googleapiclient import discovery
+from oauth2client.client import GoogleCredentials
+
+RESOURCE_LABELS = "resourceLabels"
+SNAPSHOT_TIMESTAMP = "snapshot_timestamp"
+
+def get_deployment_cluster(project, location, base_name, cluster_nums):
+  """Retrieve deployment metadata from GCP and choose the oldest cluster.
+
+  Args:
+    project: Name of GCP project.
+    location: Cluster location.
+    base_name: Base name of clusters.
+    cluster_nums: A list of integers as suffix of cluster names.
+
+  Returns:
+    integer as the number points to the oldest cluster.
+  """
+  credentials = GoogleCredentials.get_application_default()
+  container = discovery.build("container", "v1", credentials=credentials)
+  # Using clusters client instead of deployments as deployments API doesn't
+  # return deployment labels anymore.
+  clusters_client = container.projects().locations().clusters()
+  cluster_timestamps = []
+  for n in cluster_nums:
+    cluster = "{0}-n{1:02d}".format(base_name, n)
+    name = "projects/{p}/locations/{l}/clusters/{c}".format(
+      p=project,
+      l=location,
+      c=cluster)
+    logging.info("Getting cluster info: %s", name)
+    try:
+      info = clusters_client.get(name=name, fields=RESOURCE_LABELS).execute()
+      if (RESOURCE_LABELS in info and
+          SNAPSHOT_TIMESTAMP in info.get(RESOURCE_LABELS, {})):
+        cluster_timestamps.append({"num": n, "timestamp": info.get(
+            RESOURCE_LABELS, {}).get(SNAPSHOT_TIMESTAMP, "")})
+    except googleapiclient.errors.HttpError as e:
+      logging.error("Cluster %s not reachable, deploying to it: %s",
+                    cluster, str(e))
+      return n
+
+  if not cluster_timestamps:
+    raise RuntimeError("Not able to find available cluster to deploy to.")
+
+  cluster_timestamps.sort(key=lambda x: x.get("timestamp", ""))
+  return cluster_timestamps[0].get("num", 0)
+
 def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   """Look into commit history and pick the latest commit SHA.
 
@@ -93,7 +142,18 @@ def main():
     "snapshot_repos", nargs="+", help=("Repositories needed to take snapshot."))
 
   parser.add_argument(
+    "--base_name", default="kf-v0-4", type=str,
+    help=("The base name for the deployment typically kf-vX-Y or kf-vmaster."))
+
+  parser.add_argument(
+    "--max_cluster_num", default=1, type=int,
+    help=("Max number for testing cluster(s)."))
+
+  parser.add_argument(
     "--project", default="kubeflow-ci", type=str, help=("The GCP project."))
+
+  parser.add_argument(
+    "--zone", default="us-east1-d", type=str, help=("The zone to deploy in."))
 
   parser.add_argument(
     "--repo_owner", default="kubeflow", type=str, help=("Github repo owner."))
@@ -117,6 +177,12 @@ def main():
   github_token = token_file.readline()
   token_file.close()
 
+  cluster_num = get_deployment_cluster(args.project, args.zone,
+                                       args.base_name, [
+    n for n in range(args.max_cluster_num)])
+
+  logging.info("Deploying to %d", cluster_num)
+
   job_name = checkout_util.get_job_name(args.job_labels)
 
   logging.info("Job name: %s", job_name)
@@ -127,10 +193,9 @@ def main():
   snapshot_time = datetime.datetime.utcnow().isoformat()
   logging.info("Snapshotting at %s", snapshot_time)
 
-  # TODO(gabrielwen): Add logic to choose deploying cluster_num.
   repo_snapshot = {
     "timestamp": snapshot_time,
-    "cluster_num": 1,
+    "cluster_num": cluster_num,
     "repos": {},
   }
   for repo in args.snapshot_repos:
@@ -138,6 +203,7 @@ def main():
     logging.info("Snapshot repo %s at %s", repo, sha)
     repo_snapshot["repos"][repo] = sha
 
+  logging.info("Snapshot = %s", str(repo_snapshot))
   folder = checkout_util.get_snapshot_path(args.nfs_path, job_name)
   lock_and_write(folder, json.dumps(repo_snapshot))
 

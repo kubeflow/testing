@@ -6,8 +6,8 @@ metadata:
   namespace: kubeflow-test-infra
 spec:
   concurrencyPolicy: "Forbid"
-  # Daily at 10p
-  schedule: "0 22 * * *"
+  # Deploy every 8 hours.
+  schedule: "*/8 * * * *"
   jobTemplate:
     spec:
       template:
@@ -15,14 +15,19 @@ spec:
           containers:
           - name: deploy-worker
             image: gcr.io/kubeflow-ci/deploy-worker:live
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /secret/gcp-credentials/key.json
             command:
             - /usr/local/bin/init.sh
-            - /src # SRC_DIR
-            - kubeflow # REPO_OWNER
-            - kubeflow-ci # PROJECT
-            - kubeflow-testing # WORKER_CLUSTER
-            - /etc/pod-info/labels # JOB_LABELS
-            - /mnt/test-data-volume # NFS_MNT
+            - --src_dir=/src
+            - --repo_owner=kubeflow
+            - --project=kubeflow-ci
+            - --worker_cluster=kubeflow-testing
+            - --job_labels=/etc/pod-info/labels
+            - --nfs_mnt=/mnt/test-data-volume
+            - --base_name=kf-v0-4
+            - --max_num_cluster=5
             volumeMounts:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"
