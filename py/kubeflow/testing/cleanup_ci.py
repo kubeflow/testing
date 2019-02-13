@@ -20,7 +20,7 @@ MATCHING = [re.compile("e2e-.*"), re.compile("kfctl.*"),
             re.compile("z-.*"), re.compile(".*presubmit.*")]
 
 # Regexes that select matching disks
-MATCHING_DISK = [re.compile(".*e2e-.*"), re.compile(".*presubmit.*")]
+MATCHING_DISK = [re.compile(".*postsubmit.*"), re.compile(".*presubmit.*")]
 
 def is_match_disk(name):
   for m in MATCHING_DISK:
