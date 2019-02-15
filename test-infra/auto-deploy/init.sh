@@ -36,14 +36,14 @@ python -m checkout_lib.repo_clone_snapshot \
   --job_labels=${job_labels} \
   --nfs_path=${nfs_mnt}
 
-# export PYTHONPATH="${PYTHONPATH}:${src_dir}/${repo_owner}/testing/py"
-# 
-# # Initiate deployment workflow.
-# ${src_dir}/${repo_owner}/testing/test-infra/auto-deploy/deployment-workflows.sh \
-#   --src_dir=${src_dir} \
-#   --repo_owner=${repo_owner} \
-#   --project=${project} \
-#   --worker_cluster=${worker_cluster} \
-#   --job_labels=${job_labels} \
-#   --nfs_mnt=${nfs_mnt} \
-#   --base_name=${base_name}
+export PYTHONPATH="${PYTHONPATH}:${src_dir}/${repo_owner}/testing/py"
+
+# Initiate deployment workflow.
+${src_dir}/${repo_owner}/testing/test-infra/auto-deploy/deployment-workflows.sh \
+  --src_dir=${src_dir} \
+  --repo_owner=${repo_owner} \
+  --project=${project} \
+  --worker_cluster=${worker_cluster} \
+  --job_labels=${job_labels} \
+  --nfs_mnt=${nfs_mnt} \
+  --base_name=${base_name}
