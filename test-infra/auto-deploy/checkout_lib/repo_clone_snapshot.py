@@ -54,13 +54,20 @@ def main():
 
   repos = snapshot.get("repos", {})
   for repo in repos:
-    logging.info("Checking out: %s at %s", repo, repos.get(repo, ""))
-    subprocess.call(("/usr/local/bin/checkout-snapshot.sh"
-                     " {src_dir} {repo_owner} {repo_name} {sha}").format(
+    branch = repos.get(repo, {}).get("branch", "")
+    sha = repos.get(repo, {}).get("sha", "")
+    logging.info("Checking out: %s at branch %s with SHA %s", repo, branch, sha)
+    subprocess.call(("/usr/local/bin/checkout-snapshot.sh "
+                     "--src_dir={src_dir} "
+                     "--repo_owner={repo_owner} "
+                     "--repo_name={repo_name} "
+                     "--branch={branch} "
+                     "--commit_sha={sha}").format(
                        src_dir=args.src_dir,
                        repo_owner=args.repo_owner,
                        repo_name=repo,
-                       sha=repos.get(repo, ""),
+                       branch=branch,
+                       sha=sha
                      ),
                     shell=True)
 

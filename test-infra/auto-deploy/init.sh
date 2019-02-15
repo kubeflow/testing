@@ -5,8 +5,8 @@ set -ex
 . /usr/local/lib/lib-args.sh
 
 # Deployment configs.
-required_args=(src_dir repo_owner project worker_cluster job_labels nfs_mnt \
-  base_name max_num_cluster)
+required_args=(src_dir repo_owner repo_branches project worker_cluster \
+  job_labels nfs_mnt base_name max_num_cluster)
 
 parseArgs $*
 validateRequiredArgs ${required_args}
@@ -17,8 +17,11 @@ gcloud config list
 
 export PYTHONPATH="${PYTHONPATH}:/usr/local/bin/py"
 
+# Split args by comma and replace with space.
+repos=$(echo ${repo_branches} | tr "," " ")
+
 python -m checkout_lib.snapshot_kf_deployment \
-  kubeflow testing \
+  ${repos} \
   --base_name=${base_name} \
   --project=${project} \
   --repo_owner=${repo_owner} \

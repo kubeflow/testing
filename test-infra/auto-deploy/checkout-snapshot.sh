@@ -2,22 +2,25 @@
 # Simple way to take a snapshot of a github repository at a given commit.
 set -xe
 
-SRC_DIR=$1
-REPO_OWNER=$2
-REPO_NAME=$3
-COMMIT_SHA=$4
+# Include library that helps on argument parsing.
+. /usr/local/lib/lib-args.sh
+
+required_args=(src_dir repo_owner repo_name branch commit_sha)
+parseArgs $*
+validateRequiredArgs ${required_args}
 
 ORIGIN_DIR=$PWD
 
-mkdir -p ${SRC_DIR}/${REPO_OWNER}
-REPO_DIR=${SRC_DIR}/${REPO_OWNER}/${REPO_NAME}
+mkdir -p ${src_dir}/${repo_owner}
+REPO_DIR=${src_dir}/${repo_owner}/${repo_name}
 
-echo "Checking out git repo: ${REPO_OWNER}/${REPO_NAME}.git"
-git clone https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${REPO_DIR}
+echo "Checking out git repo: ${repo_owner}/${repo_name}.git at branch ${branch}"
+git clone --single-branch --branch ${branch} \
+  https://github.com/${repo_owner}/${repo_name}.git ${REPO_DIR}
 
 cd ${REPO_DIR}
 
-echo "Taking snapshot at ${COMMIT_SHA}"
-git reset --hard ${COMMIT_SHA}
+echo "Taking snapshot at ${commit_sha}"
+git reset --hard ${commit_sha}
 
 cd ${ORIGIN_DIR}

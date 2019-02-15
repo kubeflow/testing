@@ -64,7 +64,7 @@ def get_deployment_cluster(project, location, base_name, cluster_nums):
   cluster_timestamps.sort(key=lambda x: x.get("timestamp", ""))
   return cluster_timestamps[0].get("num", 0)
 
-def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
+def repo_snapshot_hash(github_token, repo_owner, repo, branch, snapshot_time):
   """Look into commit history and pick the latest commit SHA.
 
   Args:
@@ -81,7 +81,7 @@ def repo_snapshot_hash(github_token, repo_owner, repo, snapshot_time):
   }
   url = ("https://api.github.com/repos/{owner}/{repo}/commits").format(
           owner=repo_owner, repo=repo)
-  params = {"until": snapshot_time}
+  params = {"until": snapshot_time, "sha": branch}
 
   r = requests.get(url, headers=headers, params=params, verify=False)
   if r.status_code != requests.codes.OK:
@@ -139,7 +139,10 @@ def main():
   parser = argparse.ArgumentParser()
 
   parser.add_argument(
-    "snapshot_repos", nargs="+", help=("Repositories needed to take snapshot."))
+    "snapshot_repos", nargs="+",
+    help=("Repositories needed to take snapshot. Should be in the format of "
+          "<repo_name>/<branch_name>. If branch_name is not given, default is "
+          "master."))
 
   parser.add_argument(
     "--base_name", default="kf-v0-4", type=str,
@@ -198,10 +201,17 @@ def main():
     "cluster_num": cluster_num,
     "repos": {},
   }
-  for repo in args.snapshot_repos:
-    sha = repo_snapshot_hash(github_token, args.repo_owner, repo, snapshot_time)
-    logging.info("Snapshot repo %s at %s", repo, sha)
-    repo_snapshot["repos"][repo] = sha
+  for repo_args in args.snapshot_repos:
+    repo_branch = repo_args.split("/")
+    repo = repo_branch[0] # pylint: disable=unsubscriptable-object
+    branch = repo_branch[1] if len(repo_branch) > 1 else "master" # pylint: disable=unsubscriptable-object
+    sha = repo_snapshot_hash(github_token, args.repo_owner, repo, branch,
+                             snapshot_time)
+    logging.info("Snapshot repo %s at %s, branch is %s", repo, sha, branch)
+    repo_snapshot["repos"][repo] = {
+      "sha": sha,
+      "branch": branch
+    }
 
   logging.info("Snapshot = %s", str(repo_snapshot))
   folder = checkout_util.get_snapshot_path(args.nfs_path, job_name)

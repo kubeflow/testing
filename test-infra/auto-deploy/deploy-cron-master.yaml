@@ -1,0 +1,61 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: auto-deploy-master
+  clusterName: kubeflow-testing
+  namespace: kubeflow-test-infra
+spec:
+  concurrencyPolicy: "Forbid"
+  # Deploy every 8 hours.
+  schedule: "0 */8 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: deploy-worker
+            image: gcr.io/kubeflow-ci/deploy-worker:live
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /secret/gcp-credentials/key.json
+            command:
+            - /usr/local/bin/init.sh
+            - --src_dir=/src
+            - --repo_owner=kubeflow
+            - --repo_branches=kubeflow/master,testing/master
+            - --project=kubeflow-ci
+            - --worker_cluster=kubeflow-testing
+            - --job_labels=/etc/pod-info/labels
+            - --nfs_mnt=/mnt/test-data-volume
+            - --base_name=kf-vmaster
+            - --max_num_cluster=5
+            volumeMounts:
+            - name: gcp-credentials
+              mountPath: "/secret/gcp-credentials"
+              readOnly: true
+            - name: pod-info
+              mountPath: "/etc/pod-info"
+              readOnly: true
+            - name: github-token
+              mountPath: "/secret/github-token"
+              readOnly: true
+            - name: test-data-volume
+              mountPath: "/mnt/test-data-volume"
+              readOnly: false
+          restartPolicy: Never
+          volumes:
+          - name: gcp-credentials
+            secret:
+              secretName: gcp-credentials
+          - name: github-token
+            secret:
+              secretName: github-token
+          - name: test-data-volume
+            persistentVolumeClaim:
+              claimName: nfs-external
+          - name: pod-info
+            downwardAPI:
+              items:
+                - path: "labels"
+                  fieldRef:
+                    fieldPath: metadata.labels
