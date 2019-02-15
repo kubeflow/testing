@@ -14,7 +14,7 @@ spec:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:latest
+            image: gcr.io/kubeflow-ci/deploy-worker:live
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
@@ -22,12 +22,12 @@ spec:
             - /usr/local/bin/init.sh
             - --src_dir=/src
             - --repo_owner=kubeflow
-            - --repo_branches=kubeflow/v0.4-branch,testing/master
+            - --repo_branches=kubeflow/master,testing/master
             - --project=kubeflow-ci
             - --worker_cluster=kubeflow-testing
             - --job_labels=/etc/pod-info/labels
             - --nfs_mnt=/mnt/test-data-volume
-            - --base_name=kf-v0-4
+            - --base_name=kf-vmaster
             - --max_num_cluster=5
             volumeMounts:
             - name: gcp-credentials
