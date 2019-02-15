@@ -17,6 +17,7 @@ gcloud config list
 
 export PYTHONPATH="${PYTHONPATH}:/usr/local/bin/py"
 
+# Split args by comma and replace with space.
 repos=$(echo ${repo_branches} | tr "," " ")
 
 python -m checkout_lib.snapshot_kf_deployment \
