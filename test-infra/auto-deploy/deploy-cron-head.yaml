@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: auto-deploy-v04
+  name: auto-deploy-head
   clusterName: kubeflow-testing
   namespace: kubeflow-test-infra
 spec:
