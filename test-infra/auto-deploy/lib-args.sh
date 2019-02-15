@@ -34,7 +34,3 @@ validateRequiredArgs() {
     fi
   done
 }
-
-# args=(foo bar baz)
-# parseArgs $*
-# validateRequiredArgs ${args}

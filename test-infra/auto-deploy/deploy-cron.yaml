@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: auto-deploy
+  name: auto-deploy-v04
   clusterName: kubeflow-testing
   namespace: kubeflow-test-infra
 spec:
@@ -14,7 +14,7 @@ spec:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:live
+            image: gcr.io/kubeflow-ci/deploy-worker:latest
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
@@ -22,6 +22,7 @@ spec:
             - /usr/local/bin/init.sh
             - --src_dir=/src
             - --repo_owner=kubeflow
+            - --repo_branches=kubeflow/v0.4-branch,testing/master
             - --project=kubeflow-ci
             - --worker_cluster=kubeflow-testing
             - --job_labels=/etc/pod-info/labels

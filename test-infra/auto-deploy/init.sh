@@ -5,8 +5,8 @@ set -ex
 . /usr/local/lib/lib-args.sh
 
 # Deployment configs.
-required_args=(src_dir repo_owner project worker_cluster job_labels nfs_mnt \
-  base_name max_num_cluster)
+required_args=(src_dir repo_owner repo_branches project worker_cluster \
+  job_labels nfs_mnt base_name max_num_cluster)
 
 parseArgs $*
 validateRequiredArgs ${required_args}
@@ -17,8 +17,10 @@ gcloud config list
 
 export PYTHONPATH="${PYTHONPATH}:/usr/local/bin/py"
 
+repos=$(echo ${repo_branches} | tr "," " ")
+
 python -m checkout_lib.snapshot_kf_deployment \
-  kubeflow testing \
+  ${repos} \
   --base_name=${base_name} \
   --project=${project} \
   --repo_owner=${repo_owner} \
@@ -27,21 +29,21 @@ python -m checkout_lib.snapshot_kf_deployment \
   --max_cluster_num=${max_num_cluster}
 
 # Check out fresh copy of KF and deployment workflow.
-python -m checkout_lib.repo_clone_snapshot \
-  --src_dir=${src_dir} \
-  --project=${project} \
-  --repo_owner=${repo_owner} \
-  --job_labels=${job_labels} \
-  --nfs_path=${nfs_mnt}
-
-export PYTHONPATH="${PYTHONPATH}:${src_dir}/${repo_owner}/testing/py"
-
-# Initiate deployment workflow.
-${src_dir}/${repo_owner}/testing/test-infra/auto-deploy/deployment-workflows.sh \
-  --src_dir=${src_dir} \
-  --repo_owner=${repo_owner} \
-  --project=${project} \
-  --worker_cluster=${worker_cluster} \
-  --job_labels=${job_labels} \
-  --nfs_mnt=${nfs_mnt} \
-  --base_name=${base_name}
+# python -m checkout_lib.repo_clone_snapshot \
+#   --src_dir=${src_dir} \
+#   --project=${project} \
+#   --repo_owner=${repo_owner} \
+#   --job_labels=${job_labels} \
+#   --nfs_path=${nfs_mnt}
+# 
+# export PYTHONPATH="${PYTHONPATH}:${src_dir}/${repo_owner}/testing/py"
+# 
+# # Initiate deployment workflow.
+# ${src_dir}/${repo_owner}/testing/test-infra/auto-deploy/deployment-workflows.sh \
+#   --src_dir=${src_dir} \
+#   --repo_owner=${repo_owner} \
+#   --project=${project} \
+#   --worker_cluster=${worker_cluster} \
+#   --job_labels=${job_labels} \
+#   --nfs_mnt=${nfs_mnt} \
+#   --base_name=${base_name}
