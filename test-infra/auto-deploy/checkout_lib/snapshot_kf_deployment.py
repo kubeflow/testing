@@ -208,7 +208,10 @@ def main():
     sha = repo_snapshot_hash(github_token, args.repo_owner, repo, branch,
                              snapshot_time)
     logging.info("Snapshot repo %s at %s, branch is %s", repo, sha, branch)
-    repo_snapshot["repos"][repo] = sha
+    repo_snapshot["repos"][repo] = {
+      "sha": sha,
+      "branch": branch
+    }
 
   logging.info("Snapshot = %s", str(repo_snapshot))
   folder = checkout_util.get_snapshot_path(args.nfs_path, job_name)

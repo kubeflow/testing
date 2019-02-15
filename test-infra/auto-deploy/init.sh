@@ -29,13 +29,13 @@ python -m checkout_lib.snapshot_kf_deployment \
   --max_cluster_num=${max_num_cluster}
 
 # Check out fresh copy of KF and deployment workflow.
-# python -m checkout_lib.repo_clone_snapshot \
-#   --src_dir=${src_dir} \
-#   --project=${project} \
-#   --repo_owner=${repo_owner} \
-#   --job_labels=${job_labels} \
-#   --nfs_path=${nfs_mnt}
-# 
+python -m checkout_lib.repo_clone_snapshot \
+  --src_dir=${src_dir} \
+  --project=${project} \
+  --repo_owner=${repo_owner} \
+  --job_labels=${job_labels} \
+  --nfs_path=${nfs_mnt}
+
 # export PYTHONPATH="${PYTHONPATH}:${src_dir}/${repo_owner}/testing/py"
 # 
 # # Initiate deployment workflow.
