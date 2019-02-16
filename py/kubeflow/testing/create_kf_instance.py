@@ -112,6 +112,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   app_dir = os.path.join(args.apps_dir, name)
   kfctl = os.path.join(args.kubeflow_repo, "scripts", "kfctl.sh")
+  ks_app_dir = os.path.join(app_dir, "ks_app")
   util.run([kfctl, "init", name, "--project", args.project, "--zone", args.zone,
             "--platform", "gcp", "--skipInitProject", "true"], cwd=args.apps_dir
            )
@@ -140,6 +141,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     label_args.append("{key}={val}".format(key=k.lower(), val=val))
 
   util.run([kfctl, "generate", "all"], cwd=app_dir)
+  util.run(["ks", "generate", "seldon", "seldon"], cwd=ks_app_dir)
 
   env = {}
   env.update(os.environ)
