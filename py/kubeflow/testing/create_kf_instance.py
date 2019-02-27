@@ -17,6 +17,14 @@ from retrying import retry
 def kfctl_apply_with_retry(kfctl, cwd, env):
   util.run([kfctl, "apply", "all"], cwd=cwd, env=env)
 
+def set_TLS(cluster):
+  github_kube_rsa = "github.com/kelseyhightower/kube-rsa"
+  util.run(["go", "get", github_kube_rsa])
+  kube_rsa = "/root/go/bin/kube-rsa"
+  tls_endpoint = "--host=%s.endpoints.kubeflow-ci.cloud.goog" % cluster
+  util.run([kube_rsa, tls_endpoint])
+
+
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
                       format=('%(levelname)s|%(asctime)s'
@@ -155,6 +163,12 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
             "--zone", args.zone,
             "--update-labels", ",".join(label_args)],
            cwd=app_dir)
+  util.run(["gcloud", "container", "clusters", "get-credentials", name,
+            "--zone", args.zone,
+            "--protject", args.project])
+  set_TLS(name)
+  util.run(["kubectl", "-n", "kubeflow", "create", "secret", "tls",
+           "envoy-ingress-tls", "--cert=ca.pem", "--key=ca-key.pem"])
 
 if __name__ == "__main__":
   main()
