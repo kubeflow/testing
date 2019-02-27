@@ -13,7 +13,6 @@
 # limitations under the License.
 """Creates a single project with specified service accounts and APIs enabled."""
 
-import copy
 import sys
 from apis import ApiResourceName
 
@@ -112,7 +111,7 @@ def GenerateConfig(context):
         if svc_acct not in policies_to_add[idx]['members']:
           policies_to_add[idx]['members'].append(svc_acct)
 
-    get_iam_policy_dependencies = [ project_id ]
+    get_iam_policy_dependencies = [project_id]
     for api in context.properties['apis']:
       get_iam_policy_dependencies.append(ApiResourceName(project_id, api))
 
@@ -175,21 +174,21 @@ def GenerateConfig(context):
         }
     })
   if context.properties.get('shared_vpc_host'):
-     resources.append({
-        'name': project_id + '-xpn-host',
-        'type': 'compute.beta.xpnHost',
-        'properties': {
-            'organization-id': context.properties['organization-id'],
-            'billing-account-name': context.properties['billing-account-name'],
-            'project': project_id,
-        },
-        'metadata': {
-            'dependsOn': [
-                ApiResourceName(project_id, 'compute.googleapis.com'),
-                project_id,
-            ],
-        }
-     })
+    resources.append({
+      'name': project_id + '-xpn-host',
+      'type': 'compute.beta.xpnHost',
+      'properties': {
+          'organization-id': context.properties['organization-id'],
+          'billing-account-name': context.properties['billing-account-name'],
+          'project': project_id,
+      },
+      'metadata': {
+          'dependsOn': [
+              ApiResourceName(project_id, 'compute.googleapis.com'),
+              project_id,
+          ],
+      }
+    })
   if context.properties.get('shared_vpc_service_of'):
       resources.append({
         'name': project_id + '-xpn-service-' +
@@ -223,5 +222,4 @@ def IsProjectParentValid(properties):
   """
   if ('shared_vpc_service_of' in properties or properties['shared_vpc_host']):
     return 'organization-id' in properties
-  else:
-    return ('organization-id' in properties or 'parent-folder-id' in properties)
+  return ('organization-id' in properties or 'parent-folder-id' in properties)
