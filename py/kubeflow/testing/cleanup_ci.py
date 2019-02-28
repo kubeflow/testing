@@ -251,10 +251,10 @@ def cleanup_service_account_bindings(args):
           members_to_keep.append(member)
         else:
           members_to_delete.append(member)
-    if len(members_to_keep) > 0:
+    if members_to_keep:
       binding['members'] = members_to_keep
       keepBindings.append(binding)
-    if len(members_to_delete) > 0:
+    if members_to_delete:
       logging.info("Delete binding for members:\n%s", ", ".join(members_to_delete))
   iamPolicy['bindings'] = keepBindings
   setBody = {'policy': iamPolicy}
