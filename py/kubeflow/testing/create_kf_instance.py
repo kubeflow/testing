@@ -155,6 +155,13 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
             "--zone", args.zone,
             "--update-labels", ",".join(label_args)],
            cwd=app_dir)
+  util.run(["gcloud", "container", "clusters", "get-credentials", name,
+            "--zone", args.zone,
+            "--protject", args.project])
+  tls_endpoint = "--host=%s.endpoints.kubeflow-ci.cloud.goog" % name
+  util.run(["kube-rsa", tls_endpoint])
+  util.run(["kubectl", "-n", "kubeflow", "create", "secret", "tls",
+           "envoy-ingress-tls", "--cert=ca.pem", "--key=ca-key.pem"])
 
 if __name__ == "__main__":
   main()
