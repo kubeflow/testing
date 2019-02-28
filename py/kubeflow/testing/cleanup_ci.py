@@ -247,7 +247,8 @@ def cleanup_service_account_bindings(unmatched_emails, unexpired_emails):
     else:
       logging.info("Delete binding for:\n%s", ", ".join(binding['members']))
   iamPolicy['bindings'] = keepBindings
-  resourcemanager.projects().setIamPolicy(resource='kubeflow-ci', body=iamPolicy).execute()
+  setBody = {'policy': iamPolicy}
+  resourcemanager.projects().setIamPolicy(resource='kubeflow-ci', body=setBody).execute()
 
 
 def getAge(tsInRFC3339):
