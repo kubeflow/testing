@@ -226,19 +226,20 @@ def cleanup_service_accounts(args):
 def cleanup_service_account_bindings(unmatched_emails, unexpired_emails):
   credentials = GoogleCredentials.get_application_default()
 
-  resourcemanager = discovery.build('cloudresourcemanager', 'v', credentials=credentials)
-  iamPolicy = resourcemanager.projects().getIamPolicy(resource='kubeflow-ci')
+  resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
+  iamPolicy = resourcemanager.projects().getIamPolicy(resource='kubeflow-ci').execute()
   keepBindings = []
-  keepCt, deleteCt = 0, 0
   for binding in iamPolicy['bindings']:
     needKeep = False
     for member in binding['members']:
-      if not member.startswith['serviceAccount:']:
+      if not member.startswith('serviceAccount:'):
         needKeep = True
         break
       else:
         accountEmail = member[15:]
-        if (not is_match(accountEmail)) or (accountEmail in unmatched_emails) or (accountEmail in unexpired_emails):
+        if (not is_match(accountEmail)) \
+                or (accountEmail in unmatched_emails) \
+                or (accountEmail in unexpired_emails):
           needKeep = True
           break
     if needKeep:
