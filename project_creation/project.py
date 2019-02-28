@@ -16,6 +16,7 @@
 import sys
 from apis import ApiResourceName
 
+#pylint: disable-msg=too-many-statements,too-many-branches
 def GenerateConfig(context):
   """Generates config."""
 
@@ -190,27 +191,27 @@ def GenerateConfig(context):
       }
     })
   if context.properties.get('shared_vpc_service_of'):
-      resources.append({
-        'name': project_id + '-xpn-service-' +
-            context.properties['shared_vpc_service_of'],
-        'type': 'compute.beta.xpnResource',
-        'properties': {
-            'organization-id': context.properties['organization-id'],
-            'billing-account-name': context.properties['billing-account-name'],
-            'project': [context.properties['shared_vpc_service_of']],
-            'xpnResource': {
-                'id': project_id,
-                'type': 'PROJECT',
-            },
-        },
-        'metadata': {
-            'dependsOn': [
-                ApiResourceName(project_id, 'compute.googleapis.com'),
-                project_id,
-                context.properties['shared_vpc_service_of'] + '-xpn-host',
-            ],
-        }
-      })
+    resources.append({
+      'name': project_id + '-xpn-service-' +
+      context.properties['shared_vpc_service_of'],
+      'type': 'compute.beta.xpnResource',
+      'properties': {
+          'organization-id': context.properties['organization-id'],
+          'billing-account-name': context.properties['billing-account-name'],
+          'project': [context.properties['shared_vpc_service_of']],
+          'xpnResource': {
+              'id': project_id,
+              'type': 'PROJECT',
+          },
+      },
+      'metadata': {
+          'dependsOn': [
+              ApiResourceName(project_id, 'compute.googleapis.com'),
+              project_id,
+              context.properties['shared_vpc_service_of'] + '-xpn-host',
+          ],
+      }
+    })
 
   return {'resources': resources}
 
@@ -222,4 +223,4 @@ def IsProjectParentValid(properties):
   """
   if ('shared_vpc_service_of' in properties or properties['shared_vpc_host']):
     return 'organization-id' in properties
-  return ('organization-id' in properties or 'parent-folder-id' in properties)
+  return 'organization-id' in properties or 'parent-folder-id' in properties
