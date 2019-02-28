@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: auto-deploy-master-
+  generateName: deploy-master-
   namespace: kubeflow-test-infra
 spec:
   template:
     spec:
       containers:
       - name: deploy-worker
-        image: gcr.io/kubeflow-ci/deploy-worker:v20190228-c9e8cad-dirty-fa0955
+        image: gcr.io/kubeflow-ci/deploy-worker:v20190228-e625074-dirty-decd62
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secret/gcp-credentials/key.json

@@ -27,7 +27,8 @@ python -m checkout_lib.snapshot_kf_deployment \
   --repo_owner=${repo_owner} \
   --job_labels=${job_labels} \
   --nfs_path=${nfs_mnt} \
-  --max_cluster_num=${max_num_cluster}
+  --max_cluster_num=${max_num_cluster} \
+  --zone=${zone}
 
 # Check out fresh copy of KF and deployment workflow.
 python -m checkout_lib.repo_clone_snapshot \
@@ -35,7 +36,8 @@ python -m checkout_lib.repo_clone_snapshot \
   --project=${project} \
   --repo_owner=${repo_owner} \
   --job_labels=${job_labels} \
-  --nfs_path=${nfs_mnt}
+  --nfs_path=${nfs_mnt} \
+  --zone=${zone}
 
 export PYTHONPATH="${PYTHONPATH}:${src_dir}/${repo_owner}/testing/py"
 
@@ -47,5 +49,5 @@ ${src_dir}/${repo_owner}/testing/test-infra/auto-deploy/deployment-workflows.sh 
   --worker_cluster=${worker_cluster} \
   --job_labels=${job_labels} \
   --nfs_mnt=${nfs_mnt} \
-  --base_name=${base_name}
+  --base_name=${base_name} \
   --zone=${zone}
