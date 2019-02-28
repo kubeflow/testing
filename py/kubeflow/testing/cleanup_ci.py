@@ -201,19 +201,18 @@ def cleanup_service_accounts(args):
 
     keys = keys_client.list(name=a["name"]).execute()
 
-    is_expired = False
+    is_expired = True
     for k in keys["keys"]:
       valid_time = date_parser.parse(k["validAfterTime"])
       now = datetime.datetime.now(valid_time.tzinfo)
 
       age = now - valid_time
-      if age > datetime.timedelta(hours=args.max_age_hours):
-        logging.info("Deleting account: %s", a["email"])
-        iam.projects().serviceAccounts().delete(name=a["name"]).execute()
-        is_expired = True
+      if age < datetime.timedelta(hours=args.max_age_hours):
+        is_expired = False
         break
-
     if is_expired:
+      logging.info("Deleting account: %s", a["email"])
+      iam.projects().serviceAccounts().delete(name=a["name"]).execute()
       expired_emails.append(a["email"])
     else:
       unexpired_emails.append(a["email"])
@@ -221,6 +220,34 @@ def cleanup_service_accounts(args):
   logging.info("Unmatched emails:\n%s", "\n".join(unmatched_emails))
   logging.info("Unexpired emails:\n%s", "\n".join(unexpired_emails))
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
+  cleanup_service_account_bindings(unmatched_emails, unexpired_emails)
+
+
+def cleanup_service_account_bindings(unmatched_emails, unexpired_emails):
+  credentials = GoogleCredentials.get_application_default()
+
+  resourcemanager = discovery.build('cloudresourcemanager', 'v', credentials=credentials)
+  iamPolicy = resourcemanager.projects().getIamPolicy(resource='kubeflow-ci')
+  keepBindings = []
+  keepCt, deleteCt = 0, 0
+  for binding in iamPolicy['bindings']:
+    needKeep = False
+    for member in binding['members']:
+      if not member.startswith['serviceAccount:']:
+        needKeep = True
+        break
+      else:
+        accountEmail = member[15:]
+        if (not is_match(accountEmail)) or (accountEmail in unmatched_emails) or (accountEmail in unexpired_emails):
+          needKeep = True
+          break
+    if needKeep:
+      keepBindings.append(binding)
+    else:
+      logging.info("Delete binding for:\n%s", ", ".join(binding['members']))
+  iamPolicy['bindings'] = keepBindings
+  resourcemanager.projects().setIamPolicy(resource='kubeflow-ci', body=iamPolicy).execute()
+
 
 def getAge(tsInRFC3339):
   # The docs say insert time will be in RFC339 format.
