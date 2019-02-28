@@ -167,7 +167,6 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
 
-
 # Add the directory where we will checkout kubeflow/testing
 # which contains shared scripts.
 ENV PYTHONPATH /src/kubeflow/testing/py
