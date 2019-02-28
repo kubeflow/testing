@@ -201,19 +201,18 @@ def cleanup_service_accounts(args):
 
     keys = keys_client.list(name=a["name"]).execute()
 
-    is_expired = False
+    is_expired = True
     for k in keys["keys"]:
       valid_time = date_parser.parse(k["validAfterTime"])
       now = datetime.datetime.now(valid_time.tzinfo)
 
       age = now - valid_time
-      if age > datetime.timedelta(hours=args.max_age_hours):
-        logging.info("Deleting account: %s", a["email"])
-        iam.projects().serviceAccounts().delete(name=a["name"]).execute()
-        is_expired = True
+      if age < datetime.timedelta(hours=args.max_age_hours):
+        is_expired = False
         break
-
     if is_expired:
+      logging.info("Deleting account: %s", a["email"])
+      iam.projects().serviceAccounts().delete(name=a["name"]).execute()
       expired_emails.append(a["email"])
     else:
       unexpired_emails.append(a["email"])
@@ -221,6 +220,50 @@ def cleanup_service_accounts(args):
   logging.info("Unmatched emails:\n%s", "\n".join(unmatched_emails))
   logging.info("Unexpired emails:\n%s", "\n".join(unexpired_emails))
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
+
+
+def trim_unused_bindings(iamPolicy, accounts):
+  keepBindings = []
+  for binding in iamPolicy['bindings']:
+    members_to_keep = []
+    members_to_delete = []
+    for member in binding['members']:
+      if not member.startswith('serviceAccount:'):
+        members_to_keep.append(member)
+      else:
+        accountEmail = member[15:]
+        if (not is_match(accountEmail)) or (accountEmail in accounts):
+          members_to_keep.append(member)
+        else:
+          members_to_delete.append(member)
+    if members_to_keep:
+      binding['members'] = members_to_keep
+      keepBindings.append(binding)
+    if members_to_delete:
+      logging.info("Delete binding for members:\n%s", ", ".join(members_to_delete))
+  iamPolicy['bindings'] = keepBindings
+
+def cleanup_service_account_bindings(args):
+  credentials = GoogleCredentials.get_application_default()
+  iam = discovery.build('iam', 'v1', credentials=credentials)
+  accounts = []
+  next_page_token = None
+  while True:
+    service_accounts = iam.projects().serviceAccounts().list(
+      name='projects/' + args.project, pageToken=next_page_token).execute()
+    for a in service_accounts["accounts"]:
+      accounts.append(a["email"])
+    if not "nextPageToken" in service_accounts:
+      break
+    next_page_token = service_accounts["nextPageToken"]
+
+  resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
+  iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project).execute()
+  trim_unused_bindings(iamPolicy, accounts)
+
+  setBody = {'policy': iamPolicy}
+  resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
+
 
 def getAge(tsInRFC3339):
   # The docs say insert time will be in RFC339 format.
@@ -353,6 +396,7 @@ def cleanup_all(args):
   cleanup_deployments(args)
   cleanup_endpoints(args)
   cleanup_service_accounts(args)
+  cleanup_service_account_bindings(args)
   cleanup_workflows(args)
   cleanup_disks(args)
 
