@@ -240,20 +240,22 @@ def cleanup_service_account_bindings(args):
   iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project).execute()
   keepBindings = []
   for binding in iamPolicy['bindings']:
-    needKeep = False
+    members_to_keep = []
+    members_to_delete = []
     for member in binding['members']:
       if not member.startswith('serviceAccount:'):
-        needKeep = True
-        break
+        members_to_keep.append(member)
       else:
         accountEmail = member[15:]
         if (not is_match(accountEmail)) or (accountEmail in accounts):
-          needKeep = True
-          break
-    if needKeep:
+          members_to_keep.append(member)
+        else:
+          members_to_delete.append(member)
+    if len(members_to_keep) > 0:
+      binding['members'] = members_to_keep
       keepBindings.append(binding)
-    else:
-      logging.info("Delete binding for:\n%s", ", ".join(binding['members']))
+    if len(members_to_delete) > 0:
+      logging.info("Delete binding for members:\n%s", ", ".join(members_to_delete))
   iamPolicy['bindings'] = keepBindings
   setBody = {'policy': iamPolicy}
   resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
