@@ -222,22 +222,7 @@ def cleanup_service_accounts(args):
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
 
 
-def cleanup_service_account_bindings(args):
-  credentials = GoogleCredentials.get_application_default()
-  iam = discovery.build('iam', 'v1', credentials=credentials)
-  accounts = []
-  next_page_token = None
-  while True:
-    service_accounts = iam.projects().serviceAccounts().list(
-      name='projects/' + args.project, pageToken=next_page_token).execute()
-    for a in service_accounts["accounts"]:
-      accounts.append(a["email"])
-    if not "nextPageToken" in service_accounts:
-      break
-    next_page_token = service_accounts["nextPageToken"]
-
-  resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
-  iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project).execute()
+def trim_unused_bindings(iamPolicy, accounts):
   keepBindings = []
   for binding in iamPolicy['bindings']:
     members_to_keep = []
@@ -257,6 +242,25 @@ def cleanup_service_account_bindings(args):
     if members_to_delete:
       logging.info("Delete binding for members:\n%s", ", ".join(members_to_delete))
   iamPolicy['bindings'] = keepBindings
+
+def cleanup_service_account_bindings(args):
+  credentials = GoogleCredentials.get_application_default()
+  iam = discovery.build('iam', 'v1', credentials=credentials)
+  accounts = []
+  next_page_token = None
+  while True:
+    service_accounts = iam.projects().serviceAccounts().list(
+      name='projects/' + args.project, pageToken=next_page_token).execute()
+    for a in service_accounts["accounts"]:
+      accounts.append(a["email"])
+    if not "nextPageToken" in service_accounts:
+      break
+    next_page_token = service_accounts["nextPageToken"]
+
+  resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
+  iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project).execute()
+  trim_unused_bindings(iamPolicy, accounts)
+
   setBody = {'policy': iamPolicy}
   resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
 
