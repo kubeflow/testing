@@ -220,14 +220,24 @@ def cleanup_service_accounts(args):
   logging.info("Unmatched emails:\n%s", "\n".join(unmatched_emails))
   logging.info("Unexpired emails:\n%s", "\n".join(unexpired_emails))
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
-  cleanup_service_account_bindings(unmatched_emails, unexpired_emails)
 
 
-def cleanup_service_account_bindings(unmatched_emails, unexpired_emails):
+def cleanup_service_account_bindings(args):
   credentials = GoogleCredentials.get_application_default()
+  iam = discovery.build('iam', 'v1', credentials=credentials)
+  accounts = []
+  next_page_token = None
+  while True:
+    service_accounts = iam.projects().serviceAccounts().list(
+      name='projects/' + args.project, pageToken=next_page_token).execute()
+    for a in service_accounts["accounts"]:
+      accounts.append(a["email"])
+    if not "nextPageToken" in service_accounts:
+      break
+    next_page_token = service_accounts["nextPageToken"]
 
   resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
-  iamPolicy = resourcemanager.projects().getIamPolicy(resource='kubeflow-ci').execute()
+  iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project).execute()
   keepBindings = []
   for binding in iamPolicy['bindings']:
     needKeep = False
@@ -237,9 +247,7 @@ def cleanup_service_account_bindings(unmatched_emails, unexpired_emails):
         break
       else:
         accountEmail = member[15:]
-        if (not is_match(accountEmail)) \
-                or (accountEmail in unmatched_emails) \
-                or (accountEmail in unexpired_emails):
+        if (not is_match(accountEmail)) or (accountEmail in accounts):
           needKeep = True
           break
     if needKeep:
@@ -248,7 +256,7 @@ def cleanup_service_account_bindings(unmatched_emails, unexpired_emails):
       logging.info("Delete binding for:\n%s", ", ".join(binding['members']))
   iamPolicy['bindings'] = keepBindings
   setBody = {'policy': iamPolicy}
-  resourcemanager.projects().setIamPolicy(resource='kubeflow-ci', body=setBody).execute()
+  resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
 
 
 def getAge(tsInRFC3339):
@@ -382,6 +390,7 @@ def cleanup_all(args):
   cleanup_deployments(args)
   cleanup_endpoints(args)
   cleanup_service_accounts(args)
+  cleanup_service_account_bindings(args)
   cleanup_workflows(args)
   cleanup_disks(args)
 
