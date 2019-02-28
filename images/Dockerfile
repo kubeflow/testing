@@ -142,7 +142,7 @@ RUN cd /tmp/ && \
 RUN pip3 install pipenv==2018.10.9
 RUN cd /tmp/ && pipenv install --system --three
 
-RUN pip install yq 
+RUN pip install yq
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh
@@ -162,8 +162,13 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
+ENV GOPATH /usr/local/go
+
+RUN go get github.com/kelseyhightower/kube-rsa
+
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
+
 
 # Add the directory where we will checkout kubeflow/testing
 # which contains shared scripts.
