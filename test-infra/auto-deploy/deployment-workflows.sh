@@ -42,6 +42,7 @@ python -m kubeflow.testing.create_kf_instance \
   --deployment_worker_cluster=${worker_cluster} \
   --cluster_num=${cluster_num} \
   --timestamp=${timestamp} \
-  --job_name=${job_name}
+  --job_name=${job_name} \
+  --zone=${zone}
 
 # TODO(gabrielwen): Push changes to app folders to git.

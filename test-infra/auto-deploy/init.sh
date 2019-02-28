@@ -6,7 +6,7 @@ set -ex
 
 # Deployment configs.
 required_args=(src_dir repo_owner repo_branches project worker_cluster \
-  job_labels nfs_mnt base_name max_num_cluster)
+  job_labels nfs_mnt base_name max_num_cluster zone)
 
 parseArgs $*
 validateRequiredArgs ${required_args}
@@ -48,3 +48,4 @@ ${src_dir}/${repo_owner}/testing/test-infra/auto-deploy/deployment-workflows.sh 
   --job_labels=${job_labels} \
   --nfs_mnt=${nfs_mnt} \
   --base_name=${base_name}
+  --zone=${zone}
