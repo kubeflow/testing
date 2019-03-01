@@ -7,7 +7,7 @@ set -ex
 
 # Deployment configs.
 required_args=(src_dir repo_owner project worker_cluster job_labels nfs_mnt \
-  base_name)
+  base_name zone)
 
 parseArgs $*
 validateRequiredArgs ${required_args}
@@ -42,6 +42,7 @@ python -m kubeflow.testing.create_kf_instance \
   --deployment_worker_cluster=${worker_cluster} \
   --cluster_num=${cluster_num} \
   --timestamp=${timestamp} \
-  --job_name=${job_name}
+  --job_name=${job_name} \
+  --zone=${zone}
 
 # TODO(gabrielwen): Push changes to app folders to git.

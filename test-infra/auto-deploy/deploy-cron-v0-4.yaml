@@ -29,6 +29,7 @@ spec:
             - --nfs_mnt=/mnt/test-data-volume
             - --base_name=kf-v0-4
             - --max_num_cluster=5
+            - --zone=us-east1-b
             volumeMounts:
             - name: gcp-credentials
               mountPath: "/secret/gcp-credentials"
