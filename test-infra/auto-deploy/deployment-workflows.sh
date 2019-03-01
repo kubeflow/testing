@@ -7,7 +7,7 @@ set -ex
 
 # Deployment configs.
 required_args=(src_dir repo_owner project worker_cluster job_labels nfs_mnt \
-  base_name)
+  base_name zone)
 
 parseArgs $*
 validateRequiredArgs ${required_args}
