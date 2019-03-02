@@ -39,8 +39,10 @@ push: build
 	# Add tag starting hitting problems so tag and push
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	gcloud docker -- push $(IMG):$(TAG) 	
+	./set_images.sh $(IMG):$(TAG)
 
 build-gcb:
 	gcloud builds submit --machine-type=n1-highcpu-32 --project=kubeflow-ci \
     --tag=$(IMG):$(TAG) \
 	--timeout=3600
+	./set_images.sh $(IMG):$(TAG)

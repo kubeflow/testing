@@ -331,6 +331,51 @@ def wait_for_operation(client,
   # Linter complains if we don't have a return here even though its unreachable.
   return None
 
+def wait_for_gcp_operation(client,
+                           project,
+                           zone,
+                           op_id,
+                           timeout=datetime.timedelta(hours=1),
+                           polling_interval=datetime.timedelta(seconds=5)):
+  """Wait for the specified operation to complete.
+
+  Args:
+    client: Operations client for the API that owns the operation; should
+      have get
+    project: project
+    zone: Zone. Set to none if its a global operation
+    op_id: Operation id.
+    timeout: A datetime.timedelta expressing the amount of time to wait before
+      giving up.
+    polling_interval: A datetime.timedelta to represent the amount of time to
+      wait between requests polling for the operation status.
+
+  Returns:
+    op: The final operation.
+
+  Raises:
+    TimeoutError: if we timeout waiting for the operation to complete.
+  """
+  endtime = datetime.datetime.now() + timeout
+  while True:
+    if zone:
+      op = client.get(
+        projectId=project, zone=zone, operationId=op_id).execute()
+    else:
+      op = client.get(
+        project=project, operation=op_id).execute()
+
+    status = op.get("status", "")
+    # Need to handle other status's
+    if status == "DONE":
+      return op
+    if datetime.datetime.now() > endtime:
+      raise TimeoutError(
+        "Timed out waiting for op: {0} to complete.".format(op_id))
+    time.sleep(polling_interval.total_seconds())
+
+  # Linter complains if we don't have a return here even though its unreachable.
+  return None
 
 def configure_kubectl(project, zone, cluster_name):
   logging.info("Configuring kubectl")

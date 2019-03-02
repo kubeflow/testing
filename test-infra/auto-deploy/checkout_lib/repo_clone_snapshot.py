@@ -23,53 +23,39 @@ def main():
   parser = argparse.ArgumentParser()
 
   parser.add_argument(
-    "--src_dir", default="", type=str,
-    help=("Directory to write repositories to."))
-
-  parser.add_argument(
-    "--project", default="kubeflow-ci", type=str, help=("The project."))
-
-  parser.add_argument(
-    "--zone", default="us-east1-d", type=str, help=("The zone to deploy in."))
-
-  parser.add_argument(
-    "--repo_owner", default="kubeflow", type=str, help=("Repository owner."))
-
-  parser.add_argument(
-    "--job_labels",
-    default="/etc/pod-info/labels",
-    type=str, help=("DownwardAPIVolumeFile for job labels."))
-
-  parser.add_argument(
-    "--nfs_path", default="", type=str, help=("GCP Filestore PVC mount path."))
+    "--data_dir", default="", type=str, help=("Directory to store the data."))
 
   args = parser.parse_args()
-  job_name = checkout_util.get_job_name(args.job_labels)
-  snapshot_path = checkout_util.get_snapshot_path(args.nfs_path, job_name)
 
-  logging.info("Job name: %s", job_name)
+  snapshot_path = os.path.join(args.data_dir, "snapshot.json")
   logging.info("Reading: %s", snapshot_path)
-  snapshot = json.load(open(os.path.join(snapshot_path, "snapshot.json"), "r"))
+  snapshot = json.load(open(snapshot_path, "r"))
   logging.info("Snapshot: %s", str(snapshot))
 
-  repos = snapshot.get("repos", {})
+  repos = snapshot.get("repos", [])
+
   for repo in repos:
-    branch = repos.get(repo, {}).get("branch", "")
-    sha = repos.get(repo, {}).get("sha", "")
+    branch = repo.get("branch", "")
+    sha = repo.get("sha", "")
     logging.info("Checking out: %s at branch %s with SHA %s", repo, branch, sha)
-    subprocess.call(("/usr/local/bin/checkout-snapshot.sh "
-                     "--src_dir={src_dir} "
-                     "--repo_owner={repo_owner} "
-                     "--repo_name={repo_name} "
-                     "--branch={branch} "
-                     "--commit_sha={sha}").format(
-                       src_dir=args.src_dir,
-                       repo_owner=args.repo_owner,
-                       repo_name=repo,
-                       branch=branch,
-                       sha=sha
-                     ),
-                    shell=True)
+
+    target_dir = os.path.join(args.data_dir, repo["repo"])
+    if os.path.exists(target_dir):
+      logging.info("Directory %s already exists; not checking out repo",
+                   repo["repo"])
+      continue
+    git_url = "https://github.com/{repo_owner}/{repo_name}.git".format(
+        repo_owner=repo["owner"], repo_name=repo["repo"],)
+    command = ["git", "clone", "--single-branch", "--branch", branch,
+               git_url, repo["repo"]]
+    logging.info("Executing: %s", command)
+    subprocess.check_call(command, cwd=args.data_dir)
+
+    logging.info("Taking snapshot at %s", sha)
+    command = ["git", "reset", "--hard", sha]
+    logging.info("Executing: %s", command)
+    subprocess.check_call(command, cwd=os.path.join(args.data_dir,
+                                                    repo["repo"]))
 
 if __name__ == '__main__':
   main()
