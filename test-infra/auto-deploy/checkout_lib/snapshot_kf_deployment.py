@@ -16,7 +16,6 @@ import requests
 
 import checkout_util
 
-import googleapiclient
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
@@ -34,14 +33,13 @@ def get_deployment_name(project, base_name, max_num):
   credentials = GoogleCredentials.get_application_default()
 
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
-  manifests_client = dm.manifests()
   dm_client = dm.deployments()
 
   matching = {}
 
   next_page_token = None
 
-  m = re.compile(base_name + "-n\d\d$")
+  m = re.compile(base_name + r"-n\d\d$")
   while True:
     deployments = dm_client.list(project=project,
                                  pageToken=next_page_token).execute()
