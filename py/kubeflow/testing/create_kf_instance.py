@@ -5,17 +5,39 @@ corresponding to different versions of Kubeflow.
 """
 import argparse
 import logging
+import json
 import os
 import re
 import yaml
 
+from googleapiclient import discovery
 from google.cloud import storage
 from kubeflow.testing import util
 from retrying import retry
+from oauth2client.client import GoogleCredentials
 
 @retry(wait_fixed=60000, stop_max_attempt_number=5)
-def kfctl_apply_with_retry(kfctl, cwd, env):
-  util.run([kfctl, "apply", "all"], cwd=cwd, env=env)
+def run_with_retry(*args, **kwargs):
+  util.run(*args, **kwargs)
+
+def delete_storage_deployment(project, name):
+  credentials = GoogleCredentials.get_application_default()
+  dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
+
+  deployments_client = dm.deployments()
+
+  try:
+    op = deployments_client.delete(project=project, deployment=name,
+                                   deletePolicy="DELETE").execute()
+  except Exception as e:
+    if hasattr(e, 'content'):
+      m = json.loads(e.content)
+      if m.get("error", {}).get("code") == 404:
+        return
+      raise
+    raise
+
+  util.wait_for_gcp_operation(dm.operations(), project, None, op["name"])
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
@@ -26,10 +48,6 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.getLogger().setLevel(logging.INFO)
 
   parser = argparse.ArgumentParser()
-
-  parser.add_argument(
-    "--base_name", default="kf-v0-4", type=str,
-    help=("The base name for the deployment typically kf-vX-Y or kf-vmaster."))
 
   parser.add_argument(
     "--project", default="kubeflow-ci", type=str, help=("The project."))
@@ -54,13 +72,13 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     type=str, help=("Directory to store kubeflow apps."))
 
   parser.add_argument(
-    "--deployment_worker_cluster",
-    default="kubeflow-testing",
-    type=str, help=("Name of cluster deployment cronjob workers use."))
+    "--name",
+    default="", type=str, help=("Name for the deployment."))
 
   parser.add_argument(
-    "--cluster_num",
-    default="", type=int, help=("Number of cluster to deploy to."))
+    "--snapshot_file",
+    default="", type=str, help=("A json file containing information about the "
+                                "snapshot to use."))
 
   parser.add_argument(
     "--timestamp",
@@ -85,15 +103,16 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
                           cwd=args.kubeflow_repo).strip("'")
 
-  # TODO(https://github.com/kubeflow/testing/issues/95): We want to cycle
-  # between N different names e.g.
-  # kf-vX-Y-n00, kf-vX-Y-n01, ... kf-vX-Y-n05
-  # The reason to reuse names is because for IAP we need to manually
-  # set the redirect URIs. So we want to cycle between a set of known
-  # endpoints. We should add logic to automatically recycle deployments.
-  # i.e. we should find the oldest one and reuse that.
-  num = args.cluster_num
-  name = "{0}-n{1:02d}".format(args.base_name, num)
+  timestamp = args.timestamp
+  if args.snapshot_file:
+    logging.info("Loading info from snapshot file %s", args.snapshot_file)
+    with open(args.snapshot_file) as hf:
+      snapshot_info = json.load(hf)
+      name = snapshot_info["name"]
+      timestamp = snapshot_info.get("timestamp", "")
+  else:
+    name = args.name
+
   # Clean up previous deployment. We are not able to run "kfctl delete all"
   # since we are not able to guarantee apps config in repository is up to date.
   util.run(["rm", "-rf", name], cwd=args.apps_dir)
@@ -103,12 +122,12 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # re-create it.
   delete_deployment = os.path.join(args.kubeflow_repo, "scripts", "gke",
                                    "delete_deployment.sh")
+
   util.run([delete_deployment, "--project=" + args.project,
             "--deployment=" + name, "--zone=" + args.zone], cwd=args.apps_dir)
 
-  # Create a dummy kubeconfig in cronjob worker.
-  util.run(["gcloud", "container", "clusters", "get-credentials", args.deployment_worker_cluster,
-            "--zone", args.zone, "--project", args.project], cwd=args.apps_dir)
+  # Delete script doesn't delete storage deployment by design.
+  delete_storage_deployment(args.project, name + "-storage")
 
   app_dir = os.path.join(args.apps_dir, name)
   kfctl = os.path.join(args.kubeflow_repo, "scripts", "kfctl.sh")
@@ -125,8 +144,8 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
         "PURPOSE": "kf-test-cluster",
       },
     }
-    if args.timestamp:
-      app["labels"]["SNAPSHOT_TIMESTAMP"] = args.timestamp
+    if timestamp:
+      app["labels"]["SNAPSHOT_TIMESTAMP"] = timestamp
     if args.job_name:
       app["labels"]["DEPLOYMENT_JOB"] = args.job_name
     labels = app.get("labels", {})
@@ -140,24 +159,34 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     val = re.sub(r"[^a-z0-9\-_]", "-", val)
     label_args.append("{key}={val}".format(key=k.lower(), val=val))
 
-  util.run([kfctl, "generate", "all"], cwd=app_dir)
-  util.run(["ks", "generate", "seldon", "seldon"], cwd=ks_app_dir)
 
   env = {}
   env.update(os.environ)
   env.update(oauth_info)
+
+  # We need to apply platform before doing generate k8s because we need
+  # to have a cluster for ksonnet.
   # kfctl apply all might break during cronjob invocation when depending
   # components are not ready. Make it retry several times should be enough.
-  kfctl_apply_with_retry(kfctl, app_dir, env)
+  run_with_retry([kfctl, "generate", "platform"], cwd=app_dir, env=env)
+  run_with_retry([kfctl, "apply", "platform"], cwd=app_dir, env=env)
+  run_with_retry([kfctl, "generate", "k8s"], cwd=app_dir, env=env)
+  run_with_retry([kfctl, "apply", "k8s"], cwd=app_dir, env=env)
+  run_with_retry(["ks", "generate", "seldon", "seldon"], cwd=ks_app_dir, env=env)
 
   logging.info("Annotating cluster with labels: %s", str(label_args))
-  util.run(["gcloud", "container", "clusters", "update", name,
-            "--zone", args.zone,
+
+  # Set labels on the deployment
+  util.run(["gcloud", "--project", args.project,
+            "deployment-manager", "deployments", "update", name,
             "--update-labels", ",".join(label_args)],
-           cwd=app_dir)
+            cwd=app_dir)
+
+  # To work around lets-encrypt certificate uses create a self-signed
+  # certificate
   util.run(["gcloud", "container", "clusters", "get-credentials", name,
             "--zone", args.zone,
-            "--protject", args.project])
+            "--project", args.project])
   tls_endpoint = "--host=%s.endpoints.kubeflow-ci.cloud.goog" % name
   util.run(["kube-rsa", tls_endpoint])
   util.run(["kubectl", "-n", "kubeflow", "create", "secret", "tls",

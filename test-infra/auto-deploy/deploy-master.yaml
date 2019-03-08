@@ -3,39 +3,45 @@ kind: Job
 metadata:
   generateName: deploy-master-
   namespace: kubeflow-test-infra
+  labels:
+    app: deploy-master
+    version: master
 spec:
+  backoffLimit: 1
   template:
+    metadata:
+      labels:
+        job: deploy-master
+        version: master
     spec:
       containers:
       - name: deploy-worker
-        image: gcr.io/kubeflow-ci/deploy-worker:v20190228-e625074-dirty-decd62
+        image: gcr.io/kubeflow-ci/deploy-worker:v20190302-afc8ef8-dirty-201fe5
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secret/gcp-credentials/key.json
         command:
-        - /usr/local/bin/init.sh
-        - --src_dir=/src
-        - --repo_owner=kubeflow
-        - --repo_branches=kubeflow/master,testing/master
+        - /usr/local/bin/auto_deploy.sh
+        - --repos=kubeflow/kubeflow;jlewi/testing@auto_manual
         - --project=kubeflow-ci
-        - --worker_cluster=kubeflow-testing
         - --job_labels=/etc/pod-info/labels
-        - --nfs_mnt=/mnt/test-data-volume
+        - --data_dir=/mnt/test-data-volume/auto_deploy
         - --base_name=kf-vmaster
         - --max_num_cluster=5
         - --zone=us-east1-b
+        - --github_token_file=/secret/github-token/github_token
         volumeMounts:
         - name: gcp-credentials
-          mountPath: "/secret/gcp-credentials"
+          mountPath: /secret/gcp-credentials
           readOnly: true
         - name: pod-info
-          mountPath: "/etc/pod-info"
+          mountPath: /etc/pod-info
           readOnly: true
         - name: github-token
-          mountPath: "/secret/github-token"
+          mountPath: /secret/github-token
           readOnly: true
         - name: test-data-volume
-          mountPath: "/mnt/test-data-volume"
+          mountPath: /mnt/test-data-volume
           readOnly: false
       restartPolicy: Never
       volumes:
@@ -51,6 +57,6 @@ spec:
       - name: pod-info
         downwardAPI:
           items:
-            - path: "labels"
-              fieldRef:
-                fieldPath: metadata.labels
+          - path: labels
+            fieldRef:
+              fieldPath: metadata.labels

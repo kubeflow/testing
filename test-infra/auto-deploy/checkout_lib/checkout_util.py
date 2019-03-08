@@ -37,6 +37,9 @@ def get_job_name(label_file):
       return job_name
   raise RuntimeError("Not able to find job_name from labels.")
 
+# TODO(jlewi): I don't think we need this anymore
+# We should now be using the downward API to set a unique directory based
+# on the pod name.
 def get_snapshot_path(nfs_path, job_name):
   """Helper function to format folder path for snapshots given mounted NFS path
   and job name.
