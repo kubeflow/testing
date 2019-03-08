@@ -6,7 +6,7 @@ metadata:
   namespace: kubeflow-test-infra
 spec:
   concurrencyPolicy: Forbid
-  schedule: 0 */8 * * *
+  schedule: 0 */12 * * *
   jobTemplate:
     spec:
       backoffLimit: 2
