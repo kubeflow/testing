@@ -5,7 +5,7 @@ resources:
   # The "name" property below will be the ID of the new project
   # If you want your project to have a different name, use the "project-name"
   # property.
-  - name: kf-gcp-deploy-loadtest-3
+  - name: kf-gcp-deploy-loadtest-4
     type: project.py
     properties:
         # Change this to your organization ID.
@@ -31,7 +31,7 @@ resources:
           - logging.googleapis.com
           - containerregistry.googleapis.com
           - container.googleapis.com
-          - iam.googleapi.com
+          - iam.googleapis.com
           - sourcerepo.googleapis.com
 
         # The service accounts you want to create in the project
