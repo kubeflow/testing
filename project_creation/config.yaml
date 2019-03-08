@@ -5,7 +5,7 @@ resources:
   # The "name" property below will be the ID of the new project
   # If you want your project to have a different name, use the "project-name"
   # property.
-  - name: kf-gcp-deploy-test5
+  - name: kf-gcp-deploy-loadtest-3
     type: project.py
     properties:
         # Change this to your organization ID.
@@ -31,6 +31,8 @@ resources:
           - logging.googleapis.com
           - containerregistry.googleapis.com
           - container.googleapis.com
+          - iam.googleapi.com
+          - sourcerepo.googleapis.com
 
         # The service accounts you want to create in the project
         # service-accounts:
@@ -65,6 +67,8 @@ resources:
                   - serviceAccount:459682233032@cloudservices.gserviceaccount.com
                   # Account used by prober test.
                   - serviceAccount:kubeflow-prober@kubeflow-prober-deploy.iam.gserviceaccount.com
+                  # Account used by load test.
+                  - serviceAccount:load-test-owner@kf-gcp-deploy0.iam.gserviceaccount.com
               #- role: roles/viewer
                 #members:
                   #- user:iamtester@deployment-manager.net
