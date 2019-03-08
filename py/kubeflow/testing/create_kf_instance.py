@@ -24,7 +24,6 @@ def delete_storage_deployment(project, name):
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
 
-  manifests_client = dm.manifests()
   deployments_client = dm.deployments()
 
   try:

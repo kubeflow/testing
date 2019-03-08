@@ -10,8 +10,6 @@ import logging
 import os
 import subprocess
 
-import checkout_util
-
 def main():
   logging.basicConfig(level=logging.INFO,
                       format=('%(levelname)s|%(asctime)s'
