@@ -206,7 +206,7 @@ To access the stackdriver logs
   resource.labels.container_name="mnist-cpu"
   ```
 
-### No Logs in Argo UI or Pod Id missing in Argo Logs
+### No Logs in Argo UI For Step or Pod Id missing in Argo Logs
 
 An Argo workflow fails and you click on the failed step in the Argo UI to get the logs
 and you see the error
@@ -233,25 +233,59 @@ The logs should be in StackDriver but to get them we need to identify the pod
 
 1. Search the YAML spec for the pod information for the failed step
 
-   ```
-   kubeflow-presubmit-kfctl-1810-70210d5-3900-218a-2243590372:
-   boundaryID: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a
-   displayName: kfctl-apply-gcp
-   finishedAt: 2018-10-17T05:07:58Z
-   id: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a-2243590372
-   message: failed with exit code 1
-   name: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a.kfctl-apply-gcp
-   phase: Failed
-   startedAt: 2018-10-17T05:04:20Z
-   templateName: kfctl-apply-gcp
-   type: Pod
-   ```
+   * We need to find information that can be used to fetch logs for the pod from stackdriver
 
-   * You can use displayName to match the text shown in the UI
-   * **id** will be the name of the pod.
+     1. Using Pod labels
 
-1. Follow the [instructions](https://github.com/kubeflow/testing#stackdriver-logs) to 
-   get the stackdriver logs for the pod.
+        * In the workflow spec look at the step metadata to see if it contains labels
+
+          ```
+          metadata:
+            labels:
+              BUILD_ID: "1405"
+              BUILD_NUMBER: "1405"
+              JOB_NAME: kubeflow-examples-presubmit
+              JOB_TYPE: presubmit
+              PULL_BASE_SHA: 8a26b23e3d35d5993d93e8b9ecae52371598d1cc
+              PULL_NUMBER: "522"
+              PULL_PULL_SHA: 9aecf80f1c41059cd8ff13d1ca8b9e821dc462bf
+              REPO_NAME: examples
+              REPO_OWNER: kubeflow
+              step_name: tfjob-test
+              workflow: kubeflow-examples-presubmit-gis-522-9aecf80-1405-9055
+              workflow_template: gis
+          ```   
+         * Follow the [stackdriver instructions](https://github.com/kubeflow/testing#stackdriver-logs) to query for the logs
+           * Use labels `BUILD_ID` and `step_name` to identify the pod
+
+     1.  If no labels are specified for the step you can use displayName to match the text in the UI to 
+         step status
+
+         ```
+         kubeflow-presubmit-kfctl-1810-70210d5-3900-218a-2243590372:
+         boundaryID: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a
+         displayName: kfctl-apply-gcp
+         finishedAt: 2018-10-17T05:07:58Z
+         id: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a-2243590372
+         message: failed with exit code 1
+         name: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a.kfctl-apply-gcp
+         phase: Failed
+         startedAt: 2018-10-17T05:04:20Z
+         templateName: kfctl-apply-gcp
+         type: Pod
+         ```
+
+         * **id** will be the name of the pod.
+
+         1. Follow the [instructions](https://github.com/kubeflow/testing#stackdriver-logs) to 
+            get the stackdriver logs for the pod or use the following gcloud command
+
+            ```
+            gcloud --project=kubeflow-ci logging read --format="table(timestamp, resource.labels.container_name, textPayload)" \
+            --freshness=24h \
+            --order asc  \
+            "resource.type=\"k8s_container\" resource.labels.pod_name=\"${POD}\"  "
+            ```
 
 ### Debugging Failed Deployments
 
