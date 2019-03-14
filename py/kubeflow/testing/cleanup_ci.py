@@ -19,6 +19,11 @@ from oauth2client.client import GoogleCredentials
 MATCHING = [re.compile("e2e-.*"), re.compile("kfctl.*"),
             re.compile("z-.*"), re.compile(".*presubmit.*")]
 
+MATCHING_FIREWALL_RULES = [re.compile("gke-kfctl-.*"),
+                           re.compile("gke-e2e-.*"),
+                           re.compile(".*presubmit.*"),
+                           re.compile(".*postsubmit.*")]
+
 # Regexes that select matching disks
 MATCHING_DISK = [re.compile(".*postsubmit.*"), re.compile(".*presubmit.*")]
 
@@ -29,8 +34,8 @@ def is_match_disk(name):
 
   return False
 
-def is_match(name):
-  for m in MATCHING:
+def is_match(name, patterns=MATCHING):
+  for m in patterns:
     if m.match(name):
       return True
 
@@ -60,9 +65,10 @@ def cleanup_workflows(args):
     if age > datetime.timedelta(hours=args.max_age_hours):
       logging.info("Deleting workflow: %s", name)
       is_expired = True
-      crd_api.delete_namespaced_custom_object(
-        argo_client.GROUP, argo_client.VERSION, args.namespace,
-        argo_client.PLURAL, name, k8s_client.V1DeleteOptions())
+      if not args.dryrun:
+        crd_api.delete_namespaced_custom_object(
+          argo_client.GROUP, argo_client.VERSION, args.namespace,
+          argo_client.PLURAL, name, k8s_client.V1DeleteOptions())
       break
 
     if is_expired:
@@ -113,7 +119,8 @@ def cleanup_endpoints(args):
       if is_expired:
         logging.info("Deleting service: %s", name)
         is_expired = True
-        services.delete(serviceName=name).execute()
+        if not args.dryrun:
+          services.delete(serviceName=name).execute()
         expired.append(name)
       else:
         unexpired.append(name)
@@ -128,45 +135,110 @@ def cleanup_endpoints(args):
   logging.info("expired services:\n%s", "\n".join(expired))
 
 
-def cleanup_disks(args):
+def cleanup_endpoints(args):
   credentials = GoogleCredentials.get_application_default()
 
-  compute = discovery.build('compute', 'v1', credentials=credentials)
-  disks = compute.disks()
+  services_management = discovery.build('servicemanagement', 'v1', credentials=credentials)
+  services = services_management.services()
+  rollouts = services.rollouts()
   next_page_token = None
 
   expired = []
   unexpired = []
   unmatched = []
 
-  for zone in args.zones.split(","):
-    while True:
-      results = disks.list(project=args.project,
-                           zone=zone,
-                           pageToken=next_page_token).execute()
-      if not "items" in results:
-        break
-      for d in results["items"]:
-        name = d["name"]
-        if not is_match_disk(name):
-          unmatched.append(name)
-          continue
+  while True:
+    results = services.list(producerProjectId=args.project,
+                            pageToken=next_page_token).execute()
 
-        age = getAge(d["creationTimestamp"])
+    for s in results["services"]:
+      name = s["serviceName"]
+      if not is_match(name):
+        unmatched.append(name)
+        continue
+
+      all_rollouts = rollouts.list(serviceName=name).execute()
+      is_expired = False
+      if not all_rollouts.get("rollouts", []):
+        logging.info("Service %s has no rollouts", name)
+        is_expired = True
+      else:
+        r = all_rollouts["rollouts"][0]
+        create_time = date_parser.parse(r["createTime"])
+
+        now = datetime.datetime.now(create_time.tzinfo)
+
+        age = now - create_time
         if age > datetime.timedelta(hours=args.max_age_hours):
-          logging.info("Deleting disk: %s, age = %r", name, age)
-          response = disks.delete(project=args.project, zone=zone, disk=name)
-          logging.info("respone = %s", response)
-          expired.append(name)
-        else:
-          unexpired.append(name)
-      if not "nextPageToken" in results:
-        break
-      next_page_token = results["nextPageToken"]
+          is_expired = True
 
-  logging.info("Unmatched disks:\n%s", "\n".join(unmatched))
-  logging.info("Unexpired disks:\n%s", "\n".join(unexpired))
-  logging.info("expired disks:\n%s", "\n".join(expired))
+      if is_expired:
+        logging.info("Deleting service: %s", name)
+        is_expired = True
+        if not args.dryrun:
+          services.delete(serviceName=name).execute()
+        expired.append(name)
+      else:
+        unexpired.append(name)
+
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+
+  logging.info("Unmatched services:\n%s", "\n".join(unmatched))
+  logging.info("Unexpired services:\n%s", "\n".join(unexpired))
+  logging.info("expired services:\n%s", "\n".join(expired))
+
+def cleanup_firewall_rules(args):
+  credentials = GoogleCredentials.get_application_default()
+
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  firewalls = compute.firewalls()
+  next_page_token = None
+
+  expired = []
+  unexpired = []
+  unmatched = []
+
+  while True:
+    results = firewalls.list(project=args.project,
+                             pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for d in results["items"]:
+      name = d["name"]
+
+      match = False
+      if is_match(name, patterns=MATCHING_FIREWALL_RULES):
+        match = True
+
+      for tag in d.get("targetTags", []):
+        if is_match(tag, patterns=MATCHING_FIREWALL_RULES):
+          match = True
+          break
+
+      if not match:
+        unmatched.append(name)
+        continue
+
+      age = getAge(d["creationTimestamp"])
+      if age > datetime.timedelta(hours=args.max_age_hours):
+        logging.info("Deleting firewall: %s, age = %r", name, age)
+        if not args.dryrun:
+          response = firewalls.delete(project=args.project,
+                                      firewall=name).execute()
+          logging.info("respone = %s", response)
+        expired.append(name)
+      else:
+        unexpired.append(name)
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  logging.info("Unmatched firewall rules:\n%s", "\n".join(unmatched))
+  logging.info("Unexpired firewall rules:\n%s", "\n".join(unexpired))
+  logging.info("expired firewall rules:\n%s", "\n".join(expired))
 
 
 def cleanup_service_accounts(args):
@@ -212,7 +284,8 @@ def cleanup_service_accounts(args):
         break
     if is_expired:
       logging.info("Deleting account: %s", a["email"])
-      iam.projects().serviceAccounts().delete(name=a["name"]).execute()
+      if not args.dryrun:
+        iam.projects().serviceAccounts().delete(name=a["name"]).execute()
       expired_emails.append(a["email"])
     else:
       unexpired_emails.append(a["email"])
@@ -262,7 +335,8 @@ def cleanup_service_account_bindings(args):
   trim_unused_bindings(iamPolicy, accounts)
 
   setBody = {'policy': iamPolicy}
-  resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
+  if not args.dryrun:
+    resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
 
 
 def getAge(tsInRFC3339):
@@ -356,7 +430,8 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
 
       # We could potentially run the deletes in parallel but that would lead
       # to very confusing logs.
-      subprocess.check_call(command, cwd=cwd)
+      if not args.dryrun:
+        subprocess.check_call(command, cwd=cwd)
 
   gke = discovery.build("container", "v1", credentials=credentials)
 
@@ -389,8 +464,9 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       if age > datetime.timedelta(hours=args.max_age_hours):
         logging.info("Deleting cluster %s in zone %s", name, zone)
 
-        clusters_client.delete(projectId=args.project, zone=zone,
-                               clusterId=name).execute()
+        if not args.dryrun:
+          clusters_client.delete(projectId=args.project, zone=zone,
+                                 clusterId=name).execute()
 
 def cleanup_all(args):
   cleanup_deployments(args)
@@ -399,6 +475,7 @@ def cleanup_all(args):
   cleanup_service_account_bindings(args)
   cleanup_workflows(args)
   cleanup_disks(args)
+  cleanup_firewall_rules(args)
 
 def add_workflow_args(parser):
   parser.add_argument(
@@ -433,6 +510,10 @@ def main():
   parser.add_argument(
     "--max_age_hours", default=3, type=int, help=("The age of deployments to gc."))
 
+  parser.add_argument('--dryrun', dest='dryrun', action='store_true')
+  parser.add_argument('--no-dryrun', dest='dryrun', action='store_false')
+  parser.set_defaults(dryrun=False)
+
   subparsers = parser.add_subparsers()
 
   ######################################################
@@ -459,6 +540,13 @@ def main():
     "endpoints", help="Cleanup endpoints")
 
   parser_endpoints.set_defaults(func=cleanup_endpoints)
+
+  ######################################################
+  # Parser for firewallrules
+  parser_firewall = subparsers.add_parser(
+    "firewall", help="Cleanup firewall rules")
+
+  parser_firewall.set_defaults(func=cleanup_firewall_rules)
 
   ######################################################
   # Parser for service accounts
