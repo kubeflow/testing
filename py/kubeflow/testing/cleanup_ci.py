@@ -34,7 +34,9 @@ def is_match_disk(name):
 
   return False
 
-def is_match(name, patterns=MATCHING):
+def is_match(name, patterns=None):
+  if not patterns:
+    patterns = MATCHING
   for m in patterns:
     if m.match(name):
       return True
@@ -134,61 +136,46 @@ def cleanup_endpoints(args):
   logging.info("Unexpired services:\n%s", "\n".join(unexpired))
   logging.info("expired services:\n%s", "\n".join(expired))
 
-
-def cleanup_endpoints(args):
+def cleanup_disks(args):
   credentials = GoogleCredentials.get_application_default()
 
-  services_management = discovery.build('servicemanagement', 'v1', credentials=credentials)
-  services = services_management.services()
-  rollouts = services.rollouts()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  disks = compute.disks()
   next_page_token = None
 
   expired = []
   unexpired = []
   unmatched = []
 
-  while True:
-    results = services.list(producerProjectId=args.project,
-                            pageToken=next_page_token).execute()
+  for zone in args.zones.split(","):
+    while True:
+      results = disks.list(project=args.project,
+                           zone=zone,
+                           pageToken=next_page_token).execute()
+      if not "items" in results:
+        break
+      for d in results["items"]:
+        name = d["name"]
+        if not is_match_disk(name):
+          unmatched.append(name)
+          continue
 
-    for s in results["services"]:
-      name = s["serviceName"]
-      if not is_match(name):
-        unmatched.append(name)
-        continue
-
-      all_rollouts = rollouts.list(serviceName=name).execute()
-      is_expired = False
-      if not all_rollouts.get("rollouts", []):
-        logging.info("Service %s has no rollouts", name)
-        is_expired = True
-      else:
-        r = all_rollouts["rollouts"][0]
-        create_time = date_parser.parse(r["createTime"])
-
-        now = datetime.datetime.now(create_time.tzinfo)
-
-        age = now - create_time
+        age = getAge(d["creationTimestamp"])
         if age > datetime.timedelta(hours=args.max_age_hours):
-          is_expired = True
+          logging.info("Deleting disk: %s, age = %r", name, age)
+          if not args.dryrun:
+            response = disks.delete(project=args.project, zone=zone, disk=name)
+          logging.info("respone = %s", response)
+          expired.append(name)
+        else:
+          unexpired.append(name)
+      if not "nextPageToken" in results:
+        break
+      next_page_token = results["nextPageToken"]
 
-      if is_expired:
-        logging.info("Deleting service: %s", name)
-        is_expired = True
-        if not args.dryrun:
-          services.delete(serviceName=name).execute()
-        expired.append(name)
-      else:
-        unexpired.append(name)
-
-    if not "nextPageToken" in results:
-      break
-    next_page_token = results["nextPageToken"]
-
-
-  logging.info("Unmatched services:\n%s", "\n".join(unmatched))
-  logging.info("Unexpired services:\n%s", "\n".join(unexpired))
-  logging.info("expired services:\n%s", "\n".join(expired))
+  logging.info("Unmatched disks:\n%s", "\n".join(unmatched))
+  logging.info("Unexpired disks:\n%s", "\n".join(unexpired))
+  logging.info("expired disks:\n%s", "\n".join(expired))
 
 def cleanup_firewall_rules(args):
   credentials = GoogleCredentials.get_application_default()
