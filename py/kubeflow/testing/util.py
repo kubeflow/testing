@@ -413,7 +413,9 @@ def wait_for_deployment(api_client,
 
   while datetime.datetime.now() < end_time:
     deploy = ext_client.read_namespaced_deployment(name, namespace)
-    if deploy.status.ready_replicas >= replicas:
+    # ready_replicas could be None
+    if (deploy.status.ready_replicas and
+        deploy.status.ready_replicas >= replicas):
       logging.info("Deployment %s in namespace %s is ready", name, namespace)
       return deploy
     logging.info("Waiting for deployment %s in namespace %s", name, namespace)
