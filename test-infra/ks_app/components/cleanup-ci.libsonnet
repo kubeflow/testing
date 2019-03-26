@@ -45,14 +45,6 @@
                   value: "testing",                  
                 },
                 {
-                  // TODO(jlewi): Stop setting PULL_NUMBER once the PR is merged.
-                  // We had to set the PR number because when we initially created the
-                  // job we had some changes to cleanup_ci.py that were part of the PR
-                  // committing the job.
-                  name: "PULL_NUMBER",
-                  value: "300",
-                },
-                {
                   name: "PYTHONPATH",
                   value: "/src/kubeflow/testing/py",
                 },
