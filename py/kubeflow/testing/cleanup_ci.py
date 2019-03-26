@@ -354,6 +354,11 @@ def getAge(tsInRFC3339):
   age = datetime.datetime.utcnow()- insert_time_utc
   return age
 
+@retrying.retry(stop_max_attempt=5,
+                retry_on_exception=is_retryable_exception)
+def execute_rpc(rpc):
+  """Execute a Google RPC request with retries."""
+  return rpc.execute()
 
 def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
   if not args.delete_script:
@@ -390,16 +395,11 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
         manifest_url = d["manifest"]
       manifest_name = manifest_url.split("/")[-1]
 
-      @retrying.retry(stop_max_attempt=5,
-                      retry_on_exception=is_retryable_exception)
-      def get_manifest():
-        manifest = manifests_client.get(
-          project=args.project, deployment=name, manifest=manifest_name).execute()
-
-        return manifest
-
+      rpc = manifests_client.get(project=args.project,
+                                 deployment=name,
+                                 manifest=manifest_name)
       try:
-        manifest = get_manifest()
+        manifest = execute_rpc(rpc)
       except socket.error as e:
         logging.error("socket error prevented getting manifest %s", e)
         # Try to continue with deletion rather than aborting.
