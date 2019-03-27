@@ -5,6 +5,8 @@ from dateutil import parser as date_parser
 import logging
 import os
 import re
+import retrying
+import socket
 import subprocess
 import tempfile
 import yaml
@@ -42,6 +44,11 @@ def is_match(name, patterns=None):
       return True
 
   return False
+
+def is_retryable_exception(exception):
+  """Return True if we consider the exception retryable"""
+  # Socket errors look like temporary problems connecting to GCP.
+  return isinstance(exception, socket.error)
 
 def cleanup_workflows(args):
   # We need to load the kube config so that we can have credentials to
@@ -347,6 +354,11 @@ def getAge(tsInRFC3339):
   age = datetime.datetime.utcnow()- insert_time_utc
   return age
 
+@retrying.retry(stop_max_attempt=5,
+                retry_on_exception=is_retryable_exception)
+def execute_rpc(rpc):
+  """Execute a Google RPC request with retries."""
+  return rpc.execute()
 
 def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
   if not args.delete_script:
@@ -382,8 +394,16 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       else:
         manifest_url = d["manifest"]
       manifest_name = manifest_url.split("/")[-1]
-      manifest = manifests_client.get(
-        project=args.project, deployment=name, manifest=manifest_name).execute()
+
+      rpc = manifests_client.get(project=args.project,
+                                 deployment=name,
+                                 manifest=manifest_name)
+      try:
+        manifest = execute_rpc(rpc)
+      except socket.error as e:
+        logging.error("socket error prevented getting manifest %s", e)
+        # Try to continue with deletion rather than aborting.
+        continue
 
       # Create a temporary directory to store the deployment.
       manifest_dir = tempfile.mkdtemp(prefix="tmp" + name)
