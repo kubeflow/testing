@@ -169,6 +169,7 @@ ENV USER root
 
 # Add the directory where we will checkout kubeflow/testing
 # which contains shared scripts.
-ENV PYTHONPATH /src/kubeflow/testing/py
+# Also add google-cloud-sdk/lib for library use.
+ENV PYTHONPATH /src/kubeflow/testing/py:/google-cloud-sdk/lib
 
 ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]
