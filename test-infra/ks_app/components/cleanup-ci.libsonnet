@@ -16,7 +16,7 @@
       )
   )],
 
-  jobSpec:: {
+  jobSpec:: function(project="kubeflow-ci"){      
       "template": {
         "spec": {
           "containers": [
@@ -29,6 +29,7 @@
                 "python",
                 "-m",
                 "kubeflow.testing.cleanup_ci",
+                "--project=" + project,
                 "all",
                 "--delete_script=/src/kubeflow/kubeflow/scripts/gke/delete_deployment.sh",
               ],
