@@ -354,7 +354,7 @@ def getAge(tsInRFC3339):
   age = datetime.datetime.utcnow()- insert_time_utc
   return age
 
-@retrying.retry(stop_max_attempt=5,
+@retrying.retry(stop_max_attempt_number=5,
                 retry_on_exception=is_retryable_exception)
 def execute_rpc(rpc):
   """Execute a Google RPC request with retries."""
@@ -476,13 +476,18 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
                                  clusterId=name).execute()
 
 def cleanup_all(args):
-  cleanup_deployments(args)
-  cleanup_endpoints(args)
-  cleanup_service_accounts(args)
-  cleanup_service_account_bindings(args)
-  cleanup_workflows(args)
-  cleanup_disks(args)
-  cleanup_firewall_rules(args)
+  ops = [cleanup_deployments,
+         cleanup_endpoints,
+         cleanup_service_accounts,
+         cleanup_service_account_bindings,
+         cleanup_workflows,
+         cleanup_disks,
+         cleanup_firewall_rules]
+  for op in ops:
+    try:
+      op(args)
+    except Exception as e:
+      logging.error(e)
 
 def add_workflow_args(parser):
   parser.add_argument(
