@@ -486,7 +486,7 @@ def cleanup_all(args):
   for op in ops:
     try:
       op(args)
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-except
       logging.error(e)
 
 def add_workflow_args(parser):
