@@ -450,7 +450,7 @@ def wait_for_statefulset(api_client, namespace, name):
 
   while datetime.datetime.now() < end_time:
     stateful = apps_client.read_namespaced_stateful_set(name, namespace)
-    if stateful.status.ready_replicas >= 1:
+    if stateful.status.ready_replicas and stateful.status.ready_replicas >= 1:
       logging.info("Statefulset %s in namespace %s is ready", name, namespace)
       return stateful
     logging.info("Waiting for Statefulset %s in namespace %s", name, namespace)
