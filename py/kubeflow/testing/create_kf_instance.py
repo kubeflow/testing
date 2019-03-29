@@ -47,7 +47,6 @@ def create_info_file(args, app_dir, git_describe):
   """Creates an info file in the KF app directory."""
   # This step needs to be called after kfctl init because the directory needs to
   # exist.
-  labels = {}
   with open(os.path.join(app_dir, "kf_app.yaml"), "w") as hf:
     app = {
       "labels": {
@@ -55,17 +54,14 @@ def create_info_file(args, app_dir, git_describe):
         "PURPOSE": "kf-test-cluster",
       },
     }
-    if args.timestamp:
-      app["labels"]["SNAPSHOT_TIMESTAMP"] = args.timestamp
     if args.job_name:
       app["labels"]["DEPLOYMENT_JOB"] = args.job_name
-    labels = app.get("labels", {})
     yaml.dump(app, hf)
 
-def deploy_with_kfctl_sh(args, app_dir, env, label_args):
+def deploy_with_kfctl_sh(args, app_dir, env):
   """Deploy Kubeflow using kfctl.sh."""
   kfctl = os.path.join(args.kubeflow_repo, "scripts", "kfctl.sh")
-  ks_app_dir = os.path.join(app_dir, "ks_app")
+  name = os.path.basename(app_dir)
   util.run([kfctl, "init", name, "--project", args.project, "--zone", args.zone,
             "--platform", "gcp", "--skipInitProject", "true"], cwd=args.apps_dir
            )
@@ -77,7 +73,7 @@ def deploy_with_kfctl_sh(args, app_dir, env, label_args):
   run_with_retry([kfctl, "apply", "platform"], cwd=app_dir, env=env)
   run_with_retry([kfctl, "generate", "k8s"], cwd=app_dir, env=env)
   run_with_retry([kfctl, "apply", "k8s"], cwd=app_dir, env=env)
-  run_with_retry(["ks", "generate", "seldon", "seldon"], cwd=ks_app_dir,
+  run_with_retry(["ks", "generate", "seldon", "seldon"], cwd=app_dir,
                   env=env)
 
 def build_kfctl_go(args):
@@ -90,7 +86,7 @@ def build_kfctl_go(args):
 
   return kfctl_path
 
-def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, label_args):
+def deploy_with_kfctl_go(kfctl_path, args, app_dir, env):
   """Deploy Kubeflow using kfctl go binary."""
   # username and password are passed as env vars and won't appear in the logs
   #
@@ -98,7 +94,7 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, label_args):
   # loading the config in the repo we have checked out kfctl doesn't support
   # specifying a file URI. Once it does we should change --version to
   # use it.
-  logging.warn("Loading configs from master.")
+  logging.warning("Loading configs from master.")
   util.run([kfctl_path, "init", app_dir, "-V", "--platform=gcp",
             "--version=master",
             "--skip-init-gcp-project",
@@ -163,10 +159,6 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
                                 "snapshot to use."))
 
   parser.add_argument(
-    "--timestamp",
-    default="", type=str, help=("Timestamp deployment takes snapshot."))
-
-  parser.add_argument(
     "--job_name",
     default="", type=str, help=("Pod name running the job."))
 
@@ -194,13 +186,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
                           cwd=args.kubeflow_repo).strip("'")
 
-  timestamp = args.timestamp
   if args.snapshot_file:
     logging.info("Loading info from snapshot file %s", args.snapshot_file)
     with open(args.snapshot_file) as hf:
       snapshot_info = json.load(hf)
       name = snapshot_info["name"]
-      timestamp = snapshot_info.get("timestamp", "")
   else:
     name = args.name
 
@@ -257,9 +247,9 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     label_args.append("{key}={val}".format(key=k.lower(), val=val))
 
   if args.use_kfctl_go:
-    deploy_with_kfctl_go(kfctl_path, args, app_dir, env, label_args)
+    deploy_with_kfctl_go(kfctl_path, args, app_dir, env)
   else:
-    deploy_with_kfctl_sh(args, app_dir, env, label_args)
+    deploy_with_kfctl_sh(args, app_dir, env)
 
   create_info_file(args, app_dir, git_describe)
   logging.info("Annotating cluster with labels: %s", str(label_args))
