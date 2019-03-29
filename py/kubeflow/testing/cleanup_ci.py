@@ -234,6 +234,64 @@ def cleanup_firewall_rules(args):
   logging.info("Unexpired firewall rules:\n%s", "\n".join(unexpired))
   logging.info("expired firewall rules:\n%s", "\n".join(expired))
 
+def cleanup_health_checks(args):
+  credentials = GoogleCredentials.get_application_default()
+
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  health_checks = compute.healthChecks()
+  next_page_token = None
+
+  expired = []
+  unexpired = []
+  unmatched = []
+
+  checks = {}
+  while True:
+    results = health_checks.list(project=args.project,
+                                 pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for d in results["items"]:
+      name = d["name"]
+      checks[name] = d
+    if not "nextPageToken" in results:
+      break
+
+    next_page_token = results["nextPageToken"]
+
+  backends = compute.backendServices()
+  services = {}
+  while True:
+    results = backends.list(project=args.project,
+                            pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for d in results["items"]:
+      name = d["name"]
+      services[name] = d
+
+    if not "nextPageToken" in results:
+      break
+
+    next_page_token = results["nextPageToken"]
+
+  # Find all health checks not associated with a service.
+  unmatched = []
+  matched = []
+  for name in checks.keys():
+    if not name in services:
+      unmatched.append(name)
+      logging.info("Deleting health check: %s", name)
+      if not args.dryrun:
+        response = health_checks.delete(project=args.project,
+                                        healthCheck=name).execute()
+        logging.info("response = %s", response)
+    else:
+      matched.append(name)
+
+
+  logging.info("Unmatched health checks:\n%s", "\n".join(unmatched))
+  logging.info("Matched health checks:\n%s", "\n".join(matched))
 
 def cleanup_service_accounts(args):
   credentials = GoogleCredentials.get_application_default()
@@ -483,7 +541,8 @@ def cleanup_all(args):
          cleanup_service_account_bindings,
          cleanup_workflows,
          cleanup_disks,
-         cleanup_firewall_rules]
+         cleanup_firewall_rules,
+         cleanup_health_checks]
   for op in ops:
     try:
       op(args)
@@ -560,6 +619,14 @@ def main():
     "firewall", help="Cleanup firewall rules")
 
   parser_firewall.set_defaults(func=cleanup_firewall_rules)
+
+
+  ######################################################
+  # Parser for health checks
+  parser_health = subparsers.add_parser(
+    "health_checks", help="Cleanup health checks")
+
+  parser_health.set_defaults(func=cleanup_health_checks)
 
   ######################################################
   # Parser for service accounts
