@@ -241,10 +241,6 @@ def cleanup_health_checks(args):
   health_checks = compute.healthChecks()
   next_page_token = None
 
-  expired = []
-  unexpired = []
-  unmatched = []
-
   checks = {}
   while True:
     results = health_checks.list(project=args.project,
