@@ -1,4 +1,4 @@
-local params = import "../../components/params.libsonnet";
+local params = import '../../components/params.libsonnet';
 
 params {
   components+: {
@@ -11,7 +11,7 @@ params {
       exposeUi: true,
     },
     "nfs-external"+: {
-      nfsServer: "10.49.145.162",
+      nfsServer: '10.240.92.210',
     },
   },
 }
