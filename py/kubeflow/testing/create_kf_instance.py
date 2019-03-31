@@ -151,7 +151,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     type=str, help=("Directory to store kubeflow apps."))
 
   parser.add_argument(
-    "--name", type=str, required=True, help=("Name for the deployment."))
+    "--name", type=str, default="", help=("Name for the deployment."))
 
   parser.add_argument(
     "--snapshot_file",
