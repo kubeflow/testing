@@ -274,7 +274,7 @@ def cleanup_health_checks(args):
   # Find all health checks not associated with a service.
   unmatched = []
   matched = []
-  for name in checks.keys():
+  for name in checks.iterkeys():
     if not name in services:
       unmatched.append(name)
       logging.info("Deleting health check: %s", name)
