@@ -20,8 +20,8 @@ spec:
               value: /secret/gcp-credentials/key.json
             command:
             - /usr/local/bin/auto_deploy.sh
-            - --repos=kubeflow/kubeflow@v0.4-branch;kubeflow/testing
-            - --project=kubeflow-ci
+            - --repos=kubeflow/kubeflow@v0.5-branch;kubeflow/testing
+            - --project=kubeflow-ci-deployment
             - --job_labels=/etc/pod-info/labels
             - --data_dir=/mnt/test-data-volume/auto_deploy
             - --base_name=kf-vmaster

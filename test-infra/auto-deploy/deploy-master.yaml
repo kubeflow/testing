@@ -22,8 +22,9 @@ spec:
           value: /secret/gcp-credentials/key.json
         command:
         - /usr/local/bin/auto_deploy.sh
-        - --repos=kubeflow/kubeflow;jlewi/testing@auto_manual
-        - --project=kubeflow-ci
+        # TODO(jlewi): Stop using Jeremy's repo once #344 is checked in.
+        - --repos=kubeflow/kubeflow;jlewi/testing@autodeploy_kfctl
+        - --project=kubeflow-ci-deployment
         - --job_labels=/etc/pod-info/labels
         - --data_dir=/mnt/test-data-volume/auto_deploy
         - --base_name=kf-vmaster
