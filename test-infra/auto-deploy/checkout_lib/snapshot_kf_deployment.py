@@ -11,58 +11,62 @@ import filelock
 import json
 import logging
 import os
+import re
 import requests
 
 import checkout_util
 
-import googleapiclient
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
-RESOURCE_LABELS = "resourceLabels"
-SNAPSHOT_TIMESTAMP = "snapshot_timestamp"
-
-def get_deployment_cluster(project, location, base_name, cluster_nums):
+def get_deployment_name(project, base_name, max_num):
   """Retrieve deployment metadata from GCP and choose the oldest cluster.
 
   Args:
     project: Name of GCP project.
-    location: Cluster location.
     base_name: Base name of clusters.
-    cluster_nums: A list of integers as suffix of cluster names.
+    max_num: Maximum number of deployments
 
   Returns:
-    integer as the number points to the oldest cluster.
+    Name to use for the deployment
   """
   credentials = GoogleCredentials.get_application_default()
-  container = discovery.build("container", "v1", credentials=credentials)
-  # Using clusters client instead of deployments as deployments API doesn't
-  # return deployment labels anymore.
-  clusters_client = container.projects().locations().clusters()
-  cluster_timestamps = []
-  for n in cluster_nums:
-    cluster = "{0}-n{1:02d}".format(base_name, n)
-    name = "projects/{p}/locations/{l}/clusters/{c}".format(
-      p=project,
-      l=location,
-      c=cluster)
-    logging.info("Getting cluster info: %s", name)
-    try:
-      info = clusters_client.get(name=name, fields=RESOURCE_LABELS).execute()
-      if (RESOURCE_LABELS in info and
-          SNAPSHOT_TIMESTAMP in info.get(RESOURCE_LABELS, {})):
-        cluster_timestamps.append({"num": n, "timestamp": info.get(
-            RESOURCE_LABELS, {}).get(SNAPSHOT_TIMESTAMP, "")})
-    except googleapiclient.errors.HttpError as e:
-      logging.error("Cluster %s not reachable, deploying to it: %s",
-                    cluster, str(e))
-      return n
 
-  if not cluster_timestamps:
-    raise RuntimeError("Not able to find available cluster to deploy to.")
+  dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
+  dm_client = dm.deployments()
 
-  cluster_timestamps.sort(key=lambda x: x.get("timestamp", ""))
-  return cluster_timestamps[0].get("num", 0)
+  matching = {}
+
+  next_page_token = None
+
+  m = re.compile(base_name + r"-n\d\d$")
+  while True:
+    deployments = dm_client.list(project=project,
+                                 pageToken=next_page_token).execute()
+
+    for d in deployments["deployments"]:
+      if m.match(d["name"]):
+        matching[d["name"]] = d
+
+    if "nextPageToken" not in deployments:
+      break
+    next_page_token = deployments["nextPageToken"]
+
+  # Check if there any any unused deployments.
+
+  allowed = set()
+  for num in range(max_num):
+    allowed.add("{0}-n{1:02d}".format(base_name, num))
+
+  remaining = sorted(allowed - set(matching.keys()))
+
+  if remaining:
+    return remaining[0]
+
+  # Sort matching items by create time
+  results = matching.values()
+  results.sort(key=lambda x: x.get("insertTime", ""))
+  return results[0]["name"]
 
 def repo_snapshot_hash(github_token, repo_owner, repo, branch, snapshot_time):
   """Look into commit history and pick the latest commit SHA.
@@ -112,21 +116,17 @@ def repo_snapshot_hash(github_token, repo_owner, repo, branch, snapshot_time):
 
   return sha_time[0].get("sha", "") # pylint: disable=unsubscriptable-object
 
-def lock_and_write(folder, payload):
-  dirname = os.path.dirname(folder)
-  dir_lock = filelock.FileLock(os.path.join(dirname, "dir.lock"))
-  with dir_lock:
-    if not os.path.exists(folder):
-      os.makedirs(folder)
-  file_lock = filelock.FileLock(os.path.join(folder, "file.lock"))
+def lock_and_write(target, payload):
+  dirname = os.path.dirname(target)
+  if not os.path.exists(dirname):
+    os.makedirs(dirname)
+  file_lock = filelock.FileLock(os.path.join(dirname, "file.lock"))
   with file_lock:
-    path = os.path.join(folder, "snapshot.json")
-    if os.path.exists(path):
+    if os.path.exists(target):
       return
-    logging.info("Writing to file: %s", path)
-    with open(path, "w") as f:
+    logging.info("Writing to file: %s", target)
+    with open(target, "w") as f:
       f.write(payload)
-
 
 def main():
   logging.basicConfig(level=logging.INFO,
@@ -139,10 +139,10 @@ def main():
   parser = argparse.ArgumentParser()
 
   parser.add_argument(
-    "snapshot_repos", nargs="+",
-    help=("Repositories needed to take snapshot. Should be in the format of "
-          "<repo_name>/<branch_name>. If branch_name is not given, default is "
-          "master."))
+    "--snapshot_repos", type=str,
+    help=("A semi-colon separated list of repositories to check out."
+          "{ORG}/{REPO}@{BRANCH};{ORG2}/{REPO2}@{BRANCH}"
+          "If branch is none master is used."))
 
   parser.add_argument(
     "--base_name", default="kf-v0-4", type=str,
@@ -156,66 +156,76 @@ def main():
     "--project", default="kubeflow-ci", type=str, help=("The GCP project."))
 
   parser.add_argument(
-    "--zone", default="us-east1-d", type=str, help=("The zone to deploy in."))
-
-  parser.add_argument(
-    "--repo_owner", default="kubeflow", type=str, help=("Github repo owner."))
-
-  parser.add_argument(
     "--github_token_file",
-    default="/secret/github-token/github_token",
+    default="",
     type=str, help=("The file containing Github API token."))
 
   parser.add_argument(
     "--job_labels",
-    default="/etc/pod-info/labels",
+    default="",
     type=str, help=("DownwardAPIVolumeFile for job labels."))
 
   parser.add_argument(
-    "--nfs_path",
-    default="", type=str, help=("GCP Filestore PVC mount path."))
+    "--data_dir",
+    default="", type=str, help=("Directory where data shoud be written."))
 
   args = parser.parse_args()
-  token_file = open(args.github_token_file, "r")
-  github_token = token_file.readline()
-  token_file.close()
+  github_token = None
+  if args.github_token_file:
+    logging.info("Reading GITHUB_TOKEN from file: %s", args.github_token_file)
+    token_file = open(args.github_token_file, "r")
+    github_token = token_file.readline()
+    token_file.close()
+  else:
+    logging.info("Looking for GITHUB token in environment variable "
+                 "GITHUB_TOKEN")
+    github_token = os.getenv("GITHUB_TOKEN", "")
 
-  cluster_num = get_deployment_cluster(args.project, args.zone,
-                                       args.base_name, [
-    n for n in range(args.max_cluster_num)])
+  if not github_token:
+    raise ValueError("No GITHUB token set")
 
-  logging.info("Deploying to %d", cluster_num)
+  name = get_deployment_name(args.project, args.base_name, args.max_cluster_num)
 
-  job_name = checkout_util.get_job_name(args.job_labels)
+  logging.info("Using deployment name %s", name)
+
+  job_name = ""
+  if args.job_labels:
+    logging.info("Reading labels form file %s", args.job_labels)
+    job_name = checkout_util.get_job_name(args.job_labels)
 
   logging.info("Job name: %s", job_name)
   logging.info("Repos: %s", str(args.snapshot_repos))
   logging.info("Project: %s", args.project)
-  logging.info("Repo owner: %s", args.repo_owner)
 
   snapshot_time = datetime.datetime.utcnow().isoformat()
   logging.info("Snapshotting at %s", snapshot_time)
 
   repo_snapshot = {
     "timestamp": snapshot_time,
-    "cluster_num": cluster_num,
-    "repos": {},
+    "name": name,
+    "repos": [],
   }
-  for repo_args in args.snapshot_repos:
-    repo_branch = repo_args.split("/")
-    repo = repo_branch[0] # pylint: disable=unsubscriptable-object
-    branch = repo_branch[1] if len(repo_branch) > 1 else "master" # pylint: disable=unsubscriptable-object
-    sha = repo_snapshot_hash(github_token, args.repo_owner, repo, branch,
+  for repo_path in args.snapshot_repos.split(";"):
+    if "@" in repo_path:
+      repo, branch = repo_path.split("@")
+    else:
+      repo = repo_path
+      branch = "master"
+
+    repo_org, repo_name = repo.split("/")
+    sha = repo_snapshot_hash(github_token, repo_org, repo_name, branch,
                              snapshot_time)
     logging.info("Snapshot repo %s at %s, branch is %s", repo, sha, branch)
-    repo_snapshot["repos"][repo] = {
+    repo_snapshot["repos"].append({
+      "owner": repo_org,
+      "repo": repo_name,
       "sha": sha,
       "branch": branch
-    }
+    })
 
   logging.info("Snapshot = %s", str(repo_snapshot))
-  folder = checkout_util.get_snapshot_path(args.nfs_path, job_name)
-  lock_and_write(folder, json.dumps(repo_snapshot))
+  snapshot_path = os.path.join(args.data_dir, "snapshot.json")
+  lock_and_write(snapshot_path, json.dumps(repo_snapshot))
 
 
 if __name__ == '__main__':

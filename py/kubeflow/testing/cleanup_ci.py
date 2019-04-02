@@ -5,6 +5,8 @@ from dateutil import parser as date_parser
 import logging
 import os
 import re
+import retrying
+import socket
 import subprocess
 import tempfile
 import yaml
@@ -19,6 +21,11 @@ from oauth2client.client import GoogleCredentials
 MATCHING = [re.compile("e2e-.*"), re.compile("kfctl.*"),
             re.compile("z-.*"), re.compile(".*presubmit.*")]
 
+MATCHING_FIREWALL_RULES = [re.compile("gke-kfctl-.*"),
+                           re.compile("gke-e2e-.*"),
+                           re.compile(".*presubmit.*"),
+                           re.compile(".*postsubmit.*")]
+
 # Regexes that select matching disks
 MATCHING_DISK = [re.compile(".*postsubmit.*"), re.compile(".*presubmit.*")]
 
@@ -29,12 +36,19 @@ def is_match_disk(name):
 
   return False
 
-def is_match(name):
-  for m in MATCHING:
+def is_match(name, patterns=None):
+  if not patterns:
+    patterns = MATCHING
+  for m in patterns:
     if m.match(name):
       return True
 
   return False
+
+def is_retryable_exception(exception):
+  """Return True if we consider the exception retryable"""
+  # Socket errors look like temporary problems connecting to GCP.
+  return isinstance(exception, socket.error)
 
 def cleanup_workflows(args):
   # We need to load the kube config so that we can have credentials to
@@ -60,9 +74,10 @@ def cleanup_workflows(args):
     if age > datetime.timedelta(hours=args.max_age_hours):
       logging.info("Deleting workflow: %s", name)
       is_expired = True
-      crd_api.delete_namespaced_custom_object(
-        argo_client.GROUP, argo_client.VERSION, args.namespace,
-        argo_client.PLURAL, name, k8s_client.V1DeleteOptions())
+      if not args.dryrun:
+        crd_api.delete_namespaced_custom_object(
+          argo_client.GROUP, argo_client.VERSION, args.namespace,
+          argo_client.PLURAL, name, k8s_client.V1DeleteOptions())
       break
 
     if is_expired:
@@ -113,7 +128,8 @@ def cleanup_endpoints(args):
       if is_expired:
         logging.info("Deleting service: %s", name)
         is_expired = True
-        services.delete(serviceName=name).execute()
+        if not args.dryrun:
+          services.delete(serviceName=name).execute()
         expired.append(name)
       else:
         unexpired.append(name)
@@ -126,7 +142,6 @@ def cleanup_endpoints(args):
   logging.info("Unmatched services:\n%s", "\n".join(unmatched))
   logging.info("Unexpired services:\n%s", "\n".join(unexpired))
   logging.info("expired services:\n%s", "\n".join(expired))
-
 
 def cleanup_disks(args):
   credentials = GoogleCredentials.get_application_default()
@@ -155,7 +170,8 @@ def cleanup_disks(args):
         age = getAge(d["creationTimestamp"])
         if age > datetime.timedelta(hours=args.max_age_hours):
           logging.info("Deleting disk: %s, age = %r", name, age)
-          response = disks.delete(project=args.project, zone=zone, disk=name)
+          if not args.dryrun:
+            response = disks.delete(project=args.project, zone=zone, disk=name)
           logging.info("respone = %s", response)
           expired.append(name)
         else:
@@ -168,6 +184,110 @@ def cleanup_disks(args):
   logging.info("Unexpired disks:\n%s", "\n".join(unexpired))
   logging.info("expired disks:\n%s", "\n".join(expired))
 
+def cleanup_firewall_rules(args):
+  credentials = GoogleCredentials.get_application_default()
+
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  firewalls = compute.firewalls()
+  next_page_token = None
+
+  expired = []
+  unexpired = []
+  unmatched = []
+
+  while True:
+    results = firewalls.list(project=args.project,
+                             pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for d in results["items"]:
+      name = d["name"]
+
+      match = False
+      if is_match(name, patterns=MATCHING_FIREWALL_RULES):
+        match = True
+
+      for tag in d.get("targetTags", []):
+        if is_match(tag, patterns=MATCHING_FIREWALL_RULES):
+          match = True
+          break
+
+      if not match:
+        unmatched.append(name)
+        continue
+
+      age = getAge(d["creationTimestamp"])
+      if age > datetime.timedelta(hours=args.max_age_hours):
+        logging.info("Deleting firewall: %s, age = %r", name, age)
+        if not args.dryrun:
+          response = firewalls.delete(project=args.project,
+                                      firewall=name).execute()
+          logging.info("respone = %s", response)
+        expired.append(name)
+      else:
+        unexpired.append(name)
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  logging.info("Unmatched firewall rules:\n%s", "\n".join(unmatched))
+  logging.info("Unexpired firewall rules:\n%s", "\n".join(unexpired))
+  logging.info("expired firewall rules:\n%s", "\n".join(expired))
+
+def cleanup_health_checks(args):
+  credentials = GoogleCredentials.get_application_default()
+
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  health_checks = compute.healthChecks()
+  next_page_token = None
+
+  checks = {}
+  while True:
+    results = health_checks.list(project=args.project,
+                                 pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for d in results["items"]:
+      name = d["name"]
+      checks[name] = d
+    if not "nextPageToken" in results:
+      break
+
+    next_page_token = results["nextPageToken"]
+
+  backends = compute.backendServices()
+  services = {}
+  while True:
+    results = backends.list(project=args.project,
+                            pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for d in results["items"]:
+      name = d["name"]
+      services[name] = d
+
+    if not "nextPageToken" in results:
+      break
+
+    next_page_token = results["nextPageToken"]
+
+  # Find all health checks not associated with a service.
+  unmatched = []
+  matched = []
+  for name in checks.iterkeys():
+    if not name in services:
+      unmatched.append(name)
+      logging.info("Deleting health check: %s", name)
+      if not args.dryrun:
+        response = health_checks.delete(project=args.project,
+                                        healthCheck=name).execute()
+        logging.info("response = %s", response)
+    else:
+      matched.append(name)
+
+
+  logging.info("Unmatched health checks:\n%s", "\n".join(unmatched))
+  logging.info("Matched health checks:\n%s", "\n".join(matched))
 
 def cleanup_service_accounts(args):
   credentials = GoogleCredentials.get_application_default()
@@ -201,19 +321,19 @@ def cleanup_service_accounts(args):
 
     keys = keys_client.list(name=a["name"]).execute()
 
-    is_expired = False
+    is_expired = True
     for k in keys["keys"]:
       valid_time = date_parser.parse(k["validAfterTime"])
       now = datetime.datetime.now(valid_time.tzinfo)
 
       age = now - valid_time
-      if age > datetime.timedelta(hours=args.max_age_hours):
-        logging.info("Deleting account: %s", a["email"])
-        iam.projects().serviceAccounts().delete(name=a["name"]).execute()
-        is_expired = True
+      if age < datetime.timedelta(hours=args.max_age_hours):
+        is_expired = False
         break
-
     if is_expired:
+      logging.info("Deleting account: %s", a["email"])
+      if not args.dryrun:
+        iam.projects().serviceAccounts().delete(name=a["name"]).execute()
       expired_emails.append(a["email"])
     else:
       unexpired_emails.append(a["email"])
@@ -221,6 +341,51 @@ def cleanup_service_accounts(args):
   logging.info("Unmatched emails:\n%s", "\n".join(unmatched_emails))
   logging.info("Unexpired emails:\n%s", "\n".join(unexpired_emails))
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
+
+
+def trim_unused_bindings(iamPolicy, accounts):
+  keepBindings = []
+  for binding in iamPolicy['bindings']:
+    members_to_keep = []
+    members_to_delete = []
+    for member in binding['members']:
+      if not member.startswith('serviceAccount:'):
+        members_to_keep.append(member)
+      else:
+        accountEmail = member[15:]
+        if (not is_match(accountEmail)) or (accountEmail in accounts):
+          members_to_keep.append(member)
+        else:
+          members_to_delete.append(member)
+    if members_to_keep:
+      binding['members'] = members_to_keep
+      keepBindings.append(binding)
+    if members_to_delete:
+      logging.info("Delete binding for members:\n%s", ", ".join(members_to_delete))
+  iamPolicy['bindings'] = keepBindings
+
+def cleanup_service_account_bindings(args):
+  credentials = GoogleCredentials.get_application_default()
+  iam = discovery.build('iam', 'v1', credentials=credentials)
+  accounts = []
+  next_page_token = None
+  while True:
+    service_accounts = iam.projects().serviceAccounts().list(
+      name='projects/' + args.project, pageToken=next_page_token).execute()
+    for a in service_accounts["accounts"]:
+      accounts.append(a["email"])
+    if not "nextPageToken" in service_accounts:
+      break
+    next_page_token = service_accounts["nextPageToken"]
+
+  resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
+  iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project).execute()
+  trim_unused_bindings(iamPolicy, accounts)
+
+  setBody = {'policy': iamPolicy}
+  if not args.dryrun:
+    resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
+
 
 def getAge(tsInRFC3339):
   # The docs say insert time will be in RFC339 format.
@@ -243,6 +408,11 @@ def getAge(tsInRFC3339):
   age = datetime.datetime.utcnow()- insert_time_utc
   return age
 
+@retrying.retry(stop_max_attempt_number=5,
+                retry_on_exception=is_retryable_exception)
+def execute_rpc(rpc):
+  """Execute a Google RPC request with retries."""
+  return rpc.execute()
 
 def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
   if not args.delete_script:
@@ -278,8 +448,16 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       else:
         manifest_url = d["manifest"]
       manifest_name = manifest_url.split("/")[-1]
-      manifest = manifests_client.get(
-        project=args.project, deployment=name, manifest=manifest_name).execute()
+
+      rpc = manifests_client.get(project=args.project,
+                                 deployment=name,
+                                 manifest=manifest_name)
+      try:
+        manifest = execute_rpc(rpc)
+      except socket.error as e:
+        logging.error("socket error prevented getting manifest %s", e)
+        # Try to continue with deletion rather than aborting.
+        continue
 
       # Create a temporary directory to store the deployment.
       manifest_dir = tempfile.mkdtemp(prefix="tmp" + name)
@@ -290,9 +468,10 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
 
       config = yaml.load(manifest["config"]["content"])
 
-      if not config:
+      if not config or not config["resources"]:
         logging.warning("Skipping deployment %s because it has no config; "
                         "is it already being deleted?", name)
+        continue
       zone = config["resources"][0]["properties"]["zone"]
       command = [args.delete_script,
                  "--project=" + args.project, "--deployment=" + name,
@@ -313,7 +492,8 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
 
       # We could potentially run the deletes in parallel but that would lead
       # to very confusing logs.
-      subprocess.check_call(command, cwd=cwd)
+      if not args.dryrun:
+        subprocess.check_call(command, cwd=cwd)
 
   gke = discovery.build("container", "v1", credentials=credentials)
 
@@ -346,15 +526,24 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       if age > datetime.timedelta(hours=args.max_age_hours):
         logging.info("Deleting cluster %s in zone %s", name, zone)
 
-        clusters_client.delete(projectId=args.project, zone=zone,
-                               clusterId=name).execute()
+        if not args.dryrun:
+          clusters_client.delete(projectId=args.project, zone=zone,
+                                 clusterId=name).execute()
 
 def cleanup_all(args):
-  cleanup_deployments(args)
-  cleanup_endpoints(args)
-  cleanup_service_accounts(args)
-  cleanup_workflows(args)
-  cleanup_disks(args)
+  ops = [cleanup_deployments,
+         cleanup_endpoints,
+         cleanup_service_accounts,
+         cleanup_service_account_bindings,
+         cleanup_workflows,
+         cleanup_disks,
+         cleanup_firewall_rules,
+         cleanup_health_checks]
+  for op in ops:
+    try:
+      op(args)
+    except Exception as e: # pylint: disable=broad-except
+      logging.error(e)
 
 def add_workflow_args(parser):
   parser.add_argument(
@@ -389,6 +578,10 @@ def main():
   parser.add_argument(
     "--max_age_hours", default=3, type=int, help=("The age of deployments to gc."))
 
+  parser.add_argument('--dryrun', dest='dryrun', action='store_true')
+  parser.add_argument('--no-dryrun', dest='dryrun', action='store_false')
+  parser.set_defaults(dryrun=False)
+
   subparsers = parser.add_subparsers()
 
   ######################################################
@@ -415,6 +608,21 @@ def main():
     "endpoints", help="Cleanup endpoints")
 
   parser_endpoints.set_defaults(func=cleanup_endpoints)
+
+  ######################################################
+  # Parser for firewallrules
+  parser_firewall = subparsers.add_parser(
+    "firewall", help="Cleanup firewall rules")
+
+  parser_firewall.set_defaults(func=cleanup_firewall_rules)
+
+
+  ######################################################
+  # Parser for health checks
+  parser_health = subparsers.add_parser(
+    "health_checks", help="Cleanup health checks")
+
+  parser_health.set_defaults(func=cleanup_health_checks)
 
   ######################################################
   # Parser for service accounts

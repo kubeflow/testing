@@ -1,0 +1,15 @@
+bindings:
+- members:
+  - user:mike@example.com
+  - group:admins@example.com
+  - domain:google.com
+  - serviceAccount:my-other-app@appspot.gserviceaccount.com
+  - serviceAccount:kfctl-in-use@kubeflow-ci.iam.gserviceaccount.com
+  - serviceAccount:kfctl-expired@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/owner
+- members:
+  - user:mike@example.com
+  role: roles/viewer
+- members:
+  - serviceAccount:kfctl-expired@kubeflow-ci.iam.gserviceaccount.com
+  role: roles/editor

@@ -16,7 +16,7 @@
       )
   )],
 
-  jobSpec:: {
+  jobSpec:: function(project="kubeflow-ci"){      
       "template": {
         "spec": {
           "containers": [
@@ -29,6 +29,7 @@
                 "python",
                 "-m",
                 "kubeflow.testing.cleanup_ci",
+                "--project=" + project,
                 "all",
                 "--delete_script=/src/kubeflow/kubeflow/scripts/gke/delete_deployment.sh",
               ],
@@ -43,14 +44,6 @@
                 {
                   name: "REPO_NAME",
                   value: "testing",                  
-                },
-                {
-                  // TODO(jlewi): Stop setting PULL_NUMBER once the PR is merged.
-                  // We had to set the PR number because when we initially created the
-                  // job we had some changes to cleanup_ci.py that were part of the PR
-                  // committing the job.
-                  name: "PULL_NUMBER",
-                  value: "300",
                 },
                 {
                   name: "PYTHONPATH",

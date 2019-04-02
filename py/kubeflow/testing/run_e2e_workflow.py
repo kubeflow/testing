@@ -201,7 +201,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     elif job_type == "postsubmit":
       workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA")[0:7])
 
-    workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER"))
+    # Append the last 4 digits of the build number
+    workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER")[-4:])
 
     salt = uuid.uuid4().hex[0:4]
     # Add some salt. This is mostly a convenience for the case where you

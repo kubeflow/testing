@@ -50,8 +50,10 @@ RUN cd /tmp && \
     tar -C /usr/local -xzf go.tar.gz
 
 # Install gcloud
-ENV PATH=/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
+ENV PATH=/root/go/bin:/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
     CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
+RUN go get github.com/kelseyhightower/kube-rsa
 
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
     tar xzf google-cloud-sdk.tar.gz -C / && \
@@ -142,7 +144,7 @@ RUN cd /tmp/ && \
 RUN pip3 install pipenv==2018.10.9
 RUN cd /tmp/ && pipenv install --system --three
 
-RUN pip install yq 
+RUN pip install yq
 
 COPY checkout.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout.sh

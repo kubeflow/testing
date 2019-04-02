@@ -8,11 +8,18 @@ parseArgs() {
     # Parameters should be of the form
     # --{name}=${value}
     echo parsing "$1"
+
     if [[ $1 =~ ^--(.*)=(.*)$ ]]; then
       _name=${BASH_REMATCH[1]}
-      _value=${BASH_REMATCH[2]}
 
-      eval ${_name}="${_value}"
+      if [[ ${_name} == "repos" ]]; then
+        # We handle repos specially because it has ";" in it which causes problems
+        repos=${BASH_REMATCH[2]}
+      else
+        _value=${BASH_REMATCH[2]}
+        eval ${_name}="${_value}"
+      fi
+      
     elif [[ $1 =~ ^--(.*)$ ]]; then
     _name=${BASH_REMATCH[1]}
     _value=true

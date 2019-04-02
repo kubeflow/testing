@@ -5,42 +5,41 @@ metadata:
   clusterName: kubeflow-testing
   namespace: kubeflow-test-infra
 spec:
-  concurrencyPolicy: "Forbid"
-  # Deploy every 8 hours.
-  schedule: "0 */8 * * *"
+  concurrencyPolicy: Forbid
+  schedule: 0 */12 * * *
   jobTemplate:
     spec:
+      backoffLimit: 2
       template:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:live
+            image: gcr.io/kubeflow-ci/deploy-worker:v20190302-afc8ef8-dirty-201fe5
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
             command:
-            - /usr/local/bin/init.sh
-            - --src_dir=/src
-            - --repo_owner=kubeflow
-            - --repo_branches=kubeflow/v0.4-branch,testing/master
-            - --project=kubeflow-ci
-            - --worker_cluster=kubeflow-testing
+            - /usr/local/bin/auto_deploy.sh
+            - --repos=kubeflow/kubeflow@v0.5-branch;kubeflow/testing
+            - --project=kubeflow-ci-deployment
             - --job_labels=/etc/pod-info/labels
-            - --nfs_mnt=/mnt/test-data-volume
-            - --base_name=kf-v0-4
+            - --data_dir=/mnt/test-data-volume/auto_deploy
+            - --base_name=kf-vmaster
             - --max_num_cluster=5
+            - --zone=us-east1-b
+            - --github_token_file=/secret/github-token/github_token
             volumeMounts:
             - name: gcp-credentials
-              mountPath: "/secret/gcp-credentials"
+              mountPath: /secret/gcp-credentials
               readOnly: true
             - name: pod-info
-              mountPath: "/etc/pod-info"
+              mountPath: /etc/pod-info
               readOnly: true
             - name: github-token
-              mountPath: "/secret/github-token"
+              mountPath: /secret/github-token
               readOnly: true
             - name: test-data-volume
-              mountPath: "/mnt/test-data-volume"
+              mountPath: /mnt/test-data-volume
               readOnly: false
           restartPolicy: Never
           volumes:
@@ -56,6 +55,6 @@ spec:
           - name: pod-info
             downwardAPI:
               items:
-                - path: "labels"
-                  fieldRef:
-                    fieldPath: metadata.labels
+              - path: labels
+                fieldRef:
+                  fieldPath: metadata.labels

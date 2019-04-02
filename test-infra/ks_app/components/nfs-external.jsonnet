@@ -54,6 +54,8 @@ local pvc = {
         storage: "500Mi",
       },
     },
+    storageClassName: storageClassName,
+    volumeName: "gcfs",
   },
 };
 

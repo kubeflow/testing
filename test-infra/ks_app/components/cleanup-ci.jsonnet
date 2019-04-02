@@ -6,19 +6,20 @@ local env = std.extVar("__ksonnet/environments");
 local k = import "k.libsonnet";
 local cleanup = import "cleanup-ci.libsonnet";
 
-local job = {
+local job(project) = {
     "apiVersion": "batch/v1", 
     "kind": "Job", 
     "metadata": {           
-      name: params.name,
+      name: params.name + "-" + project,
       namespace: env.namespace,
       labels: {
-        app: "cleanup-ci"
+        app: "cleanup-ci" + "-" + project,
       },
     }, 
-    "spec": cleanup.jobSpec,
+    "spec": cleanup.jobSpec(project),
 };
 
 std.prune(k.core.v1.list.new([  
-  job,
+  job("kubeflow-ci"),
+  job("kubeflow-ci-deployment"),
 ]))
