@@ -57,7 +57,7 @@ class TestProw(unittest.TestCase):
     }
 
     actual = prow_artifacts.create_finished(False, workflow_phase, test_urls)
-     os.environ.pop("PULL_REFS")
+    os.environ.pop("PULL_REFS")
     self.assertEqual(expected, json.loads(actual))
 
   @mock.patch("kubeflow.testing.prow_artifacts.util.run")
