@@ -76,8 +76,9 @@ def create_finished(success, workflow_phase, ui_urls):
       "metadata": {
       },
   }
-  #kettle (https://github.com/kubernetes/test-infra/tree/master/kettle) expexts to get commit information in finished["metadata"]["repos"]
-  #we leverage kettle to load kubeflow test logs into bigquery
+  # kettle (https://github.com/kubernetes/test-infra/tree/master/kettle) expexts
+  # to get commit information in finished["metadata"]["repos"].
+  # We leverage kettle to upload kubeflow test logs into bigquery.
   PULL_REFS = os.getenv("PULL_REFS", "")
   repo_owner = os.getenv("REPO_OWNER", "")
   repo_name = os.getenv("REPO_NAME", "")
