@@ -18,6 +18,10 @@ spec:
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
+            - name: CLIENT_ID
+              value: 29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g.apps.googleusercontent.com
+            - name: CLIENT_SECRET
+              value: CJ4qVPLTi0j0GJMkONj7Quwt
             command:
             - /usr/local/bin/auto_deploy.sh
             - --repos=kubeflow/kubeflow@v0.5-branch;kubeflow/testing
