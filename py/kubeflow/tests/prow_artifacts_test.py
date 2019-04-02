@@ -34,6 +34,9 @@ class TestProw(unittest.TestCase):
   @mock.patch("kubeflow.testing.prow_artifacts.time.time")
   def testCreateFinished(self, mock_time):  # pylint: disable=no-self-use
     """Test create finished job."""
+    os.environ["REPO_OWNER"] = "fake_org"
+    os.environ["REPO_NAME"] = "fake_name"
+    os.environ["PULL_REFS"] = "master:abcd,72:efgh"
     mock_time.return_value = 1000
     workflow_phase = {
       "wfA": "Succeeded"
@@ -45,13 +48,16 @@ class TestProw(unittest.TestCase):
         "timestamp": 1000,
         "result": "FAILED",
         "metadata": {
+          "repos": {
+            "fake_org/fake_name": "master:abcd,72:efgh"
+            },
           "wfA-phase": "Succeeded",
           "wfA-ui": "https://example.com",
         },
     }
 
     actual = prow_artifacts.create_finished(False, workflow_phase, test_urls)
-
+    os.environ.pop("PULL_REFS")
     self.assertEqual(expected, json.loads(actual))
 
   @mock.patch("kubeflow.testing.prow_artifacts.util.run")
