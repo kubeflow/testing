@@ -82,8 +82,8 @@ def create_finished(success, workflow_phase, ui_urls):
   repo_owner = os.getenv("REPO_OWNER", "")
   repo_name = os.getenv("REPO_NAME", "")
   if repo_owner and PULL_REFS:
-    finished["metadata"]["repos"]={}
-    finished["metadata"]["repos"][repo_owner + "/" + repo_name]=PULL_REFS
+    finished["metadata"]["repos"] = {}
+    finished["metadata"]["repos"][repo_owner + "/" + repo_name] = PULL_REFS
 
   names = set()
   names.update(workflow_phase.keys())
