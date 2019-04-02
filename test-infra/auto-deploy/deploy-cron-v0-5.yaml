@@ -24,7 +24,7 @@ spec:
             - --project=kubeflow-ci-deployment
             - --job_labels=/etc/pod-info/labels
             - --data_dir=/mnt/test-data-volume/auto_deploy
-            - --base_name=kf-vmaster
+            - --base_name=kf-v0-5
             - --max_num_cluster=5
             - --zone=us-east1-b
             - --github_token_file=/secret/github-token/github_token
