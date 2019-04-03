@@ -14,7 +14,7 @@ spec:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:v20190302-afc8ef8-dirty-201fe5
+            image: gcr.io/kubeflow-ci/deploy-worker:v20190403-33a1352-e3b0c4
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
