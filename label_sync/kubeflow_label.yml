@@ -26,6 +26,8 @@ default:
   - color: d2b48c
     name: area/docs
   - color: d2b48c
+    name: area/devices
+  - color: d2b48c
     name: area/example
   - color: d2b48c
     name: area/front-end
