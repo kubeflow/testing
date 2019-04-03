@@ -260,6 +260,13 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
             "--update-labels", ",".join(label_args)],
             cwd=app_dir)
 
+  # Set labels on the cluster. Labels on the deployment is not shown on
+  # Pantheon - it's easier for users to read if cluster also has labels.
+  util.run(["gcloud", "container", "clusters", "update", name,
+            "--zone", args.zone,
+            "--update-labels", ",".join(label_args)],
+           cwd=app_dir)
+
   # To work around lets-encrypt certificate uses create a self-signed
   # certificate
   util.run(["kubectl", "config", "use-context", name])
