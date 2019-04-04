@@ -15,6 +15,9 @@ required_args=(data_dir repos project job_labels base_name max_num_cluster zone)
 parseArgs $*
 validateRequiredArgs ${required_args}
 
+export CLIENT_ID=$(cat /secret/oauth-secret/CLIENT_ID)
+export CLIENT_SECRET=$(cat /secret/oauth-secret/CLIENT_SECRET)
+
 # Activate service account auth.
 if [ ! -z ${GOOGLE_APPLICATION_CREDENTIALS} ]; then
   gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
