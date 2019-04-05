@@ -246,6 +246,20 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     val = re.sub(r"[^a-z0-9\-_]", "-", val)
     label_args.append("{key}={val}".format(key=k.lower(), val=val))
 
+  endpoint = "{name}.endpoints.{project}.cloud.goog".format(
+      name=name,
+      project=args.project)
+  # Fire-and-forgot process to undelete endpoint services. Deletion to
+  # endpoint service is soft-deletion, e.g. it will be purged after 30
+  # days. If any deployments is trying to re-use the same endpoint, it
+  # will be an error if it's in soft-deletion. Need to undelete it so
+  # that endpoint-controller could complete its job.
+  try:
+    util.run(["gcloud", "endpoints", "services", "undelete", endpoint,
+              "--verbosity=info", "--project="+args.project])
+  except:
+    pass
+
   if args.use_kfctl_go:
     deploy_with_kfctl_go(kfctl_path, args, app_dir, env)
   else:
