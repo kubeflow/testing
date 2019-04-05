@@ -246,6 +246,20 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     val = re.sub(r"[^a-z0-9\-_]", "-", val)
     label_args.append("{key}={val}".format(key=k.lower(), val=val))
 
+  endpoint = "{name}.endpoints.{project}.cloud.goog".format(
+      name=name,
+      project=args.project)
+  # Fire-and-forgot process to undelete endpoint services. Deletion to
+  # endpoint service is soft-deletion, e.g. it will be purged after 30
+  # days. If any deployments is trying to re-use the same endpoint, it
+  # will be an error if it's in soft-deletion. Need to undelete it so
+  # that endpoint-controller could complete its job.
+  try:
+    util.run(["gcloud", "endpoints", "services", "undelete", endpoint,
+              "--verbosity=info", "--project="+args.project])
+  except subprocess.CalledProcessError as e:
+    logging.info("endpoint undeletion is failed: %s", e)
+
   if args.use_kfctl_go:
     deploy_with_kfctl_go(kfctl_path, args, app_dir, env)
   else:
@@ -263,6 +277,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # Set labels on the cluster. Labels on the deployment is not shown on
   # Pantheon - it's easier for users to read if cluster also has labels.
   util.run(["gcloud", "container", "clusters", "update", name,
+            "--project", args.project,
             "--zone", args.zone,
             "--update-labels", ",".join(label_args)],
            cwd=app_dir)
