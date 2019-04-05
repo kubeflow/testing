@@ -14,14 +14,14 @@ spec:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:v20190302-afc8ef8-dirty-201fe5
+            image: gcr.io/kubeflow-ci/deploy-worker:v20190404-cda5cee-e3b0c4
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
             command:
             - /usr/local/bin/auto_deploy.sh
             - --repos=kubeflow/kubeflow;kubeflow/testing
-            - --project=kubeflow-ci
+            - --project=kubeflow-ci-deployment
             - --job_labels=/etc/pod-info/labels
             - --data_dir=/mnt/test-data-volume/auto_deploy
             - --base_name=kf-vmaster
@@ -31,6 +31,9 @@ spec:
             volumeMounts:
             - name: gcp-credentials
               mountPath: /secret/gcp-credentials
+              readOnly: true
+            - name: oauth-secret
+              mountPath: /secret/oauth-secret
               readOnly: true
             - name: pod-info
               mountPath: /etc/pod-info
@@ -46,6 +49,9 @@ spec:
           - name: gcp-credentials
             secret:
               secretName: gcp-credentials
+          - name: oauth-secret
+            secret:
+              secretName: kubeflow-ci-deployment-iap-testing-oauth
           - name: github-token
             secret:
               secretName: github-token

@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: auto-deploy-v0-4
+  name: auto-deploy-v0-5
   clusterName: kubeflow-testing
   namespace: kubeflow-test-infra
 spec:
@@ -14,7 +14,7 @@ spec:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:v20190302-afc8ef8-dirty-201fe5
+            image: gcr.io/kubeflow-ci/deploy-worker:v20190404-cda5cee-e3b0c4
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
@@ -24,13 +24,16 @@ spec:
             - --project=kubeflow-ci-deployment
             - --job_labels=/etc/pod-info/labels
             - --data_dir=/mnt/test-data-volume/auto_deploy
-            - --base_name=kf-vmaster
+            - --base_name=kf-v0-5
             - --max_num_cluster=5
             - --zone=us-east1-b
             - --github_token_file=/secret/github-token/github_token
             volumeMounts:
             - name: gcp-credentials
               mountPath: /secret/gcp-credentials
+              readOnly: true
+            - name: oauth-secret
+              mountPath: /secret/oauth-secret
               readOnly: true
             - name: pod-info
               mountPath: /etc/pod-info
@@ -46,6 +49,9 @@ spec:
           - name: gcp-credentials
             secret:
               secretName: gcp-credentials
+          - name: oauth-secret
+            secret:
+              secretName: kubeflow-ci-deployment-iap-testing-oauth
           - name: github-token
             secret:
               secretName: github-token
