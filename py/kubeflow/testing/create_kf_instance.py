@@ -257,8 +257,8 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   try:
     util.run(["gcloud", "endpoints", "services", "undelete", endpoint,
               "--verbosity=info", "--project="+args.project])
-  except:
-    pass
+  except Exception as e:
+    logging.info("endpoint undeletion is failed: %s", e)
 
   if args.use_kfctl_go:
     deploy_with_kfctl_go(kfctl_path, args, app_dir, env)
