@@ -263,6 +263,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # Set labels on the cluster. Labels on the deployment is not shown on
   # Pantheon - it's easier for users to read if cluster also has labels.
   util.run(["gcloud", "container", "clusters", "update", name,
+            "--project", args.project,
             "--zone", args.zone,
             "--update-labels", ",".join(label_args)],
            cwd=app_dir)
