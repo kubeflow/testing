@@ -40,6 +40,10 @@ def list_deployments(project, name_prefix, testing_label):
 
   return cls
 
+
+def get_deployment(project, name_prefix, testing_label, desc_ordered=True):
+  pass
+
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
                       format=('%(levelname)s|%(asctime)s'
