@@ -45,7 +45,9 @@ def list_deployments(project, name_prefix, testing_label):
   dm_client = dm.deployments()
 
   list_filter = "labels.purpose eq " + testing_label
-  name_re = re.compile("{0}\-n[0-9]+\Z".format(name_prefix)) # pylint: disable=anomalous-backslash-in-string
+  # pylint: disable=anomalous-backslash-in-string
+  name_re = re.compile("{0}\-n[0-9]+\Z".format(name_prefix))
+  # pylint: enable=anomalous-backslash-in-string
   deployments = dm_client.list(project=project, filter=list_filter).execute()
   next_page_token = None
   cls = []
