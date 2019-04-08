@@ -10,6 +10,11 @@ import re
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
+def get_deployment_endpoint(project, deployment):
+  return "{deployment}.endpoints.{project}.cloud.goog".format(
+      project=project,
+      deployment=deployment)
+
 def list_deployments(project, name_prefix, testing_label):
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
@@ -30,6 +35,7 @@ def list_deployments(project, name_prefix, testing_label):
       logging.info("labels is %s", str(d.get("labels", [])))
       cls.append({
           "name": name,
+          "endpoint": get_deployment_endpoint(project, name),
           "insertTime": d.get("insertTime", "1969-12-31T23:59:59+00:00"),
       })
 
@@ -42,7 +48,13 @@ def list_deployments(project, name_prefix, testing_label):
 
 
 def get_deployment(project, name_prefix, testing_label, desc_ordered=True):
-  pass
+  deployments = list_deployments(project, name_prefix, testing_label)
+  if not deployments:
+    raise RuntimeError("No deployments found...")
+  deployments = sorted(deployments, key=lambda entry: entry["insertTime"],
+                       reverse=desc_ordered)
+  logging.info("deployments: %s", str(deployments))
+  return deployments[0]["endpoint"]
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
@@ -66,12 +78,26 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
       "--testing_cluster_label", default="kf-test-cluster", type=str,
       help=("Label used to identify the deployment is for testing."))
 
+  parser.add_argument(
+      "--find_latest_deployed", dest="find_latest_deployed",
+      action="store_true",
+      help=("Looking for the latest deployed testing cluster."))
+  parser.add_argument(
+      "--find_oldest_deployed", dest="find_latest_deployed",
+      action="store_false",
+      help=("Looking for the oldest deployed testing cluster."))
+  parser.set_defaults(find_latest_deployed=True)
+
   args = parser.parse_args()
   kf_basename = args.base_name + args.version
   logging.info("Cluster base name = %s", kf_basename)
-  clusters = list_deployments(args.project, kf_basename,
-                              args.testing_cluster_label)
-  logging.info("found clusters = %s", str(clusters))
+  logging.info("Looking for the %s deployed cluster...",
+               "latest" if args.find_latest_deployed else "oldest")
+  logging.info("selected cluster = %s", get_deployment(
+      args.project,
+      kf_basename,
+      args.testing_cluster_label,
+      args.find_latest_deployed))
 
 if __name__ == "__main__":
   main()
