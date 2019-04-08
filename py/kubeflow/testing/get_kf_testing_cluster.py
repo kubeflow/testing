@@ -1,6 +1,10 @@
-"""TODO(gabrielwen): DO NOT SUBMIT without one-line documentation for get_kf_testing_cluster.
+"""Find the latest/oldest deployed Kubeflow testing cluster.
 
-TODO(gabrielwen): DO NOT SUBMIT without a detailed description of get_kf_testing_cluster.
+User could either import this file as module or run it as a script.
+Running it with bash:
+  - python -m kubeflow.testing.get_kf_testing_cluster
+  - python -c "from kubeflow.testing import get_kf_testing_cluster; \
+    print(get_kf_testing_cluster.get_deployment(\"kubeflow-ci-deployment\", \"kf-vmaster\", \"kf-test-cluster\"))"
 """
 
 import argparse
@@ -11,11 +15,31 @@ from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
 def get_deployment_endpoint(project, deployment):
+  """Format endpoint service name using default logic.
+
+  Args:
+    project: str. Name of the deployed project.
+    deployment: str. Name of deployment - e.g. app name.
+
+  Returns:
+    endpoint_name: str. Endpoint service name.
+  """
   return "{deployment}.endpoints.{project}.cloud.goog".format(
       project=project,
       deployment=deployment)
 
 def list_deployments(project, name_prefix, testing_label):
+  """List all the deployments matching name prefix and having testing labels.
+
+  Args:
+    project: str. Name of the deployed project.
+    name_prefix: str. Base name of deployments.
+    testing_label: labels assigned to testing clusters used for identification.
+
+  Returns:
+    deployments. list. List of dictionaries with name of deployments,
+                 endpoint service name, and the timestamp the deployment is inserted.
+  """
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
   dm_client = dm.deployments()
@@ -48,6 +72,18 @@ def list_deployments(project, name_prefix, testing_label):
 
 
 def get_deployment(project, name_prefix, testing_label, desc_ordered=True):
+  """Retrieve either the latest or the oldest deployed testing cluster.
+
+  Args:
+    project: str. Name of the deployed project.
+    name_prefix: str. Base name of deployments.
+    testing_label: str. Label used to identify testing clusters.
+    desc_ordered: bool. Option to either choose the latest or the oldest
+                  deployment.
+
+  Returns:
+    endpoint_service: str. Name of the endpoint service.
+  """
   deployments = list_deployments(project, name_prefix, testing_label)
   if not deployments:
     raise RuntimeError("No deployments found...")
