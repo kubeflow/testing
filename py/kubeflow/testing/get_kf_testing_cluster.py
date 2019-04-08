@@ -4,7 +4,8 @@ User could either import this file as module or run it as a script.
 Running it with bash:
   - python -m kubeflow.testing.get_kf_testing_cluster
   - python -c "from kubeflow.testing import get_kf_testing_cluster; \
-    print(get_kf_testing_cluster.get_deployment(\"kubeflow-ci-deployment\", \"kf-vmaster\", \"kf-test-cluster\"))"
+    print(get_kf_testing_cluster.get_deployment(\"kubeflow-ci-deployment\", \
+    \"kf-vmaster\", \"kf-test-cluster\"))"
 """
 
 import argparse
