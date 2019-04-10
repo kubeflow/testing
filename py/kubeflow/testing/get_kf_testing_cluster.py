@@ -29,7 +29,7 @@ def get_deployment_endpoint(project, deployment):
       project=project,
       deployment=deployment)
 
-def list_deployments(project, name_prefix, testing_label):
+def list_deployments(project, name_prefix, testing_label, http=None):
   """List all the deployments matching name prefix and having testing labels.
 
   Args:
@@ -41,8 +41,12 @@ def list_deployments(project, name_prefix, testing_label):
     deployments. list. List of dictionaries with name of deployments,
                  endpoint service name, and the timestamp the deployment is inserted.
   """
-  credentials = GoogleCredentials.get_application_default()
-  dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
+  dm = None
+  if http:
+    dm = discovery.build("deploymentmanager", "v2", http=http)
+  else:
+    credentials = GoogleCredentials.get_application_default()
+    dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
   dm_client = dm.deployments()
 
   list_filter = "labels.purpose eq " + testing_label
@@ -52,12 +56,16 @@ def list_deployments(project, name_prefix, testing_label):
   deployments = dm_client.list(project=project, filter=list_filter).execute()
   next_page_token = None
   cls = []
+  temp = False
   while True:
     next_page_token = deployments.get("nextPageToken", None)
     for d in deployments.get("deployments", []):
       name = d.get("name", "")
       if not name or name_re.match(name) is None:
         continue
+      if not temp:
+        print(d)
+        temp = True
       logging.info("deployment name is %s", name)
       logging.info("labels is %s", str(d.get("labels", [])))
       cls.append({
