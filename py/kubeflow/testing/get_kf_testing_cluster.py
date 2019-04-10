@@ -33,9 +33,11 @@ def list_deployments(project, name_prefix, testing_label, http=None):
   """List all the deployments matching name prefix and having testing labels.
 
   Args:
-    project: str. Name of the deployed project.
-    name_prefix: str. Base name of deployments.
-    testing_label: labels assigned to testing clusters used for identification.
+    project: string, Name of the deployed project.
+    name_prefix: string, Base name of deployments.
+    testing_label: string, labels assigned to testing clusters used for identification.
+    http: httplib2.Http, An instance of httplib2.Http or something that acts
+      like it that HTTP requests will be made through. Should only be used in tests.
 
   Returns:
     deployments. list. List of dictionaries with name of deployments,
@@ -83,22 +85,41 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
   """Retrieve either the latest or the oldest deployed testing cluster.
 
   Args:
-    project: str. Name of the deployed project.
-    name_prefix: str. Base name of deployments.
-    testing_label: str. Label used to identify testing clusters.
+    project: string, Name of the deployed project.
+    name_prefix: string, Base name of deployments.
+    testing_label: string, Label used to identify testing clusters.
     desc_ordered: bool. Option to either choose the latest or the oldest
-                  deployment.
+      deployment.
+    http: httplib2.Http, An instance of httplib2.Http or something that acts
+      like it that HTTP requests will be made through. Should only be used in tests.
 
   Returns:
     endpoint_service: str. Name of the endpoint service.
   """
   deployments = list_deployments(project, name_prefix, testing_label, http=http)
   if not deployments:
-    raise RuntimeError("No deployments found...")
+    raise LookupError("No deployments found...")
   deployments = sorted(deployments, key=lambda entry: entry["insertTime"],
                        reverse=desc_ordered)
   logging.info("deployments: %s", str(deployments))
   return deployments[0]["endpoint"]
+
+def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test-cluster",
+               http=None):
+  """Convenient function to get the latest deployment's endpoint name using just version.
+
+  Args:
+    version: string, version of deployed testing clusters to find.
+    project: string, Name of deployed GCP project. Optional.
+    testing_label: string, annotation used to identify testing clusters. Optional.
+    http: httplib2.Http, An instance of httplib2.Http or something that acts
+      like it that HTTP requests will be made through. Should only be used in tests.
+
+  Returns:
+    endpoint_service: str. Name of the endpoint service.
+  """
+  name_prefix = "kf-v" + version
+  return get_deployment(project, name_prefix, testing_label, http=http)
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
