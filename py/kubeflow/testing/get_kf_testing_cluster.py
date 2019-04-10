@@ -43,6 +43,7 @@ def list_deployments(project, name_prefix, testing_label, http=None):
   """
   dm = None
   if http:
+    # This should only be used in testing.
     dm = discovery.build("deploymentmanager", "v2", http=http)
   else:
     credentials = GoogleCredentials.get_application_default()
@@ -56,16 +57,12 @@ def list_deployments(project, name_prefix, testing_label, http=None):
   deployments = dm_client.list(project=project, filter=list_filter).execute()
   next_page_token = None
   cls = []
-  temp = False
   while True:
     next_page_token = deployments.get("nextPageToken", None)
     for d in deployments.get("deployments", []):
       name = d.get("name", "")
       if not name or name_re.match(name) is None:
         continue
-      if not temp:
-        print(d)
-        temp = True
       logging.info("deployment name is %s", name)
       logging.info("labels is %s", str(d.get("labels", [])))
       cls.append({
