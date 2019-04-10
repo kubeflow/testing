@@ -63,9 +63,50 @@ class GetKfTestingClusterTest(unittest.TestCase):
                                                      "kf-vfoo",
                                                      TEST_LABEL,
                                                      http=http)
-    expected = create_expected_resp(deployments)
+    expected = create_expected_list_resp(deployments)
     self.assertListEqual(actual, expected)
 
+  def test_list_deployments_name_filter(self):
+    deployments = [
+        Deployment("kf-vfoo-n00", "2019-04-01T23:59:59+00:00"),
+        Deployment("kf-vfoo-n01", "2019-04-02T23:59:59+00:00"),
+        Deployment("kf-vfoo-n02-storage", "2019-04-03T23:59:59+00:00"),
+    ]
+    list_resp = {
+        "deployments": create_mock_http_resp(deployments),
+    }
+    http = HttpMockSequence([
+        ({'status': '200'}, self.dm_api),
+        ({'status': '200'}, json.dumps(list_resp)),
+    ])
+    actual = get_kf_testing_cluster.list_deployments(TEST_PROJECT,
+                                                     "kf-vfoo",
+                                                     TEST_LABEL,
+                                                     http=http)
+    expected = create_expected_list_resp(deployments[0:2])
+    self.assertListEqual(actual, expected)
+
+  def test_list_deployments_default_insertime(self):
+    deployments = [
+        Deployment("kf-vfoo-n00", "2019-04-01T23:59:59+00:00"),
+        Deployment("kf-vfoo-n01", "2019-04-02T23:59:59+00:00"),
+        Deployment("kf-vfoo-n02", "2019-04-03T23:59:59+00:00"),
+    ]
+    list_resp = {
+        "deployments": create_mock_http_resp(deployments),
+    }
+    list_resp["deployments"][-1].pop("insertTime", None)
+    http = HttpMockSequence([
+        ({'status': '200'}, self.dm_api),
+        ({'status': '200'}, json.dumps(list_resp)),
+    ])
+    actual = get_kf_testing_cluster.list_deployments(TEST_PROJECT,
+                                                     "kf-vfoo",
+                                                     TEST_LABEL,
+                                                     http=http)
+    expected = create_expected_list_resp(deployments)
+    expected[-1]["insertTime"] = "1969-12-31T23:59:59+00:00"
+    self.assertListEqual(actual, expected)
 
 if __name__ == '__main__':
   unittest.main()

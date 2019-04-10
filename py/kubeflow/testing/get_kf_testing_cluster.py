@@ -79,7 +79,7 @@ def list_deployments(project, name_prefix, testing_label, http=None):
   return cls
 
 
-def get_deployment(project, name_prefix, testing_label, desc_ordered=True):
+def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=True):
   """Retrieve either the latest or the oldest deployed testing cluster.
 
   Args:
@@ -92,7 +92,7 @@ def get_deployment(project, name_prefix, testing_label, desc_ordered=True):
   Returns:
     endpoint_service: str. Name of the endpoint service.
   """
-  deployments = list_deployments(project, name_prefix, testing_label)
+  deployments = list_deployments(project, name_prefix, testing_label, http=http)
   if not deployments:
     raise RuntimeError("No deployments found...")
   deployments = sorted(deployments, key=lambda entry: entry["insertTime"],
