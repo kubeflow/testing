@@ -2,7 +2,7 @@
 
 User could either import this file as module or run it as a script.
 Running it with bash:
-  - python -m kubeflow.testing.get_kf_testing_cluster
+  - python -m kubeflow.testing.get_kf_testing_cluster --help
   - python -c "from kubeflow.testing import get_kf_testing_cluster; \
     print(get_kf_testing_cluster.get_deployment(\"kubeflow-ci-deployment\", \
     \"kf-vmaster\", \"kf-test-cluster\"))"
@@ -137,7 +137,7 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
     return deployments[0][field]
 
 def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test-cluster",
-               http=None, field="endpoint"):
+               base_name="kf-v", http=None, field="endpoint"):
   """Convenient function to get the latest deployment's information using just version.
 
   Args:
@@ -157,10 +157,10 @@ def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test
     }
     field == ("endpoint", "zone", "name"): string value of the field specified.
   """
-  name_prefix = "kf-v" + version
+  name_prefix = base_name + version
   return get_deployment(project, name_prefix, testing_label, http=http, field=field)
 
-def get_latest_credential(version, project="kubeflow-ci-deployment",
+def get_latest_credential(version, project="kubeflow-ci-deployment", base_name="kf-v",
                           testing_label="kf-test-cluster"):
   """Convenient function to get the latest deployment information and use it to get
   credentials from GCP.
@@ -170,7 +170,8 @@ def get_latest_credential(version, project="kubeflow-ci-deployment",
     project: string, Name of deployed GCP project. Optional.
     testing_label: string, annotation used to identify testing clusters. Optional.
   """
-  dm = get_latest(version, project=project, testing_label=testing_label, field="all")
+  dm = get_latest(version, project=project, testing_label=testing_label, base_name=base_name,
+                  field="all")
   subprocess.call(["gcloud", "container", "clusters", "get-credentials", dm["name"],
                    "--project="+project, "--zone="+dm["zone"]])
 
@@ -189,7 +190,11 @@ def get_dm(args):
 def get_credential(args):
   logging.info("Calling get_credential - this call needs gcloud client CLI.")
   name_prefix = args.base_name + args.version
-  get_latest_credential(args.version)
+  dm = get_deployment(args.project, name_prefix, args.testing_cluster_label,
+                      desc_ordered=args.find_latest_deployed,
+                      field="all")
+  subprocess.call(["gcloud", "container", "clusters", "get-credentials", dm["name"],
+                   "--project="+args.project, "--zone="+dm["zone"]])
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
