@@ -29,7 +29,7 @@ def get_deployment_endpoint(project, deployment):
       project=project,
       deployment=deployment)
 
-def list_deployments(project, name_prefix, testing_label, http=None):
+def list_deployments(project, name_prefix, testing_label, http=None, desc_ordered=True):
   """List all the deployments matching name prefix and having testing labels.
 
   Args:
@@ -40,7 +40,7 @@ def list_deployments(project, name_prefix, testing_label, http=None):
       like it that HTTP requests will be made through. Should only be used in tests.
 
   Returns:
-    deployments. list. List of dictionaries with name of deployments,
+    deployments. list. Sorted list of dictionaries with name of deployments,
                  endpoint service name, and the timestamp the deployment is inserted.
   """
   dm = None
@@ -78,7 +78,8 @@ def list_deployments(project, name_prefix, testing_label, http=None):
     deployments = dm_client.list(project=project, pageToken=next_page_token,
                                  filter=list_filter).execute()
 
-  return cls
+  return sorted(cls, key=lambda entry: entry["insertTime"],
+                reverse=desc_ordered)
 
 
 def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=True):
@@ -96,11 +97,10 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
   Returns:
     endpoint_service: str. Name of the endpoint service.
   """
-  deployments = list_deployments(project, name_prefix, testing_label, http=http)
+  deployments = list_deployments(project, name_prefix, testing_label, http=http,
+                                 desc_ordered=desc_ordered)
   if not deployments:
     raise LookupError("No deployments found...")
-  deployments = sorted(deployments, key=lambda entry: entry["insertTime"],
-                       reverse=desc_ordered)
   logging.info("deployments: %s", str(deployments))
   return deployments[0]["endpoint"]
 

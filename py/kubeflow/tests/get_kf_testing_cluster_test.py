@@ -66,7 +66,9 @@ class GetKfTestingClusterTest(unittest.TestCase):
                                                      "kf-vfoo",
                                                      TEST_LABEL,
                                                      http=http)
-    expected = create_expected_list_resp(deployments)
+    expected = sorted(create_expected_list_resp(deployments),
+                      key=lambda entry: entry["insertTime"],
+                      reverse=True)
     self.assertListEqual(actual, expected)
 
   def test_list_deployments_name_filter(self):
@@ -86,7 +88,9 @@ class GetKfTestingClusterTest(unittest.TestCase):
                                                      "kf-vfoo",
                                                      TEST_LABEL,
                                                      http=http)
-    expected = create_expected_list_resp(deployments[0:2])
+    expected = sorted(create_expected_list_resp(deployments[0:2]),
+                      key=lambda entry: entry["insertTime"],
+                      reverse=True)
     self.assertListEqual(actual, expected)
 
   def test_list_deployments_default_insertime(self):
@@ -110,6 +114,8 @@ class GetKfTestingClusterTest(unittest.TestCase):
                                                      http=http)
     expected = create_expected_list_resp(deployments)
     expected[-1]["insertTime"] = "1969-12-31T23:59:59+00:00"
+    expected.sort(key=lambda entry: entry["insertTime"],
+                  reverse=True)
     self.assertListEqual(actual, expected)
 
   def test_list_deployments_multi_pages(self):
@@ -134,7 +140,9 @@ class GetKfTestingClusterTest(unittest.TestCase):
                                                      "kf-vfoo",
                                                      TEST_LABEL,
                                                      http=http)
-    expected = create_expected_list_resp(deployments)
+    expected = sorted(create_expected_list_resp(deployments),
+                      key=lambda entry: entry["insertTime"],
+                      reverse=True)
     self.assertListEqual(actual, expected)
 
   def test_get_deployment(self):
