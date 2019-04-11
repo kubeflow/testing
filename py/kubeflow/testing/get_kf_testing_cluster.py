@@ -72,7 +72,6 @@ def list_deployments(project, name_prefix, testing_label, http=None, desc_ordere
       name = d.get("name", "")
       if not name or name_re.match(name) is None:
         continue
-      logging.info("deployment name is %s", name)
       resource = resource_client.get(project=project, deployment=name, resource=name).execute()
       # Skip the latest deployment if having any kind of errors.
       if (resource.get("error", None) and resource.get("error", {}).get("errors", [])) or \
@@ -131,7 +130,6 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
                                  desc_ordered=desc_ordered)
   if not deployments:
     raise LookupError("No deployments found...")
-  logging.info("deployments: %s", str(deployments))
 
   if field == "all":
     return deployments[0]
@@ -176,6 +174,23 @@ def get_latest_credential(version, project="kubeflow-ci-deployment",
   subprocess.call(["gcloud", "container", "clusters", "get-credentials", dm["name"],
                    "--project="+project, "--zone="+dm["zone"]])
 
+def list_dms(args):
+  logging.info("Calling list deployments.")
+  name_prefix = args.base_name + args.version
+  return list_deployments(args.project, name_prefix, args.testing_cluster_label,
+                          desc_ordered=args.find_latest_deployed)
+
+def get_dm(args):
+  logging.info("Calling get deployment.")
+  name_prefix = args.base_name + args.version
+  return get_deployment(args.project, name_prefix, args.testing_cluster_label,
+                        desc_ordered=args.find_latest_deployed)
+
+def get_credential(args):
+  logging.info("Calling get_credential - this call needs gcloud client CLI.")
+  name_prefix = args.base_name + args.version
+  get_latest_credential(args.version)
+
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
                       format=('%(levelname)s|%(asctime)s'
@@ -208,16 +223,22 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
       help=("Looking for the oldest deployed testing cluster."))
   parser.set_defaults(find_latest_deployed=True)
 
+  subparsers = parser.add_subparsers()
+
+  _list = subparsers.add_parser(
+      "list", help=("List of all deployments."))
+  _list.set_defaults(func=list_dms)
+
+  _get = subparsers.add_parser(
+      "get", help=("Get deployment information."))
+  _get.set_defaults(func=get_dm)
+
+  _get_cred = subparsers.add_parser(
+      "get-credentials", help=("Get deployment credentials."))
+  _get_cred.set_defaults(func=get_credential)
+
   args = parser.parse_args()
-  kf_basename = args.base_name + args.version
-  logging.info("Cluster base name = %s", kf_basename)
-  logging.info("Looking for the %s deployed cluster...",
-               "latest" if args.find_latest_deployed else "oldest")
-  logging.info("selected cluster = %s", get_deployment(
-      args.project,
-      kf_basename,
-      args.testing_cluster_label,
-      args.find_latest_deployed))
+  args.func(args)
 
 if __name__ == "__main__":
   main()
