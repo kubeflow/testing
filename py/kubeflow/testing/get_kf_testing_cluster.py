@@ -42,8 +42,12 @@ def list_deployments(project, name_prefix, testing_label, http=None, desc_ordere
       like it that HTTP requests will be made through. Should only be used in tests.
 
   Returns:
-    deployments. list. Sorted list of dictionaries with name of deployments,
-                 endpoint service name, and the timestamp the deployment is inserted.
+    deployments: list of dictionary in the format of {
+      "name": string of deployment name,
+      "endpoint": string of endpoint service name,
+      "insertTime": timestamp deployment is inserted.
+      "zone": location of deployment.
+    }
   """
   dm = None
   if http:
@@ -53,6 +57,7 @@ def list_deployments(project, name_prefix, testing_label, http=None, desc_ordere
     credentials = GoogleCredentials.get_application_default()
     dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
   dm_client = dm.deployments()
+  resource_client = dm.resources()
 
   list_filter = "labels.purpose eq " + testing_label
   # pylint: disable=anomalous-backslash-in-string
@@ -68,11 +73,20 @@ def list_deployments(project, name_prefix, testing_label, http=None, desc_ordere
       if not name or name_re.match(name) is None:
         continue
       logging.info("deployment name is %s", name)
-      logging.info("labels is %s", str(d.get("labels", [])))
+      resource = resource_client.get(project=project, deployment=name, resource=name).execute()
+      # Skip the latest deployment if having any kind of errors.
+      if (resource.get("error", None) and resource.get("error", {}).get("errors", [])) or \
+      not resource.get("properties", ""):
+        continue
+      info = yaml.load(resource.get("properties", ""))
+      # Skip deployment without zone info - most likely an error case.
+      if not info.get("zone", ""):
+        continue
       cls.append({
           "name": name,
           "endpoint": get_deployment_endpoint(project, name),
           "insertTime": d.get("insertTime", "1969-12-31T23:59:59+00:00"),
+          "zone": info["zone"],
       })
 
     if next_page_token is None:
@@ -107,52 +121,22 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
     }
     field == ("endpoint", "zone", "name"): string value of the field specified.
   """
-  deployments = list_deployments(project, name_prefix, testing_label, http=http,
-                                 desc_ordered=desc_ordered)
-  if not deployments:
-    raise LookupError("No deployments found...")
-  logging.info("deployments: %s", str(deployments))
-
   valid_fields = set(["all", "endpoint", "zone", "name"])
   # Bail out early
   if not field in valid_fields:
     raise LookupError("Invalid field given: {0}, should be one of [{1}]".format(
         field, ", ".join(valid_fields)))
 
-  dm = None
-  if http:
-    # This should only be used in testing.
-    dm = discovery.build("deploymentmanager", "v2", http=http)
-  else:
-    credentials = GoogleCredentials.get_application_default()
-    dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
-  dm_client = dm.resources()
+  deployments = list_deployments(project, name_prefix, testing_label, http=http,
+                                 desc_ordered=desc_ordered)
+  if not deployments:
+    raise LookupError("No deployments found...")
+  logging.info("deployments: %s", str(deployments))
 
-  dm = None
-  dm_info = None
-  for d in deployments:
-    n = d["name"]
-    resource = dm_client.get(project=project, deployment=n, resource=n).execute()
-    # Skip the latest deployment if having any kind of errors.
-    if (resource.get("error", None) and resource.get("error", {}).get("errors", [])) or \
-    not resource.get("properties", ""):
-      continue
-    info = yaml.load(resource.get("properties", ""))
-    # Skip deployment without zone info - most likely an error case.
-    if not info.get("zone", ""):
-      continue
-    dm = d
-    dm_info = info
-    break
-
-  if not dm_info:
-    raise LookupError("Could not get deployment without error.")
-
-  dm["zone"] = dm_info.get("zone", "")
   if field == "all":
-    return dm
+    return deployments
   else:
-    return dm[field]
+    return deployments[field]
 
 def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test-cluster",
                http=None, field="endpoint"):
