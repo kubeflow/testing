@@ -11,6 +11,7 @@ Running it with bash:
 import argparse
 import logging
 import re
+import subprocess
 import yaml
 
 from googleapiclient import discovery
@@ -95,9 +96,16 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
       deployment.
     http: httplib2.Http, An instance of httplib2.Http or something that acts
       like it that HTTP requests will be made through. Should only be used in tests.
+    field: string, indicates which field(s) needs to return to user. Optional.
 
   Returns:
-    endpoint_service: str. Name of the endpoint service.
+    field == "all": dictionary in the format of {
+      "name": string of deployment name,
+      "endpoint": string of endpoint service name,
+      "insertTime": Timestamp deployment is inserted.
+      "zone": location of deployment.
+    }
+    field == ("endpoint", "zone", "name"): string value of the field specified.
   """
   deployments = list_deployments(project, name_prefix, testing_label, http=http,
                                  desc_ordered=desc_ordered)
@@ -148,7 +156,7 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
 
 def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test-cluster",
                http=None, field="endpoint"):
-  """Convenient function to get the latest deployment's endpoint name using just version.
+  """Convenient function to get the latest deployment's information using just version.
 
   Args:
     version: string, version of deployed testing clusters to find.
@@ -156,12 +164,33 @@ def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test
     testing_label: string, annotation used to identify testing clusters. Optional.
     http: httplib2.Http, An instance of httplib2.Http or something that acts
       like it that HTTP requests will be made through. Should only be used in tests.
+    field: string, indicates which field(s) needs to return to user. Optional.
 
   Returns:
-    endpoint_service: str. Name of the endpoint service.
+    field == "all": dictionary in the format of {
+      "name": string of deployment name,
+      "endpoint": string of endpoint service name,
+      "insertTime": Timestamp deployment is inserted.
+      "zone": location of deployment.
+    }
+    field == ("endpoint", "zone", "name"): string value of the field specified.
   """
   name_prefix = "kf-v" + version
-  return get_deployment(project, name_prefix, testing_label, http=http)
+  return get_deployment(project, name_prefix, testing_label, http=http, field=field)
+
+def get_latest_credential(version, project="kubeflow-ci-deployment",
+                          testing_label="kf-test-cluster"):
+  """Convenient function to get the latest deployment information and use it to get
+  credentials from GCP.
+
+  Args:
+    version: string, version of deployed testing clusters to find.
+    project: string, Name of deployed GCP project. Optional.
+    testing_label: string, annotation used to identify testing clusters. Optional.
+  """
+  dm = get_latest(version, project=project, testing_label=testing_label, field="all")
+  subprocess.call(["gcloud", "container", "clusters", "get-credentials", dm["name"],
+                   "--project="+project, "--zone="+dm["zone"]])
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
