@@ -134,9 +134,9 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
   logging.info("deployments: %s", str(deployments))
 
   if field == "all":
-    return deployments
+    return deployments[0]
   else:
-    return deployments[field]
+    return deployments[0][field]
 
 def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test-cluster",
                http=None, field="endpoint"):

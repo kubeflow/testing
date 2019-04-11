@@ -48,6 +48,7 @@ def create_expected_list_resp(deployments):
         "name": d.name,
         "endpoint": get_kf_testing_cluster.get_deployment_endpoint(TEST_PROJECT, d.name),
         "insertTime": d.insert_time,
+        "zone": d.zone,
     })
   return data
 
@@ -70,6 +71,9 @@ class GetKfTestingClusterTest(unittest.TestCase):
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp)),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[0]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[1]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[2]))),
     ])
     actual = get_kf_testing_cluster.list_deployments(TEST_PROJECT,
                                                      "kf-vfoo",
@@ -92,6 +96,8 @@ class GetKfTestingClusterTest(unittest.TestCase):
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp)),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[0]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[1]))),
     ])
     actual = get_kf_testing_cluster.list_deployments(TEST_PROJECT,
                                                      "kf-vfoo",
@@ -116,6 +122,9 @@ class GetKfTestingClusterTest(unittest.TestCase):
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp)),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[0]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[1]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[2]))),
     ])
     actual = get_kf_testing_cluster.list_deployments(TEST_PROJECT,
                                                      "kf-vfoo",
@@ -143,7 +152,10 @@ class GetKfTestingClusterTest(unittest.TestCase):
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp1)),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[0]))),
         ({"status": "200"}, json.dumps(list_resp2)),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[1]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[2]))),
     ])
     actual = get_kf_testing_cluster.list_deployments(TEST_PROJECT,
                                                      "kf-vfoo",
@@ -166,12 +178,14 @@ class GetKfTestingClusterTest(unittest.TestCase):
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp)),
-        ({'status': '200'}, self.dm_api),
-        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[-1]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[0]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[1]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[2]))),
         ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp)),
-        ({'status': '200'}, self.dm_api),
         ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[0]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[1]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[2]))),
     ])
 
     # get latest deployment.
@@ -204,8 +218,9 @@ class GetKfTestingClusterTest(unittest.TestCase):
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp)),
-        ({'status': '200'}, self.dm_api),
-        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[-1]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[0]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[1]))),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[2]))),
     ])
     self.assertEqual(get_kf_testing_cluster.get_latest("foo", http=http, project=TEST_PROJECT),
                      get_kf_testing_cluster.get_deployment_endpoint(TEST_PROJECT,
