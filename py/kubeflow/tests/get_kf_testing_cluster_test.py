@@ -12,11 +12,12 @@ TEST_LABEL = "kf-foo-label"
 
 class Deployment(object):
   """Simple data carrier for a deployment."""
-  def __init__(self, name, insert_time):
+  def __init__(self, name, insert_time, zone="us-west1-b"):
     self.name = name
     self.insert_time = insert_time
+    self.zone = zone
 
-def create_mock_http_resp(deployments):
+def create_mock_list_resp(deployments):
   """Given a list of Deployment, transforms into a list of dictionaries as API response"""
   data = []
   for d in deployments:
@@ -30,6 +31,14 @@ def create_mock_http_resp(deployments):
         "insertTime": d.insert_time,
     })
   return data
+
+def create_mock_resource_resp(dm):
+  """Given an instance of Deployment, transforms into resource info as API response."""
+  return {
+      "name": dm.name,
+      "insertTime": dm.insert_time,
+      "properties": "zone: " + dm.zone,
+  }
 
 def create_expected_list_resp(deployments):
   """Helper method to create expected responses from get_kf_testing_cluster.list_deployments"""
@@ -56,7 +65,7 @@ class GetKfTestingClusterTest(unittest.TestCase):
         Deployment("kf-vfoo-n02", "2019-04-03T23:59:59+00:00"),
     ]
     list_resp = {
-        "deployments": create_mock_http_resp(deployments),
+        "deployments": create_mock_list_resp(deployments),
     }
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
@@ -78,7 +87,7 @@ class GetKfTestingClusterTest(unittest.TestCase):
         Deployment("kf-vfoo-n02-storage", "2019-04-03T23:59:59+00:00"),
     ]
     list_resp = {
-        "deployments": create_mock_http_resp(deployments),
+        "deployments": create_mock_list_resp(deployments),
     }
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
@@ -100,7 +109,7 @@ class GetKfTestingClusterTest(unittest.TestCase):
         Deployment("kf-vfoo-n02", "2019-04-03T23:59:59+00:00"),
     ]
     list_resp = {
-        "deployments": create_mock_http_resp(deployments),
+        "deployments": create_mock_list_resp(deployments),
     }
     # Remove insertTime for the method to attach default timestamp.
     list_resp["deployments"][-1].pop("insertTime", None)
@@ -125,11 +134,11 @@ class GetKfTestingClusterTest(unittest.TestCase):
         Deployment("kf-vfoo-n02", "2019-04-03T23:59:59+00:00"),
     ]
     list_resp1 = {
-        "deployments": create_mock_http_resp(deployments[:1]),
+        "deployments": create_mock_list_resp(deployments[:1]),
         "nextPageToken": "bar",
     }
     list_resp2 = {
-        "deployments": create_mock_http_resp(deployments[1:]),
+        "deployments": create_mock_list_resp(deployments[1:]),
     }
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
@@ -152,13 +161,17 @@ class GetKfTestingClusterTest(unittest.TestCase):
         Deployment("kf-vfoo-n02", "2019-04-03T23:59:59+00:00"),
     ]
     list_resp = {
-        "deployments": create_mock_http_resp(deployments),
+        "deployments": create_mock_list_resp(deployments),
     }
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp)),
         ({'status': '200'}, self.dm_api),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[-1]))),
+        ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp)),
+        ({'status': '200'}, self.dm_api),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[0]))),
     ])
 
     # get latest deployment.
@@ -186,11 +199,13 @@ class GetKfTestingClusterTest(unittest.TestCase):
         Deployment("kf-vfoo-n02", "2019-04-03T23:59:59+00:00"),
     ]
     list_resp = {
-        "deployments": create_mock_http_resp(deployments),
+        "deployments": create_mock_list_resp(deployments),
     }
     http = HttpMockSequence([
         ({'status': '200'}, self.dm_api),
         ({'status': '200'}, json.dumps(list_resp)),
+        ({'status': '200'}, self.dm_api),
+        ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[-1]))),
     ])
     self.assertEqual(get_kf_testing_cluster.get_latest("foo", http=http, project=TEST_PROJECT),
                      get_kf_testing_cluster.get_deployment_endpoint(TEST_PROJECT,

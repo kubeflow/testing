@@ -11,6 +11,7 @@ Running it with bash:
 import argparse
 import logging
 import re
+import yaml
 
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
@@ -82,7 +83,8 @@ def list_deployments(project, name_prefix, testing_label, http=None, desc_ordere
                 reverse=desc_ordered)
 
 
-def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=True):
+def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=True,
+                   field="endpoint"):
   """Retrieve either the latest or the oldest deployed testing cluster.
 
   Args:
@@ -102,10 +104,50 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
   if not deployments:
     raise LookupError("No deployments found...")
   logging.info("deployments: %s", str(deployments))
-  return deployments[0]["endpoint"]
+
+  valid_fields = set(["all", "endpoint", "zone", "name"])
+  # Bail out early
+  if not field in valid_fields:
+    raise LookupError("Invalid field given: {0}, should be one of [{1}]".format(
+        field, ", ".join(valid_fields)))
+
+  dm = None
+  if http:
+    # This should only be used in testing.
+    dm = discovery.build("deploymentmanager", "v2", http=http)
+  else:
+    credentials = GoogleCredentials.get_application_default()
+    dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
+  dm_client = dm.resources()
+
+  dm = None
+  dm_info = None
+  for d in deployments:
+    n = d["name"]
+    resource = dm_client.get(project=project, deployment=n, resource=n).execute()
+    # Skip the latest deployment if having any kind of errors.
+    if (resource.get("error", None) and resource.get("error", {}).get("errors", [])) or \
+    not resource.get("properties", ""):
+      continue
+    info = yaml.load(resource.get("properties", ""))
+    # Skip deployment without zone info - most likely an error case.
+    if not info.get("zone", ""):
+      continue
+    dm = d
+    dm_info = info
+    break
+
+  if not dm_info:
+    raise LookupError("Could not get deployment without error.")
+
+  dm["zone"] = dm_info.get("zone", "")
+  if field == "all":
+    return dm
+  else:
+    return dm[field]
 
 def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test-cluster",
-               http=None):
+               http=None, field="endpoint"):
   """Convenient function to get the latest deployment's endpoint name using just version.
 
   Args:
