@@ -10,6 +10,7 @@ Running it with bash:
 
 import argparse
 import logging
+import pprint
 import re
 import subprocess
 import yaml
@@ -178,14 +179,17 @@ def get_latest_credential(version, project="kubeflow-ci-deployment", base_name="
 def list_dms(args):
   logging.info("Calling list deployments.")
   name_prefix = args.base_name + args.version
-  return list_deployments(args.project, name_prefix, args.testing_cluster_label,
-                          desc_ordered=args.find_latest_deployed)
+  pp = pprint.PrettyPrinter(indent=1)
+  pp.pprint(list_deployments(args.project, name_prefix, args.testing_cluster_label,
+                             desc_ordered=args.find_latest_deployed))
 
 def get_dm(args):
   logging.info("Calling get deployment.")
   name_prefix = args.base_name + args.version
-  return get_deployment(args.project, name_prefix, args.testing_cluster_label,
-                        desc_ordered=args.find_latest_deployed)
+  pp = pprint.PrettyPrinter(indent=1)
+  pp.pprint((get_deployment(args.project, name_prefix, args.testing_cluster_label,
+                            field=args.field,
+                            desc_ordered=args.find_latest_deployed)))
 
 def get_credential(args):
   logging.info("Calling get_credential - this call needs gcloud client CLI.")
@@ -217,6 +221,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   parser.add_argument(
       "--testing_cluster_label", default="kf-test-cluster", type=str,
       help=("Label used to identify the deployment is for testing."))
+  parser.add_argument(
+      "--field", default="endpoint", type=str,
+      choices=["all", "endpoint", "zone", "name"],
+      help=("Field of deployment to have."))
 
   parser.add_argument(
       "--find_latest_deployed", dest="find_latest_deployed",
