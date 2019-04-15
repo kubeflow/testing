@@ -87,7 +87,6 @@ def cleanup_workflows(args):
         crd_api.delete_namespaced_custom_object(
           argo_client.GROUP, argo_client.VERSION, args.namespace,
           argo_client.PLURAL, name, k8s_client.V1DeleteOptions())
-      break
 
     if is_expired:
       expired.append(name)
