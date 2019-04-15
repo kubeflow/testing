@@ -58,7 +58,7 @@ def cleanup_workflows(args):
 
   util.run(["gcloud", "container", "clusters", "get-credentials",
             args.testing_cluster, "--zone=" + args.testing_zone,
-            "--project=" + args.project,])
+            "--project=" + args.testing_project,])
 
   # We need to load the kube config so that we can have credentials to
   # talk to the APIServer.
@@ -603,6 +603,13 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument(
     "--project", default="kubeflow-ci", type=str, help=("The project."))
+
+  # The values prefixed with testing_ refer to the test cluster where the
+  # Argo workflows run. In contrast --project is the project where the tests
+  # spin up Kubeflow instances.
+  parser.add_argument(
+    "--testing_project", default="kubeflow-ci", type=str,
+    help=("The cluster used for Argo workflows."))
 
   parser.add_argument(
     "--testing_cluster", default="kubeflow-testing", type=str,
