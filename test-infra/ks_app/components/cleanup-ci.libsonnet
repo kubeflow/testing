@@ -34,7 +34,7 @@
                 "--delete_script=/src/kubeflow/kubeflow/scripts/gke/delete_deployment.sh",
               ],
               ]), 
-              "image": "gcr.io/kubeflow-ci/test-worker:v20190415-d98d904-e3b0c4", 
+              "image": "gcr.io/kubeflow-ci/test-worker:v20190415-bfd8b86-e3b0c4", 
               "name": "label-sync",
               env: [
                 # DO NOT submit
