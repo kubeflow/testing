@@ -8,6 +8,8 @@ import re
 import retrying
 import socket
 import subprocess
+import sys
+import traceback
 import tempfile
 import yaml
 
@@ -51,6 +53,13 @@ def is_retryable_exception(exception):
   return isinstance(exception, socket.error)
 
 def cleanup_workflows(args):
+  logging.info("Cleanup Argo workflows")
+  util.maybe_activate_service_account()
+
+  util.run(["gcloud", "container", "clusters", "get-credentials",
+            args.testing_cluster, "--zone=" + args.testing_zone,
+            "--project=" + args.testing_project,])
+
   # We need to load the kube config so that we can have credentials to
   # talk to the APIServer.
   util.load_kube_config(persist_config=False)
@@ -75,11 +84,13 @@ def cleanup_workflows(args):
       logging.info("Deleting workflow: %s", name)
       is_expired = True
       if not args.dryrun:
-        crd_api.delete_namespaced_custom_object(
-          argo_client.GROUP, argo_client.VERSION, args.namespace,
-          argo_client.PLURAL, name, k8s_client.V1DeleteOptions())
-      break
-
+        try:
+          crd_api.delete_namespaced_custom_object(
+            argo_client.GROUP, argo_client.VERSION, args.namespace,
+            argo_client.PLURAL, name, k8s_client.V1DeleteOptions())
+        except Exception as e:
+          logging.error("There was a problem deleting workflow %s.%s; "
+                        "error: %s", args.namespace, args.name, e)
     if is_expired:
       expired.append(name)
     else:
@@ -87,8 +98,10 @@ def cleanup_workflows(args):
 
   logging.info("Unexpired workflows:\n%s", "\n".join(unexpired))
   logging.info("expired workflows:\n%s", "\n".join(expired))
+  logging.info("Finished cleanup of Argo workflows")
 
 def cleanup_endpoints(args):
+  logging.info("Cleanup Google Cloud Endpoints")
   credentials = GoogleCredentials.get_application_default()
 
   services_management = discovery.build('servicemanagement', 'v1', credentials=credentials)
@@ -142,8 +155,11 @@ def cleanup_endpoints(args):
   logging.info("Unmatched services:\n%s", "\n".join(unmatched))
   logging.info("Unexpired services:\n%s", "\n".join(unexpired))
   logging.info("expired services:\n%s", "\n".join(expired))
+  logging.info("Finished cleanup Google Cloud Endpoints")
 
 def cleanup_disks(args):
+  logging.info("Cleanup persistent disks")
+
   credentials = GoogleCredentials.get_application_default()
 
   compute = discovery.build('compute', 'v1', credentials=credentials)
@@ -183,8 +199,11 @@ def cleanup_disks(args):
   logging.info("Unmatched disks:\n%s", "\n".join(unmatched))
   logging.info("Unexpired disks:\n%s", "\n".join(unexpired))
   logging.info("expired disks:\n%s", "\n".join(expired))
+  logging.info("Finished cleanup persistent disks")
 
 def cleanup_firewall_rules(args):
+  logging.info("Cleanup firewall rules")
+
   credentials = GoogleCredentials.get_application_default()
 
   compute = discovery.build('compute', 'v1', credentials=credentials)
@@ -288,8 +307,11 @@ def cleanup_health_checks(args):
 
   logging.info("Unmatched health checks:\n%s", "\n".join(unmatched))
   logging.info("Matched health checks:\n%s", "\n".join(matched))
+  logging.info("Finished cleanup firewall rules")
 
 def cleanup_service_accounts(args):
+  logging.info("Cleanup service accounts")
+
   credentials = GoogleCredentials.get_application_default()
 
   iam = discovery.build('iam', 'v1', credentials=credentials)
@@ -341,7 +363,7 @@ def cleanup_service_accounts(args):
   logging.info("Unmatched emails:\n%s", "\n".join(unmatched_emails))
   logging.info("Unexpired emails:\n%s", "\n".join(unexpired_emails))
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
-
+  logging.info("Finished cleanup service accounts")
 
 def trim_unused_bindings(iamPolicy, accounts):
   keepBindings = []
@@ -361,10 +383,13 @@ def trim_unused_bindings(iamPolicy, accounts):
       binding['members'] = members_to_keep
       keepBindings.append(binding)
     if members_to_delete:
-      logging.info("Delete binding for members:\n%s", ", ".join(members_to_delete))
+      logging.info("Delete binding for members:\n%s", "\n".join(
+        members_to_delete))
   iamPolicy['bindings'] = keepBindings
 
 def cleanup_service_account_bindings(args):
+  logging.info("Cleanup service account bindings")
+
   credentials = GoogleCredentials.get_application_default()
   iam = discovery.build('iam', 'v1', credentials=credentials)
   accounts = []
@@ -379,6 +404,7 @@ def cleanup_service_account_bindings(args):
     next_page_token = service_accounts["nextPageToken"]
 
   resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
+  logging.info("Get IAM policy for project %s", args.project)
   iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project).execute()
   trim_unused_bindings(iamPolicy, accounts)
 
@@ -386,6 +412,7 @@ def cleanup_service_account_bindings(args):
   if not args.dryrun:
     resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
 
+  logging.info("Finished cleanup service account bindings")
 
 def getAge(tsInRFC3339):
   # The docs say insert time will be in RFC339 format.
@@ -415,6 +442,7 @@ def execute_rpc(rpc):
   return rpc.execute()
 
 def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
+  logging.info("Cleanup deployments")
   if not args.delete_script:
     raise ValueError("--delete_script must be specified.")
 
@@ -529,6 +557,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
         if not args.dryrun:
           clusters_client.delete(projectId=args.project, zone=zone,
                                  clusterId=name).execute()
+  logging.info("Finished cleanup deployments")
 
 def cleanup_all(args):
   ops = [cleanup_deployments,
@@ -544,6 +573,8 @@ def cleanup_all(args):
       op(args)
     except Exception as e: # pylint: disable=broad-except
       logging.error(e)
+      exc_type, exc_value, exc_tb = sys.exc_info()
+      traceback.print_exception(exc_type, exc_value, exc_tb)
 
 def add_workflow_args(parser):
   parser.add_argument(
@@ -574,6 +605,21 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument(
     "--project", default="kubeflow-ci", type=str, help=("The project."))
+
+  # The values prefixed with testing_ refer to the test cluster where the
+  # Argo workflows run. In contrast --project is the project where the tests
+  # spin up Kubeflow instances.
+  parser.add_argument(
+    "--testing_project", default="kubeflow-ci", type=str,
+    help=("The cluster used for Argo workflows."))
+
+  parser.add_argument(
+    "--testing_cluster", default="kubeflow-testing", type=str,
+    help=("The cluster used for Argo workflows."))
+
+  parser.add_argument(
+    "--testing_zone", default="us-east1-d", type=str,
+    help=("The zone of the cluster used for Argo workflows."))
 
   parser.add_argument(
     "--max_age_hours", default=3, type=int, help=("The age of deployments to gc."))
@@ -630,6 +676,13 @@ def main():
     "service_accounts", help="Cleanup service accounts")
 
   parser_service_account.set_defaults(func=cleanup_service_accounts)
+
+  ######################################################
+  # Parser for service account bindings
+  parser_service_account = subparsers.add_parser(
+    "service_account_bindings", help="Cleanup service account bindings")
+
+  parser_service_account.set_defaults(func=cleanup_service_account_bindings)
 
   ######################################################
   # Parser for deployments
