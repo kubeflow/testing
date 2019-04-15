@@ -37,6 +37,11 @@
               "image": "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4", 
               "name": "label-sync",
               env: [
+                # DO NOT submit
+                {
+                  name: "PULL_NUMBER",
+                  value: "359",
+                },
                 {
                   name: "REPO_OWNER",
                   value: "kubeflow",                  

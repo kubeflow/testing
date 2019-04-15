@@ -402,6 +402,7 @@ def cleanup_service_account_bindings(args):
     next_page_token = service_accounts["nextPageToken"]
 
   resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
+  logging.info("Get IAM policy for project %s", args.project)
   iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project).execute()
   trim_unused_bindings(iamPolicy, accounts)
 
