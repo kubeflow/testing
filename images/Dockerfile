@@ -21,6 +21,7 @@ RUN set -ex \
     wget \
     ca-certificates \
     git \
+    emacs \
     jq \
     zip \
     unzip \
@@ -136,13 +137,16 @@ RUN cd /tmp/ && \
     pip2 install -U wheel filelock && \
     pip2 install pipenv && \
     pip2 install requests && \
-    pip2 install google-api-python-client && \
     pip2 install prometheus_client && \
     pipenv install --system --two && \
     pip3 install -U wheel filelock
 
 RUN pip3 install pipenv==2018.10.9
 RUN cd /tmp/ && pipenv install --system --three
+
+# Force update of googleapipython client
+# Do this after pipenv because we want to override what pipenv installs.
+RUN pip2 install --upgrade google-api-python-client==1.7.0
 
 RUN pip install yq
 
