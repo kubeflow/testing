@@ -80,7 +80,7 @@ def cleanup_workflows(args):
 
     name = w["metadata"]["name"]
     age = now - start_time
-    if age > datetime.timedelta(hours=args.max_age_hours):
+    if age > datetime.timedelta(hours=args.max_wf_age_hours):
       logging.info("Deleting workflow: %s", name)
       is_expired = True
       if not args.dryrun:
@@ -623,6 +623,10 @@ def main():
 
   parser.add_argument(
     "--max_age_hours", default=3, type=int, help=("The age of deployments to gc."))
+
+  parser.add_argument(
+    "--max_wf_age_hours", default=7*24, type=int,
+    help=("How long to wait before garbage collecting Argo workflows."))
 
   parser.add_argument('--dryrun', dest='dryrun', action='store_true')
   parser.add_argument('--no-dryrun', dest='dryrun', action='store_false')
