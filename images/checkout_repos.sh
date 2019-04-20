@@ -9,15 +9,9 @@
 #
 # You can use HEAD as the sha to get the latest for a pull request.
 #
-#
-# TODO(jlewi): We should provide some syntax for mapping the org and repo name
-# to a different directory when checked out. The motivation would be to support
-# easily pulling repos from a fork (e.g. jlewi/kubeflow) while still having the 
-# local paths match what they would be for the main repo e.g. /src/kubeflow/kubeflow
-#
-# An easy way to do that might be to have another command line argument that specifies
-# symbolic links to create e.g. --links=jlewi/kubeflow=kubeflow/kubeflow could mean run
-# ln -sf /src/jlewi/kubeflow /src/kubeflow/kubeflow
+# You can use "--links" to create symbolic links to the newly created directories.
+# This allows you to check out forks of the Kubeflow repos but lay them out as if you
+# checked out the original repos so that you can use scripts that depend on that layout.
 set -xe
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
