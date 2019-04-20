@@ -137,9 +137,9 @@ RUN cd /tmp/ && \
     pip2 install -U wheel filelock && \
     pip2 install pipenv && \
     pip2 install requests && \
-    pip2 install prometheus_client && \
+    pip2 install prometheus_client fire && \
     pipenv install --system --two && \
-    pip3 install -U wheel filelock
+    pip3 install -U wheel filelock gitpython fire
 
 RUN pip3 install pipenv==2018.10.9
 RUN cd /tmp/ && pipenv install --system --three
@@ -148,10 +148,19 @@ RUN cd /tmp/ && pipenv install --system --three
 # Do this after pipenv because we want to override what pipenv installs.
 RUN pip2 install --upgrade google-api-python-client==1.7.0
 
+# Install the hub CLI for git
+RUN cd /tmp && \
+    curl -LO  https://github.com/github/hub/releases/download/v2.11.2/hub-linux-amd64-2.11.2.tgz && \
+    tar -xvf hub-linux-amd64-2.11.2.tgz && \
+    mv hub-linux-amd64-2.11.2 /usr/local && \
+    ln -sf /usr/local/hub-linux-amd64-2.11.2/bin/hub /usr/local/bin/hub
+
 RUN pip install yq
 
 COPY checkout.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/checkout.sh
+COPY checkout_repos.sh /usr/local/bin
+COPY setup_ssh.sh /usr/local/bin
+RUN chmod a+x /usr/local/bin/checkout* /usr/local/bin/setup_ssh.sh
 
 COPY run_workflows.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/run_workflows.sh

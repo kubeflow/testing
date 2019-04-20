@@ -15,8 +15,9 @@
 # Requirements:
 #   https://github.com/mattrobenolt/jinja2-cli
 #   pip install jinja2-clie
-IMG = gcr.io/kubeflow-ci/test-worker
-RELEASE_WORKER = gcr.io/kubeflow-releasing/worker
+BUILD_PROJECT ?= kubeflow-ci
+IMG ?= gcr.io/kubeflow-ci/test-worker
+RELEASE_WORKER ?= gcr.io/kubeflow-releasing/worker
 
 # Whether to use cached images with GCB
 USE_IMAGE_CACHE ?= true
@@ -63,6 +64,6 @@ build-gcb-spec:
 # and don't want to pull images locally.
 # Its also used to build from our CI system.
 build-gcb: build-gcb-spec		
-	gcloud builds submit --machine-type=n1-highcpu-32 --project=kubeflow-ci \
+	gcloud builds submit --machine-type=n1-highcpu-32 --project=$(BUILD_PROJECT) \
 	    --config=./gcb_build/image_build.json \
 		--timeout=3600 .
