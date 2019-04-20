@@ -1,6 +1,6 @@
 {
    "images": [
-      "gcr.io/kubeflow-ci/test-worker:v20190420-1dfb7f7-e3b0c4",
+      "gcr.io/kubeflow-ci/test-worker:v20190420-70fb4fe-e3b0c4",
       "gcr.io/kubeflow-ci/test-worker:latest"
    ],
    "steps": [
@@ -19,7 +19,7 @@
          "args": [
             "build",
             "-t",
-            "gcr.io/kubeflow-ci/test-worker:v20190420-1dfb7f7-e3b0c4",
+            "gcr.io/kubeflow-ci/test-worker:v20190420-70fb4fe-e3b0c4",
             "--label=git-versions=",
             "--file=./Dockerfile",
             "--cache-from=gcr.io/kubeflow-ci/test-worker:latest",
@@ -34,7 +34,7 @@
       {
          "args": [
             "tag",
-            "gcr.io/kubeflow-ci/test-worker:v20190420-1dfb7f7-e3b0c4",
+            "gcr.io/kubeflow-ci/test-worker:v20190420-70fb4fe-e3b0c4",
             "gcr.io/kubeflow-ci/test-worker:latest"
          ],
          "id": "tag-test-worker",
