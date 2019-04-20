@@ -45,7 +45,7 @@ parseArgs() {
 }
 
 usage() {
-  echo "Usage: checkout_repos --repos=<{REPO_ORG}/{REPO_NAME}@{SHA}:{PULL_NUMBER};{REPO_ORG}/{REPO_NAME}@HEAD:{PULL_NUMBER}> --src_dir=<Where to check them out>"
+  echo "Usage: checkout_repos --repos=<{REPO_ORG}/{REPO_NAME}@{SHA}:{PULL_NUMBER};{REPO_ORG}/{REPO_NAME}@HEAD:{PULL_NUMBER}> --src_dir=<Where to check them out> --links=<src1>=<dest1>;<src2>=<dest2>"
 }
 
 main() {
@@ -83,7 +83,14 @@ main() {
     TARGET=${src_dir}/${EXTRA_ORG}/${EXTRA_NAME}
 
     mkdir -p ${src_dir}/${EXTRA_ORG}
-    git clone  ${URL} ${TARGET}
+
+    if [ ! -d ${TARGET} ]; then
+      git clone  ${URL} ${TARGET}      
+    else 
+      # init containers might get restarted so its possible we already checked out the repo
+      echo ${TARGET} already exists
+    fi
+
     cd ${TARGET}
 
     if [ ! -z ${EXTRA_PR} ]; then
@@ -95,9 +102,19 @@ main() {
       fi      
     else    
       git checkout ${SHA}
-    fi  
+    fi
     echo ${TARGET} is at `git describe --tags --always --dirty`
   done  
+
+  IFS=';' read -ra LINKS <<< "${links}"
+  echo LINKS=${LINKS}
+  for r in "${LINKS[@]}"; do
+    link_src="$(cut -d'=' -f1 <<< "$r")"
+    link_dest="$(cut -d'=' -f2<<< "$r")"
+    # Ensure parent directory exists
+    mkdir -p $(dirname ${src_dir}/${link_dest})
+    ln -sf ${src_dir}/${link_src} ${src_dir}/${link_dest}
+  done
 }
 
 parseArgs $*
