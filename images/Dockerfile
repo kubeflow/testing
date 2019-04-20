@@ -158,7 +158,8 @@ RUN cd /tmp && \
 RUN pip install yq
 
 COPY checkout.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/checkout.sh
+COPY checkout_repos.sh /usr/local/bin
+RUN chmod a+x /usr/local/bin/checkout*
 
 COPY run_workflows.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/run_workflows.sh
