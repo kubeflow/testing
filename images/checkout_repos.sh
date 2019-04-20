@@ -39,7 +39,7 @@ parseArgs() {
 }
 
 usage() {
-  echo "Usage: checkout_repos --repos=<{REPO_ORG}/{REPO_NAME}@{SHA}:{PULL_NUMBER};{REPO_ORG}/{REPO_NAME}@HEAD:{PULL_NUMBER}> --src_dir=<Where to check them out> --links=<src1>=<dest1>;<src2>=<dest2>"
+  echo "Usage: checkout_repos --repos=<{REPO_ORG}/{REPO_NAME}@{SHA}:{PULL_NUMBER},{REPO_ORG}/{REPO_NAME}@HEAD:{PULL_NUMBER}> --src_dir=<Where to check them out> --links=<src1>=<dest1>,<src2>=<dest2>"
 }
 
 main() {
@@ -63,9 +63,9 @@ main() {
   fi
 
   # Check out any extra repos.
-  IFS=';' read -ra REPOS <<< "${repos}"
-  echo REPOS=${REPOS}
-  for r in "${REPOS[@]}"; do
+  IFS=',' read -ra SPLIT_REPOS <<< "${repos}"
+  echo SPLIT_REPOS=${SPLIT_REPOS}
+  for r in "${SPLIT_REPOS[@]}"; do
     echo "Processing ${r}" 
     ORG_NAME="$(cut -d'@' -f1 <<< "$r")"
     EXTRA_ORG="$(cut -d'/' -f1 <<< "$ORG_NAME")"
@@ -100,7 +100,7 @@ main() {
     echo ${TARGET} is at `git describe --tags --always --dirty`
   done  
 
-  IFS=';' read -ra LINKS <<< "${links}"
+  IFS=',' read -ra LINKS <<< "${links}"
   echo LINKS=${LINKS}
   for r in "${LINKS[@]}"; do
     link_src="$(cut -d'=' -f1 <<< "$r")"
