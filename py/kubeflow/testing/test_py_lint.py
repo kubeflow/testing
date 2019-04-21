@@ -39,6 +39,7 @@ def test_lint(test_case): # pylint: disable=redefined-outer-name
     "dashboard/frontend/node_modules",
     "kubeflow_testing",
     "dev-kubeflow-org/ks-app/vendor",
+    "release-infra",
   ]
   full_dir_excludes = [
     os.path.join(os.path.abspath(args.src_dir), f) for f in dir_excludes
