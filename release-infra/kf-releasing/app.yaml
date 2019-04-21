@@ -1,0 +1,84 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  creationTimestamp: null
+  name: kf-releasing
+  namespace: kubeflow
+spec:
+  appdir: /home/jlewi/git_kubeflow-testing/release-infra/kf-releasing
+  componentParams:
+    cert-manager:
+    - initRequired: true
+      name: acmeEmail
+      value: jlewi@google.com
+    cloud-endpoints:
+    - name: secretName
+      value: admin-gcp-sa
+    iap-ingress:
+    - initRequired: true
+      name: ipName
+      value: kf-releasing-ip
+    - initRequired: true
+      name: hostname
+      value: kf-releasing.endpoints.kubeflow-releasing.cloud.goog
+    notebook-controller:
+    - name: injectGcpCredentials
+      value: "true"
+    pipeline:
+    - name: mysqlPd
+      value: kf-releasing-storage-metadata-store
+    - name: minioPd
+      value: kf-releasing-storage-artifact-store
+    spartakus:
+    - initRequired: true
+      name: usageId
+      value: "4955400139934359355"
+    - initRequired: true
+      name: reportUsage
+      value: "true"
+  components:
+  - metacontroller
+  - ambassador
+  - argo
+  - centraldashboard
+  - cert-manager
+  - cloud-endpoints
+  - gcp-credentials-admission-webhook
+  - gpu-driver
+  - iap-ingress
+  - jupyter-web-app
+  - katib
+  - notebook-controller
+  - pipeline
+  - pytorch-operator
+  - spartakus
+  - tensorboard
+  - tf-job-operator
+  email: jlewi@google.com
+  hostname: kf-releasing.endpoints.kubeflow-releasing.cloud.goog
+  ipName: kf-releasing-ip
+  packages:
+  - argo
+  - common
+  - examples
+  - gcp
+  - jupyter
+  - katib
+  - metacontroller
+  - modeldb
+  - mpi-job
+  - pipeline
+  - pytorch-job
+  - seldon
+  - tensorboard
+  - tf-serving
+  - tf-training
+  platform: gcp
+  project: kubeflow-releasing
+  repo: /home/jlewi/git_kubeflow-testing/release-infra/kf-releasing/.cache/master/kubeflow
+  serverVersion: file:/home/jlewi/git_kubeflow-testing/release-infra/kf-releasing/.cache/master/bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json
+  useBasicAuth: false
+  useIstio: false
+  version: master
+  zone: us-east1-d
+status: {}
