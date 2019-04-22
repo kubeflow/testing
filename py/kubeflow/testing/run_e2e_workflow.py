@@ -265,6 +265,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   success = True
   workflow_phase = {}
+  workflow_status_yamls = {}
   try:
     results = argo_client.wait_for_workflows(get_namespace(args),
                                              workflow_names,
@@ -274,6 +275,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       phase = r.get("status", {}).get("phase")
       name = r.get("metadata", {}).get("name")
       workflow_phase[name] = phase
+      workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
       if phase != "Succeeded":
         success = False
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
@@ -288,12 +290,19 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   finally:
     success = prow_artifacts.finalize_prow_job(args.bucket, success, workflow_phase, ui_urls)
 
+    prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
     file_handler.flush()
     util.upload_file_to_gcs(
       file_handler.baseFilename,
-      os.path.join(prow_artifacts.get_gcs_dir(args.bucket), "build-log.txt"))
+      os.path.join(prow_artifacts_dir, "build-log.txt"))
+
+    # Upload workflow status to GCS.
+    for wf_name, wf_status in workflow_status_yamls.items():
+      util.upload_to_gcs(
+        wf_status,
+        os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
 
   return success
 

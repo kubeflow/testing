@@ -211,35 +211,41 @@ To access the stackdriver logs
 An Argo workflow fails and you click on the failed step in the Argo UI to get the logs
 and you see the error
 
-```
-failed to get container status {"docker" "b84b751b0102b5658080a520c9a5c2655855960c4695cf557c0c1e45999f7429"}: rpc error: code = Unknown desc = Error: No such container: b84b751b0102b56580
-80a520c9a5c2655855960c4695cf557c0c1e45999f7429
+```bash
+failed to get container status {"docker" "b84b751b0102b5658080a520c9a5c2655855960c4695cf557c0c1e45999f7429"}: 
+rpc error: code = Unknown desc = Error: No such container: b84b751b0102b5658080a520c9a5c2655855960c4695cf557c0c1e45999f7429
 ```
 
 This error is a red herring; it means the pod is probably gone so Argo couldn't get the logs.
 
-The logs should be in StackDriver but to get them we need to identify the pod
+The logs should be in StackDriver but to get them we need to identify the pod.
 
-1. Get the workflow using kubectl
+1. Get the workflow spec:
 
-   ```
-   kubectl get wf -o yaml ${WF_NAME} > /tmp/${WF_NAME}.yaml
-   ```
+   - Get the workflow YAML using kubectl
 
-   * This requires appropriate K8s RBAC permissions
-   * You'll need to be added to the Google group **ci-team@kubeflow.org**
+     ```bash
+     kubectl get wf -o yaml ${WF_NAME} > /tmp/${WF_NAME}.yaml
+     ```
 
-     * Create a PR adding yourself to [ci-team](https://github.com/kubeflow/internal-acls/blob/master/ci-team.members.txt)
+     - This requires appropriate K8s RBAC permissions
+     - You'll need to be added to the Google group **ci-team@kubeflow.org**
+     - Create a PR adding yourself to [ci-team](https://github.com/kubeflow/internal-acls/blob/master/ci-team.members.txt)
 
-1. Search the YAML spec for the pod information for the failed step
+   - Get the workflow YAML from Prow artifacts
+     - Find your Prow job from <https://prow.k8s.io/?repo=kubeflow%2Ftesting>.
+     - Find the artifacts from the Spyglass link of the Prow job, e.g. <https://prow.k8s.io/view/gcs/kubernetes-jenkins/pr-logs/pull/kubeflow_testing/360/kubeflow-testing-presubmit/1120174107468500992/>.
+     - Download `${WF_NAME}.yaml` from the GCS artifacts page.
 
-   * We need to find information that can be used to fetch logs for the pod from stackdriver
+2. Search the YAML spec for the pod information for the failed step
+
+   - We need to find information that can be used to fetch logs for the pod from stackdriver
 
      1. Using Pod labels
 
-        * In the workflow spec look at the step metadata to see if it contains labels
+        - In the workflow spec look at the step metadata to see if it contains labels
 
-          ```
+          ```yaml
           metadata:
             labels:
               BUILD_ID: "1405"
@@ -254,14 +260,15 @@ The logs should be in StackDriver but to get them we need to identify the pod
               step_name: tfjob-test
               workflow: kubeflow-examples-presubmit-gis-522-9aecf80-1405-9055
               workflow_template: gis
-          ```   
-         * Follow the [stackdriver instructions](https://github.com/kubeflow/testing#stackdriver-logs) to query for the logs
-           * Use labels `BUILD_ID` and `step_name` to identify the pod
+          ```
 
-     1.  If no labels are specified for the step you can use displayName to match the text in the UI to 
+        - Follow the [stackdriver instructions](https://github.com/kubeflow/testing#stackdriver-logs) to query for the logs
+          - Use labels `BUILD_ID` and `step_name` to identify the pod
+
+     2. If no labels are specified for the step you can use displayName to match the text in the UI to 
          step status
 
-         ```
+         ```yaml
          kubeflow-presubmit-kfctl-1810-70210d5-3900-218a-2243590372:
          boundaryID: kubeflow-presubmit-kfctl-1810-70210d5-3900-218a
          displayName: kfctl-apply-gcp
@@ -275,12 +282,11 @@ The logs should be in StackDriver but to get them we need to identify the pod
          type: Pod
          ```
 
-         * **id** will be the name of the pod.
+         - **id** will be the name of the pod.
 
-         1. Follow the [instructions](https://github.com/kubeflow/testing#stackdriver-logs) to 
-            get the stackdriver logs for the pod or use the following gcloud command
+         - Follow the [instructions](https://github.com/kubeflow/testing#stackdriver-logs) to get the stackdriver logs for the pod or use the following gcloud command
 
-            ```
+            ```bash
             gcloud --project=kubeflow-ci logging read --format="table(timestamp, resource.labels.container_name, textPayload)" \
             --freshness=24h \
             --order asc  \
