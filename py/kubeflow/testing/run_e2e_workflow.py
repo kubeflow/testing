@@ -298,12 +298,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       file_handler.baseFilename,
       os.path.join(prow_artifacts_dir, "build-log.txt"))
 
-    import pickle
-    util.upload_to_gcs(
-      pickle.dumps(results, pickle.HIGHEST_PROTOCOL),
-      os.path.join(prow_artifacts_dir, 'results.pkl')
-    )
-
     # Upload workflow status to GCS.
     for wf_name, wf_status in workflow_status_yamls.items():
       util.upload_to_gcs(
