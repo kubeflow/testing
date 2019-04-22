@@ -275,7 +275,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       phase = r.get("status", {}).get("phase")
       name = r.get("metadata", {}).get("name")
       workflow_phase[name] = phase
-      workflow_status_yamls[name] = yaml.dump(r)
+      workflow_status_yamls[name] = yaml.safe_dump(r)
       if phase != "Succeeded":
         success = False
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
