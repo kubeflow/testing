@@ -171,6 +171,14 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
 # Work around for https://github.com/ksonnet/ksonnet/issues/298
 ENV USER root
 
+# Install Bazel
+RUN cd /tmp && \
+    wget -O /tmp/bazel-installer.sh https://github.com/bazelbuild/bazel/releases/download/0.24.1/bazel-0.24.1-installer-linux-x86_64.sh && \
+    chmod +x bazel-installer.sh && \
+    ./bazel-installer.sh --user
+
+ENV PATH=root/bin:${PATH}
+
 # Add the directory where we will checkout kubeflow/testing
 # which contains shared scripts.
 ENV PYTHONPATH /src/kubeflow/testing/py
