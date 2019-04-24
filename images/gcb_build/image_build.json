@@ -1,13 +1,13 @@
 {
    "images": [
-      "gcr.io/kubeflow-ci/test-worker:v20190415-53ad3b5-dirty-5bc1cf",
-      "gcr.io/kubeflow-ci/test-worker:latest"
+      "gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df",
+      "gcr.io/kubeflow-releasing/test-worker:latest"
    ],
    "steps": [
       {
          "args": [
             "pull",
-            "gcr.io/kubeflow-ci/test-worker:latest"
+            "gcr.io/kubeflow-releasing/test-worker:latest"
          ],
          "id": "pull-test-worker",
          "name": "gcr.io/cloud-builders/docker",
@@ -19,10 +19,10 @@
          "args": [
             "build",
             "-t",
-            "gcr.io/kubeflow-ci/test-worker:v20190415-53ad3b5-dirty-5bc1cf",
+            "gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df",
             "--label=git-versions=",
             "--file=./Dockerfile",
-            "--cache-from=gcr.io/kubeflow-ci/test-worker:latest",
+            "--cache-from=gcr.io/kubeflow-releasing/test-worker:latest",
             "."
          ],
          "id": "build-test-worker",
@@ -34,8 +34,8 @@
       {
          "args": [
             "tag",
-            "gcr.io/kubeflow-ci/test-worker:v20190415-53ad3b5-dirty-5bc1cf",
-            "gcr.io/kubeflow-ci/test-worker:latest"
+            "gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df",
+            "gcr.io/kubeflow-releasing/test-worker:latest"
          ],
          "id": "tag-test-worker",
          "name": "gcr.io/cloud-builders/docker",
