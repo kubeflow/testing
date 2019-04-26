@@ -8,6 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=linux
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+ENV KUSTOMIZE_VERSION 2.0.3
 
 # gcc & python-dev are needed so we can install crcmod for gsutil
 # also includes installations for Python3
@@ -118,6 +119,10 @@ RUN cd /tmp && \
     tar -xvf ks-13.tar.gz && \
     mv ks_0.13.1_linux_amd64/ks /usr/local/bin/ks-13 && \
     chmod a+x /usr/local/bin/ks-13
+
+RUN wget -O /usr/local/bin/kustomize \
+    https://github.com/kubernetes-sigs/kustomize/releases/download/v${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64 && \
+    chmod a+x /usr/local/bin/kustomize
 
 RUN cd /tmp && \
     wget https://github.com/google/jsonnet/archive/v0.11.2.tar.gz && \
