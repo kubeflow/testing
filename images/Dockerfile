@@ -48,7 +48,7 @@ RUN set -ex \
 
 # Install go
 RUN cd /tmp && \
-    wget -O /tmp/go.tar.gz https://redirector.gvt1.com/edgedl/go/go1.11.5.linux-amd64.tar.gz && \
+    wget -O /tmp/go.tar.gz https://redirector.gvt1.com/edgedl/go/go1.12.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go.tar.gz
 
 # Install gcloud
