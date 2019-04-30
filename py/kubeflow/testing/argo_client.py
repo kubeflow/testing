@@ -71,9 +71,9 @@ def get_namespaced_custom_object_with_retries(namespace, name):
 
 
 def wait_for_workflows(namespace, names,
-                      timeout=datetime.timedelta(minutes=30),
-                      polling_interval=datetime.timedelta(seconds=30),
-                      status_callback=None):
+                       timeout=datetime.timedelta(minutes=30),
+                       polling_interval=datetime.timedelta(seconds=30),
+                       status_callback=None):
   """Wait for multiple workflows to finish.
 
   Args:
@@ -86,7 +86,10 @@ def wait_for_workflows(namespace, names,
       is the job.
 
   Returns:
-    results: A list of the final status of the workflows.
+    tuple: (list, bool) consisting of:
+      results: A list of the final status of the workflows.
+      is_timeout: A boolean variable indicating whether this function is
+        returning because of timeout.
   Raises:
     TimeoutError: If timeout waiting for the job to finish.
   """
@@ -106,17 +109,16 @@ def wait_for_workflows(namespace, names,
       # the status field of an object.
       if results.get("status", {}).get("phase", "") not in ["Failed", "Succeeded"]:
         done = False
+        break
 
     if done:
-      return all_results
+      return all_results, False
+
     if datetime.datetime.now() + polling_interval > end_time:
-      raise util.TimeoutError(
-        "Timeout waiting for workflows {0} in namespace {1} to finish.".format(
-          ",".join(names), namespace))
+      return all_results, True
 
     time.sleep(polling_interval.seconds)
 
-  return []
 
 def wait_for_workflow(namespace, name,
                       timeout=datetime.timedelta(minutes=30),
