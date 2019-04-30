@@ -12,7 +12,7 @@
     - [Stackdriver logs](#stackdriver-logs)
   - [Debugging Failed Tests](#debugging-failed-tests)
     - [No results show up in Gubernator](#no-results-show-up-in-gubernator)
-    - [No Logs in Argo UI or Pod Id missing in Argo Logs](#no-logs-in-argo-ui-or-pod-id-missing-in-argo-logs)
+    - [No Logs in Argo UI For Step or Pod Id missing in Argo Logs](#no-logs-in-argo-ui-for-step-or-pod-id-missing-in-argo-logs)
     - [Debugging Failed Deployments](#debugging-failed-deployments)
   - [Testing Changes to the ProwJobs](#testing-changes-to-the-prowjobs)
   - [Cleaning up leaked resources](#cleaning-up-leaked-resources)
@@ -24,7 +24,9 @@
     - [Create a GitHub Token](#create-a-github-token)
     - [Deploy NFS](#deploy-nfs)
     - [Create K8s Resources for Testing](#create-k8s-resources-for-testing)
-      - [Troubleshooting](#troubleshooting)
+    - [Creating secret for deployapp test](#creating-secret-for-deployapp-test)
+    - [Troubleshooting](#troubleshooting)
+  - [Setting up Kubeflow Release Clusters For Testing](#setting-up-kubeflow-release-clusters-for-testing)
   - [Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>](#setting-up-a-kubeflow-repository-to-use-prow-a-idprow-setupa)
   - [Writing An Argo Workflow For An E2E Test](#writing-an-argo-workflow-for-an-e2e-test)
     - [Adding an E2E test to a repository](#adding-an-e2e-test-to-a-repository)
@@ -286,27 +288,66 @@ The logs should be in StackDriver but to get them we need to identify the pod.
 
          - Follow the [instructions](https://github.com/kubeflow/testing#stackdriver-logs) to get the stackdriver logs for the pod or use the following gcloud command
 
-            ```bash
-            gcloud --project=kubeflow-ci logging read --format="table(timestamp, resource.labels.container_name, textPayload)" \
-            --freshness=24h \
-            --order asc  \
-            "resource.type=\"k8s_container\" resource.labels.pod_name=\"${POD}\"  "
-            ```
+           ```bash
+             gcloud --project=kubeflow-ci logging read --format="table(timestamp, resource.labels.container_name, textPayload)" \
+             --freshness=24h \
+             --order asc  \
+             "resource.type=\"k8s_container\" resource.labels.pod_name=\"${POD}\"  "
+           ```
 
 ### Debugging Failed Deployments
 
-If an E2E test fails because a pod doesn't start (e.g JupyterHub) we can debug this by looking at the events associated with the pod.
-If you have access to the pod you can do `kubectl describe pods`.
+If an E2E test fails because one of the Kubeflow applications (e.g. the Jupyter web app)
+isn't reported as deploying successfully we can follow these instructions to debug it.
 
-Events are also persisted to StackDriver and can be fetched with a query like the following.
+To debug it we want to look at the K8s events indicating why the K8s deployment failed.
+In most cases the cluster will already be torn down so we need to look at the
+kubernetes events associated with that deployment.
 
-```
-resource.labels.cluster_name="kubeflow-testing"
-logName="projects/kubeflow-ci/logs/events" 
-jsonPayload.involvedObject.namespace = "kubeflow-presubmit-tf-serving-image-299-439a983-360-fa0d"
-```
+1. Get the cluster used for Kubeflow
 
-  * Change the namespace to be the actual namespace used for the test
+   1. In prow look at artifacts and find the YAML spec for the Argo workflow that
+      ran your e2e test
+
+   1. Identify the step that deployed Kubeflow
+
+   1. Open up [stack driver logging](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci-deployment&_ga=2.20425662.-720060064.1532059791&_gac=1.95560430.1553366450.CjwKCAjwstfkBRBoEiwADTmnEHB4EsCQkymxInUJfA875uharmvOzl6RadXtmxRqVYzya7mIGRmEERoC5-kQAvD_BwE&minLogLevel=0&expandAll=false&timestamp=2019-04-29T15:58:54.719000000Z&customFacets=&limitCustomFacetWidth=true&dateRangeStart=2019-04-22T16:33:20.360Z&dateRangeEnd=2019-04-29T16:33:20.360Z&interval=P7D&resource=k8s_container%2Fcluster_name%2Fkf-v0-4-n00%2Fnamespace_name%2Fkubeflow%2Fcontainer_name%2Ftensorflow&scrollTimestamp=2019-04-27T01:15:15.949166770Z&advancedFilter=resource.type%3D%22k8s_container%22%0Aresource.labels.pod_name%3D%22kubeflow-presubmit-kfctl-go-iap-3066-6266699-3248-6742-3522306767%22%0Aresource.labels.container_name%3D%22main%22%0Aget-credentials)
+
+   1. Use a filter like the following to find the log entry getting the credentials for your deployment
+
+      ```
+      resource.type="k8s_container"
+resource.labels.pod_name=<POD NAME>
+resource.labels.container_name="main"
+get-credentials
+      ```
+
+   1. The log output should look like the following
+
+      ```
+      get-credentials kfctl-6742 --zone=us-east1-d --project=kubeflow-ci-deployment 
+      ```
+
+       * The argument `kfctl-6742` is the name of the cluster
+
+1. Use a filter like the [following](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci-deployment&organizationId=714441643818&minLogLevel=0&expandAll=false&customFacets&limitCustomFacetWidth=true&interval=NO_LIMIT&resource=gce_instance_group%2Finstance_group_id%2F1008177806084829541%2Finstance_group_name%2Fk8s-ig--53fc5e0363ccb918&advancedFilter=resource.labels.cluster_name%3D%22kfctl-6742%22%0AlogName%3D%22projects%2Fkubeflow-ci-deployment%2Flogs%2Fevents%22%20%0AjsonPayload.involvedObject.name%3D%22jupyter-web-app%22&scrollTimestamp=2019-04-27T01%3A23%3A48.000000000Z) to get the events associated with the deployment or statefulset
+
+   ```
+    resource.labels.cluster_name="kfctl-6742"
+    logName="projects/kubeflow-ci-deployment/logs/events" 
+    jsonPayload.involvedObject.name="jupyter-web-app"
+   ```      
+
+   * Change the name of the involvedObject and cluster name to match your deployment.
+
+   * If a pod was created the name of the pod should be present e.g.
+
+     ```
+     Scaled up replica set jupyter-web-app-5fcddbf75c to 1"
+     ```
+
+   * You can continue to look at event logs for the replica set to eventually get to the name of a pod and potentially
+     the pod.
 
 ## Testing Changes to the ProwJobs
 
