@@ -132,9 +132,10 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
    * Similarly, make sure you remove finzlizers from pv (i.e.,  gcfs)
 
 1. If pv/pvc deleteion still stalls, delete all pods in `kubeflow-test-infra`  manually
-   ```
+   
+ 	```
 	kubectl delete pods --all
-  ```
+  	```
 
 1. Rereate the NFS share
 
