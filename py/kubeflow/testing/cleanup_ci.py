@@ -253,6 +253,44 @@ def cleanup_firewall_rules(args):
   logging.info("Unexpired firewall rules:\n%s", "\n".join(unexpired))
   logging.info("expired firewall rules:\n%s", "\n".join(expired))
 
+def cleanup_backend_services(args):
+  # We only GC backend services for kubeflow-ci-deployment.
+  if args.project != "kubeflow-ci-deployment":
+    return
+
+  credentials = GoogleCredentials.get_application_default()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  backends = compute.backendServices()
+  next_page_token = None
+  expired = []
+  unexpired = []
+
+  while True:
+    results = backends.list(project=args.project,
+                            pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for s in results["items"]:
+      name = s["name"]
+      age = getAge(s["creationTimestamp"])
+      if age > datetime.timedelta(
+        hours=args.max_ci_deployemnt_resource_age_hours):
+        logging.info("Deleting backend services: %s, age = %r", name, age)
+        if not args.dryrun:
+          response = backends.delete(project=args.project, backendService=name)
+          logging.info("respone = %s", response)
+        expired.append(name)
+      else:
+        unexpired.append(name)
+
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  logging.info("Unexpired backend services:\n%s", "\n".join(unexpired))
+  logging.info("expired backend services:\n%s", "\n".join(expired))
+
+
 def cleanup_health_checks(args):
   credentials = GoogleCredentials.get_application_default()
 
@@ -566,6 +604,7 @@ def cleanup_all(args):
          cleanup_service_account_bindings,
          cleanup_workflows,
          cleanup_disks,
+         cleanup_backend_services,
          cleanup_firewall_rules,
          cleanup_health_checks]
   for op in ops:
@@ -623,6 +662,11 @@ def main():
 
   parser.add_argument(
     "--max_age_hours", default=3, type=int, help=("The age of deployments to gc."))
+
+  parser.add_argument(
+    "--max_ci_deployemnt_resource_age_hours",
+    default=24, type=int,
+    help=("The age of resources in kubeflow-ci-deployment to gc."))
 
   parser.add_argument(
     "--max_wf_age_hours", default=7*24, type=int,
