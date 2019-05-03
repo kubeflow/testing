@@ -137,6 +137,7 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 	kubectl delete pods --all
   	```
 
+
 1. Rereate the NFS share
 
    ```
