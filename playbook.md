@@ -128,6 +128,7 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
      ```
      kubectl apply -f /tmp/nfs-external.yaml
      ```
+     * Alternatively you can use `kubectl edit` to remove finalizers.	
    
    * Similarly, make sure you remove finzlizers from pv (i.e.,  gcfs)
 
@@ -138,7 +139,7 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
   	```
 
 
-1. Rereate the NFS share
+1. Recreate the NFS share
 
    ```
    cd test-infra/gcp_configs
