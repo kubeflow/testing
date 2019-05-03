@@ -126,14 +126,14 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
    * Update the object
 
      ```
-     kubectl -n kubeflow-test-infra apply -f /tmp/nfs-external.yaml
+     kubectl apply -f /tmp/nfs-external.yaml
      ```
    
    * Similarly, make sure you remove finzlizers from pv (i.e.,  gcfs)
 
 1. If pv/pvc deleteion still stalls, delete all pods in `kubeflow-test-infra`  manually
    ```
-	kubectl -n kubeflow-test-infra delete pods --all
+	kubectl delete pods --all
   ```
 
 1. Rereate the NFS share
