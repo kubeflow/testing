@@ -166,3 +166,16 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
    ```
 
 1. Make sure the `debug-worker-0` pod is able to successfully mount the PV
+	
+	* If you already deleted the pod `debug-worker-0` make sure it is restarted and is healthy. Otherwise, if it stalls in terminated state, force delete it as follows:
+
+	```
+	kubectl delete pods debug-worker-0 --grace-period=0 --force
+	```
+	
+	* Connect to debug-worker-0 to make sure it is able to mount the PV
+
+	```
+	kubectl exec -it debug-worker-0 /bin/bash
+	ls /secret
+	```
