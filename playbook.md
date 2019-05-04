@@ -173,7 +173,7 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 	kubectl delete pods debug-worker-0 --grace-period=0 --force
 	```
 	
-	* Connect to debug-worker-0 to make sure it is able to mount the PV
+	* Connect to `debug-worker-0` to make sure it is able to mount the PV
 
 	```
 	kubectl exec -it debug-worker-0 /bin/bash
