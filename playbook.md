@@ -22,6 +22,13 @@ This is a playbook for build cops to help deal with problems with the CI infrast
    * So if there are resources older than O(2) hours it indicates that there is a problem with
      garbage collection
 
+1. To access to k8s resources make sure to get credentials and set the default namespace to `kubeflow-test-infra`:
+
+```
+gcloud container clusters get-credentials kubeflow-testing --zone $ZONE --project kubelow-ci
+kubectl config set-context $(kubectl config current-context) --namespace=kubeflow-test-infra
+```
+
 1. Check if the cron job to GC resources is running in the test cluster
 
    ```
@@ -84,7 +91,7 @@ This is a playbook for build cops to help deal with problems with the CI infrast
 1. Delete the nfs deployment
 
    ```
-   gcloud --project=kubeflow-ci deployment-manager delete kubeflow-ci-nfs
+   gcloud --project=kubeflow-ci deployment-manager deployments delete kubeflow-ci-nfs
    ```
 
 1. Delete the PV and pvc
@@ -102,7 +109,7 @@ This is a playbook for build cops to help deal with problems with the CI infrast
    * Dump the yaml
     
      ```
-     kubectl get pvc nfs-external -o yaml > /tmp/nfs-external.yaml
+     kubectl  get pvc nfs-external -o yaml > /tmp/nfs-external.yaml
      ```
 
    * Delete the finalizer `kubernetes.io/pvc-protection` in nfs-external.yaml
@@ -121,8 +128,18 @@ This is a playbook for build cops to help deal with problems with the CI infrast
      ```
      kubectl apply -f /tmp/nfs-external.yaml
      ```
+     * Alternatively you can use `kubectl edit` to remove finalizers.	
+   
+   * Similarly, make sure you remove finzlizers from pv (i.e.,  gcfs)
 
-1. Rereate the NFS share
+1. If pv/pvc deleteion still stalls, delete all pods in `kubeflow-test-infra`  manually
+   
+ 	```
+	kubectl delete pods --all
+  	```
+
+
+1. Recreate the NFS share
 
    ```
    cd test-infra/gcp_configs
@@ -139,7 +156,7 @@ This is a playbook for build cops to help deal with problems with the CI infrast
 
    ```
    cd test-infra/ks_app
-   ks param set --env=kubeflow-ci nfs-external nfsServer 10.240.92.210
+   ks param set --env=kubeflow-ci nfs-external nfsServer <NFS-IP-address>
    ```
 
 1. Recreate the PV and PVC
@@ -149,3 +166,16 @@ This is a playbook for build cops to help deal with problems with the CI infrast
    ```
 
 1. Make sure the `debug-worker-0` pod is able to successfully mount the PV
+	
+	* If you already deleted the pod `debug-worker-0` make sure it is restarted and is healthy. Otherwise, if it stalls in terminated state, force delete it as follows:
+
+	```
+	kubectl delete pods debug-worker-0 --grace-period=0 --force
+	```
+	
+	* Connect to `debug-worker-0` to make sure it is able to mount the PV
+
+	```
+	kubectl exec -it debug-worker-0 /bin/bash
+	ls /secret
+	```
