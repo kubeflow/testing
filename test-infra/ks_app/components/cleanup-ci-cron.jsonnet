@@ -35,5 +35,5 @@ local job(project) = {
 std.prune(k.core.v1.list.new([
   // Setup 2 cron jobs for the two projects.
   job("kubeflow-ci"),
-  job("kubeflow-ci-deployment"),
+  job("kubeflow-ci-deployment", true),
 ]))

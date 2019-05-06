@@ -16,7 +16,7 @@
       )
   )],
 
-  jobSpec:: function(project="kubeflow-ci"){      
+  jobSpec:: function(project="kubeflow-ci", gcBackendServices=false){
       "template": {
         "spec": {
           "containers": [
@@ -24,7 +24,7 @@
               command: $.buildCommand([[
                 "/usr/local/bin/checkout.sh",
                 "/src",
-              ],             
+              ],
               [
                 "python",
                 "-m",
@@ -32,33 +32,34 @@
                 "--project=" + project,
                 "all",
                 "--delete_script=/src/kubeflow/kubeflow/scripts/gke/delete_deployment.sh",
+                "--gc_backend_services=" + gcBackendServices,
               ],
-              ]), 
-              "image": "gcr.io/kubeflow-ci/test-worker:v20190415-53ad3b5-dirty-5bc1cf", 
+              ]),
+              "image": "gcr.io/kubeflow-ci/test-worker:v20190415-53ad3b5-dirty-5bc1cf",
               "name": "label-sync",
               env: [
                 {
                   name: "REPO_OWNER",
-                  value: "kubeflow",                  
+                  value: "kubeflow",
                 },
                 {
                   name: "REPO_NAME",
-                  value: "testing",                  
+                  value: "testing",
                 },
                 {
                   name: "PYTHONPATH",
                   value: "/src/kubeflow/testing/py",
                 },
                 {
-                  name: "EXTRA_REPOS",                  
+                  name: "EXTRA_REPOS",
                   value: "kubeflow/kubeflow@HEAD",
                 },
                 {
                   name: "GOOGLE_APPLICATION_CREDENTIALS",
                   value: "/secret/gcp-credentials/key.json",
-                },              
+                },
               ],
-              "volumeMounts": [                
+              "volumeMounts": [
                 {
                   name: "gcp-credentials",
                   mountPath: "/secret/gcp-credentials",
@@ -66,15 +67,15 @@
                 },
               ]
             }
-          ], 
-          "restartPolicy": "Never", 
+          ],
+          "restartPolicy": "Never",
           "volumes": [
             {
               name: "gcp-credentials",
               secret: {
                 secretName: "kubeflow-testing-credentials",
               },
-            },            
+            },
           ]
         }
       }

@@ -254,8 +254,7 @@ def cleanup_firewall_rules(args):
   logging.info("expired firewall rules:\n%s", "\n".join(expired))
 
 def cleanup_backend_services(args):
-  # We only GC backend services for kubeflow-ci-deployment.
-  if args.project != "kubeflow-ci-deployment":
+  if not args.gc_backend_services:
     return
 
   credentials = GoogleCredentials.get_application_default()
@@ -274,7 +273,7 @@ def cleanup_backend_services(args):
       name = s["name"]
       age = getAge(s["creationTimestamp"])
       if age > datetime.timedelta(
-        hours=args.max_ci_deployemnt_resource_age_hours):
+        hours=args.max_ci_deployment_resource_age_hours):
         logging.info("Deleting backend services: %s, age = %r", name, age)
         if not args.dryrun:
           response = backends.delete(project=args.project, backendService=name)
@@ -664,7 +663,12 @@ def main():
     "--max_age_hours", default=3, type=int, help=("The age of deployments to gc."))
 
   parser.add_argument(
-    "--max_ci_deployemnt_resource_age_hours",
+    "--gc_backend_services", default=False, type=bool,
+    help=("""Whether to GC backend services that are older
+          than --max_ci_deployment_resource_age_hours."""))
+
+  parser.add_argument(
+    "--max_ci_deployment_resource_age_hours",
     default=24, type=int,
     help=("The age of resources in kubeflow-ci-deployment to gc."))
 
