@@ -58,15 +58,15 @@ class TestRunE2eWorkflow(unittest.TestCase):
     with tempfile.NamedTemporaryFile(delete=False) as hf:
       yaml.dump(config, hf)
       name = hf.name
-    os.environ = {}
-    os.environ["REPO_OWNER"] = "fake_org"
-    os.environ["REPO_NAME"] = "fake_name"
-    os.environ["PULL_NUMBER"] = "77"
-    os.environ["PULL_PULL_SHA"] = "123abc"
-    os.environ["JOB_NAME"] = "kubeflow-presubmit"
-    os.environ["JOB_TYPE"] = "presubmit"
-    os.environ["BUILD_NUMBER"] = "1234"
-    os.environ["BUILD_ID"] = "11"
+    os.environ = {"REPO_OWNER": "fake_org",
+                  "REPO_NAME": "fake_name",
+                  "PULL_NUMBER": "77",
+                  "PULL_PULL_SHA": "123abc",
+                  "JOB_NAME": "kubeflow-presubmit",
+                  "JOB_TYPE": "presubmit",
+                  "BUILD_NUMBER": "1234",
+                  "BUILD_ID": "11",
+                  "PULL_BASE_REF": "test_branch"}
 
     mock_run.return_value = "ab1234"
 
@@ -80,7 +80,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
                                            "some-cluster",)
 
     expected_calls = [
-      ["git", "merge-base", "HEAD", "master"],
+      ["git", "merge-base", "HEAD", "test_branch"],
       ["git", "diff", "--name-only", "ab1234"],
       ["ks", "version"],
       ["ks", "env", "add", "kubeflow-presubmit-wf-77-123abc-1234-.*",

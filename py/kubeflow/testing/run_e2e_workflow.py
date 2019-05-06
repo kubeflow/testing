@@ -112,17 +112,20 @@ def generate_env_from_head(args):
     os.environ[k] = env_var.get(k)
 
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
+  # Check https://github.com/kubernetes/test-infra/blob/master/prow/jobs.md
+  # for a description of the injected environment variables.
   job_type = os.getenv("JOB_TYPE")
   repo_owner = os.getenv("REPO_OWNER")
   repo_name = os.getenv("REPO_NAME")
+  base_branch_name = os.getenv("PULL_BASE_REF")
   pull_base_sha = os.getenv("PULL_BASE_SHA")
 
   # For presubmit/postsubmit jobs, find the list of files changed by the PR.
   diff_command = []
   if job_type == "presubmit":
-    # We need to get a common ancestor for the PR and the master branch
+    # We need to get a common ancestor for the PR and the base branch
     common_ancestor = util.run(
-      ["git", "merge-base", "HEAD", "master"],
+      ["git", "merge-base", "HEAD", base_branch_name],
       cwd=os.path.join(args.repos_dir, repo_owner, repo_name))
     diff_command = ["git", "diff", "--name-only", common_ancestor]
   elif job_type == "postsubmit":
