@@ -270,10 +270,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   workflow_phase = {}
   workflow_status_yamls = {}
   try:
-    results = argo_client.wait_for_workflows(get_namespace(args),
-                                             workflow_names,
-                                             timeout=datetime.timedelta(minutes=180),
-                                             status_callback=argo_client.log_status)
+    results, is_timeout = argo_client.wait_for_workflows(
+      get_namespace(args), workflow_names,
+      timeout=datetime.timedelta(minutes=180),
+      status_callback=argo_client.log_status
+    )
     for r in results:
       phase = r.get("status", {}).get("phase")
       name = r.get("metadata", {}).get("name")
@@ -282,6 +283,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       if phase != "Succeeded":
         success = False
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
+    if is_timeout:
+      raise util.TimeoutError("Timeout waiting for workflows {0} in namespace "
+                              "{1} to finish.".format(",".join(workflow_names),
+                                                      get_namespace(args)))
   except util.TimeoutError:
     success = False
     logging.exception("Time out waiting for Workflows %s to finish", ",".join(workflow_names))

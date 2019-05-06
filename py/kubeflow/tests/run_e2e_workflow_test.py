@@ -33,9 +33,10 @@ class TestRunE2eWorkflow(unittest.TestCase):
   @mock.patch("kubeflow.testing.run_e2e_workflow.argo_client.wait_for_workflows")
   @mock.patch("kubeflow.testing.run_e2e_workflow.util.configure_kubectl")
   @mock.patch("kubeflow.testing.run_e2e_workflow.util.run")
-  def testWithConfig(self, mock_run, mock_configure, *unused_mocks):  # pylint: disable=no-self-use,unused-argument
+  def testWithConfig(self, mock_run, mock_configure, mock_wait_for_workflows,
+                     *unused_mocks):  # pylint: disable=no-self-use,unused-argument
     """Test creating a workflow from a config file."""
-    # We need to set cwd and the app_dir in the config file consistenly.
+    # We need to set cwd and the app_dir in the config file consistently.
     # The app_dir will be relative to the working dir.
     # We set cwd to the root of the repo and then app dir relative to that.
     this_dir = os.path.basename(__file__)
@@ -74,6 +75,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
             "--zone=us-east1-d", "--bucket=some-bucket",
             "--config_file=" + name,
             "--repos_dir=" + repo_dir]
+    mock_wait_for_workflows.return_value = [], True
     run_e2e_workflow.main(args)
 
     mock_configure.assert_called_once_with("some-project", "us-east1-d",
