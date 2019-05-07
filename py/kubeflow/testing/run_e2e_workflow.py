@@ -124,7 +124,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   diff_command = []
   if job_type == "presubmit":
     # We need to get a common ancestor for the PR and the base branch
-    cloned_repo_dir = os.path.join(args.repo_dir, repo_owner, repo_name)
+    cloned_repo_dir = os.path.join(args.repos_dir, repo_owner, repo_name)
     _ = util.run(["git", "checkout", base_branch_name], cwd=cloned_repo_dir)
     common_ancestor = util.run(["git", "merge-base", "HEAD", base_branch_name],
                                cwd=cloned_repo_dir)
