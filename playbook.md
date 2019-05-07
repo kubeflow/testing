@@ -88,18 +88,15 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 
 ### Deleting and recreating the NFS share
 
-1. Delete the nfs deployment
-
-   ```
-   gcloud --project=kubeflow-ci deployment-manager deployments delete kubeflow-ci-nfs
-   ```
-
 1. Delete the PV and pvc
 
    ```
-   kubectl delete pv gcfs
-   kubectl delete pvc gcfs-storage 
+   kubectl delete pvc nfs-external
+   kubectl delete pv gcfs   
+   kubectl delete pods --all=true
    ```
+
+   * We delete the pods since the pods will be mounting the volume which will prevent deletion of the PV and PVC
 
 1. Wait for them to be deleted
 
@@ -138,6 +135,12 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 	kubectl delete pods --all
   	```
 
+
+1. Delete the nfs deployment
+
+   ```
+   gcloud --project=kubeflow-ci deployment-manager deployments delete kubeflow-ci-nfs
+   ```
 
 1. Recreate the NFS share
 
