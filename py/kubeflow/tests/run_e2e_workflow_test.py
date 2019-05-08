@@ -117,10 +117,14 @@ class TestRunE2eWorkflow(unittest.TestCase):
       self.assertItemsMatchRegex(
         expected,
         mock_run.call_args_list[i][0][0])
-      if i > 2:
+      if mock_run.call_args_list[i][0][0][0] == 'git':
         self.assertEqual(
-           os.path.join(cwd, "workflows"),
-           mock_run.call_args_list[i][1]["cwd"])
+          os.path.join(cwd, os.environ['REPO_OWNER'], os.environ['REPO_NAME']),
+          mock_run.call_args_list[i][1]['cwd'])
+      elif 'cwd' in mock_run.call_args_list[i][1]:
+        self.assertEqual(
+          os.path.join(cwd, 'workflows'),
+          mock_run.call_args_list[i][1]["cwd"])
 
 if __name__ == "__main__":
   unittest.main()
