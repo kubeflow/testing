@@ -82,8 +82,8 @@ class TestRunE2eWorkflow(unittest.TestCase):
                                            "some-cluster",)
 
     expected_calls = [
-      ["git", "checkout", "test_branch"],
-      ["git", "merge-base", "HEAD", "test_branch"],
+      ["git", "fetch", "origin" "test_branch"],
+      ["git", "merge-base", "HEAD", "remotes/origin/test_branch"],
       ["git", "diff", "--name-only", "ab1234"],
       ["ks", "version"],
       ["ks", "env", "add", "kubeflow-presubmit-wf-77-123abc-1234-.*",
