@@ -114,7 +114,6 @@ class TestRunE2eWorkflow(unittest.TestCase):
     ]
 
     for i, expected in enumerate(expected_calls):
-      print(expected, mock_run.call_args_list[i][0][0])
       self.assertItemsMatchRegex(
         expected,
         mock_run.call_args_list[i][0][0])
