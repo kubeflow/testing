@@ -82,7 +82,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
                                            "some-cluster",)
 
     expected_calls = [
-      ["git", "fetch", "origin" "test_branch"],
+      ["git", "fetch", "origin", "test_branch"],
       ["git", "merge-base", "HEAD", "remotes/origin/test_branch"],
       ["git", "diff", "--name-only", "ab1234"],
       ["ks", "version"],
@@ -114,6 +114,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
     ]
 
     for i, expected in enumerate(expected_calls):
+      print(expected, mock_run.call_args_list[i][0][0])
       self.assertItemsMatchRegex(
         expected,
         mock_run.call_args_list[i][0][0])
