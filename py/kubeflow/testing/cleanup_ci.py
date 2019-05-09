@@ -263,6 +263,7 @@ def cleanup_backend_services(args):
   next_page_token = None
   expired = []
   unexpired = []
+  in_use = []
 
   while True:
     results = backends.list(project=args.project,
@@ -276,9 +277,15 @@ def cleanup_backend_services(args):
         hours=args.max_ci_deployment_resource_age_hours):
         logging.info("Deleting backend services: %s, age = %r", name, age)
         if not args.dryrun:
-          response = backends.delete(project=args.project, backendService=name)
-          logging.info("respone = %s", response)
-        expired.append(name)
+          try:
+            # An error may be thrown if the backend service is used by a urlMap.
+            response = backends.delete(project=args.project,
+                                     backendService=name).execute()
+            logging.info("response = %r", response)
+            expired.append(name)
+          except Exception as e: # pylint: disable=broad-except
+            logging.error(e)
+            in_use.append(name)
       else:
         unexpired.append(name)
 
@@ -287,7 +294,8 @@ def cleanup_backend_services(args):
     next_page_token = results["nextPageToken"]
 
   logging.info("Unexpired backend services:\n%s", "\n".join(unexpired))
-  logging.info("expired backend services:\n%s", "\n".join(expired))
+  logging.info("Deleted backend services:\n%s", "\n".join(expired))
+  logging.info("Expired but in-use backend services:\n%s", "\n".join(in_use))
 
 
 def cleanup_health_checks(args):

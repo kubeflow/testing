@@ -7,7 +7,7 @@ local k = import "k.libsonnet";
 local cleanup = import "cleanup-ci.libsonnet";
 
 local project = "kubeflow-ci";
-local job(project) = {
+local job(project, gcBackendServices) = {
     "apiVersion": "batch/v1beta1", 
     "kind": "CronJob", 
     "metadata": {           
@@ -27,13 +27,13 @@ local job(project) = {
             app: "cleanup-ci-" + project,
           },
         },
-        spec: cleanup.jobSpec(project),
+        spec: cleanup.jobSpec(project, gcBackendServices),
       },
     }, 
 };
 
 std.prune(k.core.v1.list.new([
   // Setup 2 cron jobs for the two projects.
-  job("kubeflow-ci"),
+  job("kubeflow-ci", false),
   job("kubeflow-ci-deployment", true),
 ]))
