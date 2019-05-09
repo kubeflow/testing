@@ -785,31 +785,23 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
   logging.info("Finished cleanup deployments")
 
 def cleanup_all(args):
-  ops = [
+  ops = [cleanup_deployments,
+         cleanup_endpoints,
+         cleanup_service_accounts,
+         cleanup_service_account_bindings,
+         cleanup_workflows,
+         cleanup_disks,
          cleanup_forwarding_rules,
          cleanup_target_http_proxies,
          cleanup_url_maps,
          cleanup_backend_services,
          cleanup_instance_groups,
-  ]
-  # ops = [cleanup_deployments,
-         # cleanup_endpoints,
-         # cleanup_service_accounts,
-         # cleanup_service_account_bindings,
-         # cleanup_workflows,
-         # cleanup_disks,
-         # cleanup_forwarding_rules,
-         # cleanup_target_http_proxies,
-         # cleanup_url_maps,
-         # cleanup_backend_services,
-         # cleanup_instance_groups,
-         # cleanup_firewall_rules,
-         # cleanup_health_checks]
+         cleanup_firewall_rules,
+         cleanup_health_checks]
   for op in ops:
     try:
       op(args)
     except Exception as e: # pylint: disable=broad-except
-      logging.error("%r", op)
       logging.error(e)
       exc_type, exc_value, exc_tb = sys.exc_info()
       traceback.print_exception(exc_type, exc_value, exc_tb)
