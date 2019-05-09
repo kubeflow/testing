@@ -281,6 +281,7 @@ def cleanup_backend_services(args):
             # An error may be thrown if the backend service is used by a urlMap.
             response = backends.delete(project=args.project,
                                      backendService=name).execute()
+            logging.info("response = %r", response)
             expired.append(name)
           except Exception as e: # pylint: disable=broad-except
             logging.error(e)
