@@ -392,42 +392,38 @@ def cleanup_forwarding_rules(args):
 
   credentials = GoogleCredentials.get_application_default()
   compute = discovery.build('compute', 'v1', credentials=credentials)
-  forwardingRules = compute.forwardingRules()
+  forwardingRules = compute.globalForwardingRules()
   next_page_token = None
   expired = []
   unexpired = []
   in_use = []
 
-  for zone in args.zones.split(","):
-    region = zone[:-2]
-    while True:
-      results = forwardingRules.list(project=args.project,
-                                    region=region,
-                                    pageToken=next_page_token).execute()
-      if not "items" in results:
-        break
-      for s in results["items"]:
-        name = s["name"]
-        age = getAge(s["creationTimestamp"])
-        if age > datetime.timedelta(
-          hours=args.max_ci_deployment_resource_age_hours):
-          logging.info("Deleting forwarding rule: %s, age = %r", name, age)
-          if not args.dryrun:
-            try:
-              response = forwardingRules.delete(project=args.project,
-                                                region=region,
-                                                forwardingRule=name).execute()
-              logging.info("response = %r", response)
-              expired.append(name)
-            except Exception as e: # pylint: disable=broad-except
-              logging.error(e)
-              in_use.append(name)
-        else:
-          unexpired.append(name)
+  while True:
+    results = forwardingRules.list(project=args.project,
+                                   pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for s in results["items"]:
+      name = s["name"]
+      age = getAge(s["creationTimestamp"])
+      if age > datetime.timedelta(
+        hours=args.max_ci_deployment_resource_age_hours):
+        logging.info("Deleting forwarding rule: %s, age = %r", name, age)
+        if not args.dryrun:
+          try:
+            response = forwardingRules.delete(project=args.project,
+                                              forwardingRule=name).execute()
+            logging.info("response = %r", response)
+            expired.append(name)
+          except Exception as e: # pylint: disable=broad-except
+            logging.error(e)
+            in_use.append(name)
+      else:
+        unexpired.append(name)
 
-      if not "nextPageToken" in results:
-        break
-      next_page_token = results["nextPageToken"]
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
 
   logging.info("Unexpired forwarding rules:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired forwarding rules:\n%s", "\n".join(expired))
