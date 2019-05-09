@@ -277,7 +277,7 @@ def cleanup_backend_services(args):
         logging.info("Deleting backend services: %s, age = %r", name, age)
         if not args.dryrun:
           response = backends.delete(project=args.project, backendService=name)
-          logging.info("respone = %s", response)
+          logging.info("respone = %r", response)
         expired.append(name)
       else:
         unexpired.append(name)
