@@ -253,6 +253,183 @@ def cleanup_firewall_rules(args):
   logging.info("Unexpired firewall rules:\n%s", "\n".join(unexpired))
   logging.info("expired firewall rules:\n%s", "\n".join(expired))
 
+def cleanup_instance_groups(args):
+  if not args.gc_backend_services:
+    return
+
+  credentials = GoogleCredentials.get_application_default()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  instanceGroups = compute.instanceGroups()
+  next_page_token = None
+  expired = []
+  unexpired = []
+  in_use = []
+
+  while True:
+    results = instanceGroups.list(project=args.project,
+                                  pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for s in results["items"]:
+      name = s["name"]
+      age = getAge(s["creationTimestamp"])
+      if age > datetime.timedelta(
+        hours=args.max_ci_deployment_resource_age_hours):
+        logging.info("Deleting instanceGroups: %s, age = %r", name, age)
+        if not args.dryrun:
+          try:
+            response = instanceGroups.delete(project=args.project,
+                                             zone=args.zone,
+                                             instanceGroup=name).execute()
+            logging.info("response = %r", response)
+            expired.append(name)
+          except Exception as e: # pylint: disable=broad-except
+            logging.error(e)
+            in_use.append(name)
+      else:
+        unexpired.append(name)
+
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  logging.info("Unexpired instance groups:\n%s", "\n".join(unexpired))
+  logging.info("Deleted expired instance groups:\n%s", "\n".join(expired))
+  logging.info("Expired but in-use instance groups:\n%s", "\n".join(in_use))
+
+def cleanup_url_maps(args):
+  if not args.gc_backend_services:
+    return
+
+  credentials = GoogleCredentials.get_application_default()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  urlMaps = compute.urlMaps()
+  next_page_token = None
+  expired = []
+  unexpired = []
+  in_use = []
+
+  while True:
+    results = urlMaps.list(project=args.project,
+                           pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for s in results["items"]:
+      name = s["name"]
+      age = getAge(s["creationTimestamp"])
+      if age > datetime.timedelta(
+        hours=args.max_ci_deployment_resource_age_hours):
+        logging.info("Deleting urlMaps: %s, age = %r", name, age)
+        if not args.dryrun:
+          try:
+            response = urlMaps.delete(project=args.project,
+                                      urlMap=name).execute()
+            logging.info("response = %r", response)
+            expired.append(name)
+          except Exception as e: # pylint: disable=broad-except
+            logging.error(e)
+            in_use.append(name)
+      else:
+        unexpired.append(name)
+
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  logging.info("Unexpired url maps:\n%s", "\n".join(unexpired))
+  logging.info("Deleted expired url maps:\n%s", "\n".join(expired))
+  logging.info("Expired but in-use url maps:\n%s", "\n".join(in_use))
+
+def cleanup_target_http_proxies(args):
+  if not args.gc_backend_services:
+    return
+
+  credentials = GoogleCredentials.get_application_default()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  targetHttpsProxies = compute.targetHttpsProxies()
+  next_page_token = None
+  expired = []
+  unexpired = []
+  in_use = []
+
+  while True:
+    results = targetHttpsProxies.list(project=args.project,
+                                      pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for s in results["items"]:
+      name = s["name"]
+      age = getAge(s["creationTimestamp"])
+      if age > datetime.timedelta(
+        hours=args.max_ci_deployment_resource_age_hours):
+        logging.info("Deleting urlMaps: %s, age = %r", name, age)
+        if not args.dryrun:
+          try:
+            response = targetHttpsProxies.delete(
+              project=args.project, targetHttpsProxy=name).execute()
+            logging.info("response = %r", response)
+            expired.append(name)
+          except Exception as e: # pylint: disable=broad-except
+            logging.error(e)
+            in_use.append(name)
+      else:
+        unexpired.append(name)
+
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  logging.info("Unexpired target https proxies:\n%s", "\n".join(unexpired))
+  logging.info("Deleted expired target https proxies:\n%s", "\n".join(expired))
+  logging.info("Expired but in-use target https proxies:\n%s",
+               "\n".join(in_use))
+
+def cleanup_forwarding_rules(args):
+  if not args.gc_backend_services:
+    return
+
+  credentials = GoogleCredentials.get_application_default()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  forwardingRules = compute.forwardingRules()
+  region = args.zone[:-2]
+  next_page_token = None
+  expired = []
+  unexpired = []
+  in_use = []
+
+  while True:
+    results = forwardingRules.list(project=args.project,
+                                   region=region,
+                                   pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for s in results["items"]:
+      name = s["name"]
+      age = getAge(s["creationTimestamp"])
+      if age > datetime.timedelta(
+        hours=args.max_ci_deployment_resource_age_hours):
+        logging.info("Deleting forwarding rule: %s, age = %r", name, age)
+        if not args.dryrun:
+          try:
+            response = forwardingRules.delete(project=args.project,
+                                              region=region,
+                                              forwardingRule=name).execute()
+            logging.info("response = %r", response)
+            expired.append(name)
+          except Exception as e: # pylint: disable=broad-except
+            logging.error(e)
+            in_use.append(name)
+      else:
+        unexpired.append(name)
+
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  logging.info("Unexpired forwarding rules:\n%s", "\n".join(unexpired))
+  logging.info("Deleted expired forwarding rules:\n%s", "\n".join(expired))
+  logging.info("Expired but in-use forwarding rules:\n%s", "\n".join(in_use))
+
 def cleanup_backend_services(args):
   if not args.gc_backend_services:
     return
@@ -611,7 +788,11 @@ def cleanup_all(args):
          cleanup_service_account_bindings,
          cleanup_workflows,
          cleanup_disks,
+         cleanup_forwarding_rules,
+         cleanup_target_http_proxies,
+         cleanup_url_maps,
          cleanup_backend_services,
+         cleanup_instance_groups,
          cleanup_firewall_rules,
          cleanup_health_checks]
   for op in ops:
