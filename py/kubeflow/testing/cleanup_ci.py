@@ -265,33 +265,35 @@ def cleanup_instance_groups(args):
   unexpired = []
   in_use = []
 
-  while True:
-    results = instanceGroups.list(project=args.project,
-                                  pageToken=next_page_token).execute()
-    if not "items" in results:
-      break
-    for s in results["items"]:
-      name = s["name"]
-      age = getAge(s["creationTimestamp"])
-      if age > datetime.timedelta(
-        hours=args.max_ci_deployment_resource_age_hours):
-        logging.info("Deleting instanceGroups: %s, age = %r", name, age)
-        if not args.dryrun:
-          try:
-            response = instanceGroups.delete(project=args.project,
-                                             zone=args.zone,
-                                             instanceGroup=name).execute()
-            logging.info("response = %r", response)
-            expired.append(name)
-          except Exception as e: # pylint: disable=broad-except
-            logging.error(e)
-            in_use.append(name)
-      else:
-        unexpired.append(name)
+  for zone in args.zones.split(","):
+    while True:
+      results = instanceGroups.list(project=args.project,
+                                    zone=zone,
+                                    pageToken=next_page_token).execute()
+      if not "items" in results:
+        break
+      for s in results["items"]:
+        name = s["name"]
+        age = getAge(s["creationTimestamp"])
+        if age > datetime.timedelta(
+          hours=args.max_ci_deployment_resource_age_hours):
+          logging.info("Deleting instanceGroups: %s, age = %r", name, age)
+          if not args.dryrun:
+            try:
+              response = instanceGroups.delete(project=args.project,
+                                              zone=zone,
+                                              instanceGroup=name).execute()
+              logging.info("response = %r", response)
+              expired.append(name)
+            except Exception as e: # pylint: disable=broad-except
+              logging.error(e)
+              in_use.append(name)
+        else:
+          unexpired.append(name)
 
-    if not "nextPageToken" in results:
-      break
-    next_page_token = results["nextPageToken"]
+      if not "nextPageToken" in results:
+        break
+      next_page_token = results["nextPageToken"]
 
   logging.info("Unexpired instance groups:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired instance groups:\n%s", "\n".join(expired))
@@ -391,40 +393,41 @@ def cleanup_forwarding_rules(args):
   credentials = GoogleCredentials.get_application_default()
   compute = discovery.build('compute', 'v1', credentials=credentials)
   forwardingRules = compute.forwardingRules()
-  region = args.zone[:-2]
   next_page_token = None
   expired = []
   unexpired = []
   in_use = []
 
-  while True:
-    results = forwardingRules.list(project=args.project,
-                                   region=region,
-                                   pageToken=next_page_token).execute()
-    if not "items" in results:
-      break
-    for s in results["items"]:
-      name = s["name"]
-      age = getAge(s["creationTimestamp"])
-      if age > datetime.timedelta(
-        hours=args.max_ci_deployment_resource_age_hours):
-        logging.info("Deleting forwarding rule: %s, age = %r", name, age)
-        if not args.dryrun:
-          try:
-            response = forwardingRules.delete(project=args.project,
-                                              region=region,
-                                              forwardingRule=name).execute()
-            logging.info("response = %r", response)
-            expired.append(name)
-          except Exception as e: # pylint: disable=broad-except
-            logging.error(e)
-            in_use.append(name)
-      else:
-        unexpired.append(name)
+  for zone in args.zones.split(","):
+    region = zone[:-2]
+    while True:
+      results = forwardingRules.list(project=args.project,
+                                    region=region,
+                                    pageToken=next_page_token).execute()
+      if not "items" in results:
+        break
+      for s in results["items"]:
+        name = s["name"]
+        age = getAge(s["creationTimestamp"])
+        if age > datetime.timedelta(
+          hours=args.max_ci_deployment_resource_age_hours):
+          logging.info("Deleting forwarding rule: %s, age = %r", name, age)
+          if not args.dryrun:
+            try:
+              response = forwardingRules.delete(project=args.project,
+                                                region=region,
+                                                forwardingRule=name).execute()
+              logging.info("response = %r", response)
+              expired.append(name)
+            except Exception as e: # pylint: disable=broad-except
+              logging.error(e)
+              in_use.append(name)
+        else:
+          unexpired.append(name)
 
-    if not "nextPageToken" in results:
-      break
-    next_page_token = results["nextPageToken"]
+      if not "nextPageToken" in results:
+        break
+      next_page_token = results["nextPageToken"]
 
   logging.info("Unexpired forwarding rules:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired forwarding rules:\n%s", "\n".join(expired))
@@ -782,23 +785,31 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
   logging.info("Finished cleanup deployments")
 
 def cleanup_all(args):
-  ops = [cleanup_deployments,
-         cleanup_endpoints,
-         cleanup_service_accounts,
-         cleanup_service_account_bindings,
-         cleanup_workflows,
-         cleanup_disks,
+  ops = [
          cleanup_forwarding_rules,
          cleanup_target_http_proxies,
          cleanup_url_maps,
          cleanup_backend_services,
          cleanup_instance_groups,
-         cleanup_firewall_rules,
-         cleanup_health_checks]
+  ]
+  # ops = [cleanup_deployments,
+         # cleanup_endpoints,
+         # cleanup_service_accounts,
+         # cleanup_service_account_bindings,
+         # cleanup_workflows,
+         # cleanup_disks,
+         # cleanup_forwarding_rules,
+         # cleanup_target_http_proxies,
+         # cleanup_url_maps,
+         # cleanup_backend_services,
+         # cleanup_instance_groups,
+         # cleanup_firewall_rules,
+         # cleanup_health_checks]
   for op in ops:
     try:
       op(args)
     except Exception as e: # pylint: disable=broad-except
+      logging.error("%r", op)
       logging.error(e)
       exc_type, exc_value, exc_tb = sys.exc_info()
       traceback.print_exception(exc_type, exc_value, exc_tb)
