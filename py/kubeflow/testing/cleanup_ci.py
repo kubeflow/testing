@@ -265,7 +265,7 @@ def cleanup_instance_groups(args):
   unexpired = []
   in_use = []
 
-  for zone in args.zones.split(","):
+  for zone in args.zones.split(","): # pylint: disable=too-many-nested-blocks
     while True:
       results = instanceGroups.list(project=args.project,
                                     zone=zone,
