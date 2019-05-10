@@ -11,7 +11,7 @@ params {
       exposeUi: true,
     },
     "nfs-external"+: {
-      nfsServer: '10.10.224.162',
+      nfsServer: '10.7.164.170',
     },
   },
 }
