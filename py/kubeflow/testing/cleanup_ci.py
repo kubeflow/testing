@@ -791,9 +791,9 @@ def cleanup_all(args):
          cleanup_target_http_proxies,
          cleanup_url_maps,
          cleanup_backend_services,
-         cleanup_instance_groups,
          cleanup_firewall_rules,
-         cleanup_health_checks]
+         cleanup_health_checks,
+         cleanup_instance_groups]
   for op in ops:
     try:
       op(args)
