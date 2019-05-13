@@ -780,6 +780,11 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
                                  clusterId=name).execute()
   logging.info("Finished cleanup deployments")
 
+# The order of cleanup_forwarding_rules, cleanup_target_http_proxies,
+# cleanup_url_maps, cleanup_backend_services, cleanup_instance_groups makes
+# sure ingress resources are GCed in one run of this script. See
+# https://github.com/kubernetes/ingress-gce/issues/136#issuecomment-371254595
+
 def cleanup_all(args):
   ops = [cleanup_deployments,
          cleanup_endpoints,
