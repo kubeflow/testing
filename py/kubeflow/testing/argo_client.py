@@ -28,10 +28,18 @@ def log_status(workflow):
     # https://github.com/kubeflow/testing/issues/147
     logging.exception('KeyError: %s', e)
 
+# TODO(jlewi):
+# In python3 we can switch to using http.HttpStatusCode
+UNAUTHORIZED = 401
+FORBIDDEN = 403
+GATEWAY_TIMEOUT = 504
 
 def handle_retriable_exception(exception):
   if (isinstance(exception, rest.ApiException) and
-    (exception.status == 401 or exception.status == 403)):
+    # UNAUTHORIZED and FORBIDDEN errors can be an indication we need to
+    # refresh credentials
+    (exception.status == UNAUTHORIZED or exception.status == FORBIDDEN or
+     exception.status == GATEWAY_TIMEOUT)):
     # Due to https://github.com/kubernetes-client/python-base/issues/59,
     # we need to reload the kube config (which refreshes the GCP token).
     # TODO(richardsliu): Remove this workaround when the k8s client issue
