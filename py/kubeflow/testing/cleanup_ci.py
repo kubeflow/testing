@@ -690,7 +690,15 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
     full_insert_time = d.get("insertTime")
     age = getAge(full_insert_time)
 
-    if age > datetime.timedelta(hours=args.max_age_hours):
+    if d.get("operation", {}).has_key("error"):
+      # Prune failed deployments more aggressively
+      logging.info("Deployment %s is in error state %s",
+                   d.get("name"), d.get("operation").get("error"))
+      max_age = datetime.timedelta(minutes=10)
+    else:
+      max_age = datetime.timedelta(hours=args.max_age_hours)
+
+    if age > max_age:
       # Get the zone.
       if "update" in d:
         manifest_url = d["update"]["manifest"]
