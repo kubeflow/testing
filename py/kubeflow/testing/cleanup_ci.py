@@ -692,7 +692,8 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
 
     if d.get("operation", {}).has_key("error"):
       # Prune failed deployments more aggressively
-      logging.info("Deployment %s is in error state %s", d.get("name"), d.get("operation").get("error"))
+      logging.info("Deployment %s is in error state %s",
+                   d.get("name"), d.get("operation").get("error"))
       max_age = datetime.timedelta(minutes=10)
     else:
       max_age = datetime.timedelta(hours=args.max_age_hours)
