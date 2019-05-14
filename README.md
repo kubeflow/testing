@@ -317,10 +317,10 @@ kubernetes events associated with that deployment.
    1. Use a filter (advanced) like the following to find the log entry getting the credentials for your deployment
 
       ```
-      resource.type="k8s_container"<br/>
-      resource.labels.pod_name=`<POD NAME>`<br/>
-      resource.labels.container_name="main"<br/>
-      get-credentials<br/>
+      resource.type="k8s_container"
+      resource.labels.pod_name=`<POD NAME>`
+      resource.labels.container_name="main"
+      get-credentials
       ```
 
    1. The log output should look like the following
