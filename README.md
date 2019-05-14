@@ -233,7 +233,7 @@ The logs should be in StackDriver but to get them we need to identify the pod.
      - This requires appropriate K8s RBAC permissions
      - You'll need to be added to the Google group **ci-team@kubeflow.org**
      - Create a PR adding yourself to [ci-team](https://github.com/kubeflow/internal-acls/blob/master/ci-team.members.txt)
-     - Once added you get your credentials `gcloud container clusters get-credentials  kubeflow-testing --project kubeflow-ci --zone us-east1-d`
+     - Add credentials to your $HOME/.kube/config: `gcloud container clusters get-credentials  kubeflow-testing --project kubeflow-ci --zone us-east1-d`
 
    - Get the workflow YAML from Prow artifacts
      - Find your Prow job from <https://prow.k8s.io/?repo=kubeflow%2Ftesting>.
