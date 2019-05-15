@@ -29,7 +29,9 @@ MATCHING_FIREWALL_RULES = [re.compile("gke-kfctl-.*"),
                            re.compile(".*postsubmit.*")]
 
 # Regexes that select matching disks
-MATCHING_DISK = [re.compile(".*postsubmit.*"), re.compile(".*presubmit.*")]
+MATCHING_DISK = [re.compile(".*jlewi.*"), re.compile(".*kfctl.*"),
+                 re.compile(".*postsubmit.*"), re.compile(".*presubmit.*"),
+                 ]
 
 def is_match_disk(name):
   for m in MATCHING_DISK:
@@ -164,13 +166,13 @@ def cleanup_disks(args):
 
   compute = discovery.build('compute', 'v1', credentials=credentials)
   disks = compute.disks()
-  next_page_token = None
 
   expired = []
   unexpired = []
   unmatched = []
 
   for zone in args.zones.split(","):
+    next_page_token = None
     while True:
       results = disks.list(project=args.project,
                            zone=zone,
@@ -187,7 +189,8 @@ def cleanup_disks(args):
         if age > datetime.timedelta(hours=args.max_age_hours):
           logging.info("Deleting disk: %s, age = %r", name, age)
           if not args.dryrun:
-            response = disks.delete(project=args.project, zone=zone, disk=name)
+            response = disks.delete(project=args.project, zone=zone,
+                                    disk=name).execute()
           logging.info("respone = %s", response)
           expired.append(name)
         else:
@@ -947,6 +950,7 @@ def main():
   args = parser.parse_args()
 
   util.maybe_activate_service_account()
+
   args.func(args)
 
 if __name__ == "__main__":
