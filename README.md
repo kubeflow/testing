@@ -233,6 +233,7 @@ The logs should be in StackDriver but to get them we need to identify the pod.
      - This requires appropriate K8s RBAC permissions
      - You'll need to be added to the Google group **ci-team@kubeflow.org**
      - Create a PR adding yourself to [ci-team](https://github.com/kubeflow/internal-acls/blob/master/ci-team.members.txt)
+     - Add credentials to your $HOME/.kube/config: `gcloud container clusters get-credentials  kubeflow-testing --project kubeflow-ci --zone us-east1-d`
 
    - Get the workflow YAML from Prow artifacts
      - Find your Prow job from <https://prow.k8s.io/?repo=kubeflow%2Ftesting>.
@@ -313,13 +314,13 @@ kubernetes events associated with that deployment.
 
    1. Open up [stack driver logging](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci-deployment&_ga=2.20425662.-720060064.1532059791&_gac=1.95560430.1553366450.CjwKCAjwstfkBRBoEiwADTmnEHB4EsCQkymxInUJfA875uharmvOzl6RadXtmxRqVYzya7mIGRmEERoC5-kQAvD_BwE&minLogLevel=0&expandAll=false&timestamp=2019-04-29T15:58:54.719000000Z&customFacets=&limitCustomFacetWidth=true&dateRangeStart=2019-04-22T16:33:20.360Z&dateRangeEnd=2019-04-29T16:33:20.360Z&interval=P7D&resource=k8s_container%2Fcluster_name%2Fkf-v0-4-n00%2Fnamespace_name%2Fkubeflow%2Fcontainer_name%2Ftensorflow&scrollTimestamp=2019-04-27T01:15:15.949166770Z&advancedFilter=resource.type%3D%22k8s_container%22%0Aresource.labels.pod_name%3D%22kubeflow-presubmit-kfctl-go-iap-3066-6266699-3248-6742-3522306767%22%0Aresource.labels.container_name%3D%22main%22%0Aget-credentials)
 
-   1. Use a filter like the following to find the log entry getting the credentials for your deployment
+   1. Use a filter (advanced) like the following to find the log entry getting the credentials for your deployment
 
       ```
       resource.type="k8s_container"
-resource.labels.pod_name=<POD NAME>
-resource.labels.container_name="main"
-get-credentials
+      resource.labels.pod_name=`<POD NAME>`
+      resource.labels.container_name="main"
+      get-credentials
       ```
 
    1. The log output should look like the following
