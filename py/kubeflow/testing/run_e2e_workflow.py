@@ -268,38 +268,24 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   # We delay creating started.json until we know the Argo workflow URLs
   create_started_file(args.bucket, ui_urls)
 
-  success = True
+  workflow_success = False
   workflow_phase = {}
   workflow_status_yamls = {}
+  results = []
   try:
-    results, is_timeout = argo_client.wait_for_workflows(
+    results = argo_client.wait_for_workflows(
       get_namespace(args), workflow_names,
       timeout=datetime.timedelta(minutes=180),
       status_callback=argo_client.log_status
     )
-    for r in results:
-      phase = r.get("status", {}).get("phase")
-      name = r.get("metadata", {}).get("name")
-      workflow_phase[name] = phase
-      workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
-      if phase != "Succeeded":
-        success = False
-      logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
-    if is_timeout:
-      raise util.TimeoutError("Timeout waiting for workflows {0} in namespace "
-                              "{1} to finish.".format(",".join(workflow_names),
-                                                      get_namespace(args)))
-  except util.TimeoutError:
-    success = False
-    logging.exception("Time out waiting for Workflows %s to finish", ",".join(workflow_names))
-  except Exception as e:
+    workflow_success = True
+  except util.ExceptionWithWorkflowResults as e:
     # We explicitly log any exceptions so that they will be captured in the
     # build-log.txt that is uploaded to Gubernator.
     logging.exception("Exception occurred: %s", e)
+    results = e.workflow_results
     raise
   finally:
-    success = prow_artifacts.finalize_prow_job(args.bucket, success, workflow_phase, ui_urls)
-
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
@@ -309,12 +295,24 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       os.path.join(prow_artifacts_dir, "build-log.txt"))
 
     # Upload workflow status to GCS.
-    for wf_name, wf_status in workflow_status_yamls.items():
-      util.upload_to_gcs(
-        wf_status,
-        os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
+    for r in results:
+      phase = r.get("status", {}).get("phase")
+      name = r.get("metadata", {}).get("name")
+      workflow_phase[name] = phase
+      workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
+      if phase != "Succeeded":
+        workflow_success = False
+      logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
 
-  return success
+      for wf_name, wf_status in workflow_status_yamls.items():
+        util.upload_to_gcs(
+          wf_status,
+          os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
+
+    all_tests_success = prow_artifacts.finalize_prow_job(
+      args.bucket, workflow_success, workflow_phase, ui_urls)
+
+  return all_tests_success
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
