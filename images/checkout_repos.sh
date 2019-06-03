@@ -79,7 +79,7 @@ main() {
     mkdir -p ${src_dir}/${EXTRA_ORG}
 
     if [ ! -d ${TARGET} ]; then
-      git clone  ${URL} ${TARGET}      
+      git clone --depth=1 ${URL} ${TARGET}
     else 
       # init containers might get restarted so its possible we already checked out the repo
       echo ${TARGET} already exists

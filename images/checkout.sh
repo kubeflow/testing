@@ -25,7 +25,7 @@ mkdir -p /src/${REPO_OWNER}
 
 # TODO(jlewi): We should eventually move the code for running the workflow from
 # kubeflow/kubeflow into kubeflow/testing
-git clone https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${SRC_DIR}/${REPO_OWNER}/${REPO_NAME}
+git clone --depth=1 https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${SRC_DIR}/${REPO_OWNER}/${REPO_NAME}
 
 echo Job Name = ${JOB_NAME}
 
@@ -100,5 +100,5 @@ done
 # TODO(jlewi): We should get rid of this and just treat kubeflow/testing as
 # an EXTRA_REPOS.
 if [ ! -d ${SRC_DIR}/kubeflow/testing ]; then
-	git clone https://github.com/kubeflow/testing.git ${SRC_DIR}/kubeflow/testing
+	git clone --depth=1 https://github.com/kubeflow/testing.git ${SRC_DIR}/kubeflow/testing
 fi	
