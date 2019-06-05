@@ -546,6 +546,12 @@ class TimeoutError(Exception):  # pylint: disable=redefined-builtin
   """An error indicating an operation timed out."""
 
 
+class ExceptionWithWorkflowResults(Exception):
+  def __init__(self, message, workflow_results):
+    super(ExceptionWithWorkflowResults, self).__init__(message)
+    self.workflow_results = workflow_results
+
+
 GCS_REGEX = re.compile("gs://([^/]*)(/.*)?")
 
 

@@ -75,7 +75,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
             "--zone=us-east1-d", "--bucket=some-bucket",
             "--config_file=" + name,
             "--repos_dir=" + repo_dir]
-    mock_wait_for_workflows.return_value = [], True
+    mock_wait_for_workflows.return_value = []
     run_e2e_workflow.main(args)
 
     mock_configure.assert_called_once_with("some-project", "us-east1-d",

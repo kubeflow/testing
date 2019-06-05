@@ -1,14 +1,15 @@
 """Some utility functions for working with TfJobs."""
 
 import datetime
+import httplib
 import json
 import logging
-from retrying import retry
 import six
 import time
 
 from kubernetes import client as k8s_client
 from kubernetes.client import rest
+from retrying import retry
 
 from kubeflow.testing import util
 
@@ -29,12 +30,6 @@ def log_status(workflow):
     # as sometimes the workflow object does not have all the fields
     # https://github.com/kubeflow/testing/issues/147
     logging.exception('KeyError: %s', e)
-
-# TODO(jlewi):
-# In python3 we can switch to using http.HttpStatusCode
-UNAUTHORIZED = 401
-FORBIDDEN = 403
-GATEWAY_TIMEOUT = 504
 
 def handle_retriable_exception(exception):
   if isinstance(exception, rest.ApiException):
@@ -59,7 +54,8 @@ def handle_retriable_exception(exception):
     # UNAUTHORIZED and FORBIDDEN errors can be an indication we need to
     # refresh credentials
     logging.info("ApiException code=%s", code)
-    if code in [UNAUTHORIZED, FORBIDDEN, GATEWAY_TIMEOUT]:
+    # TODO(jlewi): In python3 we can switch to using http.HttpStatusCode
+    if code in [httplib.UNAUTHORIZED, httplib.FORBIDDEN, httplib.GATEWAY_TIMEOUT]:
       # Due to https://github.com/kubernetes-client/python-base/issues/59,
       # we need to reload the kube config (which refreshes the GCP token).
       # TODO(richardsliu): Remove this workaround when the k8s client issue
@@ -98,7 +94,8 @@ def get_namespaced_custom_object_with_retries(namespace, name):
     GROUP, VERSION, namespace, PLURAL, name)
 
 
-def wait_for_workflows(namespace, names,
+def wait_for_workflows(namespace,
+                       workflow_names,
                        timeout=datetime.timedelta(minutes=30),
                        polling_interval=datetime.timedelta(seconds=30),
                        status_callback=None):
@@ -106,7 +103,7 @@ def wait_for_workflows(namespace, names,
 
   Args:
     namespace: namespace for the workflow.
-    names: Names of the workflows to wait for.
+    workflow_names: Names of the workflows to wait for.
     timeout: How long to wait for the workflow.
     polling_interval: How often to poll for the status of the workflow.
     status_callback: (Optional): Callable. If supplied this callable is
@@ -114,22 +111,23 @@ def wait_for_workflows(namespace, names,
       is the job.
 
   Returns:
-    tuple: (list, bool) consisting of:
-      results: A list of the final status of the workflows.
-      is_timeout: A boolean variable indicating whether this function is
-        returning because of timeout.
+    results: A list of the final status of the workflows.
   Raises:
-    TimeoutError: If timeout waiting for the job to finish.
+    ExceptionWithWorkflowResults: A custom exception that wraps the internal
+    exceptions and stores the most recent set of workflow results.
   """
   end_time = datetime.datetime.now() + timeout
   while True:
     all_results = []
 
-    for n in names:
-      results = get_namespaced_custom_object_with_retries(namespace, n)
-      all_results.append(results)
-      if status_callback:
-        status_callback(results)
+    try:
+      for name in workflow_names:
+        results = get_namespaced_custom_object_with_retries(namespace, name)
+        all_results.append(results)
+        if status_callback:
+          status_callback(results)
+    except Exception as e:
+      raise util.ExceptionWithWorkflowResults(repr(e), all_results)
 
     done = True
     for results in all_results:
@@ -140,10 +138,12 @@ def wait_for_workflows(namespace, names,
         break
 
     if done:
-      return all_results, False
+      return all_results
 
     if datetime.datetime.now() + polling_interval > end_time:
-      return all_results, True
+      message = "Timeout waiting for workflows {0} in namespace {1} " \
+                "to finish".format(",".join(workflow_names), namespace)
+      raise util.ExceptionWithWorkflowResults(message, all_results)
 
     time.sleep(polling_interval.seconds)
 
