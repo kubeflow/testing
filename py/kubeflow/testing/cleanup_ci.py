@@ -1,4 +1,5 @@
 """Cleanup Kubeflow deployments in our ci system."""
+# pylint: disable=too-many-lines
 import argparse
 import datetime
 from dateutil import parser as date_parser
