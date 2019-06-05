@@ -1,4 +1,5 @@
 """Cleanup Kubeflow deployments in our ci system."""
+# pylint: disable=too-many-lines
 import argparse
 import datetime
 from dateutil import parser as date_parser
@@ -345,7 +346,7 @@ def cleanup_url_maps(args):
   logging.info("Deleted expired url maps:\n%s", "\n".join(expired))
   logging.info("Expired but in-use url maps:\n%s", "\n".join(in_use))
 
-def cleanup_target_http_proxies(args):
+def cleanup_target_https_proxies(args):
   if not args.gc_backend_services:
     return
 
@@ -387,6 +388,50 @@ def cleanup_target_http_proxies(args):
   logging.info("Unexpired target https proxies:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired target https proxies:\n%s", "\n".join(expired))
   logging.info("Expired but in-use target https proxies:\n%s",
+               "\n".join(in_use))
+
+def cleanup_target_http_proxies(args):
+  if not args.gc_backend_services:
+    return
+
+  credentials = GoogleCredentials.get_application_default()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  targetHttpProxies = compute.targetHttpProxies()
+  next_page_token = None
+  expired = []
+  unexpired = []
+  in_use = []
+
+  while True:
+    results = targetHttpProxies.list(project=args.project,
+                                     pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+    for s in results["items"]:
+      name = s["name"]
+      age = getAge(s["creationTimestamp"])
+      if age > datetime.timedelta(
+        hours=args.max_ci_deployment_resource_age_hours):
+        logging.info("Deleting urlMaps: %s, age = %r", name, age)
+        if not args.dryrun:
+          try:
+            response = targetHttpProxies.delete(
+              project=args.project, targetHttpProxy=name).execute()
+            logging.info("response = %r", response)
+            expired.append(name)
+          except Exception as e: # pylint: disable=broad-except
+            logging.error(e)
+            in_use.append(name)
+      else:
+        unexpired.append(name)
+
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  logging.info("Unexpired target http proxies:\n%s", "\n".join(unexpired))
+  logging.info("Deleted expired target http proxies:\n%s", "\n".join(expired))
+  logging.info("Expired but in-use target http proxies:\n%s",
                "\n".join(in_use))
 
 def cleanup_forwarding_rules(args):
@@ -804,6 +849,7 @@ def cleanup_all(args):
          cleanup_workflows,
          cleanup_disks,
          cleanup_forwarding_rules,
+         cleanup_target_https_proxies,
          cleanup_target_http_proxies,
          cleanup_url_maps,
          cleanup_backend_services,
