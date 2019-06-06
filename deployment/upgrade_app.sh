@@ -20,7 +20,7 @@ if [ "$1" = "latest" ]
 then
   VERSION="master"
   NAMESPACE=kubeflow-latest
-  APP_NAME=kubeflow-latest_ks_app
+  APP_NAME=kubeflow-latest-kust-app
   FQDN=dev-latest.kubeflow.org
   IP_NAME="kubeflow-latest-ip"
   USAGE_ID=a9cfe6c1-0e75-44aa-8fc0-a44db63611dc
@@ -31,7 +31,7 @@ then
   # https://github.com/kubeflow/kubeflow/releases
   VERSION="v0.2.2"
   NAMESPACE=kubeflow
-  APP_NAME=ks-app
+  APP_NAME=kf-kust-app
   FQDN=dev.kubeflow.org
   IP_NAME="kubeflow-tf-hub"
   USAGE_ID=f85740a3-5f60-4146-91b6-2ab7089cf01c
@@ -60,7 +60,7 @@ cd ${APP_NAME}
 
 REGISTRY=github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
 
-python <(curl -s https://raw.githubusercontent.com/kubeflow/kubeflow/${VERSION}/scripts/upgrade_ks_app.py) \
+python <(curl -s https://raw.githubusercontent.com/kubeflow/kubeflow/${VERSION}/scripts/upgrade_kf-kust-app.py) \
 	--app_dir=${APP_DIR} \
 	--registry=${REGISTRY}
 

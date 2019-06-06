@@ -7,5 +7,5 @@ environments:
     k8sVersion: v1.9.6
     path: default
 kind: ksonnet.io/app
-name: ks-app
+name: kf-kust-app
 version: 0.0.1

@@ -53,7 +53,7 @@ const CloudShellTemplatePath = "/opt/registries/kubeflow/deployment/gke/cloud_sh
 const StartTime = "StartTime"
 
 const KubeflowRegName = "kubeflow"
-const KubeflowFolder = "ks_app"
+const KubeflowFolder = "kf-kust-app"
 const DmFolder = "gcp_config"
 const CloudShellFolder = "kf_util"
 const IstioFolder = "istio"

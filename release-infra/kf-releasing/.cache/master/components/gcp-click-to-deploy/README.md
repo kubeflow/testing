@@ -69,7 +69,7 @@ this will
 The script
 
 ```
-./ks-app/create_gcp_deploy_sa.sh
+./kf-kust-app/create_gcp_deploy_sa.sh
 ```
 
 Can be used to create a service account to work with external DNS.

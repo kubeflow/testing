@@ -262,7 +262,7 @@ local dagTemplates = [
         // Disable spartakus metrics so CI clusters won't be counted.
         "&&",
         "cd",
-        "ks_app",
+        "kf-kust-app",
         "ks",
         "param",
         "set",
@@ -284,7 +284,7 @@ local dagTemplates = [
         "install",
         "kubeflow/spark",
       ],
-      working_dir=appDir + "/ks_app"
+      working_dir=appDir + "/kf-kust-app"
     ),
     dependencies: ["kfctl-generate-k8s"],
   },  // install-spark-operator
@@ -299,7 +299,7 @@ local dagTemplates = [
         "spark-operator",
         "--name=spark-operator",
       ],
-      working_dir=appDir + "/ks_app"
+      working_dir=appDir + "/kf-kust-app"
     ),
     // Need to wait on kfctl-apply-k8s because that step creates
     // the ksonnet environment.
@@ -317,7 +317,7 @@ local dagTemplates = [
         "-c",
         "spark-operator",
       ],
-      working_dir=appDir + "/ks_app"
+      working_dir=appDir + "/kf-kust-app"
     ),
     dependencies: ["generate-spark-operator"],
   },  //apply-spark-operator

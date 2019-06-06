@@ -38,7 +38,7 @@ def test_lint(test_case): # pylint: disable=redefined-outer-name
   dir_excludes = [
     "dashboard/frontend/node_modules",
     "kubeflow_testing",
-    "dev-kubeflow-org/ks-app/vendor",
+    "dev-kubeflow-org/kf-kust-app/vendor",
     "release-infra",
   ]
   full_dir_excludes = [

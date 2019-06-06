@@ -46,10 +46,10 @@ push: build
 	@echo Pushed $(IMG) with  :$(TAG) tags
 
 update-image: push
-	cd ks-app && ks param set webapp image $(IMG):$(TAG)
+	cd kf-kust-app && ks param set webapp image $(IMG):$(TAG)
 
 deploy-latest: update-image
-	cd ks-app && ks apply default -c webapp
+	cd kf-kust-app && ks apply default -c webapp
 
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info

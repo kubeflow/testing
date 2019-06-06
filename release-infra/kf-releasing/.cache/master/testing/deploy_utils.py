@@ -68,7 +68,7 @@ def _setup_test(api_client, run_label):
   return namespace
 
 
-def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
+def setup_kf_kust_app(dir, namespace, github_token, api_client):
   """Create a ksonnet app for Kubeflow"""
   util.makedirs(dir)
 

@@ -68,7 +68,7 @@ libraries:
     name: tf-training
     registry: kubeflow
     version: ""
-name: ks_app
+name: kf-kust-app
 registries:
   kubeflow:
     protocol: fs

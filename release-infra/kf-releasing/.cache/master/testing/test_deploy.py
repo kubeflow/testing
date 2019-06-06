@@ -92,7 +92,7 @@ def create_k8s_client(_):
 
 # TODO(jlewi): We should make this a reusable function in kubeflow/testing
 # because we will probably want to use it in other places as well.
-def setup_kubeflow_ks_app(args, api_client):
+def setup_kf_kust_app(args, api_client):
   """Create a ksonnet app for Kubeflow"""
   try:
     os.makedirs(args.test_dir)
@@ -178,7 +178,7 @@ def setup_kubeflow_ks_app(args, api_client):
 def deploy_model(args):
   """Deploy a TF model using the TF serving component."""
   api_client = create_k8s_client(args)
-  app_dir = setup_kubeflow_ks_app(args, api_client)
+  app_dir = setup_kf_kust_app(args, api_client)
 
   logging.info("Deploying tf-serving.")
   params = {}
@@ -275,7 +275,7 @@ def test_katib(args):
 
 def deploy_argo(args):
   api_client = create_k8s_client(args)
-  app_dir = setup_kubeflow_ks_app(args, api_client)
+  app_dir = setup_kf_kust_app(args, api_client)
 
   component = "argo"
   logging.info("Deploying argo")
@@ -310,7 +310,7 @@ def deploy_argo(args):
 def deploy_pytorchjob(args):
   """Deploy Pytorchjob using the pytorch-job component"""
   api_client = create_k8s_client(args)
-  app_dir = setup_kubeflow_ks_app(args, api_client)
+  app_dir = setup_kf_kust_app(args, api_client)
 
   component = "example-job"
   logging.info("Deploying pytorch.")

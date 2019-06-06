@@ -11,7 +11,7 @@ ${DIR}/kfctl.sh init kfapp --platform non
 cd ${TMPDIR}/kfapp
 ${DIR}/kfctl.sh generate k8s
 
-EXPECTED_APP_DIR=${TMPDIR}/kfapp/ks_app
+EXPECTED_APP_DIR=${TMPDIR}/kfapp/kf-kust-app
 
 if [[ ! -d ${EXPECTED_APP_DIR} ]]; then
   echo ${EXPECTED_APP_DIR} was not created

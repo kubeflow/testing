@@ -1,7 +1,7 @@
 ## Overview
 
 The ksonnet application component creates an Application Custom Resource (CR) based on
-ksonnet components generated under `<APP_DIR>/ks_app/components/`. The Application CR
+ksonnet components generated under `<APP_DIR>/kf-kust-app/components/`. The Application CR
 will include the following components when you do not set a platform option.
 
 ```

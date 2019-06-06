@@ -9,7 +9,7 @@ import yaml
 
 from kubeflow.testing import util
 
-def setup_ks_app(app_dir, env, namespace, component, params, ks_cmd=None):
+def setup_kf_kust_app(app_dir, env, namespace, component, params, ks_cmd=None):
   """Setup the ksonnet app"""
 
   if not ks_cmd:

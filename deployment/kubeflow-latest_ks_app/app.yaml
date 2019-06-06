@@ -40,7 +40,7 @@ libraries:
     name: tf-serving
     registry: kubeflow
     version: 177377f154475e797ebf2c9bb7d156862f8e1231
-name: kubeflow-latest_ks_app
+name: kubeflow-latest-kust-app
 registries:
   incubator:
     protocol: github

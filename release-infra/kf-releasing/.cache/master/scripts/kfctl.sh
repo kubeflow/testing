@@ -88,7 +88,7 @@ createEnv() {
   export GKE_API_VERSION=${GKE_API_VERSION:-""}
   export KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"}
   export KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
-  export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"}
+  export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/kf-kust-app"}
   export KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
   export DOCKER_REGISTRY_KATIB_NAMESPACE=${DOCKER_REGISTRY_KATIB_NAMESPACE:-""}
   # Namespace where kubeflow is deployed
@@ -507,7 +507,7 @@ main() {
       fi
 
       if [[ "${PLATFORM}" == "aws" ]]; then
-        generate_aws_ks_app
+        generate_aws_kf-kust-app
       fi
 
       if [[ "${PLATFORM}" == "minikube" ]] || [[ "${PLATFORM}" == "docker-for-desktop" ]]; then

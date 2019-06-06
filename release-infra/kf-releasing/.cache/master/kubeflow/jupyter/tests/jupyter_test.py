@@ -122,7 +122,7 @@ def test_jupyter(env, namespace):
   service = "jupyter-test"
   component = "jupyter"
   params = ""
-  ks_util.setup_ks_app(app_dir, env, namespace, component, params)
+  ks_util.setup_kf_kust_app(app_dir, env, namespace, component, params)
 
   util.run([ks_cmd, "apply", env, "-c", component], cwd=app_dir)
   conditions = ["Ready"]

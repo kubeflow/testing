@@ -66,13 +66,13 @@ function applyIapIngress() {
 if [[ "$1" == "latest" ]]
 then
   NAMESPACE=kubeflow-latest
-  APP_NAME=kubeflow-latest_ks_app
+  APP_NAME=kubeflow-latest-kust-app
   FQDN=dev-latest.kubeflow.org
   IP_NAME="kubeflow-latest-ip"  
 elif [[ "$1" == "stable" ]]
 then
   NAMESPACE=kubeflow
-  APP_NAME=ks-app
+  APP_NAME=kf-kust-app
   FQDN=dev.kubeflow.org
   IP_NAME="kubeflow-tf-hub"
 else

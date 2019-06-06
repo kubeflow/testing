@@ -52,7 +52,7 @@ def deploy_kubeflow(test_case):
   test_dir = test_case.test_suite.test_dir
   namespace = args.namespace
   api_client = deploy_utils.create_k8s_client()
-  app_dir = deploy_utils.setup_kubeflow_ks_app(test_dir, namespace,
+  app_dir = deploy_utils.setup_kf_kust_app(test_dir, namespace,
                                                args.github_token, api_client)
 
   # ks generate tf-job-operator tf-job-operator

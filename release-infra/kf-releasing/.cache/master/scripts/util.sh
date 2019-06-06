@@ -107,7 +107,7 @@ createKsApp() {
   ks generate katib katib
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
-  # cd ks_app
+  # cd kf-kust-app
   # ks component rm spartakus
   # Generate a random 30 bit number
   local usageId=$(((RANDOM << 15) | RANDOM))

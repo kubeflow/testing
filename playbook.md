@@ -37,7 +37,7 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
    cleanup-ci           0 */2 * * *    False     0         <none>          14m
    ```
 
-   * The cron job is defined in [cleanup-ci-cron.jsonnet](https://github.com/kubeflow/testing/blob/master/test-infra/ks_app/components/cleanup-ci-cron.jsonnet)
+   * The cron job is defined in [cleanup-ci-cron.jsonnet](https://github.com/kubeflow/testing/blob/master/test-infra/kf-kust-app/components/cleanup-ci-cron.jsonnet)
 
    * If the cron job is not configured then start it.
 
@@ -73,7 +73,7 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 
 ### Deleting old directories on the NFS share
 
-1. Start a shell in the [debug worker](https://github.com/kubeflow/testing/blob/master/test-infra/ks_app/components/debug-worker.jsonnet)
+1. Start a shell in the [debug worker](https://github.com/kubeflow/testing/blob/master/test-infra/kf-kust-app/components/debug-worker.jsonnet)
 
    ```
    kubectl exec -it debug-worker-0 /bin/bash
@@ -158,7 +158,7 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 1. Set the IP address in the PV
 
    ```
-   cd test-infra/ks_app
+   cd test-infra/kf-kust-app
    ks param set --env=kubeflow-ci nfs-external nfsServer <NFS-IP-address>
    ```
 

@@ -6,7 +6,7 @@
 
 set -xe
 
-export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"}
+export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/kf-kust-app"}
 
 pushd ${KUBEFLOW_KS_DIR}
 
