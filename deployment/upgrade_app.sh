@@ -60,7 +60,7 @@ cd ${APP_NAME}
 
 REGISTRY=github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
 
-python <(curl -s https://raw.githubusercontent.com/kubeflow/kubeflow/${VERSION}/scripts/upgrade_kf-kust-app.py) \
+python <(curl -s https://raw.githubusercontent.com/kubeflow/kubeflow/${VERSION}/scripts/upgrade_kf_kust_app.py) \
 	--app_dir=${APP_DIR} \
 	--registry=${REGISTRY}
 
