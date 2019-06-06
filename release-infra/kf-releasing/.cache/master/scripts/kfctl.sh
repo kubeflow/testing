@@ -507,7 +507,7 @@ main() {
       fi
 
       if [[ "${PLATFORM}" == "aws" ]]; then
-        generate_aws_kf-kust-app
+        generate_aws_kf_kust_app
       fi
 
       if [[ "${PLATFORM}" == "minikube" ]] || [[ "${PLATFORM}" == "docker-for-desktop" ]]; then

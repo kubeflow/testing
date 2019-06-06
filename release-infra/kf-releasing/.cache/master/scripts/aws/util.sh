@@ -158,7 +158,7 @@ install_istio() {
 }
 
 ################################ Ksonnet changes ################################
-generate_aws_kf-kust-app() {
+generate_aws_kf_kust_app() {
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
 
