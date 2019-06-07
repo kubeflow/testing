@@ -29,7 +29,7 @@ import pytest
 
 from kubernetes.config import kube_config
 from kubernetes import client as k8s_client
-from kubeflow.testing import ks_util
+from kubeflow.testing import kust_util
 from kubeflow.testing import util
 
 GROUP = "kubeflow.org"
@@ -116,15 +116,15 @@ def test_jupyter(env, namespace):
   this_dir = os.path.dirname(__file__)
   app_dir = os.path.join(this_dir, "test_app")
 
-  ks_cmd = ks_util.get_ksonnet_cmd(app_dir)
+  kust_cmd = kust_util.get_ksonnet_cmd(app_dir)
 
   name = "jupyter-test"
   service = "jupyter-test"
   component = "jupyter"
   params = ""
-  ks_util.setup_kf_kust_app(app_dir, env, namespace, component, params)
+  kust_util.setup_kf_kust_app(app_dir, env, namespace, component, params)
 
-  util.run([ks_cmd, "apply", env, "-c", component], cwd=app_dir)
+  util.run([kust_cmd, "apply", env, "-c", component], cwd=app_dir)
   conditions = ["Ready"]
   results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
                                        namespace, name, conditions)

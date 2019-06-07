@@ -45,7 +45,7 @@ import logging
 import os
 import tempfile
 from kubeflow.testing import argo_client
-from kubeflow.testing import ks_util
+from kubeflow.testing import kust_util
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
 import uuid
@@ -167,10 +167,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Workflow name should not be more than 63 characters because its used
     # as a label on the pods.
     workflow_name = os.getenv("JOB_NAME") + "-" + w.name
-    ks_cmd = ks_util.get_ksonnet_cmd(w.app_dir)
+    kust_cmd = kust_util.get_ksonnet_cmd(w.app_dir)
 
     # Print ksonnet version
-    util.run([ks_cmd, "version"])
+    util.run([kust_cmd, "version"])
 
     # Skip this workflow if it is scoped to a different job type.
     if w.job_types and not job_type in w.job_types:
@@ -219,10 +219,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Create a new environment for this run
     env = workflow_name
 
-    util.run([ks_cmd, "env", "add", env, "--namespace=" + get_namespace(args)],
+    util.run([kust_cmd, "env", "add", env, "--namespace=" + get_namespace(args)],
               cwd=w.app_dir)
 
-    util.run([ks_cmd, "param", "set", "--env=" + env, w.component,
+    util.run([kust_cmd, "param", "set", "--env=" + env, w.component,
               "name", workflow_name],
              cwd=w.app_dir)
 
@@ -238,14 +238,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         continue
       prow_env.append("{0}={1}".format(v, os.getenv(v)))
 
-    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "prow_env",
+    util.run([kust_cmd, "param", "set", "--env=" + env, w.component, "prow_env",
              ",".join(prow_env)], cwd=w.app_dir)
-    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "namespace",
+    util.run([kust_cmd, "param", "set", "--env=" + env, w.component, "namespace",
              get_namespace(args)], cwd=w.app_dir)
-    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "bucket",
+    util.run([kust_cmd, "param", "set", "--env=" + env, w.component, "bucket",
              args.bucket], cwd=w.app_dir)
     if args.release:
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
+      util.run([kust_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
                 os.getenv("VERSION_TAG")], cwd=w.app_dir)
 
     # Set any extra params. We do this in alphabetical order to make it easier to verify in
@@ -253,12 +253,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     param_names = w.params.keys()
     param_names.sort()
     for k in param_names:
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, k,
+      util.run([kust_cmd, "param", "set", "--env=" + env, w.component, k,
                "{0}".format(w.params[k])], cwd=w.app_dir)
 
     # For debugging print out the manifest
-    util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
-    util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
+    util.run([kust_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
+    util.run([kust_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
 
     ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))
