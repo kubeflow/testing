@@ -58,9 +58,9 @@ createKsApp() {
   # They can then customize it as necessary.
   pushd .
   # Create the ksonnet app
-  cd $(dirname "${KUBEFLOW_KS_DIR}")
-  eval ks init $(basename "${KUBEFLOW_KS_DIR}") --skip-default-registries ${KS_INIT_EXTRA_ARGS}
-  cd "${KUBEFLOW_KS_DIR}"
+  cd $(dirname "${KUBEFLOW_KUST_DIR}")
+  eval ks init $(basename "${KUBEFLOW_KUST_DIR}") --skip-default-registries ${KS_INIT_EXTRA_ARGS}
+  cd "${KUBEFLOW_KUST_DIR}"
 
   # Remove the default environment; The cluster might not exist yet
   # So we might be pointing to the wrong  cluster.
@@ -131,7 +131,7 @@ createKsApp() {
 }
 
 createKsEnv(){
-  pushd ${KUBEFLOW_KS_DIR}
+  pushd ${KUBEFLOW_KUST_DIR}
   set +e
   O=$(ks env describe default 2>&1)
   RESULT=$?
@@ -146,7 +146,7 @@ createKsEnv(){
 }
 
 removeKsEnv() {
-  pushd ${KUBEFLOW_KS_DIR}
+  pushd ${KUBEFLOW_KUST_DIR}
   set +e
   O=$(ks env describe default 2>&1)
   RESULT=$?
@@ -163,14 +163,14 @@ removeKsEnv() {
 customizeKsAppWithDockerImage() {
   # customize docker registry
   if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
-    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
-    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
-    find ${KUBEFLOW_KS_DIR} -name config.yaml | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+    find ${KUBEFLOW_KUST_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+    find ${KUBEFLOW_KUST_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+    find ${KUBEFLOW_KUST_DIR} -name config.yaml | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
   fi
 
   # The katib images like gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0 uses sub namespace kubeflow-images-public/katib in
   # gcr.io repo, but it's not supported by other docker image repo. We need to consider how to support it in other docker repos.
   if [[ ! -z "$DOCKER_REGISTRY_KATIB_NAMESPACE" ]]; then
-    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%kubeflow-images-public/katib%$DOCKER_REGISTRY_KATIB_NAMESPACE%g"
+    find ${KUBEFLOW_KUST_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%kubeflow-images-public/katib%$DOCKER_REGISTRY_KATIB_NAMESPACE%g"
   fi
 }

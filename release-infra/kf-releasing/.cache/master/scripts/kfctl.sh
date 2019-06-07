@@ -66,7 +66,7 @@ createEnv() {
           'KUBEFLOW_VERSION=$KUBEFLOW_VERSION\n'
           "KUBEFLOW_COMPONENTS='$KUBEFLOW_COMPONENTS'\n"
           'KUBEFLOW_EXTENDEDINFO=$KUBEFLOW_EXTENDEDINFO\n'
-          'KUBEFLOW_KS_DIR=$KUBEFLOW_KS_DIR\n'
+          'KUBEFLOW_KUST_DIR=$KUBEFLOW_KUST_DIR\n'
           'KUBEFLOW_DOCKER_REGISTRY=$KUBEFLOW_DOCKER_REGISTRY\n'
           'DOCKER_REGISTRY_KATIB_NAMESPACE=$DOCKER_REGISTRY_KATIB_NAMESPACE\n'
           'K8S_NAMESPACE=$K8S_NAMESPACE\n'
@@ -75,7 +75,7 @@ createEnv() {
           'DEPLOYMENT_NAME=$DEPLOYMENT_NAME\n')
   FORMAT+=('$PLATFORM$KUBEFLOW_REPO'
            '$KUBEFLOW_VERSION'
-           '$KUBEFLOW_KS_DIR'
+           '$KUBEFLOW_KUST_DIR'
            '$KUBEFLOW_DOCKER_REGISTRY'
            '$KUBEFLOW_COMPONENTS'
            '$DOCKER_REGISTRY_KATIB_NAMESPACE'
@@ -88,7 +88,7 @@ createEnv() {
   export GKE_API_VERSION=${GKE_API_VERSION:-""}
   export KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"}
   export KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
-  export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/kf-kust-app"}
+  export KUBEFLOW_KUST_DIR=${KUBEFLOW_KUST_DIR:-"$(pwd)/kf-kust-app"}
   export KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
   export DOCKER_REGISTRY_KATIB_NAMESPACE=${DOCKER_REGISTRY_KATIB_NAMESPACE:-""}
   # Namespace where kubeflow is deployed
@@ -233,7 +233,7 @@ customizeKsApp() {
 }
 
 ksApply() {
-  pushd ${KUBEFLOW_KS_DIR}
+  pushd ${KUBEFLOW_KUST_DIR}
 
   createNamespace
   createKsEnv
@@ -551,7 +551,7 @@ main() {
 
       # all components deployed
       # deploy the application CR
-      pushd ${KUBEFLOW_KS_DIR}
+      pushd ${KUBEFLOW_KUST_DIR}
       ks param set application name ${DEPLOYMENT_NAME}
       if [[ ${KUBEFLOW_EXTENDEDINFO} == true ]]; then
         ks param set application extendedInfo true
@@ -570,25 +570,25 @@ main() {
       if [[ "$OSTYPE" != "darwin"* ]]; then
           # Fetch master information and strip away color markers
           KUBE_INFO=$(kubectl cluster-info | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g')
-          pushd ${KUBEFLOW_KS_DIR}
-          KS_ENV=default
-          KS_ENV_INFO=$(ks env describe ${KS_ENV})
+          pushd ${KUBEFLOW_KUST_DIR}
+          KUST_ENV=default
+          KUST_ENV_INFO=$(ks env describe ${KUST_ENV})
           popd
-          KS_MASTER=`expr match "${KS_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
-          echo KS_MASTER=${KS_MASTER}
+          KUST_MASTER=`expr match "${KUST_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
+          echo KUST_MASTER=${KUST_MASTER}
           MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
           echo MASTER=${MASTER}
 
-          if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
+          if [[ "${MASTER}" != "${KUST_MASTER}" ]]; then
             echo "The current kubectl context doesn't match the ks environment"
-            echo "Please configure the context to match ks environment ${KS_ENV}"
+            echo "Please configure the context to match ks environment ${KUST_ENV}"
             exit -1
           else
-            echo "kubectl context matches ks environment ${KS_ENV}"
+            echo "kubectl context matches ks environment ${KUST_ENV}"
           fi
       fi
       set +e
-      pushd ${KUBEFLOW_KS_DIR}
+      pushd ${KUBEFLOW_KUST_DIR}
       appname=$(ks param list application | grep '^application name'|awk '{print $NF}'|tr -d "'")
       popd
       if [[ "${PLATFORM}" == "aws" ]]; then

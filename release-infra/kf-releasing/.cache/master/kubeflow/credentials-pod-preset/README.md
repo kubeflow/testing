@@ -62,8 +62,8 @@ ks generate gcp-credentials-pod-preset ${COMPONENT_NAME} \
   --secretName ${SECRET_NAME} \
   --namespace ${NAMESPACE}
 
-KS_ENV=default
-ks apply ${KS_ENV} -c ${COMPONENT_NAME}
+KUST_ENV=default
+ks apply ${KUST_ENV} -c ${COMPONENT_NAME}
 ```
 
 ### Testing the pod preset

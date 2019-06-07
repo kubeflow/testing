@@ -1,7 +1,7 @@
 PLATFORM=gcp
 KUBEFLOW_REPO=/home/jlewi/git_kubeflow
 KUBEFLOW_VERSION=master
-KUBEFLOW_KS_DIR=/home/jlewi/git_kubeflow-testing/test-infra/kf-v0-4-n00/kf-kust-app
+KUBEFLOW_KUST_DIR=/home/jlewi/git_kubeflow-testing/test-infra/kf-v0-4-n00/kf-kust-app
 KUBEFLOW_DOCKER_REGISTRY=
 K8S_NAMESPACE=kubeflow
 KUBEFLOW_PLATFORM=gke

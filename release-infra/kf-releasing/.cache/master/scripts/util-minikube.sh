@@ -51,7 +51,7 @@ is_kubeflow_ready() {
 create_local_fs_mount_spec() {
   if $MOUNT_LOCAL; then
     # Create a persistent volume
-    cat <<EOF > ${KUBEFLOW_KS_DIR}/pv.yaml
+    cat <<EOF > ${KUBEFLOW_KUST_DIR}/pv.yaml
 kind: PersistentVolume
 apiVersion: v1
 metadata:
@@ -78,7 +78,7 @@ spec:
 EOF
 
     # Create a PVC attached to the volume
-    cat <<EOF > ${KUBEFLOW_KS_DIR}/pv-claim.yaml
+    cat <<EOF > ${KUBEFLOW_KUST_DIR}/pv-claim.yaml
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -99,8 +99,8 @@ EOF
 # Jupyter Notebooks
 mount_local_fs() {
   if $MOUNT_LOCAL; then
-    kubectl create -f ${KUBEFLOW_KS_DIR}/pv.yaml
-    kubectl create -n ${K8S_NAMESPACE} -f ${KUBEFLOW_KS_DIR}/pv-claim.yaml
+    kubectl create -f ${KUBEFLOW_KUST_DIR}/pv.yaml
+    kubectl create -n ${K8S_NAMESPACE} -f ${KUBEFLOW_KUST_DIR}/pv-claim.yaml
   fi
 }
 

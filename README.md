@@ -718,7 +718,7 @@ Follow these steps to add a new test to a repository.
             gkeApiVersion: v1beta1
        ```
 
-       * **app_dir**: Is the path to the ksonnet directory within the repository. This should be of the form `${GITHUB_ORG}/${GITHUB_REPO_NAME}/${PATH_WITHIN_REPO_TO_KS_APP}`
+       * **app_dir**: Is the path to the ksonnet directory within the repository. This should be of the form `${GITHUB_ORG}/${GITHUB_REPO_NAME}/${PATH_WITHIN_REPO_TO_KUST_APP}`
        * **component**: This is the name of the ksonnet component to use for the Argo workflow
        * **name**: This is the base name to use for the submitted Argo workflow.         
 

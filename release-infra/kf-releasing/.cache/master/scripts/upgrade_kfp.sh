@@ -6,9 +6,9 @@
 
 set -xe
 
-export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/kf-kust-app"}
+export KUBEFLOW_KUST_DIR=${KUBEFLOW_KUST_DIR:-"$(pwd)/kf-kust-app"}
 
-pushd ${KUBEFLOW_KS_DIR}
+pushd ${KUBEFLOW_KUST_DIR}
 
 set +e
 # Point Kubeflow registry to the pipeline branch

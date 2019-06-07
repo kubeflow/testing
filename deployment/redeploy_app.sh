@@ -87,20 +87,20 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd ${DIR}/${APP_NAME}
 
-KS_ENV=default
-KS_ENV_INFO=$(ks env describe ${KS_ENV})
+KUST_ENV=default
+KUST_ENV_INFO=$(ks env describe ${KUST_ENV})
 
-KS_MASTER=`expr match "${KS_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
-echo KS_MASTER=${KS_MASTER}
+KUST_MASTER=`expr match "${KUST_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
+echo KUST_MASTER=${KUST_MASTER}
 MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
 echo MASTER=${MASTER}
 
-if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
+if [[ "${MASTER}" != "${KUST_MASTER}" ]]; then
   echo "The current kubectl context doesn't match the ks environment"
-  echo "Please configure the context to match ks environment ${KS_ENV}"
+  echo "Please configure the context to match ks environment ${KUST_ENV}"
   exit -1
 else
-  echo "kubectl context matches ks environment ${KS_ENV}"
+  echo "kubectl context matches ks environment ${KUST_ENV}"
 fi
 
 # Delete some confimaps so that will get recreated with the new config.
@@ -121,15 +121,15 @@ kubectl delete crd tfjobs.kubeflow.org
 kubectl -n ${NAMESPACE} delete service vizier-core
 set -e
 
-applyIapIngress ${KS_ENV} ${NAMESPACE}
-runApply ${KS_ENV} google-cloud-filestore-pv
-runApply ${KS_ENV} cert-manager
-runApply ${KS_ENV} jupyterhub
-runApply ${KS_ENV} ambassador
-runApply ${KS_ENV} centraldashboard
-runApply ${KS_ENV} tf-operator-job
-runApply ${KS_ENV} spartakus
-runApply ${KS_ENV} pytorch-operator
+applyIapIngress ${KUST_ENV} ${NAMESPACE}
+runApply ${KUST_ENV} google-cloud-filestore-pv
+runApply ${KUST_ENV} cert-manager
+runApply ${KUST_ENV} jupyterhub
+runApply ${KUST_ENV} ambassador
+runApply ${KUST_ENV} centraldashboard
+runApply ${KUST_ENV} tf-operator-job
+runApply ${KUST_ENV} spartakus
+runApply ${KUST_ENV} pytorch-operator
 
 # TODO(jlewi): Is deleting the pod sufficient?
 kubectl -n ${NAMESPACE} delete pods tf-hub-0

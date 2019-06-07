@@ -160,7 +160,7 @@ install_istio() {
 ################################ Ksonnet changes ################################
 generate_aws_kf_kust_app() {
   pushd .
-  cd "${KUBEFLOW_KS_DIR}"
+  cd "${KUBEFLOW_KUST_DIR}"
 
   # Install the aws package
   ks pkg install kubeflow/aws
@@ -177,7 +177,7 @@ generate_aws_kf_kust_app() {
 apply_aws_ks() {
   # Apply the components generated
   pushd .
-  cd "${KUBEFLOW_KS_DIR}"
+  cd "${KUBEFLOW_KUST_DIR}"
   createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then

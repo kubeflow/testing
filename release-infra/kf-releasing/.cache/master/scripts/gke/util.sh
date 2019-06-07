@@ -224,7 +224,7 @@ createSecrets() {
 
 gcpGenerateKsApp() {
   pushd .
-  cd "${KUBEFLOW_KS_DIR}"
+  cd "${KUBEFLOW_KUST_DIR}"
 
   # Install the gcp package
   ks pkg install kubeflow/gcp
@@ -242,7 +242,7 @@ gcpGenerateKsApp() {
 gcpKsApply() {
   # Apply the components generated
   pushd .
-  cd "${KUBEFLOW_KS_DIR}"
+  cd "${KUBEFLOW_KUST_DIR}"
   createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
