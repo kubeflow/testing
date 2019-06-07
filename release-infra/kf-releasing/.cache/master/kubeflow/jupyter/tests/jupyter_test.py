@@ -116,7 +116,7 @@ def test_jupyter(env, namespace):
   this_dir = os.path.dirname(__file__)
   app_dir = os.path.join(this_dir, "test_app")
 
-  kust_cmd = kust_util.get_ksonnet_cmd(app_dir)
+  kust_cmd = kust_util.get_kust_cmd(app_dir)
 
   name = "jupyter-test"
   service = "jupyter-test"

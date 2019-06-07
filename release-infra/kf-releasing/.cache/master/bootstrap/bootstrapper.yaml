@@ -23,7 +23,7 @@ roleRef:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: kubeflow-ksonnet-pvc
+  name: kubeflow-kust-pvc
   namespace: kubeflow-admin
   labels:
     app: kubeflow-ksonnet
@@ -65,9 +65,9 @@ spec:
           # "--app-dir=/opt/bootstrap"
           ]
         volumeMounts:
-        - name: kubeflow-ksonnet-pvc
+        - name: kubeflow-kust-pvc
           mountPath: /opt/bootstrap
       volumes:
-      - name: kubeflow-ksonnet-pvc
+      - name: kubeflow-kust-pvc
         persistentVolumeClaim:
-          claimName: kubeflow-ksonnet-pvc
+          claimName: kubeflow-kust-pvc

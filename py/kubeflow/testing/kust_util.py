@@ -13,7 +13,7 @@ def setup_kf_kust_app(app_dir, env, namespace, component, params, kust_cmd=None)
   """Setup the ksonnet app"""
 
   if not kust_cmd:
-    kust_cmd = get_ksonnet_cmd(app_dir)
+    kust_cmd = get_kust_cmd(app_dir)
 
   lock_file = os.path.join(app_dir, "app.lock")
   logging.info("Acquiring lock on file: %s", lock_file)
@@ -33,7 +33,7 @@ def setup_kf_kust_app(app_dir, env, namespace, component, params, kust_cmd=None)
         util.run([kust_cmd, "param", "set", "--env=" + env, component, k, v],
                   cwd=app_dir)
 
-def get_ksonnet_cmd(app_dir):
+def get_kust_cmd(app_dir):
   """Get the ksonnet command based on the apiVersion in app.yaml.
 
   Args:

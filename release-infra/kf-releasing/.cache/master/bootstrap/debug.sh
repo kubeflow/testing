@@ -81,7 +81,7 @@ metadata:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: kubeflow-ksonnet-pvc
+  name: kubeflow-kust-pvc
   namespace: kubeflow-admin
   labels:
     app: kubeflow-ksonnet
@@ -119,12 +119,12 @@ spec:
         securityContext:
           privileged: true
         volumeMounts:
-        - name: kubeflow-ksonnet-pvc
+        - name: kubeflow-kust-pvc
           mountPath: /opt/bootstrap
       volumes:
-      - name: kubeflow-ksonnet-pvc
+      - name: kubeflow-kust-pvc
         persistentVolumeClaim:
-          claimName: kubeflow-ksonnet-pvc
+          claimName: kubeflow-kust-pvc
 EOF
 echo "Waiting for pod's status == Running ..."
 pod=$(waitforpod)
