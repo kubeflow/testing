@@ -100,7 +100,7 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env):
   logging.warning("Loading configs from master.")
   util.run([kfctl_path, "init", app_dir, "-V", "--platform=gcp",
             "--version=master",
-            "--package-manager=kustomize@1e6b55258c678c6b151ea17a039acf6170706a23",
+            "--package-manager=kustomize",
             "--skip-init-gcp-project",
             "--disable_usage_report",
             "--use_istio",
