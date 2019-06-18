@@ -94,13 +94,10 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env):
   # loading the config in the repo we have checked out kfctl doesn't support
   # specifying a file URI. Once it does we should change --version to
   # use it.
-  #
-  # TODO(zhenghuiwang): use the master of kubeflow/manifests once
-  # https://github.com/kubeflow/kubeflow/issues/3475 is fixed.
   logging.warning("Loading configs from master.")
   util.run([kfctl_path, "init", app_dir, "-V", "--platform=gcp",
             "--version=master",
-            "--package-manager=kustomize@1e6b55258c678c6b151ea17a039acf6170706a23",
+            "--package-manager=kustomize",
             "--skip-init-gcp-project",
             "--disable_usage_report",
             "--use_istio",
