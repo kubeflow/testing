@@ -22,12 +22,14 @@ RUN set -ex \
     uuid-runtime \
     wget \
     ca-certificates \
+    ca-certificates-java \
     git \
     emacs \
     jq \
     zip \
     unzip \
     gcc \
+    openjdk-8-jdk \
     ssh \
     mercurial \
     python-dev \
@@ -38,6 +40,7 @@ RUN set -ex \
     python3-pip \
     && python -V \
     && python3 -V \
+    && update-ca-certificates -f \
     && apt-get clean \
     && rm -rf \
     /var/lib/apt/lists/* \
@@ -193,6 +196,9 @@ RUN cd /tmp && \
     ./bazel-installer.sh --user
 
 ENV PATH=root/bin:${PATH}
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN export JAVA_HOME
 
 # Add the directory where we will checkout kubeflow/testing
 # which contains shared scripts.
