@@ -49,6 +49,7 @@ from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
 import uuid
+import subprocess
 import sys
 import yaml
 
@@ -125,11 +126,23 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   if job_type == "presubmit":
     # We need to get a common ancestor for the PR and the base branch
     cloned_repo_dir = os.path.join(args.repos_dir, repo_owner, repo_name)
+
     _ = util.run(["git", "fetch", "origin", base_branch_name], cwd=cloned_repo_dir)
-    common_ancestor = util.run(["git", "merge-base", "HEAD",
-                                "remotes/origin/{}".format(base_branch_name)],
-                               cwd=cloned_repo_dir)
-    diff_command = ["git", "diff", "--name-only", common_ancestor]
+
+    diff_command = ["git", "diff", "--name-only"]
+    diff_branch = "remotes/origin/{}".format(base_branch_name)
+    try:
+      common_ancestor = util.run(["git", "merge-base", "HEAD", diff_branch],
+                                 cwd=cloned_repo_dir)
+      diff_command.append(common_ancestor)
+    except subprocess.CalledProcessError as e:
+      logging.warning("git merge-base failed; see "
+                      "https://github.com/kubeflow/kubeflow/issues/3523. Diff "
+                      "will be computed against the current master and "
+                      "therefore files not changed in the PR might be "
+                      "considered when determining which tests to trigger")
+      diff_command.append(diff_branch)
+
   elif job_type == "postsubmit":
     # See: https://git-scm.com/docs/git-diff
     # This syntax compares the commit before pull_base_sha with the commit
@@ -137,7 +150,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     diff_command = ["git", "diff", "--name-only", pull_base_sha + "^", pull_base_sha]
 
   changed_files = []
-  if job_type == "presubmit" or job_type == "postsubmit":
+  if job_type in ("presubmit", "postsubmit"):
     changed_files = util.run(diff_command,
       cwd=os.path.join(args.repos_dir, repo_owner, repo_name)).splitlines()
 
