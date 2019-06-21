@@ -125,10 +125,16 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   if job_type == "presubmit":
     # We need to get a common ancestor for the PR and the base branch
     cloned_repo_dir = os.path.join(args.repos_dir, repo_owner, repo_name)
+
     _ = util.run(["git", "fetch", "origin", base_branch_name], cwd=cloned_repo_dir)
-    common_ancestor = util.run(["git", "merge-base", "HEAD",
-                                "remotes/origin/{}".format(base_branch_name)],
-                               cwd=cloned_repo_dir)
+
+    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
+           stop_max_delay=3*60*1000,
+           retry_on_exception=handle_retriable_exception)
+    def get_common_ancestor():
+      common_ancestor = util.run(["git", "merge-base", "HEAD",
+                                  "remotes/origin/{}".format(base_branch_name)],
+                                 cwd=cloned_repo_dir)
     diff_command = ["git", "diff", "--name-only", common_ancestor]
   elif job_type == "postsubmit":
     # See: https://git-scm.com/docs/git-diff
