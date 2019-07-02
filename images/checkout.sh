@@ -25,7 +25,8 @@ mkdir -p /src/${REPO_OWNER}
 
 # TODO(jlewi): We should eventually move the code for running the workflow from
 # kubeflow/kubeflow into kubeflow/testing
-git clone --depth=1 https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${SRC_DIR}/${REPO_OWNER}/${REPO_NAME}
+# We need depth=2 so that we can compare commit with previous commit in postsubmit runs.
+git clone --depth=2 https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${SRC_DIR}/${REPO_OWNER}/${REPO_NAME}
 
 echo Job Name = ${JOB_NAME}
 
