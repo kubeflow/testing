@@ -130,7 +130,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     _ = util.run(["git", "fetch", "origin", base_branch_name], cwd=cloned_repo_dir)
 
     diff_command = ["git", "diff", "--name-only"]
-    diff_branch = "remotes/origin/{}".format(base_branch_name)
+    diff_branch = "origin/{}".format(base_branch_name)
     try:
       common_ancestor = util.run(["git", "merge-base", "HEAD", diff_branch],
                                  cwd=cloned_repo_dir)
