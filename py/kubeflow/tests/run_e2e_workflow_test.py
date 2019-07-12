@@ -82,7 +82,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
                                            "some-cluster",)
 
     expected_calls = [
-      ["git", "fetch", "origin", "test_branch"],
+      ["git", "fetch", "origin", "test_branch:refs/remotes/origin/test_branch"],
       ["git", "merge-base", "HEAD", "remotes/origin/test_branch"],
       ["git", "diff", "--name-only", "ab1234"],
       ["ks-13", "version"],
