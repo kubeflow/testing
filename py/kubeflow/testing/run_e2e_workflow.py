@@ -127,10 +127,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # We need to get a common ancestor for the PR and the base branch
     cloned_repo_dir = os.path.join(args.repos_dir, repo_owner, repo_name)
 
-    _ = util.run(["git", "fetch", "origin", base_branch_name], cwd=cloned_repo_dir)
+    _ = util.run(["git", "fetch", "origin", base_branch_name + ":refs/remotes/origin/" +
+                  base_branch_name], cwd=cloned_repo_dir)
 
     diff_command = ["git", "diff", "--name-only"]
-    diff_branch = "origin/{}".format(base_branch_name)
+    diff_branch = "remotes/origin/{}".format(base_branch_name)
     try:
       common_ancestor = util.run(["git", "merge-base", "HEAD", diff_branch],
                                  cwd=cloned_repo_dir)
