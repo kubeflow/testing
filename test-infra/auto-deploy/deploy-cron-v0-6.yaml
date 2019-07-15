@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: auto-deploy-v0-5
+  name: auto-deploy-v0-6
   clusterName: kubeflow-testing
   namespace: kubeflow-test-infra
 spec:
@@ -20,11 +20,11 @@ spec:
               value: /secret/gcp-credentials/key.json
             command:
             - /usr/local/bin/auto_deploy.sh
-            - --repos=kubeflow/kubeflow@v0.5-branch;kubeflow/testing
+            - --repos=kubeflow/kubeflow@v0.6-branch;kubeflow/testing
             - --project=kubeflow-ci-deployment
             - --job_labels=/etc/pod-info/labels
             - --data_dir=/mnt/test-data-volume/auto_deploy
-            - --base_name=kf-v0-5
+            - --base_name=kf-v0-6
             - --max_num_cluster=5
             - --zone=us-east1-b
             - --github_token_file=/secret/github-token/github_token
