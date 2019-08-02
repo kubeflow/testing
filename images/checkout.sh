@@ -26,7 +26,9 @@ mkdir -p /src/${REPO_OWNER}
 # TODO(jlewi): We should eventually move the code for running the workflow from
 # kubeflow/kubeflow into kubeflow/testing
 # We need depth=2 so that we can compare commit with previous commit in postsubmit runs.
-git clone --depth=2 https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${SRC_DIR}/${REPO_OWNER}/${REPO_NAME}
+# We also need --no-single-branch because otherwise Git assumes there is only one branch,
+# which causes periodic tests against non-master branches to fail.
+git clone --depth=2 --no-single-branch https://github.com/${REPO_OWNER}/${REPO_NAME}.git ${SRC_DIR}/${REPO_OWNER}/${REPO_NAME}
 
 echo Job Name = ${JOB_NAME}
 
