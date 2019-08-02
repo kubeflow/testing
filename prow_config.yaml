@@ -4,3 +4,8 @@ workflows:
   - app_dir: kubeflow/testing/workflows
     component: workflows
     name: unittests
+
+  - py_func: echo
+    kw_args:
+      arg1: "hello"
+      arg2: "bye"

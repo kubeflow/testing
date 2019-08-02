@@ -3,7 +3,7 @@
 This script submits Argo workflows to run the E2E tests and waits for
 them to finish. It is intended to be invoked by prow jobs.
 
-It requires the workflow to be expressed as a ksonnet app.
+It requires the workflow to be expressed as a ksonnet app or a Python function.
 
 The script can take a config file via --config_file.
 The --config_file is expected to be a YAML file as follows:
@@ -17,9 +17,9 @@ workflows:
     include_dirs:
       tensorflow/*
 
-  - name: lint
-    app_dir: kubeflow/kubeflow/testing/workflows
-    component: workflows
+  - py_func: echo
+     kw_args:
+         arg1: hello
 
 app_dir is expected to be in the form of
 {REPO_OWNER}/{REPO_NAME}/path/to/ksonnet/app
@@ -32,6 +32,10 @@ that should run this workflow.
 
 include_dirs (optional) is an array of strings that specify which directories, if modified,
 should run this workflow.
+
+py_func is the Python method to invoke Argo workflows
+
+kw_args is an array of arguments passed to the Python method
 
 The script expects that the directories
 {repos_dir}/{app_dir} exists. Where repos_dir is provided
@@ -62,7 +66,7 @@ def get_namespace(args):
     return "kubeflow-releasing"
   return "kubeflow-test-infra"
 
-class WorkflowComponent(object):
+class WorkflowKSComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
   def __init__(self, name, app_dir, component, job_types, include_dirs, params):
@@ -72,6 +76,13 @@ class WorkflowComponent(object):
     self.job_types = job_types
     self.include_dirs = include_dirs
     self.params = params
+
+class WorkflowPyComponent(object):
+  """Datastructure to represent a Python component to submit a workflow."""
+
+  def __init__(self, py_func, kw_args):
+    self.py_func = py_func
+    self.args = [v for k, v in kw_args.items()]
 
 def _get_src_dir():
   return os.path.abspath(os.path.join(__file__, "..",))
@@ -89,9 +100,13 @@ def parse_config_file(config_file, root_dir):
 
   components = []
   for i in results["workflows"]:
-    components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("job_types", []),
-      i.get("include_dirs", []), i.get("params", {})))
+    if i.get("app_dir"):
+      components.append(WorkflowKSComponent(
+        i["name"], os.path.join(root_dir, i["app_dir"]), i["component"],
+        i.get("job_types", []), i.get("include_dirs", []), i.get("params", {})))
+    if i.get("py_func"):
+      components.append(WorkflowPyComponent(
+        i["py_func"], i.get("kw_args", {})))
   return components
 
 def generate_env_from_head(args):
@@ -233,51 +248,56 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Create a new environment for this run
     env = workflow_name
 
-    util.run([ks_cmd, "env", "add", env, "--namespace=" + get_namespace(args)],
-              cwd=w.app_dir)
+    # check if ks workflow and run
+    if w.app_dir:
+      util.run([ks_cmd, "env", "add", env, "--namespace=" + get_namespace(args)],
+                cwd=w.app_dir)
 
-    util.run([ks_cmd, "param", "set", "--env=" + env, w.component,
-              "name", workflow_name],
-             cwd=w.app_dir)
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component,
+                "name", workflow_name],
+               cwd=w.app_dir)
 
-    # Set the prow environment variables.
-    prow_env = []
+      # Set the prow environment variables.
+      prow_env = []
 
-    names = ["JOB_NAME", "JOB_TYPE", "BUILD_ID", "BUILD_NUMBER",
-             "PULL_BASE_SHA", "PULL_NUMBER", "PULL_PULL_SHA", "REPO_OWNER",
-             "REPO_NAME"]
-    names.sort()
-    for v in names:
-      if not os.getenv(v):
-        continue
-      prow_env.append("{0}={1}".format(v, os.getenv(v)))
+      names = ["JOB_NAME", "JOB_TYPE", "BUILD_ID", "BUILD_NUMBER",
+               "PULL_BASE_SHA", "PULL_NUMBER", "PULL_PULL_SHA", "REPO_OWNER",
+               "REPO_NAME"]
+      names.sort()
+      for v in names:
+        if not os.getenv(v):
+          continue
+        prow_env.append("{0}={1}".format(v, os.getenv(v)))
 
-    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "prow_env",
-             ",".join(prow_env)], cwd=w.app_dir)
-    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "namespace",
-             get_namespace(args)], cwd=w.app_dir)
-    util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "bucket",
-             args.bucket], cwd=w.app_dir)
-    if args.release:
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
-                os.getenv("VERSION_TAG")], cwd=w.app_dir)
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "prow_env",
+               ",".join(prow_env)], cwd=w.app_dir)
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "namespace",
+               get_namespace(args)], cwd=w.app_dir)
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "bucket",
+               args.bucket], cwd=w.app_dir)
+      if args.release:
+        util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
+                  os.getenv("VERSION_TAG")], cwd=w.app_dir)
 
-    # Set any extra params. We do this in alphabetical order to make it easier to verify in
-    # the unittest.
-    param_names = w.params.keys()
-    param_names.sort()
-    for k in param_names:
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, k,
-               "{0}".format(w.params[k])], cwd=w.app_dir)
+      # Set any extra params. We do this in alphabetical order to make it easier to verify in
+      # the unittest.
+      param_names = w.params.keys()
+      param_names.sort()
+      for k in param_names:
+        util.run([ks_cmd, "param", "set", "--env=" + env, w.component, k,
+                 "{0}".format(w.params[k])], cwd=w.app_dir)
 
-    # For debugging print out the manifest
-    util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
-    util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
+      # For debugging print out the manifest
+      util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
+      util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
 
-    ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
+      ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))
-    ui_urls[workflow_name] = ui_url
-    logging.info("URL for workflow: %s", ui_url)
+      ui_urls[workflow_name] = ui_url
+      logging.info("URL for workflow: %s", ui_url)
+    # otherwise run py_func workflow
+    else:
+      util.run([w.py_func, ' '.join(w.args)])
 
   # We delay creating started.json until we know the Argo workflow URLs
   create_started_file(args.bucket, ui_urls)
