@@ -148,7 +148,7 @@ RUN cd /tmp/ && \
     pip2 install requests && \
     pip2 install prometheus_client fire && \
     pipenv install --system --two && \
-    pip3 install -U wheel filelock gitpython fire
+    pip3 install -U wheel filelock gitpython fire tornado
 
 RUN pip3 install pipenv==2018.10.9
 RUN cd /tmp/ && pipenv install --system --three
