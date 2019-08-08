@@ -45,6 +45,7 @@ import logging
 import os
 import tempfile
 from kubeflow.testing import argo_client
+from kubeflow.testing import tektoncd_client
 from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util

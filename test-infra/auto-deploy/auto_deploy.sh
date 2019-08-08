@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # To run this locally:
-# ./auto_deploy.sh --data_dir=/tmp/data --repos='kubeflow/kubeflow;jlewi/testing@auto_manual' --project=kubeflow-ci --base_name=kf-vmaster --max_num_cluster=5 --zone=us-east1-b
+# ./auto_deploy.sh --data_dir=/tmp/data --repos='kubeflow/kubeflow;kubeflow/kfctl;jlewi/testing@auto_manual' --project=kubeflow-ci --base_name=kf-vmaster --max_num_cluster=5 --zone=us-east1-b
 
 set -ex
 
@@ -58,14 +58,16 @@ python -m checkout_lib.repo_clone_snapshot \
 export PYTHONPATH="${PYTHONPATH}:${data_dir}/testing/py"
 
 # Create the deployment
-KF_DIR=${data_dir}/kubeflow
+KUBEFLOW_DIR=${data_dir}/kubeflow
+KFCTL_DIR=${data_dir}/kfctl
 
 # Directory where apps should be checked out.
 APPS_DIR=${data_dir}
 
 # Trigger create_kf_instance.
 python -m kubeflow.testing.create_kf_instance \
-  --kubeflow_repo=${KF_DIR} \
+  --kubeflow_repo=${KUBEFLOW_DIR} \
+  --kfctl_repo=${KFCTL_DIR} \
   --apps_dir=${APPS_DIR} \
   --project=${project} \
   --snapshot_file=${data_dir}/snapshot.json \

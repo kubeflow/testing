@@ -22,7 +22,7 @@ spec:
           value: /secret/gcp-credentials/key.json
         command:
         - /usr/local/bin/auto_deploy.sh
-        - --repos=kubeflow/kubeflow;kubeflow/testing
+        - --repos=kubeflow/kubeflow;kubeflow/kfctl;kubeflow/testing
         - --project=kubeflow-ci-deployment
         - --job_labels=/etc/pod-info/labels
         - --data_dir=/mnt/test-data-volume/auto_deploy

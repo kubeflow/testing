@@ -78,7 +78,7 @@ def deploy_with_kfctl_sh(args, app_dir, env):
 
 def build_kfctl_go(args):
   """Build kfctl go."""
-  build_dir = os.path.join(args.kubeflow_repo, "bootstrap")
+  build_dir = args.kfctl_repo
   # We need to use retry builds because when building in the test cluster
   # we see intermittent failures pulling dependencies
   util.run(["make", "build-kfctl"], cwd=build_dir)
@@ -148,7 +148,12 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   parser.add_argument(
     "--kubeflow_repo",
     default="/home/jlewi/git_kubeflow",
-    type=str, help=("Path to the Kubeflow repo to use"))
+    type=str, help=("Path to the kubeflow/kubeflow repo to use"))
+
+  parser.add_argument(
+    "--kfctl_repo",
+    default="/home/jlewi/git_kfctl",
+    type=str, help=("Path to the kubeflow/kfctl repo to use"))
 
   parser.add_argument(
     "--apps_dir",
@@ -189,7 +194,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   oauth_info = yaml.load(contents)
 
   git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
-                          cwd=args.kubeflow_repo).strip("'")
+                          cwd=args.kfctl_repo).strip("'")
 
   if args.snapshot_file:
     logging.info("Loading info from snapshot file %s", args.snapshot_file)
