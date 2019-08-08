@@ -5,7 +5,4 @@ workflows:
     component: workflows
     name: unittests
 
-  - py_func: echo
-    kw_args:
-      arg1: "hello"
-      arg2: "bye"
+  - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
