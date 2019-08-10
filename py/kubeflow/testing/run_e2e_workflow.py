@@ -59,19 +59,6 @@ import importlib
 import logging
 import os
 import tempfile
-<<<<<<< HEAD
-=======
-from kubeflow.testing import argo_client
-from kubeflow.testing import tektoncd_client
-from kubeflow.testing import ks_util
-from kubeflow.testing import prow_artifacts
-from kubeflow.testing import util
-import uuid
-import subprocess
-import sys
-import yaml
-from kubernetes import config
->>>>>>> 6589821... [WIP] run_e2e_workflow.py support TektonCD pipeline
 from kubernetes import client as k8s_client
 from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
@@ -326,6 +313,48 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
               "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
+      # We delay creating started.json until we know the Argo workflow URLs
+      create_started_file(args.bucket, ui_urls)
+
+      try:
+        results = argo_client.wait_for_workflows(
+          get_namespace(args), workflow_names,
+          timeout=datetime.timedelta(minutes=180),
+          status_callback=argo_client.log_status
+        )
+        workflow_success = True
+      except util.ExceptionWithWorkflowResults as e:
+        # We explicitly log any exceptions so that they will be captured in the
+        # build-log.txt that is uploaded to Gubernator.
+        logging.exception("Exception occurred: %s", e)
+        results = e.workflow_results
+        raise
+      finally:
+        prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
+        # Upload logs to GCS. No logs after this point will appear in the
+        # file in gcs
+        file_handler.flush()
+        util.upload_file_to_gcs(
+          file_handler.baseFilename,
+          os.path.join(prow_artifacts_dir, "build-log.txt"))
+
+        # Upload workflow status to GCS.
+        for r in results:
+          phase = r.get("status", {}).get("phase")
+          name = r.get("metadata", {}).get("name")
+          workflow_phase[name] = phase
+          workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
+          if phase != "Succeeded":
+            workflow_success = False
+          logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
+
+          for wf_name, wf_status in workflow_status_yamls.items():
+            util.upload_to_gcs(
+              wf_status,
+              os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
+
+        all_tests_success = prow_artifacts.finalize_prow_job(
+          args.bucket, workflow_success, workflow_phase, ui_urls)
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
