@@ -157,6 +157,10 @@ RUN cd /tmp/ && pipenv install --system --three
 # Do this after pipenv because we want to override what pipenv installs.
 RUN pip2 install --upgrade google-api-python-client==1.7.0
 
+#
+# include kubernetes client for e2e tests
+RUN pip3 install kubernetes==9.0.1
+
 # Install the hub CLI for git
 RUN cd /tmp && \
     curl -LO  https://github.com/github/hub/releases/download/v2.11.2/hub-linux-amd64-2.11.2.tgz && \
