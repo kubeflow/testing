@@ -90,7 +90,8 @@ class WorkflowKSComponent(object):
 class WorkflowPyComponent(object):
   """Datastructure to represent a Python function to submit a workflow."""
 
-  def __init__(self, py_func, kw_args):
+  def __init__(self, name, py_func, kw_args):
+    self.name = name
     self.py_func = py_func
     self.args = kw_args
 
