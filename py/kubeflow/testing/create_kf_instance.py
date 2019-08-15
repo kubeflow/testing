@@ -193,17 +193,14 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   else:
     name = args.name
 
-  kfctl_path = None
-  if args.use_kfctl_go:
-    kfctl_path = build_kfctl_go(args)
-
+  kfctl_path = build_kfctl_go(args)
 
   app_dir = os.path.join(args.apps_dir, name)
   # Clean up previous deployment. We attempt to run "kfctl delete all"
   # but we don't depend on it succeeding because the app directory might
   # not be up to date.
   # since we are not able to guarantee apps config in repository is up to date.
-  if os.path.exists(app_dir) and args.use_kfctl_go:
+  if os.path.exists(app_dir):
     try:
       util.run([kfctl_path, "delete", "all", "--delete_storage"], cwd=app_dir)
     except subprocess.CalledProcessError as e:
