@@ -8,6 +8,7 @@ import logging
 import json
 import os
 import re
+import requests
 import shutil
 import subprocess
 import tempfile
@@ -58,24 +59,6 @@ def create_info_file(args, app_dir, git_describe):
       app["labels"]["DEPLOYMENT_JOB"] = args.job_name
     yaml.dump(app, hf)
 
-def deploy_with_kfctl_sh(args, app_dir, env):
-  """Deploy Kubeflow using kfctl.sh."""
-  kfctl = os.path.join(args.kubeflow_repo, "scripts", "kfctl.sh")
-  name = os.path.basename(app_dir)
-  util.run([kfctl, "init", name, "--project", args.project, "--zone", args.zone,
-            "--platform", "gcp", "--skipInitProject", "true"], cwd=args.apps_dir
-           )
-  # We need to apply platform before doing generate k8s because we need
-  # to have a cluster for ksonnet.
-  # kfctl apply all might break during cronjob invocation when depending
-  # components are not ready. Make it retry several times should be enough.
-  run_with_retry([kfctl, "generate", "platform"], cwd=app_dir, env=env)
-  run_with_retry([kfctl, "apply", "platform"], cwd=app_dir, env=env)
-  run_with_retry([kfctl, "generate", "k8s"], cwd=app_dir, env=env)
-  run_with_retry([kfctl, "apply", "k8s"], cwd=app_dir, env=env)
-  run_with_retry(["ks", "generate", "seldon", "seldon"], cwd=app_dir,
-                  env=env)
-
 def build_kfctl_go(args):
   """Build kfctl go."""
   build_dir = os.path.join(args.kubeflow_repo, "bootstrap")
@@ -97,27 +80,42 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env):
   #
   # TODO(zhenghuiwang): use the master of kubeflow/manifests once
   # https://github.com/kubeflow/kubeflow/issues/3475 is fixed.
-  logging.warning("Loading configs from master.")
-  util.run([kfctl_path, "init", app_dir, "-V", "--platform=gcp",
-            "--version=master",
-            "--package-manager=kustomize",
-            "--skip-init-gcp-project",
-            "--disable_usage_report",
-            "--use_istio",
-            "--project=" + args.project], env=env)
+  logging.warning("Loading configs %s.", args.kfctl_config)
+
+  if args.kfctl_config.startswith("http"):
+    response = requests.get(args.kfctl_config)
+    raw_config = response.content
+  else:
+    with open(args.kfctl_config) as hf:
+      raw_config = hf.read()
+
+  config_spec = yaml.load(raw_config)
 
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
   #     to create the required K8s resources.
   #  2. Setting the IAM policy will fail if the email is invalid.
-  # TODO(jlewi): kfctl should eventually do this automatically.
   email = util.run(["gcloud", "config", "get-value", "account"])
 
   if not email:
     raise ValueError("Could not determine GCP account being used.")
 
-  util.run([kfctl_path, "generate", "-V", "all", "--email=" + email,
-            "--zone=" + args.zone], env=env, cwd=app_dir)
+  config_spec["spec"]["project"] = args.project
+  config_spec["spec"]["email"] = email
+  config_spec["spec"]["zone"] = args.zone
+
+  config_spec["spec"] = util.filter_spartakus(config_spec["spec"])
+
+  logging.info("KFDefSpec:\n%s", str(config_spec))
+  with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as f:
+    config_file = f.name
+    logging.info("Writing file %", f.name)
+    yaml.dump(config_spec, f)
+
+  util.run([kfctl_path, "init", app_dir, "-V", "--config=" + config_file],
+           env=env)
+
+  util.run([kfctl_path, "generate", "-V", "all"], env=env, cwd=app_dir)
 
   util.run([kfctl_path, "apply", "-V", "all"], env=env, cwd=app_dir)
 
@@ -151,6 +149,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     type=str, help=("Path to the Kubeflow repo to use"))
 
   parser.add_argument(
+    "--kfctl_config",
+    default="https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_gcp_iap.yaml",
+    type=str, help=("Path to the kfctl config to use"))
+
+  parser.add_argument(
     "--apps_dir",
     default=os.getcwd(),
     type=str, help=("Directory to store kubeflow apps."))
@@ -167,15 +170,6 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     "--job_name",
     default="", type=str, help=("Pod name running the job."))
 
-  parser.add_argument(
-    "--use_kfctl_go", dest="use_kfctl_go", action="store_true",
-    help=("Use the go binary."))
-
-  parser.add_argument(
-    "--no-use_kfctl_go", dest="use_kfctl_go", action="store_false",
-    help=("Use kfctl.sh."))
-
-  parser.set_defaults(use_kfctl_go=True)
   args = parser.parse_args()
 
   bucket, blob_path = util.split_gcs_uri(args.oauth_file)
@@ -265,10 +259,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   except subprocess.CalledProcessError as e:
     logging.info("endpoint undeletion is failed: %s", e)
 
-  if args.use_kfctl_go:
-    deploy_with_kfctl_go(kfctl_path, args, app_dir, env)
-  else:
-    deploy_with_kfctl_sh(args, app_dir, env)
+  deploy_with_kfctl_go(kfctl_path, args, app_dir, env)
 
   create_info_file(args, app_dir, git_describe)
   logging.info("Annotating cluster with labels: %s", str(label_args))
