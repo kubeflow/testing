@@ -231,7 +231,6 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   labels = {
     "GIT_LABEL": git_describe,
     "PURPOSE": "kf-test-cluster",
-    "use-kfctl-go": "{0}".format(args.use_kfctl_go),
   }
 
   label_args = []
