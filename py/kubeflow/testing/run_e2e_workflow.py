@@ -68,11 +68,14 @@ def get_namespace(args):
     return "kubeflow-releasing"
   return "kubeflow-test-infra"
 
-def py_func_import(py_func):
+# imports py_func
+# NOTE: imp will need to be updated with importlib if using Python3
+def py_func_import(py_func, kwargs):
   path, module = py_func.rsplit('.', 1)
-  mod = importlib.import_module(path)
+  # mod = importlib.import_module(path)
+  mod = imp.load_source(module, "./"{}".py".format(path))
   met = getattr(mod, module)
-  return met()
+  return met(**kwargs)
 
 class WorkflowKSComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
@@ -90,7 +93,7 @@ class WorkflowPyComponent(object):
 
   def __init__(self, py_func, kw_args):
     self.py_func = py_func
-    self.args = [v for k, v in kw_args.items()]
+    self.args = kw_args
 
 def _get_src_dir():
   return os.path.abspath(os.path.join(__file__, "..",))
@@ -304,7 +307,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     else:
-      wf_result = py_func_import(w.py_func)
+      wf_result = py_func_import(w.py_func, w.args)
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()
       k8s_co.create_namespaced_custom_object(group=group, version=version, namespace=get_namespace(args), plural='workflows', body=wf_result
