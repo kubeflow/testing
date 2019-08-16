@@ -47,8 +47,9 @@ def create_started(ui_urls):
   if PULL_REFS:
     started["pull"] = PULL_REFS
 
-  for n, v in ui_urls.iteritems():
-    started["metadata"][n + "-ui"] = v
+  if len(ui_urls) > 0:
+    for n, v in ui_urls.iteritems():
+      started["metadata"][n + "-ui"] = v
   return json.dumps(started)
 
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
