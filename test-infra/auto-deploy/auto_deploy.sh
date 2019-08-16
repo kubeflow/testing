@@ -10,7 +10,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 . ${DIR}/lib-args.sh
 
 # Deployment configs.
-required_args=(data_dir repos project job_labels base_name max_num_cluster zone)
+required_args=(data_dir repos project job_labels base_name max_num_cluster zone kfctl_config)
 
 parseArgs $*
 validateRequiredArgs ${required_args}
@@ -69,6 +69,7 @@ python -m kubeflow.testing.create_kf_instance \
   --apps_dir=${APPS_DIR} \
   --project=${project} \
   --snapshot_file=${data_dir}/snapshot.json \
-  --zone=${zone}
+  --zone=${zone} \
+  --kfctl_config=${kfctl_config}
 
 # TODO(gabrielwen): Push changes to app folders to git.

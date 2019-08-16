@@ -30,6 +30,7 @@ spec:
         - --max_num_cluster=5
         - --zone=us-east1-b
         - --github_token_file=/secret/github-token/github_token
+        - --kfctl_config=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_gcp_iap.yaml
         volumeMounts:
         - name: gcp-credentials
           mountPath: /secret/gcp-credentials

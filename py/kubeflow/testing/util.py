@@ -650,6 +650,14 @@ def maybe_activate_service_account():
     logging.info("GOOGLE_APPLICATION_CREDENTIALS is not set.")
 
 
+def filter_spartakus(spec):
+  """Remove spartakus from the list of applications in KfDef."""
+  for i, app in enumerate(spec["applications"]):
+    if app["name"] == "spartakus":
+      spec["applications"].pop(i)
+      break
+  return spec
+
 def upload_to_gcs(contents, target):
   gcs_client = storage.Client()
 
