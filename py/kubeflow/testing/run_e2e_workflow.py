@@ -73,7 +73,8 @@ def get_namespace(args):
 # imports py_func
 def py_func_import(py_func, kwargs):
   path, module = py_func.rsplit('.', 1)
-  mod = importlib.import_module(path)
+  # mod = importlib.import_module(path)
+  mod = imp.load_source(module, "./"{}".py".format(path))
   met = getattr(mod, module)
   return met(**kwargs)
 
