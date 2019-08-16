@@ -51,8 +51,10 @@ import fnmatch
 import importlib
 import logging
 import os
+import imp
 import tempfile
 from kubernetes import client as k8s_client
+from importlib import import_module
 from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
@@ -107,6 +109,14 @@ def create_started_file(bucket, ui_urls):
 
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "started.json")
   util.upload_to_gcs(contents, target)
+
+
+def py_func_import(py_func):
+  p, m = py_func.rsplit('.', 1)
+  mod = import_module(p)
+  met = getattr(mod, m)
+  return met()
+
 
 def parse_config_file(config_file, root_dir):
   with open(config_file) as hf:
@@ -198,8 +208,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   util.maybe_activate_service_account()
 
-  util.configure_kubectl(args.project, args.zone, args.cluster)
-  util.load_kube_config()
+#  util.configure_kubectl(args.project, args.zone, args.cluster)
+#  util.load_kube_config()
 
   workflow_names = []
   ui_urls = {}
@@ -426,7 +436,7 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
   # create the top-level parser
   parser = argparse.ArgumentParser(
-    description="Submit an Argo workflow to run the E2E tests.")
+    description="Submit a workflow to run E2E tests.")
 
   parser.add_argument(
     "--project",

@@ -1,7 +1,7 @@
 """Some utility functions for working with TfJobs."""
 
 import datetime
-import httplib
+import httplib2
 import json
 import logging
 import six
@@ -55,7 +55,7 @@ def handle_retriable_exception(exception):
     # refresh credentials
     logging.info("ApiException code=%s", code)
     # TODO(jlewi): In python3 we can switch to using http.HttpStatusCode
-    if code in [httplib.UNAUTHORIZED, httplib.FORBIDDEN, httplib.GATEWAY_TIMEOUT]:
+    if code in [httplib2.UNAUTHORIZED, httplib2.FORBIDDEN, httplib2.GATEWAY_TIMEOUT]:
       # Due to https://github.com/kubernetes-client/python-base/issues/59,
       # we need to reload the kube config (which refreshes the GCP token).
       # TODO(richardsliu): Remove this workaround when the k8s client issue
