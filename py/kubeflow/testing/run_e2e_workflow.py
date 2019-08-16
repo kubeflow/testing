@@ -60,6 +60,7 @@ from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
+from kubeflow.testing import ci
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
@@ -73,8 +74,7 @@ def get_namespace(args):
 # imports py_func
 def py_func_import(py_func, kwargs):
   path, module = py_func.rsplit('.', 1)
-  # mod = importlib.import_module(path)
-  mod = imp.load_source(module, "./"{}".py".format(path))
+  mod = importlib.import_module(path)
   met = getattr(mod, module)
   return met(**kwargs)
 
