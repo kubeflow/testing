@@ -58,6 +58,7 @@ from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
+from kubeflow.testing import ci
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
@@ -69,11 +70,9 @@ def get_namespace(args):
   return "kubeflow-test-infra"
 
 # imports py_func
-# NOTE: imp will need to be updated with importlib if using Python3
 def py_func_import(py_func, kwargs):
   path, module = py_func.rsplit('.', 1)
-  # mod = importlib.import_module(path)
-  mod = imp.load_source(module, "./"{}".py".format(path))
+  mod = importlib.import_module(path)
   met = getattr(mod, module)
   return met(**kwargs)
 
@@ -310,7 +309,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       wf_result = py_func_import(w.py_func, w.args)
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()
-      k8s_co.create_namespaced_custom_object(group=group, version=version, namespace=get_namespace(args), plural='workflows', body=wf_result
+      k8s_co.create_namespaced_custom_object(group=group, version=version, namespace=get_namespace(args), plural='workflows', body=wf_result)
 
   # We delay creating started.json until we know the Argo workflow URLs
   create_started_file(args.bucket, ui_urls)
