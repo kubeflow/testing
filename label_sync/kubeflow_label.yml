@@ -46,13 +46,22 @@ default:
   - color: d2b48c
     name: area/usage
   - color: ecfc15
-    name: community/discussion
+    name: kind/discussion
+    previously:
+    - name: community/discussion
   - color: ecfc15
     name: community/maintenance
   - color: 2515fc
-    name: community/question
+    name: kind/question
     previously:
+    - name: community/question
     - name: question
+  - color: 2515fc
+    name: kind/feature
+    previously:
+    - name: addition/feature
+  - color: 2515fc
+    name: kind/process  
   - color: ecfc15
     name: cuj/build-train-deploy
   - color: 00daff
