@@ -110,11 +110,11 @@ def create_started_file(bucket, ui_urls):
   util.upload_to_gcs(contents, target)
 
 
-def py_func_import(py_func):
+def py_func_import(py_func, kwargs):
   p, m = py_func.rsplit('.', 1)
   mod = import_module(p)
   met = getattr(mod, m)
-  return met()
+  return met(**kwargs)
 
 
 def parse_config_file(config_file, root_dir):
