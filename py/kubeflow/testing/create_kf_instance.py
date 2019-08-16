@@ -109,7 +109,7 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env):
   logging.info("KFDefSpec:\n%s", str(config_spec))
   with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as f:
     config_file = f.name
-    logging.info("Writing file %", f.name)
+    logging.info("Writing file %s", f.name)
     yaml.dump(config_spec, f)
 
   util.run([kfctl_path, "init", app_dir, "-V", "--config=" + config_file],
@@ -150,7 +150,8 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   parser.add_argument(
     "--kfctl_config",
-    default="https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_gcp_iap.yaml",
+    default=("https://raw.githubusercontent.com/kubeflow/kubeflow/master"
+             "/bootstrap/config/kfctl_gcp_iap.yaml"),
     type=str, help=("Path to the kfctl config to use"))
 
   parser.add_argument(
