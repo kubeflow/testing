@@ -280,7 +280,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   kubeflow_branch = None
   for repo in snapshot_info["repos"]:
     if repo["repo"] == "kubeflow":
-      kubeflow_branch = rep["branch"]
+      kubeflow_branch = repo["branch"]
 
   logging.info("kubeflow branch %s", kubeflow_branch)
 
