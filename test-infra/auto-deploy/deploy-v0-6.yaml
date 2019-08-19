@@ -1,18 +1,19 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: deploy-master-
+  generateName: deploy-v0-6-
   namespace: kubeflow-test-infra
   labels:
-    app: deploy-master
-    version: master
+    job: deploy-v0-6
+    app: deploy-v0-6
+    version: v0-6
 spec:
   backoffLimit: 1
   template:
     metadata:
       labels:
-        job: deploy-master
-        version: master
+        job: deploy-v0-6
+        version: v0-6
     spec:
       containers:
       - name: deploy-worker
@@ -22,15 +23,16 @@ spec:
           value: /secret/gcp-credentials/key.json
         command:
         - /usr/local/bin/auto_deploy.sh
-        - --repos=kubeflow/kubeflow;kubeflow/testing
+        - --repos=kubeflow/kubeflow@v0.6-branch;kubeflow/testing
         - --project=kubeflow-ci-deployment
         - --job_labels=/etc/pod-info/labels
         - --data_dir=/mnt/test-data-volume/auto_deploy
-        - --base_name=kf-vmaster
+        - --base_name=kf-v0-6
         - --max_num_cluster=5
         - --zone=us-east1-b
         - --github_token_file=/secret/github-token/github_token
-        - --kfctl_config=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_gcp_iap.yaml
+        # Switch to version on v0.6-branch once kubeflow/kubeflow#3919 is checked in
+        - --kfctl_config=https://raw.githubusercontent.com/kubeflow/kubeflow/2be95d873b5a1c46c07e3ebe2ae884fb71607f55/bootstrap/config/kfctl_gcp_iap.0.6.2rc.yaml
         volumeMounts:
         - name: gcp-credentials
           mountPath: /secret/gcp-credentials

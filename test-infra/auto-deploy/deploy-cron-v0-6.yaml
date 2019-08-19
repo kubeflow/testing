@@ -14,7 +14,7 @@ spec:
         spec:
           containers:
           - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:v20190404-cda5cee-e3b0c4
+            image: gcr.io/kubeflow-ci/deploy-worker:v20190819-8723ec6-e3b0c4
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
@@ -28,7 +28,8 @@ spec:
             - --max_num_cluster=5
             - --zone=us-east1-b
             - --github_token_file=/secret/github-token/github_token
-            - --kfctl_config=https://raw.githubusercontent.com/kubeflow/kubeflow/v0.6-branch/bootstrap/config/kfctl_gcp_iap.yaml
+            # Switch to version on v0.6-branch once kubeflow/kubeflow#3919 is checked in
+            - --kfctl_config=https://raw.githubusercontent.com/kubeflow/kubeflow/2be95d873b5a1c46c07e3ebe2ae884fb71607f55/bootstrap/config/kfctl_gcp_iap.0.6.2rc.yaml
             volumeMounts:
             - name: gcp-credentials
               mountPath: /secret/gcp-credentials
