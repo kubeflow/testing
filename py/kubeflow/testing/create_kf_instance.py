@@ -278,7 +278,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # To work around lets-encrypt certificate uses create a self-signed
   # certificate
   kubeflow_branch = None
-  for repos in snapshot_info["repos"]:
+  for repo in snapshot_info["repos"]:
     if repo["repo"] == "kubeflow":
       kubeflow_branch = rep["branch"]
 
