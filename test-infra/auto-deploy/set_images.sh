@@ -14,4 +14,4 @@ substitute() {
 #
 substitute ".spec.template.spec.containers[0].image=\"${IMAGE}\"" deploy-master.yaml
 substitute ".spec.jobTemplate.spec.template.spec.containers[0].image=\"${IMAGE}\"" deploy-cron-master.yaml
-substitute ".spec.jobTemplate.spec.template.spec.containers[0].image=\"${IMAGE}\"" deploy-cron-v0-4.yaml
+substitute ".spec.jobTemplate.spec.template.spec.containers[0].image=\"${IMAGE}\"" deploy-cron-v0-6.yaml
