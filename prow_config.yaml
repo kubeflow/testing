@@ -7,6 +7,6 @@ workflows:
 
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
     kw_args:
-      a: A
-      b: B
-      c: C
+      a: 1
+      b: 2
+      c: 3
