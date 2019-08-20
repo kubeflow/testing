@@ -60,7 +60,7 @@ from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
-from kubeflow.testing import ci
+from kubeflow.testing.ci import kf_unittests
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
