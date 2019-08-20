@@ -277,16 +277,31 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   # To work around lets-encrypt certificate uses create a self-signed
   # certificate
-  util.run(["kubectl", "config", "use-context", name])
-  tls_endpoint = "--host={0}.endpoints.{1}.cloud.goog".format(
-    name, args.project)
+  kubeflow_branch = None
+  for repo in snapshot_info["repos"]:
+    if repo["repo"] == "kubeflow":
+      kubeflow_branch = repo["branch"]
 
-  cert_dir = tempfile.mkdtemp()
-  util.run(["kube-rsa", tls_endpoint], cwd=cert_dir)
-  util.run(["kubectl", "-n", "kubeflow", "create", "secret", "tls",
-            "envoy-ingress-tls", "--cert=ca.pem", "--key=ca-key.pem"],
-            cwd=cert_dir)
-  shutil.rmtree(cert_dir)
+  logging.info("kubeflow branch %s", kubeflow_branch)
+
+  if kubeflow_branch == "v0.6-branch":
+    logging.info("Creating a self signed certificate")
+    util.run(["kubectl", "config", "use-context", name])
+    tls_endpoint = "--host={0}.endpoints.{1}.cloud.goog".format(
+      name, args.project)
+
+    cert_dir = tempfile.mkdtemp()
+    util.run(["kube-rsa", tls_endpoint], cwd=cert_dir)
+    util.run(["kubectl", "-n", "kubeflow", "create", "secret", "tls",
+              "envoy-ingress-tls", "--cert=ca.pem", "--key=ca-key.pem"],
+              cwd=cert_dir)
+    shutil.rmtree(cert_dir)
+  else:
+    # starting with 0.7 we are moving to managed GKE certificates.
+    # So we can't just generate a self-signed certificate
+    # TODO(jlewi): If we still hit lets-encrypt quota issues then
+    # we can fix this by generating new hostnames
+    logging.info("Not creating a self signed certificate")
 
 if __name__ == "__main__":
   main()
