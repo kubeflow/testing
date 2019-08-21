@@ -3,7 +3,7 @@
 import requests
 import yaml
 
-def create_workflow(**kwargs):
+def create_workflow():
   """ Loads Argo example YAML and returns dictionary object """
   # TODO: define workflow to run unittests
   argo_hello_world = requests.get("https://raw.githubusercontent.com/argoproj/"
