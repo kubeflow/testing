@@ -6,7 +6,7 @@ workflows:
     name: unittests
 
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
-    kw_args:
-      a: 1
-      b: 2
-      c: 3
+    # can optionally take keyword arguments
+    # kw_args:
+    #  a: 1
+    #  b: 2

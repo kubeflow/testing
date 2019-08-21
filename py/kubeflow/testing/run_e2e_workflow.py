@@ -58,7 +58,7 @@ from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util
-from kubeflow.testing.ci import kf_unittests
+from kubeflow.testing import ci
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
@@ -200,7 +200,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   workflow_names = []
   ui_urls = {}
 
-  for w in workflows:
+  for w in workflows: # pylint: disable=too-many-nested-blocks
     # check if ks workflow and run
     if hasattr(w, "app_dir"):
       # Create the name for the workflow
@@ -309,7 +309,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       wf_result = py_func_import(w.py_func, w.args)
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()
-      k8s_co.create_namespaced_custom_object(group=group, version=version, namespace=get_namespace(args), plural='workflows', body=wf_result)
+      k8s_co.create_namespaced_custom_object(
+        group=group,
+        version=version,
+        namespace=get_namespace(args),
+        plural='workflows',
+        body=wf_result)
 
   # We delay creating started.json until we know the Argo workflow URLs
   create_started_file(args.bucket, ui_urls)
