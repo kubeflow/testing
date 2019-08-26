@@ -71,6 +71,7 @@ def get_namespace(args):
     return "kubeflow-releasing"
   return "kubeflow-test-infra"
 
+
 # imports py_func
 def py_func_import(py_func, kwargs):
   path, module = py_func.rsplit('.', 1)
@@ -92,8 +93,7 @@ class WorkflowKSComponent(object):
 class WorkflowPyComponent(object):
   """Datastructure to represent a Python function to submit a workflow."""
 
-  def __init__(self, name, py_func, kw_args):
-    self.name = name
+  def __init__(self, py_func, kw_args):
     self.py_func = py_func
     self.args = kw_args
 
@@ -108,13 +108,6 @@ def create_started_file(bucket, ui_urls):
   util.upload_to_gcs(contents, target)
 
 
-def py_func_import(py_func, kwargs):
-  p, m = py_func.rsplit('.', 1)
-  mod = import_module(p)
-  met = getattr(mod, m)
-  return met(**kwargs)
-
-
 def parse_config_file(config_file, root_dir):
   with open(config_file) as hf:
     results = yaml.load(hf)
@@ -127,7 +120,7 @@ def parse_config_file(config_file, root_dir):
         i.get("job_types", []), i.get("include_dirs", []), i.get("params", {})))
     if i.get("py_func"):
       components.append(WorkflowPyComponent(
-        i["name"], i["py_func"], i.get("kw_args", {})))
+        i["py_func"], i.get("kw_args", {})))
   return components
 
 def generate_env_from_head(args):
@@ -147,6 +140,21 @@ def generate_env_from_head(args):
     if os.getenv(k):
       continue
     os.environ[k] = env_var.get(k)
+
+
+def get_prow_env():
+  prow_env = []
+
+  names = ["JOB_NAME", "JOB_TYPE", "BUILD_ID", "BUILD_NUMBER",
+           "PULL_BASE_SHA", "PULL_NUMBER", "PULL_PULL_SHA", "REPO_OWNER",
+           "REPO_NAME"]
+  names.sort()
+  for v in names:
+    if not os.getenv(v):
+      continue
+    prow_env.append("{0}={1}".format(v, os.getenv(v)))
+  return prow_env
+
 
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
   # Check https://github.com/kubernetes/test-infra/blob/master/prow/jobs.md
@@ -279,16 +287,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                cwd=w.app_dir)
 
       # Set the prow environment variables.
-      prow_env = []
-
-      names = ["JOB_NAME", "JOB_TYPE", "BUILD_ID", "BUILD_NUMBER",
-               "PULL_BASE_SHA", "PULL_NUMBER", "PULL_PULL_SHA", "REPO_OWNER",
-               "REPO_NAME"]
-      names.sort()
-      for v in names:
-        if not os.getenv(v):
-          continue
-        prow_env.append("{0}={1}".format(v, os.getenv(v)))
+      prow_env = get_prow_env()
 
       util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "prow_env",
                ",".join(prow_env)], cwd=w.app_dir)
@@ -333,6 +332,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         results = e.workflow_results
         raise
       finally:
+        workflow_phase = []
+        workflow_status_yamls = {}
         prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
         # Upload logs to GCS. No logs after this point will appear in the
         # file in gcs
@@ -359,6 +360,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         all_tests_success = prow_artifacts.finalize_prow_job(
           args.bucket, workflow_success, workflow_phase, ui_urls)
     else:
+      prow_env = get_prow_env()
+      w.args["env"] = prow_env
+      vargs = vars(args)
+      w.args["args"] = vargs
       wf_result = py_func_import(w.py_func, w.args)
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()

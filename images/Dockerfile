@@ -124,9 +124,16 @@ RUN cd /tmp && \
     mv ks_0.13.1_linux_amd64/ks /usr/local/bin/ks-13 && \
     chmod a+x /usr/local/bin/ks-13
 
+# Install kustomize
 RUN wget -O /usr/local/bin/kustomize \
     https://github.com/kubernetes-sigs/kustomize/releases/download/v${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64 && \
     chmod a+x /usr/local/bin/kustomize
+
+# Install stable version of kfctl
+RUN wget -O /usr/local/bin/kfctl \
+    https://github.com/kkasravi/kfctl/releases/download/v3/kfctl && \
+    chmod a+x /usr/local/bin/kfctl
+RUN mkdir /kubeflow
 
 RUN cd /tmp && \
     wget https://github.com/google/jsonnet/archive/v0.11.2.tar.gz && \
@@ -159,7 +166,7 @@ RUN pip2 install --upgrade google-api-python-client==1.7.0
 
 #
 # include kubernetes client for e2e tests
-RUN pip3 install kubernetes==9.0.1
+RUN pip3 install kubernetes==10.0.1
 
 # Install the hub CLI for git
 RUN cd /tmp && \
@@ -185,8 +192,8 @@ RUN chmod a+x /usr/local/bin/run_release.sh
 RUN curl  https://get.docker.com/ | sh
 
 # Install kubectl
-# We don't install via gcloud because we want 1.10 which is newer than what's in gcloud.
-RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/bin/linux/amd64/kubectl && \
+# We don't install via gcloud because we want the latest stable which is newer than what's in gcloud.
+RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
