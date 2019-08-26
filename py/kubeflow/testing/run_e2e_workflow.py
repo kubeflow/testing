@@ -17,9 +17,10 @@ workflows:
     include_dirs:
       tensorflow/*
 
-  - py_func: my_test_package.my_test_module.my_test_workflow
-     kw_args:
-         arg1: argument
+  - name: workflow-test
+    py_func: my_test_package.my_test_module.my_test_workflow
+    kw_args:
+        arg1: argument
 
 app_dir is expected to be in the form of
 {REPO_OWNER}/{REPO_NAME}/path/to/ksonnet/app
@@ -89,7 +90,8 @@ class WorkflowKSComponent(object):
 class WorkflowPyComponent(object):
   """Datastructure to represent a Python function to submit a workflow."""
 
-  def __init__(self, py_func, kw_args):
+  def __init__(self, name, py_func, kw_args):
+    self.name = name
     self.py_func = py_func
     self.args = kw_args
 
@@ -115,7 +117,7 @@ def parse_config_file(config_file, root_dir):
         i.get("job_types", []), i.get("include_dirs", []), i.get("params", {})))
     if i.get("py_func"):
       components.append(WorkflowPyComponent(
-        i["py_func"], i.get("kw_args", {})))
+        i["name"], i["py_func"], i.get("kw_args", {})))
   return components
 
 def generate_env_from_head(args):
@@ -305,6 +307,26 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     else:
+      workflow_name = os.getenv("JOB_NAME") + "-" + w.name
+
+      if job_type == "presubmit":
+        workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
+        workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
+
+      elif job_type == "postsubmit":
+        workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA")[0:7])
+
+      # Append the last 4 digits of the build number
+      workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER")[-4:])
+
+      salt = uuid.uuid4().hex[0:4]
+      # Add some salt. This is mostly a convenience for the case where you
+      # are submitting jobs manually for testing/debugging. Since the prow should
+      # vend unique build numbers for each job.
+      workflow_name += "-{0}".format(salt)
+
+      workflow_names.append(workflow_name)
+
       wf_result = py_func_import(w.py_func, w.args)
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()
