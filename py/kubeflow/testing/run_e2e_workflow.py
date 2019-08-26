@@ -17,9 +17,10 @@ workflows:
     include_dirs:
       tensorflow/*
 
-  - py_func: my_test_package.my_test_module.my_test_workflow
-     kw_args:
-         arg1: argument
+  - name: workflow-test
+    py_func: my_test_package.my_test_module.my_test_workflow
+    kw_args:
+        arg1: argument
 
 app_dir is expected to be in the form of
 {REPO_OWNER}/{REPO_NAME}/path/to/ksonnet/app
@@ -53,6 +54,7 @@ import uuid
 import subprocess
 import sys
 import yaml
+from kubernetes import config
 from kubernetes import client as k8s_client
 from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
@@ -89,7 +91,8 @@ class WorkflowKSComponent(object):
 class WorkflowPyComponent(object):
   """Datastructure to represent a Python function to submit a workflow."""
 
-  def __init__(self, py_func, kw_args):
+  def __init__(self, name, py_func, kw_args):
+    self.name = name
     self.py_func = py_func
     self.args = kw_args
 
@@ -115,7 +118,7 @@ def parse_config_file(config_file, root_dir):
         i.get("job_types", []), i.get("include_dirs", []), i.get("params", {})))
     if i.get("py_func"):
       components.append(WorkflowPyComponent(
-        i["py_func"], i.get("kw_args", {})))
+        i["name"], i["py_func"], i.get("kw_args", {})))
   return components
 
 def generate_env_from_head(args):
@@ -200,13 +203,31 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   ui_urls = {}
 
   for w in workflows: # pylint: disable=too-many-nested-blocks
+    # Create the name for the workflow
+    # We truncate sha numbers to prevent the workflow name from being too large.
+    # Workflow name should not be more than 63 characters because its used
+    # as a label on the pods.
+    workflow_name = os.getenv("JOB_NAME") + "-" + w.name
+
+    if job_type == "presubmit":
+      workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
+      workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
+
+    elif job_type == "postsubmit":
+      workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA")[0:7])
+
+    # Append the last 4 digits of the build number
+    workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER")[-4:])
+
+    salt = uuid.uuid4().hex[0:4]
+    # Add some salt. This is mostly a convenience for the case where you
+    # are submitting jobs manually for testing/debugging. Since the prow should
+    # vend unique build numbers for each job.
+    workflow_name += "-{0}".format(salt)
+    workflow_names.append(workflow_name)
+
     # check if ks workflow and run
     if hasattr(w, "app_dir"):
-      # Create the name for the workflow
-      # We truncate sha numbers to prevent the workflow name from being too large.
-      # Workflow name should not be more than 63 characters because its used
-      # as a label on the pods.
-      workflow_name = os.getenv("JOB_NAME") + "-" + w.name
       ks_cmd = ks_util.get_ksonnet_cmd(w.app_dir)
 
       # Print ksonnet version
@@ -239,23 +260,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                      w.name, w.include_dirs)
         continue
 
-      if job_type == "presubmit":
-        workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
-        workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
-
-      elif job_type == "postsubmit":
-        workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA")[0:7])
-
-      # Append the last 4 digits of the build number
-      workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER")[-4:])
-
-      salt = uuid.uuid4().hex[0:4]
-      # Add some salt. This is mostly a convenience for the case where you
-      # are submitting jobs manually for testing/debugging. Since the prow should
-      # vend unique build numbers for each job.
-      workflow_name += "-{0}".format(salt)
-
-      workflow_names.append(workflow_name)
       # Create a new environment for this run
       env = workflow_name
 
@@ -307,13 +311,20 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     else:
       wf_result = py_func_import(w.py_func, w.args)
       group, version = wf_result['apiVersion'].split('/')
+      config.load_kube_config()
       k8s_co = k8s_client.CustomObjectsApi()
-      k8s_co.create_namespaced_custom_object(
+      py_func_result = k8s_co.create_namespaced_custom_object(
         group=group,
         version=version,
         namespace=get_namespace(args),
         plural='workflows',
         body=wf_result)
+      logging.info("py_func_result: %s", py_func_result)
+
+      ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
+              "?tab=workflow".format(workflow_name))
+      ui_urls[workflow_name] = ui_url
+      logging.info("URL for workflow: %s", ui_url)
 
   # We delay creating started.json until we know the Argo workflow URLs
   create_started_file(args.bucket, ui_urls)
