@@ -218,6 +218,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   workflow_names = []
   ui_urls = {}
+  all_tests_success = False
 
   for w in workflows: # pylint: disable=too-many-nested-blocks
     # check if ks workflow and run
@@ -364,18 +365,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       w.args["env"] = prow_env
       vargs = vars(args)
       w.args["args"] = vargs
+      # this returns a function in which you can call wait
       wf_result = py_func_import(w.py_func, w.args)
-      group, version = wf_result['apiVersion'].split('/')
-      k8s_co = k8s_client.CustomObjectsApi()
-      k8s_co.create_namespaced_custom_object(
-        group=group,
-        version=version,
-        namespace=get_namespace(args),
-        plural='workflows',
-        body=wf_result)
 
-  # We delay creating started.json until we know the Argo workflow URLs
-  create_started_file(args.bucket, ui_urls)
+      # We delay creating started.json until we know the Argo workflow URLs
+      create_started_file(args.bucket, ui_urls)
 
   workflow_success = False
   workflow_phase = {}
