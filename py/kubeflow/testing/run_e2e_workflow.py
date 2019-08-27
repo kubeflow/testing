@@ -241,6 +241,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   workflow_names = []
   ui_urls = {}
+  all_tests_success = False
 
   for w in workflows: # pylint: disable=too-many-nested-blocks
     # Create the name for the workflow

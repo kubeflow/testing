@@ -1,5 +1,6 @@
 """Some utility functions for working with TfJobs."""
 
+import os
 import datetime
 import httplib2
 import json
@@ -173,29 +174,53 @@ def wait_for_pipeline(namespace, name,
     return results[0]
 
 
-class PipelineDecorator:
-	def __init__(self, function):
-		self.function = function
+class PipelineRun:
+    def __init__(self, function):
+        self.function = function
+        self.command = "/usr/local/bin/kfctl"
+        self.app_dir = ""
+        self.env = {}
+        self.args = []
+        self.cwd = os.getenv("HOME")
+        self.config = ""
+        self.project = ""
+        self.args = []
 
-	def __call__(self, **kwargs):
+    def __call__(self, **kwargs):
+        result = self.function(self, **kwargs)
+        return result
 
-		result = self.function(**kwargs)
+    def parse_args(self, **kwargs):
+        env = kwargs.pop("env", {})
+        self.env = {env[i].split("=")[0]: env[i].split("=")[1] for i in range(0, len(env))}
+        args = kwargs.pop("args", None)
+        if "config" in kwargs:
+            self.config += "--config " + kwargs["config"]
+            self.args.extend([self.config])
+        if "project" in kwargs:
+            self.project += "--project " + kwargs["project"]
+            self.args.extend([self.project])
+        elif "project" in args:
+            self.project += "--project " + self.args["project"]
+            self.args.extend([self.project])
+        if "app_dir" in kwargs:
+            self.app_dir = kwargs["app_dir"]
+            self.cwd = os.path.join(self.app_dir, os.pardir)
+            self.args.extend([self.app_dir])
 
-		return result
+    def wait(self):
+        return NotImplemented
 
-# adding decorator to the class
-@PipelineDecorator
-def run_pipeline(**kwargs):
-  command = "/usr/local/bin/kfctl"
-  cwd = "/kubeflow"
-  env = kwargs.pop("env", None)
-  args = kwargs.pop("args", None)
-  if hasattr(kwargs, "config"):
-      command += " --config " + kwargs["config"]
-  if hasattr(kwargs, "project"):
-      command += " --project " + kwargs["project"]
-  if hasattr(kwargs, "app_dir"):
-      command += " " + kwargs["app_dir"]
-  util.run(command, cwd=cwd, env=env)
-  return
+    def finish(self):
+        return True
 
+
+# adding decorator to the PipelineRun class
+@PipelineRun
+def run_pipeline(self, **kwargs):
+    self.parse_args(**kwargs)
+    args = [self.command, "init"]
+    args.extend(self.args)
+    command = " ".join(args)
+    util.run(command, cwd=self.cwd, env=self.env)
+    return
