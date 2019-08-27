@@ -222,6 +222,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   workflow_names = []
   ui_urls = {}
+  all_tests_success = False
 
   for w in workflows: # pylint: disable=too-many-nested-blocks
     # Create the name for the workflow
@@ -369,6 +370,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       w.args["env"] = prow_env
       vargs = vars(args)
       w.args["args"] = vargs
+      # this returns a function in which you can call wait
       wf_result = py_func_import(w.py_func, w.args)
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()
