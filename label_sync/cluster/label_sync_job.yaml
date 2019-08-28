@@ -3,7 +3,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: label-sync-1008-002
+  generateName: label-sync
+  namespace: github-admin
 spec:
   template:
     spec:
