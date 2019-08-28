@@ -313,6 +313,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       group, version = wf_result['apiVersion'].split('/')
       config.load_kube_config()
       k8s_co = k8s_client.CustomObjectsApi()
+      if "metadata" in wf_result:
+        if "generateName" in wf_result["metadata"]:
+          wf_result["metadata"].pop("generateName")
+        wf_result["metadata"]["name"] = workflow_name
       py_func_result = k8s_co.create_namespaced_custom_object(
         group=group,
         version=version,
