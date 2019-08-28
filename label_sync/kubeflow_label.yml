@@ -19,10 +19,16 @@ default:
   - color: d2b48c
     name: area/api
   - color: d2b48c
-    name: area/build-release
+    name: area/engprod
     previously:
+    - name: area/build-release
     - name: area/release-eng
     - name: area/releasing
+  - color: d2b48c
+    name: area/kfctl
+    previously:
+    - name: area/deployment
+    - name: area/bootstrap
   - color: d2b48c
     name: area/docs
   - color: d2b48c
@@ -60,6 +66,7 @@ default:
     name: kind/feature
     previously:
     - name: addition/feature
+    - name: improvement/enhancement
   - color: 2515fc
     name: kind/process  
   - color: ecfc15
