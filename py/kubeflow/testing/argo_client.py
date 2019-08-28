@@ -60,7 +60,9 @@ def handle_retriable_exception(exception):
       # we need to reload the kube config (which refreshes the GCP token).
       # TODO(richardsliu): Remove this workaround when the k8s client issue
       # is resolved.
-      util.load_kube_config()
+      #TODO checkin this in
+      #util.load_kube_config()
+      util.load_kube_config(persist_config=False)
       return True
   return not isinstance(exception, util.TimeoutError)
 

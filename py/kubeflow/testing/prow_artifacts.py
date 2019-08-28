@@ -99,6 +99,7 @@ def create_finished_file(bucket, success, workflow_phase, ui_urls):
   contents = create_finished(success, workflow_phase, ui_urls)
 
   target = os.path.join(get_gcs_dir(bucket), "finished.json")
+  # TODO(kkasravi) uncomment before checking in
   util.upload_to_gcs(contents, target)
 
 def get_gcs_dir(bucket):

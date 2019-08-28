@@ -104,6 +104,7 @@ def create_started_file(bucket, ui_urls):
   contents = prow_artifacts.create_started(ui_urls)
 
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "started.json")
+  # TODO(kkasravi) remove comment before checking in
   util.upload_to_gcs(contents, target)
 
 def parse_config_file(config_file, root_dir):
@@ -192,10 +193,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     workflows.extend(parse_config_file(args.config_file, args.repos_dir))
 
   # Create an initial version of the file with no urls
+  # TODO(kkasravi) remove comment before checking in
   create_started_file(args.bucket, {})
 
+  # TODO(kkasravi) remove comment before checking in
   util.maybe_activate_service_account()
 
+  # TODO(kkasravi) remove comment before checking in
   util.configure_kubectl(args.project, args.zone, args.cluster)
   util.load_kube_config()
 
@@ -313,6 +317,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       group, version = wf_result['apiVersion'].split('/')
       config.load_kube_config()
       k8s_co = k8s_client.CustomObjectsApi()
+      if "metadata" in wf_result:
+        if "generateName" in wf_result["metadata"]:
+          wf_result["metadata"].pop("generateName")
+        wf_result["metadata"]["name"] = workflow_name
       py_func_result = k8s_co.create_namespaced_custom_object(
         group=group,
         version=version,
@@ -365,6 +373,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         workflow_success = False
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
 
+      # TODO(kkasravi) uncomment before checking in
       for wf_name, wf_status in workflow_status_yamls.items():
         util.upload_to_gcs(
           wf_status,
