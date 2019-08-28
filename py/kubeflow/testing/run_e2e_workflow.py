@@ -224,7 +224,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # are submitting jobs manually for testing/debugging. Since the prow should
     # vend unique build numbers for each job.
     workflow_name += "-{0}".format(salt)
-    workflow_names.append(workflow_name)
 
     # check if ks workflow and run
     if hasattr(w, "app_dir"):
@@ -260,6 +259,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                      w.name, w.include_dirs)
         continue
 
+      workflow_names.append(workflow_name)
       # Create a new environment for this run
       env = workflow_name
 
