@@ -1,0 +1,9 @@
+apiVersion: kubeflow.org/v1alpha1
+kind: Profile
+metadata:
+  name: kf-releasing
+spec:
+  owner:
+    kind: User
+    name: jlewi@google.com
+status: {}
