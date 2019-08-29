@@ -102,8 +102,9 @@ class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
 class WorkflowPyComponent(object):
   """Datastructure to represent a Python function to submit a workflow."""
 
-  def __init__(self, name, py_func, kw_args):
+  def __init__(self, name, job_types, py_func, kw_args):
     self.name = name
+    self.job_types = job_types
     self.py_func = py_func
     self.args = kw_args
 
