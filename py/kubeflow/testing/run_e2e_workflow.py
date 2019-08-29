@@ -18,6 +18,8 @@ workflows:
       tensorflow/*
 
   - name: workflow-test
+    job_types:
+      presubmit
     py_func: my_test_package.my_test_module.my_test_workflow
     kw_args:
         arg1: argument
@@ -76,7 +78,7 @@ def py_func_import(py_func, kwargs):
   met = getattr(mod, module)
   return met(**kwargs)
 
-class WorkflowComponent(object):
+class WorkflowKSComponent(object):
   """Datastructure to represent a ksonnet component to submit a workflow."""
 
   def __init__(self, name, app_dir, component, job_types, include_dirs, params):
@@ -90,8 +92,9 @@ class WorkflowComponent(object):
 class WorkflowPyComponent(object):
   """Datastructure to represent a Python function to submit a workflow."""
 
-  def __init__(self, name, py_func, kw_args):
+  def __init__(self, name, job_types, py_func, kw_args):
     self.name = name
+    self.job_types = job_types
     self.py_func = py_func
     self.args = kw_args
 
@@ -111,16 +114,13 @@ def parse_config_file(config_file, root_dir):
 
   components = []
   for i in results["workflows"]:
-    components.append(WorkflowComponent(
-      i["name"], os.path.join(root_dir, i["app_dir"]), i["component"], i.get("job_types", []),
-      i.get("include_dirs", []), i.get("params", {})))
     if i.get("app_dir"):
       components.append(WorkflowKSComponent(
         i["name"], os.path.join(root_dir, i["app_dir"]), i["component"],
         i.get("job_types", []), i.get("include_dirs", []), i.get("params", {})))
     if i.get("py_func"):
       components.append(WorkflowPyComponent(
-        i["name"], i["py_func"], i.get("kw_args", {})))
+        i["name"], i.get("job_types", []), i["py_func"], i.get("kw_args", {})))
   return components
 
 def generate_env_from_head(args):
