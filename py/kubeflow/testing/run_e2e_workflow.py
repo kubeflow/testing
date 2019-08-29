@@ -99,6 +99,14 @@ class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
     self.py_func = data.get("py_func")
     self.kwargs = data.get("kwargs", {})
 
+class WorkflowPyComponent(object):
+  """Datastructure to represent a Python function to submit a workflow."""
+
+  def __init__(self, name, py_func, kw_args):
+    self.name = name
+    self.py_func = py_func
+    self.args = kw_args
+
 def _get_src_dir():
   return os.path.abspath(os.path.join(__file__, "..",))
 
@@ -225,27 +233,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     if w.job_types and not job_type in w.job_types:
       logging.info("Skipping workflow %s because job type %s is not one of "
                    "%s.", w.name, job_type, w.job_types)
-      continue
-
-    # If we are scoping this workflow to specific directories, check if any files
-    # modified match the specified regex patterns.
-    dir_modified = False
-    if w.include_dirs:
-      for f in changed_files:
-        for d in w.include_dirs:
-          if fnmatch.fnmatch(f, d):
-            dir_modified = True
-            logging.info("Triggering workflow %s because %s in dir %s is modified.",
-                         w.name, f, d)
-            break
-        if dir_modified:
-          break
-
-    # Only consider modified files when the job is pre or post submit, and if
-    # the include_dirs stanza is defined.
-    if job_type != "periodic" and w.include_dirs and not dir_modified:
-      logging.info("Skipping workflow %s because no code modified in %s.",
-                   w.name, w.include_dirs)
       continue
 
     if job_type == "presubmit":
