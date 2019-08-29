@@ -4,3 +4,10 @@ workflows:
   - app_dir: kubeflow/testing/workflows
     component: workflows
     name: unittests
+
+  - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
+    name: pyfunctest
+    # can optionally take keyword arguments
+    # kw_args:
+    #  a: 1
+    #  b: 2

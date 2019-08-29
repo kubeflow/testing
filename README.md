@@ -680,6 +680,8 @@ Some examples to look at
 
 Follow these steps to add a new test to a repository.
 
+#### ksonnet
+
 1. Create a ksonnet App in that repository and define an Argo workflow if one doesn't already exist
    * We use ksonnet apps defined in each repository to define the Argo workflows corresponding to E2E tests
    * If a ksonnet app already exists you can just define a new component in that app
@@ -758,6 +760,32 @@ Follow these steps to add a new test to a repository.
 
      * **params**: A dictionary of parameters to set on the ksonnet component e.g. by running `ks param set ${COMPONENT} ${PARAM_NAME} ${PARAM_VALUE}`
 
+#### Python function
+
+* **Note**: ksonnet is being deprecated, please start using Python functions to parameterize Argo workflows in E2E tests.
+
+1. Create a Python function in that repository and return an Argo workflow if one doesn't already exist
+   * We use Python functions defined in each repository to define the Argo workflows corresponding to E2E tests
+
+   * You can look at `prow_config.yaml` (see below) to see which Python functions are already defined in a repository.
+
+1. Modify the `prow_config.yaml` at the root of the repo to trigger your new test.
+
+   * If `prow_config.yaml` doesn't exist (e.g. the repository is new) copy one from an existing repository ([example](https://github.com/kubeflow/kubeflow/blob/master/prow_config.yaml)).
+
+   * `prow_config.yaml` contains an array of workflows where each workflow defines an E2E test to run; example
+
+       ```
+       workflows:
+        - name: workflow-test
+          py_func: my_test_package.my_test_module.my_test_workflow
+          kw_args:
+              arg1: argument
+       ```
+
+       * **py_func**: Is the Python method to invoke Argo workflows
+       * **kw_args**: This is an array of arguments passed to the Python method
+       * **name**: This is the base name to use for the submitted Argo workflow.
 
 ### Prow Variables
 
