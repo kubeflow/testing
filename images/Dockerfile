@@ -167,6 +167,7 @@ RUN pip2 install --upgrade google-api-python-client==1.7.0
 #
 # include kubernetes client for e2e tests
 RUN pip3 install kubernetes==10.0.1
+RUN pip2 install kubernetes==10.0.1
 
 # Install the hub CLI for git
 RUN cd /tmp && \

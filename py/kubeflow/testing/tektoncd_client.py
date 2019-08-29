@@ -184,6 +184,8 @@ class PipelineRun:
         self.cwd = os.getenv("HOME")
         self.config = ""
         self.project = ""
+        self.email = ""
+        self.zone = ""
         self.args = []
 
     def __call__(self, **kwargs):
@@ -207,6 +209,10 @@ class PipelineRun:
             self.app_dir = kwargs["app_dir"]
             self.cwd = os.path.join(self.app_dir, os.pardir)
             self.args.extend([self.app_dir])
+        if "email" in kwargs:
+            self.email = "--email " + kwargs["email"]
+        if "zone" in kwargs:
+            self.zone = "--zone " + kwargs["zone"]
 
     def wait(self):
         return NotImplemented
@@ -219,8 +225,18 @@ class PipelineRun:
 @PipelineRun
 def run_pipeline(self, **kwargs):
     self.parse_args(**kwargs)
+    # kfctl init
     args = [self.command, "init"]
-    args.extend(self.args)
+    args.extend([self.config, self.project, self.app_dir])
     command = " ".join(args)
     util.run(command, cwd=self.cwd, env=self.env)
+    # kfctl generate k8s
+    args = [self.command, "generate", "k8s"]
+    args.extend([self.email, self.zone])
+    command = " ".join(args)
+    util.run(command, cwd=self.app_dir, env=self.env)
+    # kfctl apply k8s
+    args = [self.command, "apply", "k8s"]
+    command = " ".join(args)
+    util.run(command, cwd=self.app_dir, env=self.env)
     return

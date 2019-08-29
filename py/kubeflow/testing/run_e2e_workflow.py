@@ -163,6 +163,11 @@ def get_prow_env():
     prow_env.append("{0}={1}".format(v, os.getenv(v)))
   return prow_env
 
+def get_workflow_name(w):
+  if hasattr(w, "name"):
+    return w.name
+
+
 
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
   # Check https://github.com/kubernetes/test-infra/blob/master/prow/jobs.md
@@ -232,12 +237,15 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   logging.info("Extra python paths: %s", ":".join(extra_py_paths))
 
   # Create an initial version of the file with no urls
-  create_started_file(args.bucket, {})
+  # TODO(kkasravi) uncomment before checking in
+  #create_started_file(args.bucket, {})
 
-  util.maybe_activate_service_account()
+  # TODO(kkasravi) uncomment before checking in
+  #util.maybe_activate_service_account()
 
-#  util.configure_kubectl(args.project, args.zone, args.cluster)
-#  util.load_kube_config()
+  # TODO(kkasravi) uncomment before checking in
+  #util.configure_kubectl(args.project, args.zone, args.cluster)
+  #util.load_kube_config()
 
   workflow_names = []
   ui_urls = {}
