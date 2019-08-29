@@ -21,7 +21,7 @@ workflows:
     job_types:
       presubmit
     py_func: my_test_package.my_test_module.my_test_workflow
-    kw_args:
+    kwargs:
         arg1: argument
 
 app_dir is expected to be in the form of
@@ -38,7 +38,7 @@ should run this workflow.
 
 py_func is the Python method to invoke Argo workflows
 
-kw_args is an array of arguments passed to the Python method
+kwargs is an array of arguments passed to the Python method
 
 The script expects that the directories
 {repos_dir}/{app_dir} exists. Where repos_dir is provided
@@ -95,11 +95,11 @@ class WorkflowKSComponent(object):
 class WorkflowPyComponent(object):
   """Datastructure to represent a Python function to submit a workflow."""
 
-  def __init__(self, name, job_types, py_func, kw_args):
+  def __init__(self, name, job_types, py_func, kwargs):
     self.name = name
     self.job_types = job_types
     self.py_func = py_func
-    self.args = kw_args
+    self.args = kwargs
 
 def _get_src_dir():
   return os.path.abspath(os.path.join(__file__, "..",))
@@ -124,7 +124,7 @@ def parse_config_file(config_file, root_dir):
         i.get("job_types", []), i.get("include_dirs", []), i.get("params", {})))
     if i.get("py_func"):
       components.append(WorkflowPyComponent(
-        i["name"], i.get("job_types", []), i["py_func"], i.get("kw_args", {})))
+        i["name"], i.get("job_types", []), i["py_func"], i.get("kwargs", {})))
   return components
 
 def generate_env_from_head(args):

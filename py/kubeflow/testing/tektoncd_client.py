@@ -179,14 +179,11 @@ class PipelineRun:
         self.function = function
         self.command = "/usr/local/bin/kfctl"
         self.app_dir = ""
-        self.env = {}
         self.args = []
-        self.cwd = os.getenv("HOME")
         self.config = ""
-        self.project = ""
-        self.email = ""
-        self.zone = ""
-        self.args = []
+        self.cwd = os.getenv("HOME")
+        self.env = {}
+        self.tests = []
 
     def __call__(self, **kwargs):
         result = self.function(self, **kwargs)
@@ -195,24 +192,15 @@ class PipelineRun:
     def parse_args(self, **kwargs):
         env = kwargs.pop("env", {})
         self.env = {env[i].split("=")[0]: env[i].split("=")[1] for i in range(0, len(env))}
-        args = kwargs.pop("args", None)
         if "config" in kwargs:
             self.config += "--config " + kwargs["config"]
             self.args.extend([self.config])
-        if "project" in kwargs:
-            self.project += "--project " + kwargs["project"]
-            self.args.extend([self.project])
-        elif "project" in args:
-            self.project += "--project " + self.args["project"]
-            self.args.extend([self.project])
         if "app_dir" in kwargs:
             self.app_dir = kwargs["app_dir"]
             self.cwd = os.path.join(self.app_dir, os.pardir)
             self.args.extend([self.app_dir])
-        if "email" in kwargs:
-            self.email = "--email " + kwargs["email"]
-        if "zone" in kwargs:
-            self.zone = "--zone " + kwargs["zone"]
+        if "tests" in kwargs:
+            self.tests = kwargs["tests"]
 
     def wait(self):
         return NotImplemented
@@ -227,7 +215,7 @@ def run_pipeline(self, **kwargs):
     self.parse_args(**kwargs)
     # kfctl init
     args = [self.command, "init"]
-    args.extend([self.config, self.project, self.app_dir])
+    args.extend([self.config, self.app_dir])
     command = " ".join(args)
     util.run(command, cwd=self.cwd, env=self.env)
     # kfctl generate k8s
