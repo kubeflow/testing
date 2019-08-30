@@ -226,7 +226,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   # TODO(kkasravi) uncomment before checking in
   #util.configure_kubectl(args.project, args.zone, args.cluster)
-  #util.load_kube_config()
+  util.load_kube_config()
 
   workflow_names = []
   ui_urls = {}
@@ -329,75 +329,15 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
               "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
-      # We delay creating started.json until we know the Argo workflow URLs
-      create_started_file(args.bucket, ui_urls)
-
-      try:
-        results = argo_client.wait_for_workflows(
-          get_namespace(args), workflow_names,
-          timeout=datetime.timedelta(minutes=180),
-          status_callback=argo_client.log_status
-        )
-        workflow_success = True
-      except util.ExceptionWithWorkflowResults as e:
-        # We explicitly log any exceptions so that they will be captured in the
-        # build-log.txt that is uploaded to Gubernator.
-        logging.exception("Exception occurred: %s", e)
-        results = e.workflow_results
-        raise
-      finally:
-        workflow_phase = []
-        workflow_status_yamls = {}
-        prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
-        # Upload logs to GCS. No logs after this point will appear in the
-        # file in gcs
-        file_handler.flush()
-        util.upload_file_to_gcs(
-          file_handler.baseFilename,
-          os.path.join(prow_artifacts_dir, "build-log.txt"))
-
-        # Upload workflow status to GCS.
-        for r in results:
-          phase = r.get("status", {}).get("phase")
-          name = r.get("metadata", {}).get("name")
-          workflow_phase[name] = phase
-          workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
-          if phase != "Succeeded":
-            workflow_success = False
-          logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
-
-          for wf_name, wf_status in workflow_status_yamls.items():
-            util.upload_to_gcs(
-              wf_status,
-              os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
-
-        all_tests_success = prow_artifacts.finalize_prow_job(
-          args.bucket, workflow_success, workflow_phase, ui_urls)
     else:
       prow_env = get_prow_env()
+      w.args["name"] = workflow_name
       w.args["env"] = prow_env
       vargs = vars(args)
       w.args["args"] = vargs
-      # this returns a function in which you can call wait
+      # this returns an object in which you can call wait
       wf_result = py_func_import(w.py_func, w.args)
-      group, version = wf_result['apiVersion'].split('/')
-      k8s_co = k8s_client.CustomObjectsApi()
-      if "metadata" in wf_result:
-        if "generateName" in wf_result["metadata"]:
-          wf_result["metadata"].pop("generateName")
-        wf_result["metadata"]["name"] = workflow_name
-      py_func_result = k8s_co.create_namespaced_custom_object(
-        group=group,
-        version=version,
-        namespace=get_namespace(args),
-        plural='workflows',
-        body=wf_result)
-      logging.info("py_func_result: %s", py_func_result)
 
-      ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
-              "?tab=workflow".format(workflow_name))
-      ui_urls[workflow_name] = ui_url
-      logging.info("URL for workflow: %s", ui_url)
 
   # We delay creating started.json until we know the Argo workflow URLs
   create_started_file(args.bucket, ui_urls)
