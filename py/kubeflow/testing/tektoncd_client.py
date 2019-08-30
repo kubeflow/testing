@@ -178,12 +178,9 @@ class PipelineRun:
     def __init__(self, function):
         self.function = function
         self.command = "/usr/local/bin/kfctl"
-        self.app_dir = ""
         self.args = []
-        self.config = ""
         self.cwd = os.getenv("HOME")
         self.env = {}
-        self.tests = []
 
     def __call__(self, **kwargs):
         result = self.function(self, **kwargs)
@@ -192,15 +189,13 @@ class PipelineRun:
     def parse_args(self, **kwargs):
         env = kwargs.pop("env", {})
         self.env = {env[i].split("=")[0]: env[i].split("=")[1] for i in range(0, len(env))}
+        self.env["PATH"] = os.getenv("PATH")
         if "config" in kwargs:
-            self.config += "--config " + kwargs["config"]
-            self.args.extend([self.config])
+            self.args.extend(["--config", kwargs["config"]])
         if "app_dir" in kwargs:
             self.app_dir = kwargs["app_dir"]
-            self.cwd = os.path.join(self.app_dir, os.pardir)
+            self.cwd = os.path.dirname(self.app_dir)
             self.args.extend([self.app_dir])
-        if "tests" in kwargs:
-            self.tests = kwargs["tests"]
 
     def wait(self):
         return NotImplemented
@@ -215,16 +210,19 @@ def run_pipeline(self, **kwargs):
     self.parse_args(**kwargs)
     # kfctl init
     args = [self.command, "init"]
-    args.extend([self.config, self.app_dir])
-    command = " ".join(args)
-    util.run(command, cwd=self.cwd, env=self.env)
+    args.extend(self.args)
+    _ = util.run(args, cwd=self.cwd, env=self.env)
     # kfctl generate k8s
     args = [self.command, "generate", "k8s"]
-    args.extend([self.email, self.zone])
-    command = " ".join(args)
-    util.run(command, cwd=self.app_dir, env=self.env)
+    _ = util.run(args, cwd=self.app_dir, env=self.env)
     # kfctl apply k8s
     args = [self.command, "apply", "k8s"]
-    command = " ".join(args)
-    util.run(command, cwd=self.app_dir, env=self.env)
-    return
+    _ = util.run(args, cwd=self.app_dir, env=self.env)
+    api = k8s_client.CustomObjectsApi()
+    ret = api.list_namespaced_custom_object(
+        group="tekton.dev",
+        version="v1alpha1",
+        namespace="tekton-pipelines",
+        plural="pipelineruns", watch=False)
+    list = ret['items']
+    return list[0]
