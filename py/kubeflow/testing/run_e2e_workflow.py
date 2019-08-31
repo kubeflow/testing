@@ -219,13 +219,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   # Create an initial version of the file with no urls
   # TODO(kkasravi) uncomment before checking in
-  #create_started_file(args.bucket, {})
+  create_started_file(args.bucket, {})
 
   # TODO(kkasravi) uncomment before checking in
-  #util.maybe_activate_service_account()
+  util.maybe_activate_service_account()
 
   # TODO(kkasravi) uncomment before checking in
-  #util.configure_kubectl(args.project, args.zone, args.cluster)
+  util.configure_kubectl(args.project, args.zone, args.cluster)
   util.load_kube_config()
 
   workflow_names = []
