@@ -5,6 +5,18 @@ workflows:
     component: workflows
     name: unittests
 
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: click_deploy_test
+    name: skipmeplease
+    job_types:
+    - periodic
+    include_dirs:
+    - bootstrap/*
+    - kubeflow/*
+    - testing/*
+    params:
+      workflowName: skipmeplease
+
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
     name: pyfunctest
     # can optionally take keyword arguments
