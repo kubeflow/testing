@@ -335,7 +335,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       w.args["env"] = prow_env
       vargs = vars(args)
       w.args["args"] = vargs
-      # this returns an object in which you can call wait
+      # return the deployed workflow (Workflow | PipelineRun)
       wf_result = py_func_import(w.py_func, w.args)
 
 
