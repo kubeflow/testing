@@ -181,6 +181,7 @@ class PipelineRun:
         self.args = []
         self.cwd = os.getenv("HOME")
         self.env = {}
+        self.pipelinerun = {}
 
     def __call__(self, **kwargs):
         result = self.function(self, **kwargs)
@@ -218,6 +219,7 @@ def run_pipeline(self, **kwargs):
     # kfctl apply k8s
     args = [self.command, "apply", "k8s"]
     _ = util.run(args, cwd=self.app_dir, env=self.env)
+    # fetch PipelineRun and return it
     api = k8s_client.CustomObjectsApi()
     ret = api.list_namespaced_custom_object(
         group="tekton.dev",
@@ -225,4 +227,5 @@ def run_pipeline(self, **kwargs):
         namespace="tekton-pipelines",
         plural="pipelineruns", watch=False)
     list = ret['items']
-    return list[0]
+    self.pipelinerun = list[0]
+    return self.pipelinerun
