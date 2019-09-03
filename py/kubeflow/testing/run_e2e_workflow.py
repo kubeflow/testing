@@ -163,10 +163,10 @@ def get_prow_env():
     prow_env.append("{0}={1}".format(v, os.getenv(v)))
   return prow_env
 
+
 def get_workflow_name(w):
   if hasattr(w, "name"):
     return w.name
-
 
 
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
