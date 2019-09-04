@@ -51,6 +51,16 @@ default:
     - name: inference  
   - color: d2b48c
     name: area/usage
+  - color: 2515fc
+    name: effort/1-days
+  - color: db1203
+    name: effort/3-days
+  - color: cb03cc
+    name: effort/5-days
+  - color: fc9915
+    name: effort/2-weeks
+  - color: fc2515
+    name: effort/2-weeks+
   - color: ecfc15
     name: kind/discussion
     previously:
