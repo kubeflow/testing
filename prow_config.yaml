@@ -5,18 +5,19 @@ workflows:
     component: workflows
     name: unittests
 
-  - app_dir: kubeflow/kubeflow/testing/workflows
+  # Verifies the workflow is skipped because the test would fail since it
+  # doesn't exist
+  - app_dir: kubeflow/kubeflow/testing/lmnop
     component: click_deploy_test
     name: skipmeplease
     job_types:
-    - periodic
+    - presubmit
     include_dirs:
-    - bootstrap/*
-    - kubeflow/*
-    - testing/*
+    - xyz/*
     params:
       workflowName: skipmeplease
 
+  # Smoke test to verify that the workflow is actually triggered
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
     name: pyfunctest
     kwargs:

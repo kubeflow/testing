@@ -783,7 +783,7 @@ Follow these steps to add a new test to a repository.
               arg1: argument
        ```
 
-       * **py_func**: Is the Python method to invoke Argo workflows
+       * **py_func**: Is the Python method to create a python object representing the Argo workflow resource
        * **kwargs**: This is an array of arguments passed to the Python method
        * **name**: This is the base name to use for the submitted Argo workflow.
 
