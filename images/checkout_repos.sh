@@ -12,9 +12,17 @@
 # You can use "--links" to create symbolic links to the newly created directories.
 # This allows you to check out forks of the Kubeflow repos but lay them out as if you
 # checked out the original repos so that you can use scripts that depend on that layout.
+#
+#
+# By default repositories are cloned with depth 2. You can specify the depth with 
+# --depth
+# To avoid doing a shallow clone set --depth=all
 set -xe
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
+#set the default value for depth
+depth="2"
 
 parseArgs() {
   # Parse all command line options
@@ -39,7 +47,7 @@ parseArgs() {
 }
 
 usage() {
-  echo "Usage: checkout_repos --repos=<{REPO_ORG}/{REPO_NAME}@{SHA}:{PULL_NUMBER},{REPO_ORG}/{REPO_NAME}@HEAD:{PULL_NUMBER}> --src_dir=<Where to check them out> --links=<src1>=<dest1>,<src2>=<dest2>"
+  echo "Usage: checkout_repos --repos=<{REPO_ORG}/{REPO_NAME}@{SHA}:{PULL_NUMBER},{REPO_ORG}/{REPO_NAME}@HEAD:{PULL_NUMBER}> --src_dir=<Where to check them out> --links=<src1>=<dest1>,<src2>=<dest2> --depth=<number | all>"
 }
 
 main() {
@@ -79,7 +87,11 @@ main() {
     mkdir -p ${src_dir}/${EXTRA_ORG}
 
     if [ ! -d ${TARGET} ]; then
-      git clone --depth=2 ${URL} ${TARGET}
+      if [ "${depth}" == "all" ]; then
+        git clone  ${URL} ${TARGET}
+      else        
+        git clone --depth=${depth} ${URL} ${TARGET}
+      fi 
     else 
       # init containers might get restarted so its possible we already checked out the repo
       echo ${TARGET} already exists
