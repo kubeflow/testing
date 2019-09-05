@@ -217,6 +217,27 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                    "%s.", w.name, job_type, w.job_types)
       continue
 
+    # If we are scoping this workflow to specific directories, check if any files
+    # modified match the specified regex patterns.
+    dir_modified = False
+    if w.include_dirs:
+      for f in changed_files:
+        for d in w.include_dirs:
+          if fnmatch.fnmatch(f, d):
+            dir_modified = True
+            logging.info("Triggering workflow %s because %s in dir %s is modified.",
+                         w.name, f, d)
+            break
+        if dir_modified:
+          break
+
+    # Only consider modified files when the job is pre or post submit, and if
+    # the include_dirs stanza is defined.
+    if job_type != "periodic" and w.include_dirs and not dir_modified:
+      logging.info("Skipping workflow %s because no code modified in %s.",
+                   w.name, w.include_dirs)
+      continue
+
     if job_type == "presubmit":
       workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
       workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
@@ -240,27 +261,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
       # Print ksonnet version
       util.run([ks_cmd, "version"])
-
-      # If we are scoping this workflow to specific directories, check if any files
-      # modified match the specified regex patterns.
-      dir_modified = False
-      if w.include_dirs:
-        for f in changed_files:
-          for d in w.include_dirs:
-            if fnmatch.fnmatch(f, d):
-              dir_modified = True
-              logging.info("Triggering workflow %s because %s in dir %s is modified.",
-                           w.name, f, d)
-              break
-          if dir_modified:
-            break
-
-      # Only consider modified files when the job is pre or post submit, and if
-      # the include_dirs stanza is defined.
-      if job_type != "periodic" and w.include_dirs and not dir_modified:
-        logging.info("Skipping workflow %s because no code modified in %s.",
-                     w.name, w.include_dirs)
-        continue
 
       # Create a new environment for this run
       env = workflow_name

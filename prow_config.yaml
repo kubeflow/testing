@@ -19,7 +19,5 @@ workflows:
 
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
     name: pyfunctest
-    # can optionally take keyword arguments
-    # kw_args:
-    #  a: 1
-    #  b: 2
+    kwargs:
+     url: https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml
