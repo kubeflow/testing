@@ -30,7 +30,7 @@
       local testDir = mountPath + "/" + name;
       // outputDir is the directory to sync to GCS to contain the output for this job.
       local outputDir = testDir + "/output";
-      local artifactsDir = outputDir + "/artifacts/junit/" + name;
+      local artifactsDir = outputDir + "/artifacts"; 
       // Source directory where all repos should be checked out
       local srcRootDir = testDir + "/src";
       local srcDir = srcRootDir + "/kubeflow/testing";
