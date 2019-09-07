@@ -106,7 +106,7 @@ def parse_config_file(config_file, root_dir):
 
   components = []
   for i in results["workflows"]:
-    components.append(root_dir, WorkflowComponent(i))
+    components.append(WorkflowComponent(root_dir, i))
   return components
 
 def generate_env_from_head(args):
