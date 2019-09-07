@@ -86,7 +86,7 @@ class WorkflowComponent(object):
     self.include_dirs = data.get("include_dirs", [])
     self.app_dir = os.path.join(root_dir, data.get("app_dir", ""))
     self.component = data.get("component")
-    self.params = data.get("params", [])
+    self.params = data.get("params", {})
     self.py_func = data.get("py_func")
     self.kwargs = data.get("kwargs", {})
 
