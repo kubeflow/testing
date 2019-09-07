@@ -297,7 +297,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     else:
-      wf_result = py_func_import(w.py_func, w.args)
+      wf_result = py_func_import(w.py_func, w.kwargs)
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()
       if "metadata" in wf_result:
