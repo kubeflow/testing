@@ -78,25 +78,17 @@ def py_func_import(py_func, kwargs):
   met = getattr(mod, module)
   return met(**kwargs)
 
-class WorkflowKSComponent(object):
-  """Datastructure to represent a ksonnet component to submit a workflow."""
-
-  def __init__(self, name, app_dir, component, job_types, include_dirs, params):
-    self.name = name
-    self.app_dir = app_dir
-    self.component = component
-    self.job_types = job_types
-    self.include_dirs = include_dirs
-    self.params = params
-
-class WorkflowPyComponent(object):
-  """Datastructure to represent a Python function to submit a workflow."""
-
-  def __init__(self, name, job_types, py_func, kwargs):
-    self.name = name
-    self.job_types = job_types
-    self.py_func = py_func
-    self.args = kwargs
+class WorkflowComponent(object):
+  """Datastructure to represent a component to submit a workflow."""
+  def __init__(self, root_dir, data):
+    self.name = data.get("name")
+    self.job_types = data.get("job_types", [])
+    self.include_dirs = data.get("include_dirs", [])
+    self.app_dir = os.path.join(root_dir, data.get("app_dir"))
+    self.component = data.get("component")
+    self.params = data.get("params", [])
+    self.py_func = data.get("py_func")
+    self.kwargs = data.get("kwargs", {})
 
 def _get_src_dir():
   return os.path.abspath(os.path.join(__file__, "..",))
@@ -114,13 +106,7 @@ def parse_config_file(config_file, root_dir):
 
   components = []
   for i in results["workflows"]:
-    if i.get("app_dir"):
-      components.append(WorkflowKSComponent(
-        i["name"], os.path.join(root_dir, i["app_dir"]), i["component"],
-        i.get("job_types", []), i.get("include_dirs", []), i.get("params", {})))
-    if i.get("py_func"):
-      components.append(WorkflowPyComponent(
-        i["name"], i.get("job_types", []), i["py_func"], i.get("kwargs", {})))
+    components.append(WorkflowComponent(i))
   return components
 
 def generate_env_from_head(args):
@@ -220,7 +206,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # If we are scoping this workflow to specific directories, check if any files
     # modified match the specified regex patterns.
     dir_modified = False
-    if hasattr(w, "include_dirs") and w.include_dirs:
+    if w.include_dirs:
       for f in changed_files:
         for d in w.include_dirs:
           if fnmatch.fnmatch(f, d):
@@ -233,8 +219,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
     # Only consider modified files when the job is pre or post submit, and if
     # the include_dirs stanza is defined.
-    if job_type != "periodic" and hasattr(w, "include_dirs") and \
-    w.include_dirs and not dir_modified:
+    if job_type != "periodic" and w.include_dirs and not dir_modified:
       logging.info("Skipping workflow %s because no code modified in %s.",
                    w.name, w.include_dirs)
       continue
@@ -257,7 +242,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     workflow_names.append(workflow_name)
 
     # check if ks workflow and run
-    if hasattr(w, "app_dir"):
+    if w.app_dir:
       ks_cmd = ks_util.get_ksonnet_cmd(w.app_dir)
 
       # Print ksonnet version
