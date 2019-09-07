@@ -78,9 +78,9 @@ def py_func_import(py_func, kwargs):
   met = getattr(mod, module)
   return met(**kwargs)
 
-class WorkflowComponent(object):
+class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
   """Datastructure to represent a component to submit a workflow."""
-  def __init__(self, root_dir, data): # pylint: disable=too-many-instance-attributes
+  def __init__(self, root_dir, data):
     self.name = data.get("name")
     self.job_types = data.get("job_types", [])
     self.include_dirs = data.get("include_dirs", [])
