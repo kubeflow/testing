@@ -31,6 +31,7 @@ RUN set -ex \
     gcc \
     openjdk-8-jdk \
     ssh \
+    vim \
     mercurial \
     python-dev \
     python-setuptools \
