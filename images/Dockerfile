@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=linux
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
-ENV KUSTOMIZE_VERSION 2.0.3
+ENV KUSTOMIZE_VERSION 3.1.0
 
 # gcc & python-dev are needed so we can install crcmod for gsutil
 # also includes installations for Python3
@@ -31,6 +31,7 @@ RUN set -ex \
     gcc \
     openjdk-8-jdk \
     ssh \
+    vim \
     mercurial \
     python-dev \
     python-setuptools \
