@@ -578,6 +578,62 @@ def cleanup_health_checks(args):
   logging.info("Matched health checks:\n%s", "\n".join(matched))
   logging.info("Finished cleanup firewall rules")
 
+def cleanup_certificates(args):
+  credentials = GoogleCredentials.get_application_default()
+
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  certificates = compute.sslCertificates()
+  next_page_token = None
+
+  unexpired = []
+  expired = []
+
+  while True:
+    results = certificates.list(project=args.project,
+                                pageToken=next_page_token).execute()
+    if not "items" in results:
+      break
+
+    for d in results["items"]:
+      create_time = date_parser.parse(d["creationTimestamp"])
+
+      now = datetime.datetime.now(create_time.tzinfo)
+
+      age = now - create_time
+      # TODO(jlewi): Using a max duration of 7 days is a bit of a hack.
+      # Certificates created for pre/postsubmits should be expired after
+      # a couple hours. But the auto-deployments e.g. kf-vmaster... should
+      # last for a couple of days. So we should really be looking at the
+      # host and adjusting the timeout. But the results in the certificates
+      # don't tell us what the hostname is. gcloud returns the host though
+      # so the information should be somewhere. Maybe we just need a newer
+      # version of the API?
+      name = d["name"]
+      if age > datetime.timedelta(days=7):
+        logging.info("Deleting certifcate: %s", d["name"])
+        is_expired = True
+        if not args.dryrun:
+          try:
+            certificates.delete(
+              project=args.project, sslCertificate=d["name"]).execute()
+          except Exception as e:  # pylint: disable=broad-except
+            logging.error("There was a problem deleting certifcate %s; "
+                          "error: %s", d["name"], e)
+        if is_expired:
+          expired.append(name)
+        else:
+          unexpired.append(name)
+
+    if not "nextPageToken" in results:
+      break
+
+    next_page_token = results["nextPageToken"]
+
+
+  logging.info("Unexpired certificates:\n%s", "\n".join(unexpired))
+  logging.info("expired certificates:\n%s", "\n".join(expired))
+  logging.info("Finished cleanup certificates")
+
 def cleanup_service_accounts(args):
   logging.info("Cleanup service accounts")
 
@@ -844,6 +900,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
 def cleanup_all(args):
   ops = [cleanup_deployments,
          cleanup_endpoints,
+         cleanup_certificates,
          cleanup_service_accounts,
          cleanup_service_account_bindings,
          cleanup_workflows,
@@ -985,6 +1042,13 @@ def main():
     "service_account_bindings", help="Cleanup service account bindings")
 
   parser_service_account.set_defaults(func=cleanup_service_account_bindings)
+
+  ######################################################
+  # Parser for certificates
+  parser_certificates = subparsers.add_parser(
+    "certificates", help="Cleanup certificates")
+
+  parser_certificates.set_defaults(func=cleanup_certificates)
 
   ######################################################
   # Parser for deployments
