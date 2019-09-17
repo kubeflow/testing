@@ -30,6 +30,7 @@ def py_test(test_case):  # pylint: disable=redefined-outer-name
   includes = ["*_test.py"]
   failed_files = []
 
+  num_tests = 0
   num_failed = 0
   for root, dirs, files in os.walk(args.src_dir, topdown=True):
     # excludes can be done with fnmatch.filter and complementary set,
@@ -38,6 +39,7 @@ def py_test(test_case):  # pylint: disable=redefined-outer-name
     for pat in includes:
       for f in fnmatch.filter(files, pat):
         full_path = os.path.join(root, f)
+        num_tests += 1
         try:
           util.run(["python", full_path], cwd=args.src_dir)
         except subprocess.CalledProcessError:
@@ -48,7 +50,7 @@ def py_test(test_case):  # pylint: disable=redefined-outer-name
     test_case.add_failure_info("{0} tests failed: {1}.".format(
       num_failed, ", ".join(failed_files)))
   else:
-    logging.info("No test issues.")
+    logging.info("Ran %s tests successfully.", num_tests)
 
 
 if __name__ == "__main__":

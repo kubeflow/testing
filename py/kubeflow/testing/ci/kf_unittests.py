@@ -51,11 +51,8 @@ TEMPLATE_LABEL = "kf_unittests"
 DEFAULT_TEMPLATE = {'activeDeadlineSeconds': 3000,
  'container': {'command': [],
   'env': [
-   # TODO(jlewi): We shouldn't need a GITHUB_TOKEN since we aren't using
-   # ksonnet anymore.
-   #{'name': 'GITHUB_TOKEN',
-   # 'valueFrom': {'secretKeyRef': {'key': 'github_token',
-   #   'name': 'github-token'}}},
+    {"name": "GOOGLE_APPLICATION_CREDENTIALS",
+     "value": "/secret/gcp-credentials/key.json"}
    ],
   'image': 'gcr.io/kubeflow-ci/test-worker:latest',
   'imagePullPolicy': 'Always',
@@ -87,7 +84,8 @@ DEFAULT_TEMPLATE = {'activeDeadlineSeconds': 3000,
 #TESTING_IMAGE = "gcr.io/kubeflow-ci/kubeflow-testing";
 
 
-def create_workflow(name=None, namespace=None, *kwargs):
+def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
+                    *kwargs):
   """Create workflow returns an Argo workflow to test kfctl upgrades.
 
   Args:
@@ -178,6 +176,8 @@ def create_workflow(name=None, namespace=None, *kwargs):
     branch = os.getenv("BRANCH_NAME", "HEAD")
     repos = "kubeflow/testing@{0}".format(branch)
 
+  #**************************************************************************
+  # Checkout
   checkout = argo_build_util.deep_copy(DEFAULT_TEMPLATE)
   checkout = argo_build_util.add_prow_env(checkout)
 
@@ -192,6 +192,73 @@ def create_workflow(name=None, namespace=None, *kwargs):
   checkout["metadata"]["labels"].update(prow_dict)
 
   argo_build_util.add_task_to_dag(workflow, e2e_dag_name, checkout, [])
+
+  #**************************************************************************
+  # Run python unittests
+  py_tests = argo_build_util.deep_copy(DEFAULT_TEMPLATE)
+  py_tests = argo_build_util.add_prow_env(py_tests)
+
+  py_tests["name"] = "py-test"
+  py_tests["container"]["command"] = ["python",
+                                      "-m",
+                                      "kubeflow.testing.test_py_checks",
+                                      "--artifacts_dir=" + artifacts_dir,
+                                      # TODO(jlewi): Should we be searching
+                                      # the entire py/kubeflo/testing tree?
+                                      "--src_dir=" + kubeflow_testing_py + "kubeflow/tests"]
+
+  py_tests["metadata"]["labels"] = {
+    'step_name': 'py-test',
+    "workflow": name,
+  }
+  py_tests["metadata"]["labels"].update(prow_dict)
+
+  argo_build_util.add_task_to_dag(workflow, e2e_dag_name, py_tests, [checkout["name"]])
+
+
+  #*****************************************************************************
+  # py lint
+  #****************************************************************************
+  py_lint = argo_build_util.deep_copy(DEFAULT_TEMPLATE)
+  py_lint = argo_build_util.add_prow_env(py_lint)
+
+  py_lint["name"] = "py-lint"
+  py_lint["container"]["command"] = ["python",
+                                     "-m",
+                                     "kubeflow.testing.test_py_lint",
+                                     "--artifacts_dir=" + artifacts_dir,
+                                     "--src_dir=" + kubeflow_testing_py,
+                                     ]
+  py_lint["metadata"]["labels"] = {
+    'step_name': py_lint["name"],
+    "workflow": name,
+  }
+  py_lint["metadata"]["labels"].update(prow_dict)
+
+  argo_build_util.add_task_to_dag(workflow, e2e_dag_name, py_lint, [checkout["name"]])
+
+  #*****************************************************************************
+  # create_pr_symlink
+  #****************************************************************************
+  # TODO(jlewi): run_e2e_workflow.py should probably create the PR symlink
+  symlink = argo_build_util.deep_copy(DEFAULT_TEMPLATE)
+  symlink = argo_build_util.add_prow_env(symlink)
+
+  symlink["name"] = "create-pr-symlink"
+  symlink["container"]["command"] = ["python",
+                                     "-m",
+                                     "kubeflow.testing.prow_artifacts",
+                                     "--artifacts_dir=" + output_dir,
+                                     "create_pr_symlink",
+                                     "--bucket=" + bucket,
+                                     ]
+  symlink["metadata"]["labels"] = {
+    'step_name': symlink["name"],
+    "workflow": name,
+  }
+  symlink["metadata"]["labels"].update(prow_dict)
+
+  argo_build_util.add_task_to_dag(workflow, e2e_dag_name, symlink, [checkout["name"]])
 
   return workflow
 

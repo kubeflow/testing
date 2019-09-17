@@ -83,11 +83,14 @@ def add_task_to_dag(workflow, dag_name, task, dependencies):
   if not dag["dag"].get("tasks"):
     dag["dag"]["tasks"] = []
 
-  dag["dag"]["tasks"].append(
-    {
-      "name": task["name"],
-      "template": task["name"],
-    }
-  )
+  new_task = {
+    "name": task["name"],
+    "template": task["name"],
+  }
+
+  if dependencies:
+    new_task["dependencies"] = dependencies
+
+  dag["dag"]["tasks"].append(new_task)
 
   workflow["spec"]["templates"].append(task)

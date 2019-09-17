@@ -19,5 +19,5 @@ workflows:
 
   # Run unittests 
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
-    name: pyfunctest
+    name: py-unittests
     kwargs: {}

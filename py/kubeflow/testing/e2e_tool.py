@@ -50,7 +50,7 @@ class E2EToolMain(object):
       namespace=namespace,
       plural='workflows',
       body=workflow)
-    logging.info("Created workflow: %s", py_func_result)
+    logging.info("Created workflow:\n%s", yaml.safe_dump(py_func_result))
 
     # TODO(jlewi): We are asumming the workflow is running in the Kubeflow CI
     # cluster. We should try to infer the correct endpoint by looking for an
