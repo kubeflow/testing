@@ -73,6 +73,7 @@ def get_namespace(args):
 
 # imports py_func
 def py_func_import(py_func, kwargs):
+  """Imports and executes the function py_func."""
   path, module = py_func.rsplit('.', 1)
   mod = importlib.import_module(path)
   met = getattr(mod, module)
@@ -300,17 +301,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       wf_result = py_func_import(w.py_func, w.kwargs)
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()
-      if "metadata" in wf_result:
-        if "generateName" in wf_result["metadata"]:
-          wf_result["metadata"].pop("generateName")
-        wf_result["metadata"]["name"] = workflow_name
+      workflow_name = wf_result["metadata"]["name"]
       py_func_result = k8s_co.create_namespaced_custom_object(
         group=group,
         version=version,
         namespace=get_namespace(args),
         plural='workflows',
         body=wf_result)
-      logging.info("py_func_result: %s", py_func_result)
+      logging.info("Created workflow: %s", py_func_result)
 
       ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))
