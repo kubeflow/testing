@@ -102,6 +102,21 @@ def get_prow_dict():
 
   return d
 
+def get_prow_labels():
+  """Return a dictionary of prow labels suitable for use as labels"""
+  # see https://github.com/kubernetes/test-infra/blob/70015225876afea36de3ce98f36fe1592e8c2e53/prow/jobs.md
+  prow_vars = ["JOB_NAME", "JOB_TYPE", "BUILD_ID", "PROW_JOB_ID",
+               "REPO_OWNER", "REPO_NAME", "PULL_NUMBER"]
+
+  d = {}
+  for v in prow_vars:
+    if not os.getenv(v):
+      continue
+
+    d[v] = os.getenv(v)
+
+  return d
+
 def add_prow_env(spec):
   """Copy any prow environment variables to the step.
 
@@ -120,6 +135,7 @@ def add_prow_env(spec):
     spec["container"]["env"].append({"name": k,
                                      "value": v})
 
+  for k, v in get_prow_labels():
     spec["metadata"]["labels"][k] = v
   return spec
 
@@ -191,7 +207,7 @@ def create_workflow(name=None, namespace=None, *kwargs):
     }
   )
 
-  prow_dict = get_prow_dict()
+  prow_dict = get_prow_labels()
 
   for k, v in prow_dict.items():
     workflow["metadata"]["labels"][k] = v
