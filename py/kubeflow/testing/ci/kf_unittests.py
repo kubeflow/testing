@@ -1,12 +1,10 @@
 """"Define the E2E workflows used to run unittests."""
 
 from kubeflow.testing import argo_build_util
-import fire
 import os
-import yaml
 
 # The name of the NFS volume claim to use for test files.
-NFS_VOLUME_CLAIM  = "nfs-external"
+NFS_VOLUME_CLAIM = "nfs-external"
 # The name to use for the volume to use to contain test data
 DATA_VOLUME = "kubeflow-test-volume"
 
@@ -18,7 +16,8 @@ WORKFLOW_TEMPLATE = {
   "metadata": {
   },
   "spec": {
-    # Have argo garbage collect old workflows otherwise we overload the API server.
+    # Have argo garbage collect old workflows otherwise we overload the API
+    # server.
     "ttlSecondsAfterFinished": 7 * 24 * 60 * 60,
     "volumes": [
       {
@@ -59,8 +58,7 @@ DEFAULT_TEMPLATE = {'activeDeadlineSeconds': 3000,
    'workflow_template': TEMPLATE_LABEL}},
  'outputs': {}}
 
-def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
-                    *kwargs):
+def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp"): # pylint: disable=too-many-statements
   """Create workflow returns an Argo workflow to test kfctl upgrades.
 
   Args:
@@ -81,7 +79,6 @@ def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
   workflow["spec"]["entrypoint"] = e2e_dag_name
 
   # Define the E2E dag
-  # TODO(jlewi): Need to add the on-exit dag.
   workflow["spec"]["templates"].extend([
     {
       "dag": {
@@ -105,22 +102,20 @@ def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
   #****************************************************************************
   # Define directory locations
   #****************************************************************************
-  #The name for the workspace to run the steps in
-  # local stepsNamespace = "kubeflow";
-
   # mount_path is the directory where the volume to store the test data
   # should be mounted.
   mount_path = "/mnt/" + "test-data-volume"
   # test_dir is the root directory for all data for a particular test run.
   test_dir = mount_path + "/" + name
-  # output_dir is the directory to sync to GCS to contain the output for this job.
-  output_dir = test_dir + "/output";
-  artifacts_dir = output_dir + "/artifacts";
-  # source directory where all repos should be checked out
-  src_root_dir = test_dir + "/src";
-  # The directory containing the kubeflow/kubeflow repo
-  src_dir = src_root_dir + "/kubeflow/kubeflow";
+  # output_dir is the directory to sync to GCS to contain the output for this
+  # job.
+  output_dir = test_dir + "/output"
+  artifacts_dir = output_dir + "/artifacts"
 
+  # source directory where all repos should be checked out
+  src_root_dir = test_dir + "/src"
+  # The directory containing the kubeflow/kubeflow repo
+  src_dir = src_root_dir + "/kubeflow/kubeflow"
 
   # Top level directories for python code
   kubeflow_py = src_dir
@@ -131,9 +126,6 @@ def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
 
   go_path = test_dir
 
-  # runPath = srcDir + "/testing/workflows/run.sh";
-  # kfCtlPath = srcDir + "/bootstrap/bin/kfctl";
-  # kubeConfig = test_dir + "/kfctl_test/.kube/kubeconfig";
   # Define common environment variables to be added to all steps
   common_env = [
     {'name': 'PYTHONPATH',
@@ -248,14 +240,13 @@ def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
   copy_artifacts = argo_build_util.add_prow_env(copy_artifacts)
 
   copy_artifacts["name"] = "copy-artifacts"
-  copy_artifacts["container"]["command"] = [ "python",
-                                             "-m",
-                                             "kubeflow.testing.prow_artifacts",
-                                             "--artifacts_dir=" + output_dir,
-                                             "copy_artifacts",
-                                             "--bucket=" + bucket,
-                                             "--suffix=fakesuffix",
-                                             ]
+  copy_artifacts["container"]["command"] = ["python",
+                                            "-m",
+                                            "kubeflow.testing.prow_artifacts",
+                                            "--artifacts_dir=" + output_dir,
+                                            "copy_artifacts",
+                                            "--bucket=" + bucket,
+                                            "--suffix=fakesuffix",]
   copy_artifacts["metadata"]["labels"] = {
     'step_name': copy_artifacts["name"],
     "workflow": name,
@@ -265,5 +256,3 @@ def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
   argo_build_util.add_task_to_dag(workflow, EXIT_DAG_NAME, copy_artifacts, [])
 
   return workflow
-
-
