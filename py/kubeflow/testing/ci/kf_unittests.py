@@ -10,23 +10,17 @@ NFS_VOLUME_CLAIM  = "nfs-external"
 # The name to use for the volume to use to contain test data
 DATA_VOLUME = "kubeflow-test-volume"
 
+EXIT_DAG_NAME = "exit-handler"
+
 WORKFLOW_TEMPLATE = {
   "apiVersion": "argoproj.io/v1alpha1",
   "kind": "Workflow",
   "metadata": {
   },
   "spec": {
-    #Have argo garbage collect old workflows otherwise we overload the API server.
+    # Have argo garbage collect old workflows otherwise we overload the API server.
     "ttlSecondsAfterFinished": 7 * 24 * 60 * 60,
     "volumes": [
-      # TODO(jlewi): We should be able to delete the github-token since
-      # we aren't using ksonnet anymore
-      #{
-      #  "name": "github-token",
-      #  "secret": {
-      #    "secretName": "github-token",
-      #  },
-      #},
       {
         "name": "gcp-credentials",
         "secret": {
@@ -40,8 +34,7 @@ WORKFLOW_TEMPLATE = {
         },
       },
     ],
-    # onExit specifies the template that should always run when the workflow completes.
-    #"onExit": "exit-handler",
+    "onExit": EXIT_DAG_NAME,
     "templates": [],
   },  # spec
 } # workflow
@@ -61,28 +54,10 @@ DEFAULT_TEMPLATE = {'activeDeadlineSeconds': 3000,
    'requests': {'cpu': '1', 'memory': '1536Mi'}},
   'volumeMounts': [{'mountPath': '/mnt/test-data-volume',
     'name': 'kubeflow-test-volume'},
-   # TODO(jlewi): Shouldn't need a GITHUB_TOKEN anymore since we aren't
-   # using ksonnet.
-   # {'mountPath': '/secret/github-token', 'name': 'github-token'},
    {'mountPath': '/secret/gcp-credentials', 'name': 'gcp-credentials'}]},
  'metadata': {'labels': {
    'workflow_template': TEMPLATE_LABEL}},
  'outputs': {}}
-
-#The name for the workspace to run the steps in
-# local stepsNamespace = "kubeflow";
-
-# runPath = srcDir + "/testing/workflows/run.sh";
-# kfCtlPath = srcDir + "/bootstrap/bin/kfctl";
-# kubeConfig = test_dir + "/kfctl_test/.kube/kubeconfig";
-
-# Directory containing the app. This is the directory
-# we execute kfctl commands from
-#APP_DIR = TEST_DIR + "/" + appName;
-
-#IMAGE = "gcr.io/kubeflow-ci/test-worker:latest";
-#TESTING_IMAGE = "gcr.io/kubeflow-ci/kubeflow-testing";
-
 
 def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
                     *kwargs):
@@ -107,14 +82,20 @@ def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
 
   # Define the E2E dag
   # TODO(jlewi): Need to add the on-exit dag.
-  workflow["spec"]["templates"].append(
+  workflow["spec"]["templates"].extend([
     {
       "dag": {
         "tasks": [],
       },
       "name": e2e_dag_name,
+    },
+    {
+      "dag": {
+        "tasks": [],
+      },
+      "name": EXIT_DAG_NAME,
     }
-  )
+  ])
 
   prow_dict = argo_build_util.get_prow_labels()
 
@@ -259,6 +240,29 @@ def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp",
   symlink["metadata"]["labels"].update(prow_dict)
 
   argo_build_util.add_task_to_dag(workflow, e2e_dag_name, symlink, [checkout["name"]])
+
+  #*****************************************************************************
+  # Exit handler workflow
+  #*****************************************************************************
+  copy_artifacts = argo_build_util.deep_copy(DEFAULT_TEMPLATE)
+  copy_artifacts = argo_build_util.add_prow_env(copy_artifacts)
+
+  copy_artifacts["name"] = "copy-artifacts"
+  copy_artifacts["container"]["command"] = [ "python",
+                                             "-m",
+                                             "kubeflow.testing.prow_artifacts",
+                                             "--artifacts_dir=" + output_dir,
+                                             "copy_artifacts",
+                                             "--bucket=" + bucket,
+                                             "--suffix=fakesuffix",
+                                             ]
+  copy_artifacts["metadata"]["labels"] = {
+    'step_name': copy_artifacts["name"],
+    "workflow": name,
+  }
+  copy_artifacts["metadata"]["labels"].update(prow_dict)
+
+  argo_build_util.add_task_to_dag(workflow, EXIT_DAG_NAME, copy_artifacts, [])
 
   return workflow
 
