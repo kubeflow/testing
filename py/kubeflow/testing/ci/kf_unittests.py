@@ -1,6 +1,6 @@
 """"Define the E2E workflows used to run unittests."""
 
-from kubeflow.testing import argo_client
+from kubeflow.testing import argo_build_util
 import fire
 import os
 import yaml
@@ -46,7 +46,6 @@ WORKFLOW_TEMPLATE = {
   },  # spec
 } # workflow
 
-
 TEMPLATE_LABEL = "kf_unittests"
 
 DEFAULT_TEMPLATE = {'activeDeadlineSeconds': 3000,
@@ -87,94 +86,6 @@ DEFAULT_TEMPLATE = {'activeDeadlineSeconds': 3000,
 #IMAGE = "gcr.io/kubeflow-ci/test-worker:latest";
 #TESTING_IMAGE = "gcr.io/kubeflow-ci/kubeflow-testing";
 
-def get_prow_dict():
-  # see https://github.com/kubernetes/test-infra/blob/70015225876afea36de3ce98f36fe1592e8c2e53/prow/jobs.md
-  prow_vars = ["JOB_NAME", "JOB_TYPE", "JOB_SPEC", "BUILD_ID", "PROW_JOB_ID",
-               "REPO_OWNER", "REPO_NAME", "PULL_BASE_REF", "PULL_REFS",
-               "PULL_NUMBER", "PULL_PULL_SHA"]
-
-  d = {}
-  for v in prow_vars:
-    if not os.getenv(v):
-      continue
-
-    d[v] = os.getenv(v)
-
-  return d
-
-def get_prow_labels():
-  """Return a dictionary of prow labels suitable for use as labels"""
-  # see https://github.com/kubernetes/test-infra/blob/70015225876afea36de3ce98f36fe1592e8c2e53/prow/jobs.md
-  prow_vars = ["JOB_NAME", "JOB_TYPE", "BUILD_ID", "PROW_JOB_ID",
-               "REPO_OWNER", "REPO_NAME", "PULL_NUMBER"]
-
-  d = {}
-  for v in prow_vars:
-    if not os.getenv(v):
-      continue
-
-    d[v] = os.getenv(v)
-
-  return d
-
-def add_prow_env(spec):
-  """Copy any prow environment variables to the step.
-
-  Args:
-    spec: Argo template spec
-
-  Returns:
-    spec: Updated spec
-  """
-
-  if not spec.get("container").get("env"):
-    spec["container"]["env"] = []
-
-  prow_dict = get_prow_dict()
-  for k, v in prow_dict.items():
-    spec["container"]["env"].append({"name": k,
-                                     "value": v})
-
-  for k, v in get_prow_labels():
-    spec["metadata"]["labels"][k] = v
-  return spec
-
-def deep_copy(d):
-  """Perform a deep copy of the supplied object"""
-  s = yaml.dump(d)
-  return yaml.load(s)
-
-def add_task_to_dag(workflow, dag_name, task, dependencies):
-  """Add a task to the specified workflow.
-
-  Args:
-    workflow: The workflow spec
-    dag_name: The name of the dag to add the step to
-    task: The task template
-    dependencies: A list of dependencies
-  """
-
-  dag = None
-  for t in workflow["spec"]["templates"]:
-    if "dag" not in t:
-      continue
-    if t["name"] == dag_name:
-      dag = t
-
-  if not dag:
-    raise ValueError("No dag named {0} found".format(dag_name))
-
-  if not dag["dag"].get("tasks"):
-    dag["dag"]["tasks"] = []
-
-  dag["dag"]["tasks"].append(
-    {
-      "name": task["name"],
-      "template": task["name"],
-    }
-  )
-
-  workflow["spec"]["templates"].append(task)
 
 def create_workflow(name=None, namespace=None, *kwargs):
   """Create workflow returns an Argo workflow to test kfctl upgrades.
@@ -207,7 +118,7 @@ def create_workflow(name=None, namespace=None, *kwargs):
     }
   )
 
-  prow_dict = get_prow_labels()
+  prow_dict = argo_build_util.get_prow_labels()
 
   for k, v in prow_dict.items():
     workflow["metadata"]["labels"][k] = v
@@ -266,8 +177,8 @@ def create_workflow(name=None, namespace=None, *kwargs):
     branch = os.getenv("BRANCH_NAME", "HEAD")
     repos = "kubeflow/testing@{0}".format(branch)
 
-  checkout = deep_copy(DEFAULT_TEMPLATE)
-  checkout = add_prow_env(checkout)
+  checkout = argo_build_util.deep_copy(DEFAULT_TEMPLATE)
+  checkout = argo_build_util.add_prow_env(checkout)
 
   checkout["name"] = "checkout"
   checkout["container"]["command"] = ["/usr/local/bin/checkout_repos.sh",
@@ -279,7 +190,7 @@ def create_workflow(name=None, namespace=None, *kwargs):
   }
   checkout["metadata"]["labels"].update(prow_dict)
 
-  add_task_to_dag(workflow, e2e_dag_name, checkout, [])
+  argo_build_util.add_task_to_dag(workflow, e2e_dag_name, checkout, [])
 
   return workflow
 
