@@ -51,7 +51,7 @@ def add_prow_env(spec):
     spec["container"]["env"].append({"name": k,
                                      "value": v})
 
-  for k, v in get_prow_labels():
+  for k, v in get_prow_labels().items():
     spec["metadata"]["labels"][k] = v
   return spec
 
