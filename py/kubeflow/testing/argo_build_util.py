@@ -4,7 +4,7 @@ import os
 import yaml
 
 def get_prow_dict():
-  # see https://github.com/kubernetes/test-infra/blob/70015225876afea36de3ce98f36fe1592e8c2e53/prow/jobs.md
+  # see https://github.com/kubernetes/test-infra/blob/70015225876afea36de3ce98f36fe1592e8c2e53/prow/jobs.md  # pylint: disable=line-too-long
   prow_vars = ["JOB_NAME", "JOB_TYPE", "JOB_SPEC", "BUILD_ID", "PROW_JOB_ID",
                "REPO_OWNER", "REPO_NAME", "PULL_BASE_REF", "PULL_REFS",
                "PULL_NUMBER", "PULL_PULL_SHA"]
@@ -20,7 +20,7 @@ def get_prow_dict():
 
 def get_prow_labels():
   """Return a dictionary of prow labels suitable for use as labels"""
-  # see https://github.com/kubernetes/test-infra/blob/70015225876afea36de3ce98f36fe1592e8c2e53/prow/jobs.md
+  # see https://github.com/kubernetes/test-infra/blob/70015225876afea36de3ce98f36fe1592e8c2e53/prow/jobs.md # pylint: disable=line-too-long
   prow_vars = ["JOB_NAME", "JOB_TYPE", "BUILD_ID", "PROW_JOB_ID",
                "REPO_OWNER", "REPO_NAME", "PULL_NUMBER"]
 

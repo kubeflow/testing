@@ -11,9 +11,9 @@ import yaml
 from kubeflow.testing import run_e2e_workflow
 from kubeflow.testing import util
 
-class E2EToolMain(object):
+class E2EToolMain(object): # pylint: disable=useless-object-inheritance
   """A helper class to add some convenient entry points."""
-  def show(self, py_func, name=None, namespace=None):
+  def show(self, py_func, name=None, namespace=None): # pylint: disable=no-self-use
     """Print out the workflow spec.
 
     Args:
@@ -27,7 +27,7 @@ class E2EToolMain(object):
 
     print(yaml.safe_dump(workflow))
 
-  def apply(self, py_func, name=None, namespace=None, open_in_chrome=False):
+  def apply(self, py_func, name=None, namespace=None, open_in_chrome=False): # pylint: disable=no-self-use
     """Create the workflow in the current cluster.
 
     Args:
