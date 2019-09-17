@@ -1,10 +1,6 @@
 # This file configures the workflows to trigger in our Prow jobs.
 # see kubeflow/testing/py/run_e2e_workflow.py
 workflows:
-  - app_dir: kubeflow/testing/workflows
-    component: workflows
-    name: unittests
-
   # Verifies the workflow is skipped because the test would fail since it
   # doesn't exist
   - app_dir: kubeflow/kubeflow/testing/lmnop
@@ -17,8 +13,7 @@ workflows:
     params:
       workflowName: skipmeplease
 
-  # Smoke test to verify that the workflow is actually triggered
+  # Run unittests 
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
-    name: pyfunctest
-    kwargs:
-     url: https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml
+    name: py-unittests
+    kwargs: {}
