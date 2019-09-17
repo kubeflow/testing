@@ -298,6 +298,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     else:
+      w.kwargs["name"] = workflow_name
+      w.kwargs["namespace"] = get_namespace(args)
       wf_result = py_func_import(w.py_func, w.kwargs)
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()
@@ -305,7 +307,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       py_func_result = k8s_co.create_namespaced_custom_object(
         group=group,
         version=version,
-        namespace=get_namespace(args),
+        namespace=wf_result["metadata"]["namespace"],
         plural='workflows',
         body=wf_result)
       logging.info("Created workflow: %s", py_func_result)
