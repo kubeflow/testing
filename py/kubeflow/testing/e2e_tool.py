@@ -27,7 +27,7 @@ class E2EToolMain(object):
 
     print(yaml.safe_dump(workflow))
 
-  def apply(self, py_func, name=None, namespace=None):
+  def apply(self, py_func, name=None, namespace=None, open_in_chrome=False):
     """Create the workflow in the current cluster.
 
     Args:
@@ -58,6 +58,9 @@ class E2EToolMain(object):
     ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
             "?tab=workflow".format(name))
     logging.info("URL for workflow: %s", ui_url)
+
+    if open_in_chrome:
+      util.run(["google-chrome", ui_url])
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,

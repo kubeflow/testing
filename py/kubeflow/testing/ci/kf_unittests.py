@@ -170,7 +170,8 @@ def create_workflow(name=None, namespace=None, *kwargs):
   # create the checkout step
   job_type = os.getenv("JOB_TYPE", "").lower()
   if  job_type == "presubmit":
-    repos = "kubeflow/testing@{0}:{1}".format(os.getenv("PULL_PULL_SHA"), os.getenv("PULL_NUMBER"))
+    repos = "kubeflow/testing@{0}:{1}".format(
+      os.getenv("PULL_PULL_SHA", "HEAD"), os.getenv("PULL_NUMBER"))
   elif job_type == "postsubmit":
     repos = "kubeflow/testing@{0}".format(os.getenv("PULL_BASE_SHA"))
   else:
