@@ -17,8 +17,7 @@ workflows:
     params:
       workflowName: skipmeplease
 
-  # Smoke test to verify that the workflow is actually triggered
+  # Run unittests 
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
     name: pyfunctest
-    kwargs:
-     url: https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml
+    kwargs: {}

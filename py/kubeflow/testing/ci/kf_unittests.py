@@ -47,7 +47,7 @@ WORKFLOW_TEMPLATE = {
 } # workflow
 
 
-TEMPLATE_LABEL = "kfctl_upgrade_e2e"
+TEMPLATE_LABEL = "kf_unittests"
 
 DEFAULT_TEMPLATE = {'activeDeadlineSeconds': 3000,
  'container': {'command': [],
