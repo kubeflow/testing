@@ -1,10 +1,6 @@
 # This file configures the workflows to trigger in our Prow jobs.
 # see kubeflow/testing/py/run_e2e_workflow.py
 workflows:
-  - app_dir: kubeflow/testing/workflows
-    component: workflows
-    name: unittests
-
   # Verifies the workflow is skipped because the test would fail since it
   # doesn't exist
   - app_dir: kubeflow/kubeflow/testing/lmnop
