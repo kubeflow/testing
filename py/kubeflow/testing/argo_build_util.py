@@ -94,3 +94,53 @@ def add_task_to_dag(workflow, dag_name, task, dependencies):
   dag["dag"]["tasks"].append(new_task)
 
   workflow["spec"]["templates"].append(task)
+
+
+def set_task_template_labels(workflow):
+  """Automatically set the labels on each step.
+
+  Args:
+   workflow: Workflow to set the labels.
+
+  Returns:
+   workflow: Workflow with labels set on all the steps.
+
+  Labels on template steps are set as follows
+    1. Labels on the workflow are copied to each step template
+    2. Each step gets added labels with the step_name and the workflow name
+  """
+
+  name = workflow["metadata"].get("name")
+  labels = workflow["metadata"].get("labels")
+
+  for t in workflow["spec"]["templates"]:
+    if not "container" in t:
+      continue
+
+    if not "metadata" in t:
+      t["metadata"] = {}
+
+    if not "labels" in t["metadata"]:
+      t["metadata"]["labels"] = {}
+
+    t["metadata"]["labels"].update(labels)
+    t["metadata"]["labels"]["step_name"] = t["name"]
+    t["metadata"]["labels"]["workflow"] = name
+
+
+  return workflow
+
+def add_dicts(dicts):
+  """Combine a list of dictionaries and return the results.
+  Args:
+    dicts: List of dicts
+
+  Returns:
+    d: Combined dict
+  """
+  n = {}
+
+  for d in dicts:
+    n.update(d)
+
+  return n
