@@ -6,6 +6,7 @@ by py_funcs.
 import fire
 import logging
 from kubernetes import client as k8s_client
+import retrying
 import yaml
 
 from kubeflow.testing import run_e2e_workflow
@@ -44,13 +45,30 @@ class E2EToolMain(object): # pylint: disable=useless-object-inheritance
     crd_api = k8s_client.CustomObjectsApi(client)
 
     group, version = workflow['apiVersion'].split('/')
+
     py_func_result = crd_api.create_namespaced_custom_object(
       group=group,
       version=version,
       namespace=namespace,
       plural='workflows',
       body=workflow)
-    logging.info("Created workflow:\n%s", yaml.safe_dump(py_func_result))
+
+    # Wait for a status to be returned and print out out
+    @retrying.retry
+    def get_wf_status():
+      result = crd_api.get_namespaced_custom_object(
+        group=group,
+        version=version,
+        namespace=namespace,
+        plural='workflows',
+        name=name)
+
+      if not "status" in result:
+        raise ValueError("Workflow object not ready yet.")
+      return result
+
+    result = get_wf_status()
+    logging.info("Created workflow:\n%s", yaml.safe_dump(result))
 
     # TODO(jlewi): We are asumming the workflow is running in the Kubeflow CI
     # cluster. We should try to infer the correct endpoint by looking for an
