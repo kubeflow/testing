@@ -144,3 +144,31 @@ def add_dicts(dicts):
     n.update(d)
 
   return n
+
+def get_repo_from_prow_env():
+  """Returns the repo spec based on prow_env
+
+  Args:
+    repo: A string of the form ${REPO_OWNER}/${REPO_NAME}@HEAD:{PULLNUMBER} or
+      ${REPO_OWNER}/${REPO_NAME}@branch. The value is based on prow env.
+      Returns None if prow environment variables aren't set.
+      The returned string is compatible with checkout_repo.sh
+  """
+  # see https://github.com/kubernetes/test-infra/blob/70015225876afea36de3ce98f36fe1592e8c2e53/prow/jobs.md  # pylint: disable=line-too-long
+  if not os.getenv("REPO_OWNER") or not os.getenv("REPO_NAME"):
+    return None
+
+  repo_owner = os.getenv("REPO_OWNER")
+  repo_name = os.getenv("REPO_NAME")
+
+  job_type = os.getenv("JOB_TYPE", "").lower()
+  if  job_type == "presubmit":
+    version = "{0}:{1}".format(
+      os.getenv("PULL_PULL_SHA", "HEAD"), os.getenv("PULL_NUMBER"))
+  elif job_type == "postsubmit":
+    version = "01}".format(os.getenv("PULL_BASE_SHA"))
+  else:
+    branch = os.getenv("BRANCH_NAME", "HEAD")
+    version = "{0}".format(branch)
+
+  return "{0}/{1}@{2}".format(repo_owner, repo_name, version)

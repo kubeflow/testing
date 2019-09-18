@@ -143,21 +143,12 @@ class Builder:
     # Checkout
 
     # create the checkout step
-    job_type = os.getenv("JOB_TYPE", "").lower()
-    if  job_type == "presubmit":
-      repos = "kubeflow/testing@{0}:{1}".format(
-        os.getenv("PULL_PULL_SHA", "HEAD"), os.getenv("PULL_NUMBER"))
-    elif job_type == "postsubmit":
-      repos = "kubeflow/testing@{0}".format(os.getenv("PULL_BASE_SHA"))
-    else:
-      branch = os.getenv("BRANCH_NAME", "HEAD")
-      repos = "kubeflow/testing@{0}".format(branch)
-
+    repos = [argo_build_util.get_repo_from_prow_env()]
     checkout = argo_build_util.deep_copy(task_template)
 
     checkout["name"] = "checkout"
     checkout["container"]["command"] = ["/usr/local/bin/checkout_repos.sh",
-                                        "--repos=" + repos,
+                                        "--repos=" + ",".join(repos),
                                         "--src_dir=" + self.src_root_dir]
 
     argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, checkout, [])
