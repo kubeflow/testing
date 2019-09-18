@@ -1,6 +1,7 @@
 """"Define the E2E workflows used to run unittests."""
 
 from kubeflow.testing import argo_build_util
+import logging
 import os
 
 # The name of the NFS volume claim to use for test files.
@@ -143,7 +144,13 @@ class Builder:
     # Checkout
 
     # create the checkout step
-    repos = [argo_build_util.get_repo_from_prow_env()]
+    main_repo = argo_build_util.get_repo_from_prow_env()
+    if not main_repo:
+      logging.info("Prow environment variables for repo not set")
+      main_repo = "kubeflow/testing@HEAD"
+    logging.info("Main repository: %s", main_repo)
+    repos = [main_repo]
+
     checkout = argo_build_util.deep_copy(task_template)
 
     checkout["name"] = "checkout"
