@@ -60,8 +60,41 @@ def deep_copy(d):
   s = yaml.dump(d)
   return yaml.load(s)
 
+def add_task_only_to_dag(workflow, dag_name, task_name, template_name,
+                         dependencies):
+  """Add a task but do not create a template in the dag.
+
+  Args:
+    workflow: The Argo workflow.
+    dag_name: The name of the dag.
+    task_name: Name to give the task
+    template_name: Name of the template to use
+  """
+  dag = None
+  for t in workflow["spec"]["templates"]:
+    if "dag" not in t:
+      continue
+    if t["name"] == dag_name:
+      dag = t
+
+  if not dag:
+    raise ValueError("No dag named {0} found".format(dag_name))
+
+  if not dag["dag"].get("tasks"):
+    dag["dag"]["tasks"] = []
+
+  new_task = {
+    "name": task_name,
+    "template": template_name,
+  }
+
+  if dependencies:
+    new_task["dependencies"] = dependencies
+
 def add_task_to_dag(workflow, dag_name, task, dependencies):
   """Add a task to the specified workflow.
+
+  Create a template and a task referencing that template.
 
   Args:
     workflow: The workflow spec
@@ -166,7 +199,7 @@ def get_repo_from_prow_env():
     version = "{0}:{1}".format(
       os.getenv("PULL_PULL_SHA", "HEAD"), os.getenv("PULL_NUMBER"))
   elif job_type == "postsubmit":
-    version = "01}".format(os.getenv("PULL_BASE_SHA"))
+    version = "{0}".format(os.getenv("PULL_BASE_SHA"))
   else:
     branch = os.getenv("BRANCH_NAME", "HEAD")
     version = "{0}".format(branch)

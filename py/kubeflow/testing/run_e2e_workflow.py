@@ -9,6 +9,13 @@ The script can take a config file via --config_file.
 The --config_file is expected to be a YAML file as follows:
 
 workflows:
+  - name: workflow-test
+    job_types:
+      presubmit
+    py_func: my_test_package.my_test_module.my_test_workflow
+    kwargs:
+        arg1: argument
+
   - name: e2e-test
     app_dir: tensorflow/k8s/test/workflows
     component: workflows
@@ -17,15 +24,15 @@ workflows:
     include_dirs:
       tensorflow/*
 
-  - name: workflow-test
-    job_types:
-      presubmit
-    py_func: my_test_package.my_test_module.my_test_workflow
-    kwargs:
-        arg1: argument
+python_paths:
+ - ${REPO_OWNER}/${REPO_NAME}/some/path
 
 app_dir is expected to be in the form ofx
 {REPO_OWNER}/{REPO_NAME}/path/to/ksonnet/app
+
+python paths is a list of paths to add to the python path; typically
+you will list the path to the directory containing the top level package
+for the py_func to generate the test for your workflow.
 
 component is the name of the ksonnet component corresponding
 to the workflow to launch.
@@ -103,12 +110,12 @@ def create_started_file(bucket, ui_urls):
 
 def parse_config_file(config_file, root_dir):
   with open(config_file) as hf:
-    results = yaml.load(hf)
+    config = yaml.load(hf)
 
   components = []
-  for i in results["workflows"]:
+  for i in config["workflows"]:
     components.append(WorkflowComponent(root_dir, i))
-  return components
+  return config, components
 
 def generate_env_from_head(args):
   commit = util.run(["git", "rev-parse", "HEAD"], cwd=os.path.join(
@@ -177,8 +184,16 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   if args.release:
     generate_env_from_head(args)
   workflows = []
+  config = {}
   if args.config_file:
-    workflows.extend(parse_config_file(args.config_file, args.repos_dir))
+    config, new_workflows = parse_config_file(args.config_file, args.repos_dir)
+    workflows.extend(new_workflows)
+
+  # Add any paths to the python path
+  for p in config.get(workflows["python_paths"], []):
+    path = os.path.join(args.repos_dir, p)
+    logging.info("Adding path %s to python path", path)
+    sys.path.append(p)
 
   # Create an initial version of the file with no urls
   create_started_file(args.bucket, {})
