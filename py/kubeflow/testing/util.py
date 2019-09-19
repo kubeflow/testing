@@ -595,6 +595,7 @@ def load_kube_config(config_file=None,
                      client_configuration=None,
                      persist_config=True,
                      get_google_credentials=_refresh_credentials,
+                     print_config=True,
                      **kwargs):
   """Loads authentication and cluster information from kube-config file
   and stores them in kubernetes.client.configuration.
@@ -635,7 +636,9 @@ def load_kube_config(config_file=None,
   else:
     loader.load_and_set(client_configuration) # pylint: disable=too-many-function-args
   # Dump the loaded config.
-  run(["kubectl", "config", "view"])
+
+  if print_config:
+    run(["kubectl", "config", "view"])
 
 
 def maybe_activate_service_account():
