@@ -28,16 +28,25 @@ class E2EToolMain(object): # pylint: disable=useless-object-inheritance
 
     print(yaml.safe_dump(workflow))
 
-  def apply(self, py_func, name=None, namespace=None, open_in_chrome=False): # pylint: disable=no-self-use
+  def apply(self, py_func, name=None, namespace=None,
+            dry_run=False,
+            open_in_chrome=False, **kwargs): # pylint: disable=no-self-use
     """Create the workflow in the current cluster.
 
     Args:
       py_func: Dotted name of the function defining the workflow
+      name: Name for the workflow
+      namespace: Namespace to run.
+      dry_run: If true modifies the graph to change the command
+        to echo the command and delete any working directory
+        rather than actually running it.
+        This is a quick way to check that the Argo graph is valid.
+        Note: This isn't full proof. We also need to
+      open_in_chrome: Whether to shell out to chrome to open the
+        Argo UI.
+      kwargs: Additional args to pass to the python import function
     """
-    kwargs = {
-      "name": name,
-      "namespace": namespace,
-    }
+    kwargs.update({ "name": name, "namespace": namespace})
     workflow = run_e2e_workflow.py_func_import(py_func, kwargs)
 
     util.load_kube_config(print_config=False)
@@ -45,6 +54,37 @@ class E2EToolMain(object): # pylint: disable=useless-object-inheritance
     crd_api = k8s_client.CustomObjectsApi(client)
 
     group, version = workflow['apiVersion'].split('/')
+
+    if dry_run:
+      logging.warn("Running in dry-run mode. command and workingDir is "
+                   "being changed for all steps")
+
+      for t in workflow["spec"]["templates"]:
+        if not "container" in t:
+          continue
+
+        c = t["container"]
+        working_dir = ""
+
+        # Remove the working directory because working directory
+        # might not exist if its created by an earlier step
+        if "workingDir" in c:
+          working_dir = c["workingDir"]
+          del c["workingDir"]
+
+        command = c["command"]
+        command = " ".join(command)
+        command = "Step will run {0}".format(command)
+        if working_dir:
+          command = "{0} in {1}".format(command, working_dir)
+
+        command = [
+          "echo",
+          "\"{0}\"".format(command)
+        ]
+
+        # Change the command to an echo.
+        c["command"] = command
 
     py_func_result = crd_api.create_namespaced_custom_object(
       group=group,

@@ -88,9 +88,17 @@ def add_task_only_to_dag(workflow, dag_name, task_name, template_name,
     "template": template_name,
   }
 
+  dag["dag"]["tasks"].append(new_task)
   if dependencies:
     new_task["dependencies"] = dependencies
 
+# TODO(jlewi): We should rename this function to something that
+# better captures the fact that we are adding a task and template
+# simultaneously. Maybe just add_template_to_dag?
+# templates aren't stored in dag so arguable that implies that we
+# are also creating a step in the dag. Should we also have methods
+# add_task_to_dag and add_template and then this would just be a wrapper
+# around those two methods?
 def add_task_to_dag(workflow, dag_name, task, dependencies):
   """Add a task to the specified workflow.
 
