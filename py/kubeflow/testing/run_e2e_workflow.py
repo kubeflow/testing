@@ -190,7 +190,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     workflows.extend(new_workflows)
 
   # Add any paths to the python path
-  for p in config.get(workflows["python_paths"], []):
+  for p in config.get("python_paths", []):
     path = os.path.join(args.repos_dir, p)
     logging.info("Adding path %s to python path", path)
     sys.path.append(p)
