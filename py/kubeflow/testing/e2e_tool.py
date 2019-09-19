@@ -9,6 +9,7 @@ from kubernetes import client as k8s_client
 import retrying
 import yaml
 
+from kubeflow.testing import argo_build_util
 from kubeflow.testing import run_e2e_workflow
 from kubeflow.testing import util
 
@@ -28,9 +29,9 @@ class E2EToolMain(object): # pylint: disable=useless-object-inheritance
 
     print(yaml.safe_dump(workflow))
 
-  def apply(self, py_func, name=None, namespace=None,
+  def apply(self, py_func, name=None, namespace=None, # pylint: disable=no-self-use
             dry_run=False,
-            open_in_chrome=False, **kwargs): # pylint: disable=no-self-use
+            open_in_chrome=False, **kwargs):
     """Create the workflow in the current cluster.
 
     Args:
@@ -46,7 +47,7 @@ class E2EToolMain(object): # pylint: disable=useless-object-inheritance
         Argo UI.
       kwargs: Additional args to pass to the python import function
     """
-    kwargs.update({ "name": name, "namespace": namespace})
+    kwargs.update({"name": name, "namespace": namespace})
     workflow = run_e2e_workflow.py_func_import(py_func, kwargs)
 
     util.load_kube_config(print_config=False)
@@ -56,8 +57,8 @@ class E2EToolMain(object): # pylint: disable=useless-object-inheritance
     group, version = workflow['apiVersion'].split('/')
 
     if dry_run:
-      logging.warn("Running in dry-run mode. command and workingDir is "
-                   "being changed for all steps")
+      logging.warning("Running in dry-run mode. command and workingDir is "
+                      "being changed for all steps")
 
       for t in workflow["spec"]["templates"]:
         if not "container" in t:
@@ -86,7 +87,7 @@ class E2EToolMain(object): # pylint: disable=useless-object-inheritance
         # Change the command to an echo.
         c["command"] = command
 
-    py_func_result = crd_api.create_namespaced_custom_object(
+    crd_api.create_namespaced_custom_object(
       group=group,
       version=version,
       namespace=namespace,
@@ -119,6 +120,23 @@ class E2EToolMain(object): # pylint: disable=useless-object-inheritance
 
     if open_in_chrome:
       util.run(["google-chrome", ui_url])
+
+  def step_logs(self, workflow, step, project="kubeflow-ci", # pylint: disable=no-self-use
+                open_in_chrome=False):
+    """Get a stackdriver link to the logs for a particular step.
+
+    Args:
+      workflow: Name of the workflow
+      step: The name of the step to get the logs for
+    """
+    url = argo_build_util.logs_link_for_step(workflow, step, project=project)
+
+    print("URL for workflow {0} step {1} in project {2}".format(
+      workflow, step, project))
+    print(url)
+
+    if open_in_chrome:
+      util.run(["google-chrome", url])
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,

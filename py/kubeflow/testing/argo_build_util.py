@@ -1,7 +1,13 @@
 """Utilities for building argo workflows in python."""
 
+import six
 import os
 import yaml
+
+if six.PY3:
+  from urllib.parse import urlencode
+else:
+  import urllib
 
 def get_prow_dict():
   # see https://github.com/kubernetes/test-infra/blob/70015225876afea36de3ce98f36fe1592e8c2e53/prow/jobs.md  # pylint: disable=line-too-long
@@ -138,7 +144,7 @@ def add_task_to_dag(workflow, dag_name, task, dependencies):
 
 
 def set_task_template_labels(workflow):
-  """Automatically set the labels on each step.
+  """Automatically set the labels and annotations on each step.
 
   Args:
    workflow: Workflow to set the labels.
@@ -149,6 +155,9 @@ def set_task_template_labels(workflow):
   Labels on template steps are set as follows
     1. Labels on the workflow are copied to each step template
     2. Each step gets added labels with the step_name and the workflow name
+
+  Annotations are set on each step as follows
+    1. Add a link to stackdriver for each step
   """
 
   name = workflow["metadata"].get("name")
@@ -164,10 +173,15 @@ def set_task_template_labels(workflow):
     if not "labels" in t["metadata"]:
       t["metadata"]["labels"] = {}
 
+    if not "annotations" in t["metadata"]:
+      t["metadata"]["annotations"] = {}
+
+    # Store in the annotations a stackdriver link for the step.
+    t["metadata"]["annotations"]["kubeflow.org/logs"] = logs_link_for_step(
+      name, t["name"])
     t["metadata"]["labels"].update(labels)
     t["metadata"]["labels"]["step_name"] = t["name"]
     t["metadata"]["labels"]["workflow"] = name
-
 
   return workflow
 
@@ -213,3 +227,31 @@ def get_repo_from_prow_env():
     version = "{0}".format(branch)
 
   return "{0}/{1}@{2}".format(repo_owner, repo_name, version)
+
+def logs_link_for_step(workflow, step, project="kubeflow-ci"):
+  """Return the stackdriver link for the specified step in the workflow.
+
+  Args:
+    workflow: Name of the workflwo
+    step: Name of the step
+    project: Project the wokflow ran in.
+  """
+  logs_filter = """resource.type="k8s_container"
+metadata.userLabels.step_name="{step}"
+metadata.userLabels."workflows.argoproj.io/workflow"="{workflow}"
+resource.labels.container_name="main"\n""".format(workflow=workflow, step=step)
+
+  new_params = {'project': project,
+               # Logs for last 7 days
+               'interval': 'P7D',
+               'advancedFilter': logs_filter}
+
+
+  if six.PY3:
+    query = urlencode(new_params)
+  else:
+    query = urllib.urlencode(new_params)
+
+  url = "https://console.cloud.google.com/logs/viewer?" + query
+
+  return url

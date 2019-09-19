@@ -1,17 +1,21 @@
 """Some utility functions for working with TfJobs."""
 
 import datetime
-import httplib
 import json
 import logging
 import six
 import time
 
-from kubernetes import client as k8s_client
-from kubernetes.client import rest
-from retrying import retry
+if six.PY3:
+  import http
+else:
+  import httplib
 
-from kubeflow.testing import util
+from kubernetes import client as k8s_client # pylint: disable=wrong-import-position
+from kubernetes.client import rest # pylint: disable=wrong-import-position
+from retrying import retry # pylint: disable=wrong-import-position
+
+from kubeflow.testing import util # pylint: disable=wrong-import-position
 
 GROUP = "argoproj.io"
 VERSION = "v1alpha1"
@@ -55,7 +59,14 @@ def handle_retriable_exception(exception):
     # refresh credentials
     logging.info("ApiException code=%s", code)
     # TODO(jlewi): In python3 we can switch to using http.HttpStatusCode
-    if code in [httplib.UNAUTHORIZED, httplib.FORBIDDEN, httplib.GATEWAY_TIMEOUT]:
+    codes = []
+    if six.PY3:
+      codes = [http.HTTPStatus.UNAUTHORIZED,
+               http.HTTPStatus.FORBIDDEN,
+               http.HTTPStatus.GATEWAY_TIMEOUT]
+    else:
+      codes = [httplib.UNAUTHORIZED, httplib.FORBIDDEN, httplib.GATEWAY_TIMEOUT]
+    if code in codes:
       # Due to https://github.com/kubernetes-client/python-base/issues/59,
       # we need to reload the kube config (which refreshes the GCP token).
       # TODO(richardsliu): Remove this workaround when the k8s client issue
