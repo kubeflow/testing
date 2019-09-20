@@ -81,9 +81,10 @@ def get_namespace(args):
 # imports py_func
 def py_func_import(py_func, kwargs):
   """Imports and executes the function py_func."""
-  path, module = py_func.rsplit('.', 1)
+  path, create_function = py_func.rsplit('.', 1)
+  logging.info("Importing path %s", path)
   mod = importlib.import_module(path)
-  met = getattr(mod, module)
+  met = getattr(mod, create_function)
   return met(**kwargs)
 
 class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
@@ -190,10 +191,17 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     workflows.extend(new_workflows)
 
   # Add any paths to the python path
+  extra_py_paths = []
   for p in config.get("python_paths", []):
     path = os.path.join(args.repos_dir, p)
-    logging.info("Adding path %s to python path", path)
-    sys.path.append(p)
+    extra_py_paths.append(path)
+
+  kf_test_path = os.path.join(args.repos_dir, "kubeflow/testing/py")
+  if not kf_test_path in extra_py_paths:
+    logging.info("Adding %s to extra python paths", kf_test_path)
+    extra_py_paths.append(kf_test_path)
+
+  logging.info("Extra python paths: %s", ":".join(extra_py_paths))
 
   # Create an initial version of the file with no urls
   create_started_file(args.bucket, {})
@@ -241,14 +249,19 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       continue
 
     if job_type == "presubmit":
-      workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
-      workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
+      # When not running under prow we might not set all environment variables
+      if os.getenv("PULL_NUMBER"):
+        workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
+      if os.getenv("PULL_PULL_SHA"):
+        workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
 
     elif job_type == "postsubmit":
-      workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA")[0:7])
+      if os.getenv("PULL_BASE_SHA"):
+        workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA")[0:7])
 
     # Append the last 4 digits of the build number
-    workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER")[-4:])
+    if os.getenv("BUILD_NUMBER"):
+      workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER")[-4:])
 
     salt = uuid.uuid4().hex[0:4]
     # Add some salt. This is mostly a convenience for the case where you
@@ -315,7 +328,31 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
-      wf_result = py_func_import(w.py_func, w.kwargs)
+
+      # TODO(https://github.com/kubeflow/testing/issues/467): We shell out
+      # to e2e_tool in order to dumpy the Argo workflow to a file which then
+      # reimport. We do this because importing the py_func module appears
+      # to break when we have to dynamically adjust sys.path to insert
+      # new paths. Setting PYTHONPATH before launching python however appears
+      # to work which is why we shell out to e2e_tool.
+      command = ["python", "-m", "kubeflow.testing.e2e_tool", "show",
+                 w.py_func]
+      for k, v in w.kwargs.items():
+        # The fire module turns underscores in parameter names into hyphens
+        # so we convert underscores in parameter names to hyphens
+        command.append("--{0}={1}".format(k.replace("_", "-"), v))
+
+      with tempfile.NamedTemporaryFile(delete=False) as hf:
+        workflow_file = hf.name
+
+      command.append("--output=" + hf.name)
+      env = os.environ.copy()
+      env["PYTHONPATH"] = ":".join(extra_py_paths)
+      util.run(command, env=env)
+
+      with open(workflow_file) as hf:
+        wf_result = yaml.load(hf)
+
       group, version = wf_result['apiVersion'].split('/')
       k8s_co = k8s_client.CustomObjectsApi()
       workflow_name = wf_result["metadata"]["name"]
@@ -325,7 +362,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         namespace=wf_result["metadata"]["namespace"],
         plural='workflows',
         body=wf_result)
-      logging.info("Created workflow: %s", py_func_result)
+      logging.info("Created workflow:\n%s", yaml.safe_dump(py_func_result))
 
       ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))
