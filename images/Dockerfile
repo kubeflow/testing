@@ -132,7 +132,7 @@ RUN wget -O /usr/local/bin/kustomize \
 
 # Install stable version of kfctl
 RUN wget -O /usr/local/bin/kfctl \
-    https://github.com/kkasravi/kfctl/releases/download/8535711/kfctl && \
+    https://github.com/kkasravi/kfctl/releases/download/25adb9b/kfctl && \
     chmod a+x /usr/local/bin/kfctl
 RUN mkdir /kubeflow
 
