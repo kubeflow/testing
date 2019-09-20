@@ -45,10 +45,10 @@ spec:
             - --bucket=kubeflow-ci_temp
             - --config_file=/src/kubeflow/kubeflow/prow_config.yaml
             - --repos_dir=/src
-          #command:
-          #  - tail
-          #  - -f
-          #  - /dev/null
+          command:
+            - tail
+            - -f
+            - /dev/null
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
