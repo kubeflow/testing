@@ -15,19 +15,23 @@ from kubeflow.testing import util
 
 class E2EToolMain(object): # pylint: disable=useless-object-inheritance
   """A helper class to add some convenient entry points."""
-  def show(self, py_func, name=None, namespace=None): # pylint: disable=no-self-use
+
+  def show(self, py_func, name=None, namespace=None, output=None,
+           **kwargs): # pylint: disable=no-self-use
     """Print out the workflow spec.
 
     Args:
       py_func: Dotted name of the function defining the workflow
     """
-    kwargs = {
-      "name": name,
-      "namespace": namespace,
-    }
+    kwargs.update({ "name": name, "namespace": namespace, })
     workflow = run_e2e_workflow.py_func_import(py_func, kwargs)
 
-    print(yaml.safe_dump(workflow))
+    if output:
+      logging.info("Dumping workflow to %s", output)
+      with open(output, "w") as hf:
+        hf.write(yaml.safe_dump(workflow))
+    else:
+      print(yaml.safe_dump(workflow))
 
   def apply(self, py_func, name=None, namespace=None, # pylint: disable=no-self-use
             dry_run=False,
