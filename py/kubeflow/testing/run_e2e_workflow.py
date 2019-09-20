@@ -241,14 +241,19 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       continue
 
     if job_type == "presubmit":
-      workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
-      workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
+      # When not running under prow we might not set all environment variables
+      if os.getenv("PULL_NUMBER"):
+        workflow_name += "-{0}".format(os.getenv("PULL_NUMBER"))
+      if os.getenv("PULL_PULL_SHA"):
+        workflow_name += "-{0}".format(os.getenv("PULL_PULL_SHA")[0:7])
 
     elif job_type == "postsubmit":
-      workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA")[0:7])
+      if os.getenv("PULL_BASE_SHA"):
+        workflow_name += "-{0}".format(os.getenv("PULL_BASE_SHA")[0:7])
 
     # Append the last 4 digits of the build number
-    workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER")[-4:])
+    if os.getenv("BUILD_NUMBER"):
+      workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER")[-4:])
 
     salt = uuid.uuid4().hex[0:4]
     # Add some salt. This is mostly a convenience for the case where you

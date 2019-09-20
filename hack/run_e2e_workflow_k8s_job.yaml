@@ -1,0 +1,85 @@
+# A Sample K8s job for running run_e2e_workflow.py
+#
+# This is useful for debugging/testing run_e2e_workflow.py during development.
+# The job is intended to simulate what runs in our prow job.
+# https://github.com/kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-presubmits.yaml
+# Using a K8s job gives us more control over what we run. For example
+# we can use EXTRA_REPOS to check out a PR of kubeflow/testing to checks changes to run_e2e_workflow.py
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: run-e2e-workflow
+  namespace: kubeflow-test-infra
+  labels:
+    app: rune-e2e-workflow
+spec:
+  template:
+    spec:
+      initContainers:
+        # This init container checks out the source code.
+        - command:
+          - /usr/local/bin/checkout_repos.sh
+          # TODO(jlewi): Why are we checkout out fairing?
+          # TODO(jlewi): Stop checking out PR for kubeflow/kubeflow once its merged
+          #- --repos=kubeflow/kubeflow@HEAD:3958,kubeflow/fairing@HEAD,kubeflow/testing@HEAD,kubeflow/manifests@HEAD
+          - --repos=kubeflow/testing@HEAD,kubeflow/kubeflow@HEAD:4148
+          - --src_dir=/src
+          # Don't do a shallow clone because we need to compute when files were modified and shallow clones prevent pushing
+          # branches.
+          - --depth=all
+          name: checkout
+          image: gcr.io/kubeflow-ci/test-worker:latest
+          volumeMounts:
+          - mountPath: /src
+            name: src
+      containers:
+        - name: test-worker
+          image: gcr.io/kubeflow-ci/test-worker:latest
+          command:
+            - python 
+            - -m kubeflow.testing.run_e2e_workflow
+            - --project=kubeflow-ci
+            - --zone=us-east1-d
+            - --cluster=kubeflow-testing
+            - --bucket=kubeflow-ci_temp
+            - --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml
+            - --repos_dir=/src
+          command:
+            - tail
+            - -f
+            - /dev/null
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /secret/gcp-credentials/key.json
+            - name: PYTHONPATH
+              value: /src/kubeflow/testing/py
+            # Set prow environment variables as desired
+            # Current values are set to test kubeflow/kubeflow #4148
+            - name: JOB_NAME
+              value: lewi-test
+            - name: JOB_TYPE
+              value: presubmit
+            - name: BUILD_ID
+              value: "1234"  
+            - name: PROW_JOB_ID
+              value: "jlewi-prow-job"
+            - name: REPO_OWNER
+              value: kubeflow
+            - name: REPO_NAME
+              value: kubeflow
+            - name: PULL_BASE_REF
+              value: master
+            - name: PULL_NUMBER
+              value: "4148"
+          volumeMounts:
+          - mountPath: /src
+            name: src
+          - mountPath: /secret/gcp-credentials
+            name: gcp-credentials          
+      volumes:
+      - name: src
+        emptyDir: {}
+      - name: gcp-credentials
+        secret:
+          secretName: gcp-credentials
+      restartPolicy: Never
