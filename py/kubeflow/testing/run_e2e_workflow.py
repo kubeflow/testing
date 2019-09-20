@@ -83,7 +83,7 @@ def py_func_import(py_func, kwargs):
   """Imports and executes the function py_func."""
   path, create_function = py_func.rsplit('.', 1)
   logging.info("Importing path %s", path)
-  create_function = importlib.import_module(path)
+  mod = importlib.import_module(path)
   met = getattr(mod, create_function)
   return met(**kwargs)
 

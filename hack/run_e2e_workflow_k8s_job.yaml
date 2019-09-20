@@ -32,6 +32,18 @@ spec:
           volumeMounts:
           - mountPath: /src
             name: src
+        - command:
+          - cp
+          # TODO(jlewi): Why are we checkout out fairing?
+          # TODO(jlewi): Stop checking out PR for kubeflow/kubeflow once its merged
+          #- --repos=kubeflow/kubeflow@HEAD:3958,kubeflow/fairing@HEAD,kubeflow/testing@HEAD,kubeflow/manifests@HEAD
+          - /src/kubeflow/testing/py/kubeflow/testing/run_e2e_workflow.py
+          - /src/run_e2e_workflow.py
+          name: link
+          image: gcr.io/kubeflow-ci/test-worker:latest
+          volumeMounts:
+          - mountPath: /src
+            name: src
       containers:
         - name: test-worker
           image: gcr.io/kubeflow-ci/test-worker:latest
@@ -39,21 +51,23 @@ spec:
             - python 
             - -m 
             - kubeflow.testing.run_e2e_workflow
+            #- /src/run_e2e_workflow.py
             - --project=kubeflow-ci
             - --zone=us-east1-d
             - --cluster=kubeflow-testing
             - --bucket=kubeflow-ci_temp
             - --config_file=/src/kubeflow/kubeflow/prow_config.yaml
             - --repos_dir=/src
-          command:
-            - tail
-            - -f
-            - /dev/null
+          
+          #command:
+          #  - tail
+          #  - -f
+          #  - /dev/null
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
             - name: PYTHONPATH
-              value: /src/kubeflow/testing/py
+              value: /src/kubeflow/testing/py:/src/kubeflow/kubeflow/py
             # Set prow environment variables as desired
             # Current values are set to test kubeflow/kubeflow #4148
             - name: JOB_NAME
