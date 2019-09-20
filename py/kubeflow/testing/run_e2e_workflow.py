@@ -330,8 +330,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
-      wf_result = py_func_import(w.py_func, w.kwargs)
 
+      # TODO(https://github.com/kubeflow/testing/issues/467):
       command = ["python", "-m", "kubeflow.testing.e2e_tool", "show",
                  w.py_func]
       for k, v in w.kwargs.items():
