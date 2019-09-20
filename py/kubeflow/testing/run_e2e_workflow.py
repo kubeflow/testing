@@ -191,16 +191,18 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     workflows.extend(new_workflows)
 
   # Add any paths to the python path
-  extra_py_paths = config.get("python_paths", [])
-
+  extra_py_paths = []
+  for p in config.get("python_paths", []):
+    path = os.path.join(args.repos_dir, p)
+    extra_py_paths.append(path)
 
   kf_test_path = os.path.join(args.repos_dir, "kubeflow/testing/py")
   if not kf_test_path in extra_py_paths:
     logging.info("Adding %s to extra python paths", kf_test_path)
     extra_py_paths.append(kf_test_path)
 
+  logging.info("Extra python paths: %s", ":".join(extra_py_paths))
   for p in extra_py_paths:
-    path = os.path.join(args.repos_dir, p)
     logging.info("Adding path %s to python path", path)
     sys.path.append(path)
 
