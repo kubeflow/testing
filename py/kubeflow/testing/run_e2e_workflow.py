@@ -331,11 +331,18 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
 
-      # TODO(https://github.com/kubeflow/testing/issues/467):
+      # TODO(https://github.com/kubeflow/testing/issues/467): We shell out
+      # to e2e_tool in order to dumpy the Argo workflow to a file which then
+      # reimport. We do this because importing the py_func module appears
+      # to break when we have to dynamically adjust sys.path to insert
+      # new paths. Setting PYTHONPATH before launching python however appears
+      # to work which is why we shell out to e2e_tool.
       command = ["python", "-m", "kubeflow.testing.e2e_tool", "show",
                  w.py_func]
       for k, v in w.kwargs.items():
-        command.append("--{0}={1}".format(k, v.replace("_", "-")))
+        # The fire module turns underscores in parameter names into hyphens
+        # so we convert underscores in parameter names to hyphens
+        command.append("--{0}={1}".format(k.replace("_", "-"), v))
 
       with tempfile.NamedTemporaryFile(delete=False) as hf:
         workflow_file = hf.name
