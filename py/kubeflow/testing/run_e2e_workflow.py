@@ -196,6 +196,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     logging.info("Adding path %s to python path", path)
     sys.path.append(path)
 
+  logging.info("Python path:\n%s", "\n".join(sys.path))
   # Create an initial version of the file with no urls
   create_started_file(args.bucket, {})
 

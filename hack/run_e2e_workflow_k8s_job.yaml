@@ -11,7 +11,7 @@ metadata:
   generateName: run-e2e-workflow
   namespace: kubeflow-test-infra
   labels:
-    app: rune-e2e-workflow
+    app: run-e2e-workflow
 spec:
   template:
     spec:
@@ -37,17 +37,18 @@ spec:
           image: gcr.io/kubeflow-ci/test-worker:latest
           command:
             - python 
-            - -m kubeflow.testing.run_e2e_workflow
+            - -m 
+            - kubeflow.testing.run_e2e_workflow
             - --project=kubeflow-ci
             - --zone=us-east1-d
             - --cluster=kubeflow-testing
             - --bucket=kubeflow-ci_temp
-            - --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml
+            - --config_file=/src/kubeflow/kubeflow/prow_config.yaml
             - --repos_dir=/src
-          command:
-            - tail
-            - -f
-            - /dev/null
+          #command:
+          #  - tail
+          #  - -f
+          #  - /dev/null
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
