@@ -25,7 +25,7 @@ class E2EToolMain(object): # pylint: disable=useless-object-inheritance
     Args:
       py_func: Dotted name of the function defining the workflow
     """
-    kwargs.update({ "name": name, "namespace": namespace, })
+    kwargs.update({"name": name, "namespace": namespace, })
     workflow = run_e2e_workflow.py_func_import(py_func, kwargs)
 
     if output:
