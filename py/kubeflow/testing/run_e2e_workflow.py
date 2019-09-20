@@ -202,11 +202,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     extra_py_paths.append(kf_test_path)
 
   logging.info("Extra python paths: %s", ":".join(extra_py_paths))
-  for p in extra_py_paths:
-    logging.info("Adding path %s to python path", path)
-    sys.path.append(path)
 
-  logging.info("Python path:\n%s", "\n".join(sys.path))
   # Create an initial version of the file with no urls
   create_started_file(args.bucket, {})
 
@@ -366,7 +362,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         namespace=wf_result["metadata"]["namespace"],
         plural='workflows',
         body=wf_result)
-      logging.info("Created workflow: %s", py_func_result)
+      logging.info("Created workflow:\n%s", yaml.safe_dump(py_func_result))
 
       ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))
