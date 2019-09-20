@@ -81,9 +81,10 @@ def get_namespace(args):
 # imports py_func
 def py_func_import(py_func, kwargs):
   """Imports and executes the function py_func."""
-  path, module = py_func.rsplit('.', 1)
-  mod = importlib.import_module(path)
-  met = getattr(mod, module)
+  path, create_function = py_func.rsplit('.', 1)
+  logging.info("Importing path %s", path)
+  create_function = importlib.import_module(path)
+  met = getattr(mod, create_function)
   return met(**kwargs)
 
 class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
@@ -193,7 +194,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   for p in config.get("python_paths", []):
     path = os.path.join(args.repos_dir, p)
     logging.info("Adding path %s to python path", path)
-    sys.path.append(p)
+    sys.path.append(path)
 
   # Create an initial version of the file with no urls
   create_started_file(args.bucket, {})
