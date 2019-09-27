@@ -14,6 +14,9 @@ import traceback
 import tempfile
 import yaml
 
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+
 from kubeflow.testing import argo_client
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
@@ -608,9 +611,30 @@ def cleanup_certificates(args):
       # don't tell us what the hostname is. gcloud returns the host though
       # so the information should be somewhere. Maybe we just need a newer
       # version of the API?
+      #
+      # If we decode the pem it should be inter
       name = d["name"]
-      if age > datetime.timedelta(days=7):
-        logging.info("Deleting certifcate: %s", d["name"])
+
+      if not "certificate" in d:
+        logging.warning("Certificate %s is missing certificate", name)
+        continue
+
+      raw_certificate = d["certificate"]
+
+      cert = x509.load_pem_x509_certificate(raw_certificate.encode('utf-8'), default_backend())
+
+      # TODO(jlewi): Is there a way to do this without accessing protected attributes
+      domain = cert.subject._attributes[0]._attributes[0].value # pylint: disable=protected-access
+
+      # Expire e2e certs after 4 hours
+      if domain.startswith("kfct"):
+        max_age = datetime.timedelta(hours=4)
+      else:
+        # For autodeployments delete after seven days
+        max_age = datetime.timedelta(days=7)
+
+      if age > max_age:
+        logging.info("Deleting certifcate: %s for domain %s", d["name"], domain)
         is_expired = True
         if not args.dryrun:
           try:
@@ -620,15 +644,14 @@ def cleanup_certificates(args):
             logging.error("There was a problem deleting certifcate %s; "
                           "error: %s", d["name"], e)
         if is_expired:
-          expired.append(name)
+          expired.append("{0} for {1}".format(name, domain))
         else:
-          unexpired.append(name)
+          unexpired.append("{0} for {1}".format(name, domain))
 
     if not "nextPageToken" in results:
       break
 
     next_page_token = results["nextPageToken"]
-
 
   logging.info("Unexpired certificates:\n%s", "\n".join(unexpired))
   logging.info("expired certificates:\n%s", "\n".join(expired))
