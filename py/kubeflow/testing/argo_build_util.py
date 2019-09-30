@@ -140,8 +140,15 @@ def add_task_to_dag(workflow, dag_name, task, dependencies):
 
   dag["dag"]["tasks"].append(new_task)
 
-  workflow["spec"]["templates"].append(task)
+  new_template = deep_copy(task)
 
+  if "name" not in new_template:
+    raise ValueError("Task template is missing name")
+
+  if not new_template["name"]:
+    raise ValueError("Task template name can't be empty string")
+
+  workflow["spec"]["templates"].append(new_template)
 
 def set_task_template_labels(workflow):
   """Automatically set the labels and annotations on each step.
