@@ -58,6 +58,15 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
      kubectl logs -l job-name=${JOBNAME}
      ```
 
+1. Do a oneoff run of the cleanup job
+
+   ```
+   cd test-infra
+   kubectl create -f cleanup-ci-kubeflow-ci-deployment.yaml
+   ```
+
+   * You can adjust the command line arguments in order to do more aggressive garbage collection then usual
+
 ## NFS Volume Is Out Of Disk Space.
 
 1. Use [stackdriver](https://cloud.google.com/filestore/docs/monitoring-instances)
