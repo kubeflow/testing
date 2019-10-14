@@ -110,7 +110,8 @@ def cleanup_endpoints(args):
   logging.info("Cleanup Google Cloud Endpoints")
   credentials = GoogleCredentials.get_application_default()
 
-  services_management = discovery.build('servicemanagement', 'v1', credentials=credentials)
+  services_management = discovery.build('servicemanagement', 'v1', credentials=credentials,
+                                        cache_discovery=False)
   services = services_management.services()
   rollouts = services.rollouts()
   next_page_token = None
