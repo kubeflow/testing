@@ -12,6 +12,7 @@ import subprocess
 import sys
 import traceback
 import tempfile
+import time
 import yaml
 
 from cryptography import x509
@@ -110,7 +111,8 @@ def cleanup_endpoints(args):
   logging.info("Cleanup Google Cloud Endpoints")
   credentials = GoogleCredentials.get_application_default()
 
-  services_management = discovery.build('servicemanagement', 'v1', credentials=credentials)
+  services_management = discovery.build('servicemanagement', 'v1', credentials=credentials,
+                                        cache_discovery=False)
   services = services_management.services()
   rollouts = services.rollouts()
   next_page_token = None
@@ -791,15 +793,15 @@ def execute_rpc(rpc):
 
 def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
   logging.info("Cleanup deployments")
-  if not args.delete_script:
-    raise ValueError("--delete_script must be specified.")
 
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
 
-  manifests_client = dm.manifests()
   deployments_client = dm.deployments()
   deployments = deployments_client.list(project=args.project).execute()
+
+  unexpired = []
+  expired = []
 
   for d in deployments.get("deployments", []):
     if not d.get("insertTime", None):
@@ -817,7 +819,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
     full_insert_time = d.get("insertTime")
     age = getAge(full_insert_time)
 
-    if d.get("operation", {}).has_key("error"):
+    if "error" in d.get("operation", {}):
       # Prune failed deployments more aggressively
       logging.info("Deployment %s is in error state %s",
                    d.get("name"), d.get("operation").get("error"))
@@ -825,65 +827,60 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
     else:
       max_age = datetime.timedelta(hours=args.max_age_hours)
 
-    if age > max_age:
-      # Get the zone.
-      if "update" in d:
-        manifest_url = d["update"]["manifest"]
-      else:
-        manifest_url = d["manifest"]
-      manifest_name = manifest_url.split("/")[-1]
+    if age < max_age:
+      unexpired.append(name)
+      logging.info("Deployment %s has not expired", name)
+      continue
 
-      rpc = manifests_client.get(project=args.project,
-                                 deployment=name,
-                                 manifest=manifest_name)
+    logging.info("Deployment %s has expired", name)
+    expired.append(name)
+    logging.info("Deleting deployment %s", name)
+
+    delete_ops = []
+    if not args.dryrun:
       try:
-        manifest = execute_rpc(rpc)
-      except socket.error as e:
-        logging.error("socket error prevented getting manifest %s", e)
-        # Try to continue with deletion rather than aborting.
-        continue
+        op = deployments_client.delete(project=args.project, deployment=name).execute()
+        delete_ops.append(op)
+      except Exception as e:
+        # Keep going on error because we want to delete the other deployments.
+        # TODO(jlewi): Do we need to handle cases by issuing delete with abandon?
+        logging.error("There was a problem deleting deployment %s; error %s", name, e)
 
-      # Create a temporary directory to store the deployment.
-      manifest_dir = tempfile.mkdtemp(prefix="tmp" + name)
-      logging.info("Creating directory %s to store manifests for deployment %s",
-                   manifest_dir, name)
-      with open(os.path.join(manifest_dir, "cluster-kubeflow.yaml"), "w") as hf:
-        hf.write(manifest["config"]["content"])
+      # Wait a total of 10 minutes for all operations to complete
+      end_time = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
-      config = yaml.load(manifest["config"]["content"])
+      while datetime.datetime.now() < end_time and delete_ops:
+        not_done = []
+        for op in delete_ops:
+            op = dm.operations().get(project=args.project, operation=op["name"]).execute()
 
-      if not config or not config["resources"]:
-        logging.warning("Skipping deployment %s because it has no config; "
-                        "is it already being deleted?", name)
-        continue
-      zone = config["resources"][0]["properties"]["zone"]
-      command = [args.delete_script,
-                 "--project=" + args.project, "--deployment=" + name,
-                 "--zone=" + zone]
-      cwd = None
-      # If we download the manifests first delete_deployment will issue
-      # an update before the delete which can help do a clean delete.
-      # But that has the disadvantage of creating GKE clusters if they have
-      # already been deleted; which is slow and wasteful.
-      if args.update_first:
-        # Download the manifest for this deployment.
-        # We want to do an update and then a delete because this is necessary
-        # for deleting role bindings.
-        command.append("cluster-kubeflow.yaml")
-        cwd = manifest_dir
-      logging.info("Deleting deployment %s; inserted at %s", name,
-                   full_insert_time)
+            status = op.get("status", "")
+            # Need to handle other status's
+            if status == "DONE":
+              logging.info("Final operation: %s", op)
+            else:
+              not_done.append(op)
 
-      # We could potentially run the deletes in parallel but that would lead
-      # to very confusing logs.
-      if not args.dryrun:
-        subprocess.check_call(command, cwd=cwd)
+        delete_ops = not_done
+        time.sleep(30)
 
+  not_done_names = [op["name"] for op in delete_ops]
+
+  logging.info("Delete ops that didn't finish:\n%s", "\n".join(not_done_names))
+  logging.info("Unexpired deployments:\n%s", "\n".join(unexpired))
+  logging.info("expired deployments:\n%s", "\n".join(expired))
+  logging.info("Finished cleanup deployments")
+
+def cleanup_clusters(args):
+  logging.info("Cleanup deployments")
+  credentials = GoogleCredentials.get_application_default()
   gke = discovery.build("container", "v1", credentials=credentials)
 
   # Collect clusters for which deployment might no longer exist.
   clusters_client = gke.projects().zones().clusters()
 
+  expired = []
+  unexpired = []
   for zone in args.zones.split(","):
     clusters = clusters_client.list(projectId=args.project, zone=zone).execute()
 
@@ -908,12 +905,18 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       age = datetime.datetime.utcnow()- insert_time_utc
 
       if age > datetime.timedelta(hours=args.max_age_hours):
+        expired.append(name)
         logging.info("Deleting cluster %s in zone %s", name, zone)
 
         if not args.dryrun:
           clusters_client.delete(projectId=args.project, zone=zone,
                                  clusterId=name).execute()
-  logging.info("Finished cleanup deployments")
+
+      else:
+        unexpired.append(name)
+  logging.info("Unexpired clusters:\n%s", "\n".join(unexpired))
+  logging.info("expired clusters:\n%s", "\n".join(expired))
+  logging.info("Finished cleanup clusters")
 
 # The order of cleanup_forwarding_rules, cleanup_target_http_proxies,
 # cleanup_url_maps, cleanup_backend_services, cleanup_instance_groups makes
@@ -921,7 +924,10 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
 # https://github.com/kubernetes/ingress-gce/issues/136#issuecomment-371254595
 
 def cleanup_all(args):
-  ops = [cleanup_deployments,
+  ops = [# Deleting deploymens should be called first because hopefully that will
+         # cleanup all the resources associated with the deployment
+         cleanup_deployments,
+         cleanup_clusters,
          cleanup_endpoints,
          cleanup_certificates,
          cleanup_service_accounts,
@@ -954,6 +960,8 @@ def add_deployments_args(parser):
     "--update_first", default=False, type=bool,
     help="Whether to update the deployment first.")
 
+  # TODO(jlewi): Delete script is no longer used. We only leave it as an argument
+  # because some of our cron jobs haven't been updated yet to not use it.
   parser.add_argument(
     "--delete_script", default="", type=str,
     help=("The path to the delete_deployment.sh script which is in the "
