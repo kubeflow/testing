@@ -872,7 +872,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
   logging.info("Finished cleanup deployments")
 
 def cleanup_clusters(args):
-  logging.info("Cleanup deployments")
+  logging.info("Cleanup clusters")
   credentials = GoogleCredentials.get_application_default()
   gke = discovery.build("container", "v1", credentials=credentials)
 
@@ -906,7 +906,8 @@ def cleanup_clusters(args):
       insert_time_utc = insert_time + datetime.timedelta(hours=-1 * hours_offset)
       age = datetime.datetime.utcnow()- insert_time_utc
 
-      if c.get("status", "") == "ERROR":
+      # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters#Cluster.Status
+      if c.get("status", "") in ["ERROR", "DEGRADED"]:
         # Prune failed deployments more aggressively
         logging.info("Cluster %s is in error state; %s", c["name"], c.get("statusMessage", ""))
         max_age = datetime.timedelta(minutes=10)
