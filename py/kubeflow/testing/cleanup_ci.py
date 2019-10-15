@@ -864,6 +864,9 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
         delete_ops = not_done
         time.sleep(30)
 
+  not_done_names = [op["name"] for op in delete_ops]
+
+  logging.info("Delete ops that didn't finish:\n%s", "\n".join(not_done_names))
   logging.info("Unexpired deployments:\n%s", "\n".join(unexpired))
   logging.info("expired deployments:\n%s", "\n".join(expired))
   logging.info("Finished cleanup deployments")
