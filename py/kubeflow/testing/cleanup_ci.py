@@ -847,7 +847,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
         logging.error("There was a problem deleting deployment %s; error %s", name, e)
 
       # Wait a total of 10 minutes for all operations to complete
-      end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
+      end_time = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
       while datetime.datetime.now() < end_time and delete_ops:
         not_done = []
@@ -862,13 +862,15 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
               not_done.append(op)
 
         delete_ops = not_done
-        time.sleep(10)
+        time.sleep(30)
 
   logging.info("Unexpired deployments:\n%s", "\n".join(unexpired))
   logging.info("expired deployments:\n%s", "\n".join(expired))
   logging.info("Finished cleanup deployments")
 
 def cleanup_clusters(args):
+  logging.info("Cleanup deployments")
+  credentials = GoogleCredentials.get_application_default()
   gke = discovery.build("container", "v1", credentials=credentials)
 
   # Collect clusters for which deployment might no longer exist.
