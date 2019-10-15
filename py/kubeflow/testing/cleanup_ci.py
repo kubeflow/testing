@@ -12,6 +12,7 @@ import subprocess
 import sys
 import traceback
 import tempfile
+import time
 import yaml
 
 from cryptography import x509
@@ -834,15 +835,34 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
     logging.info("Deployment %s has expired", name)
     expired.append(name)
     logging.info("Deleting deployment %s", name)
+
+    delete_ops = []
     if not args.dryrun:
       try:
         op = deployments_client.delete(project=args.project, deployment=name).execute()
-        op = util.wait_for_gcp_operation(dm.operations(), args.project, None, op["name"])
-        logging.info("Final operation: %s", op)
+        delete_ops.append(op)
       except Exception as e:
         # Keep going on error because we want to delete the other deployments.
         # TODO(jlewi): Do we need to handle cases by issuing delete with abandon?
         logging.error("There was a problem deleting deployment %s; error %s", name, e)
+
+      # Wait a total of 10 minutes for all operations to complete
+      end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
+
+      while datetime.datetime.now() < end_time and delete_ops:
+        not_done = []
+        for op in delete_ops:
+            op = dm.operations().get(project=args.project, operation=op["name"]).execute()
+
+            status = op.get("status", "")
+            # Need to handle other status's
+            if status == "DONE":
+              logging.info("Final operation: %s", op)
+            else:
+              not_done.append(op)
+
+        delete_ops = not_done
+        time.sleep(10)
 
   logging.info("Unexpired deployments:\n%s", "\n".join(unexpired))
   logging.info("expired deployments:\n%s", "\n".join(expired))
