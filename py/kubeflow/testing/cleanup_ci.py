@@ -755,7 +755,7 @@ def cleanup_service_account_bindings(args):
 
   resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
   logging.info("Get IAM policy for project %s", args.project)
-  iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project).execute()
+  iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project, body={}).execute()
   trim_unused_bindings(iamPolicy, accounts)
 
   setBody = {'policy': iamPolicy}
