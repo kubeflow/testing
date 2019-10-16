@@ -872,7 +872,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
   logging.info("Finished cleanup deployments")
 
 def cleanup_clusters(args):
-  logging.info("Cleanup deployments")
+  logging.info("Cleanup clusters")
   credentials = GoogleCredentials.get_application_default()
   gke = discovery.build("container", "v1", credentials=credentials)
 
@@ -881,6 +881,8 @@ def cleanup_clusters(args):
 
   expired = []
   unexpired = []
+  stopping = []
+
   for zone in args.zones.split(","):
     clusters = clusters_client.list(projectId=args.project, zone=zone).execute()
 
@@ -904,7 +906,20 @@ def cleanup_clusters(args):
       insert_time_utc = insert_time + datetime.timedelta(hours=-1 * hours_offset)
       age = datetime.datetime.utcnow()- insert_time_utc
 
-      if age > datetime.timedelta(hours=args.max_age_hours):
+      # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters#Cluster.Status
+      if c.get("status", "") in ["ERROR", "DEGRADED"]:
+        # Prune failed deployments more aggressively
+        logging.info("Cluster %s is in error state; %s", c["name"], c.get("statusMessage", ""))
+        max_age = datetime.timedelta(minutes=10)
+      else:
+        max_age = datetime.timedelta(hours=args.max_age_hours)
+
+
+      if age > max_age:
+        if c.get("status", "") == "STOPPING":
+          logging.info("Cluster %s is already stopping; not redeleting", c["name"])
+          stopping.append(c["name"])
+          continue
         expired.append(name)
         logging.info("Deleting cluster %s in zone %s", name, zone)
 
@@ -915,6 +930,7 @@ def cleanup_clusters(args):
       else:
         unexpired.append(name)
   logging.info("Unexpired clusters:\n%s", "\n".join(unexpired))
+  logging.info("Already stopping clusters:\n%s", "\n".join(stopping))
   logging.info("expired clusters:\n%s", "\n".join(expired))
   logging.info("Finished cleanup clusters")
 
@@ -1088,6 +1104,19 @@ def main():
 
   add_deployments_args(parser_deployments)
   parser_deployments.set_defaults(func=cleanup_deployments)
+
+  ######################################################
+  # Parser for clusters
+  parser_clusters = subparsers.add_parser(
+    "clusters", help="Cleanup clusters")
+
+  parser_clusters.add_argument(
+    "--zones", default="us-east1-d,us-central1-a", type=str,
+    help="Comma separated list of zones to check.")
+
+  parser_clusters.set_defaults(func=cleanup_clusters)
+
+
   args = parser.parse_args()
 
   util.maybe_activate_service_account()
