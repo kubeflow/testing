@@ -801,7 +801,7 @@ def wait_ops_max_mins(operation_resource, args, ops, max_wait_mins=15):
   while datetime.datetime.now() < end_time and ops:
     not_done = []
     for op in ops:
-      op = operation_resource().get(project=args.project, operation=op["name"]).execute()
+      op = operation_resource.get(project=args.project, operation=op["name"]).execute()
       status = op.get("status", "")
       if status != "DONE":
         not_done.append(op)
