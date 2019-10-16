@@ -451,6 +451,7 @@ def cleanup_forwarding_rules(args):
   unexpired = []
   in_use = []
 
+  delete_ops = []
   while True:
     results = forwardingRules.list(project=args.project,
                                    pageToken=next_page_token).execute()
@@ -464,10 +465,10 @@ def cleanup_forwarding_rules(args):
         logging.info("Deleting forwarding rule: %s, age = %r", name, age)
         if not args.dryrun:
           try:
-            response = forwardingRules.delete(project=args.project,
-                                              forwardingRule=name).execute()
-            logging.info("response = %r", response)
+            op = forwardingRules.delete(project=args.project,
+                                        forwardingRule=name).execute()
             expired.append(name)
+            delete_ops.append(op)
           except Exception as e: # pylint: disable=broad-except
             logging.error(e)
             in_use.append(name)
@@ -478,6 +479,8 @@ def cleanup_forwarding_rules(args):
       break
     next_page_token = results["nextPageToken"]
 
+  unfinished_ops = wait_ops_max_mins(compute, args, delete_ops, 20)
+  logging.info("Unfinished forwarding rule deletions:\n%s", "\n".join(unfinished_ops))
   logging.info("Unexpired forwarding rules:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired forwarding rules:\n%s", "\n".join(expired))
   logging.info("Expired but in-use forwarding rules:\n%s", "\n".join(in_use))
@@ -791,6 +794,23 @@ def execute_rpc(rpc):
   """Execute a Google RPC request with retries."""
   return rpc.execute()
 
+# Wait for 'ops' to finish in 'max_wait_mins' or return the remaining ops.
+# service must implement 'operations()' method.
+def wait_ops_max_mins(service, args, ops, max_wait_mins=15):
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=max_wait_mins)
+
+  while datetime.datetime.now() < end_time and ops:
+    not_done = []
+    for op in ops:
+      op = service.operations().get(project=args.project, operation=op["name"]).execute()
+      status = op.get("status", "")
+      if status != "DONE":
+        not_done.append(op)
+    ops = not_done
+    if not ops:
+      time.sleep(30)
+  return ops
+
 def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
   logging.info("Cleanup deployments")
 
@@ -803,6 +823,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
   unexpired = []
   expired = []
 
+  delete_ops = []
   for d in deployments.get("deployments", []):
     if not d.get("insertTime", None):
       logging.warning("Deployment %s doesn't have a deployment time "
@@ -836,7 +857,6 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
     expired.append(name)
     logging.info("Deleting deployment %s", name)
 
-    delete_ops = []
     if not args.dryrun:
       try:
         op = deployments_client.delete(project=args.project, deployment=name).execute()
@@ -845,25 +865,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
         # Keep going on error because we want to delete the other deployments.
         # TODO(jlewi): Do we need to handle cases by issuing delete with abandon?
         logging.error("There was a problem deleting deployment %s; error %s", name, e)
-
-      # Wait a total of 10 minutes for all operations to complete
-      end_time = datetime.datetime.now() + datetime.timedelta(minutes=5)
-
-      while datetime.datetime.now() < end_time and delete_ops:
-        not_done = []
-        for op in delete_ops:
-            op = dm.operations().get(project=args.project, operation=op["name"]).execute()
-
-            status = op.get("status", "")
-            # Need to handle other status's
-            if status == "DONE":
-              logging.info("Final operation: %s", op)
-            else:
-              not_done.append(op)
-
-        delete_ops = not_done
-        time.sleep(30)
-
+  delete_ops = wait_ops_max_mins(dm, args, delete_ops, max_wait_mins=15)
   not_done_names = [op["name"] for op in delete_ops]
 
   logging.info("Delete ops that didn't finish:\n%s", "\n".join(not_done_names))
