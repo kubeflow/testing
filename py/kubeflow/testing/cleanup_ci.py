@@ -460,8 +460,7 @@ def cleanup_forwarding_rules(args):
     for s in results["items"]:
       name = s["name"]
       age = getAge(s["creationTimestamp"])
-      if age > datetime.timedelta(
-        hours=args.max_ci_deployment_resource_age_hours):
+      if age > datetime.timedelta(hours=args.max_forwarding_rules_age_hours):
         logging.info("Deleting forwarding rule: %s, age = %r", name, age)
         if not args.dryrun:
           try:
@@ -1011,6 +1010,11 @@ def main():
     "--max_ci_deployment_resource_age_hours",
     default=24, type=int,
     help=("The age of resources in kubeflow-ci-deployment to gc."))
+
+  parser.add_argument(
+    "--max_forwarding_rules_age_hours",
+    default=12, type=int,
+    help=("The age of forwarding rules in kubeflow-ci-deployment to gc."))
 
   parser.add_argument(
     "--max_wf_age_hours", default=7*24, type=int,
