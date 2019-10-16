@@ -111,6 +111,18 @@ def get_gcs_dir(bucket):
   job_name = os.getenv("JOB_NAME")
   job_type = os.getenv("JOB_TYPE")
 
+  # Based on the prow docs the variable is BUILD_ID
+  # https://github.com/kubernetes/test-infra/blob/45246b09ed105698aa8fb928b7736d14480def29/prow/jobs.md#job-environment-variables
+  # But it looks like the original version of this code was using BUILD_NUMBER.
+  # jlewi@ has some vague recollection of it changing at some point.
+  # It looks like both are actually set (to the same value) in prow but our workflows
+  # may not be setting both.
+  # In effort to be defensive we try BUILD_ID and fall back to BUILD_NUMBER
+  build = os.getenv("BUILD_ID")
+  if not build:
+    logging.warning("BUILD_ID not set; trying BUILD_NUMBER")
+    build = os.getenv("BUILD_NUMBER")
+
   if job_type == "presubmit":
     output = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
               "{pull_number}/{job}/{build}").format(
@@ -118,20 +130,20 @@ def get_gcs_dir(bucket):
               owner=repo_owner, repo=repo_name,
               pull_number=pull_number,
               job=os.getenv("JOB_NAME"),
-              build=os.getenv("BUILD_NUMBER"))
+              build=build)
   elif job_type == "postsubmit":
     # It is a postsubmit job
     output = ("gs://{bucket}/logs/{owner}_{repo}/"
               "{job}/{build}").format(
                   bucket=bucket, owner=repo_owner,
                   repo=repo_name, job=job_name,
-                  build=os.getenv("BUILD_NUMBER"))
+                  build=build)
   else:
     # Its a periodic job
     output = ("gs://{bucket}/logs/{job}/{build}").format(
         bucket=bucket,
         job=job_name,
-        build=os.getenv("BUILD_NUMBER"))
+        build=build)
 
   return output
 
