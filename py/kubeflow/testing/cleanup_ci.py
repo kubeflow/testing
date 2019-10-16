@@ -478,7 +478,7 @@ def cleanup_forwarding_rules(args):
       break
     next_page_token = results["nextPageToken"]
 
-  unfinished_ops = wait_ops_max_mins(compute, args, delete_ops, 20)
+  unfinished_ops = wait_ops_max_mins(compute.globalOperations(), args, delete_ops, 20)
   logging.info("Unfinished forwarding rule deletions:\n%s", "\n".join(unfinished_ops))
   logging.info("Unexpired forwarding rules:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired forwarding rules:\n%s", "\n".join(expired))
@@ -794,14 +794,14 @@ def execute_rpc(rpc):
   return rpc.execute()
 
 # Wait for 'ops' to finish in 'max_wait_mins' or return the remaining ops.
-# service must implement 'operations()' method.
-def wait_ops_max_mins(service, args, ops, max_wait_mins=15):
+# operation_resource must implement 'get()' method.
+def wait_ops_max_mins(operation_resource, args, ops, max_wait_mins=15):
   end_time = datetime.datetime.now() + datetime.timedelta(minutes=max_wait_mins)
 
   while datetime.datetime.now() < end_time and ops:
     not_done = []
     for op in ops:
-      op = service.operations().get(project=args.project, operation=op["name"]).execute()
+      op = operation_resource().get(project=args.project, operation=op["name"]).execute()
       status = op.get("status", "")
       if status != "DONE":
         not_done.append(op)
@@ -864,7 +864,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
         # Keep going on error because we want to delete the other deployments.
         # TODO(jlewi): Do we need to handle cases by issuing delete with abandon?
         logging.error("There was a problem deleting deployment %s; error %s", name, e)
-  delete_ops = wait_ops_max_mins(dm, args, delete_ops, max_wait_mins=15)
+  delete_ops = wait_ops_max_mins(dm.operations(), args, delete_ops, max_wait_mins=15)
   not_done_names = [op["name"] for op in delete_ops]
 
   logging.info("Delete ops that didn't finish:\n%s", "\n".join(not_done_names))
