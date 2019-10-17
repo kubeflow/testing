@@ -11,9 +11,6 @@ import sys
 import traceback
 import time
 
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-
 from kubeflow.testing import argo_client
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
@@ -359,6 +356,7 @@ def cleanup_target_https_proxies(args):
   unexpired = []
   in_use = []
 
+  delete_ops = []
   while True:
     results = targetHttpsProxies.list(project=args.project,
                                       pageToken=next_page_token).execute()
@@ -367,14 +365,13 @@ def cleanup_target_https_proxies(args):
     for s in results["items"]:
       name = s["name"]
       age = getAge(s["creationTimestamp"])
-      if age > datetime.timedelta(
-        hours=args.max_ci_deployment_resource_age_hours):
+      if age > datetime.timedelta(hours=args.max_proxy_age_hours):
         logging.info("Deleting urlMaps: %s, age = %r", name, age)
         if not args.dryrun:
           try:
-            response = targetHttpsProxies.delete(
+            op = targetHttpsProxies.delete(
               project=args.project, targetHttpsProxy=name).execute()
-            logging.info("response = %r", response)
+            delete_ops.append(op)
             expired.append(name)
           except Exception as e: # pylint: disable=broad-except
             logging.error(e)
@@ -386,6 +383,8 @@ def cleanup_target_https_proxies(args):
       break
     next_page_token = results["nextPageToken"]
 
+  unfinished_ops = wait_ops_max_mins(compute.globalOperations(), args, delete_ops, 20)
+  logging.info("Unfinished targetHttpsProxy deletions:\n%s", "\n".join(unfinished_ops))
   logging.info("Unexpired target https proxies:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired target https proxies:\n%s", "\n".join(expired))
   logging.info("Expired but in-use target https proxies:\n%s",
@@ -447,6 +446,7 @@ def cleanup_forwarding_rules(args):
   unexpired = []
   in_use = []
 
+  delete_ops = []
   while True:
     results = forwardingRules.list(project=args.project,
                                    pageToken=next_page_token).execute()
@@ -455,15 +455,14 @@ def cleanup_forwarding_rules(args):
     for s in results["items"]:
       name = s["name"]
       age = getAge(s["creationTimestamp"])
-      if age > datetime.timedelta(
-        hours=args.max_ci_deployment_resource_age_hours):
+      if age > datetime.timedelta(hours=args.max_proxy_age_hours):
         logging.info("Deleting forwarding rule: %s, age = %r", name, age)
         if not args.dryrun:
           try:
-            response = forwardingRules.delete(project=args.project,
-                                              forwardingRule=name).execute()
-            logging.info("response = %r", response)
+            op = forwardingRules.delete(project=args.project,
+                                        forwardingRule=name).execute()
             expired.append(name)
+            delete_ops.append(op)
           except Exception as e: # pylint: disable=broad-except
             logging.error(e)
             in_use.append(name)
@@ -474,6 +473,8 @@ def cleanup_forwarding_rules(args):
       break
     next_page_token = results["nextPageToken"]
 
+  unfinished_ops = wait_ops_max_mins(compute.globalOperations(), args, delete_ops, 20)
+  logging.info("Unfinished forwarding rule deletions:\n%s", "\n".join(unfinished_ops))
   logging.info("Unexpired forwarding rules:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired forwarding rules:\n%s", "\n".join(expired))
   logging.info("Expired but in-use forwarding rules:\n%s", "\n".join(in_use))
@@ -579,10 +580,21 @@ def cleanup_health_checks(args):
   logging.info("Matched health checks:\n%s", "\n".join(matched))
   logging.info("Finished cleanup firewall rules")
 
+def get_ssl_certificate_domain(certificate):
+  if "managed" in certificate and "domains" in certificate["managed"]:
+    # We use one domain per certificate.
+    return certificate["managed"]["domains"][0]
+
+  if "subjectAlternativeNames" in certificate:
+    return certificate["subjectAlternativeNames"][0]
+
+  return ""
+
 def cleanup_certificates(args):
   credentials = GoogleCredentials.get_application_default()
 
-  compute = discovery.build('compute', 'v1', credentials=credentials)
+  # Using compute beta API other than v1 to get detailed domain information.
+  compute = discovery.build('compute', 'beta', credentials=credentials)
   certificates = compute.sslCertificates()
   next_page_token = None
 
@@ -601,29 +613,9 @@ def cleanup_certificates(args):
       now = datetime.datetime.now(create_time.tzinfo)
 
       age = now - create_time
-      # TODO(jlewi): Using a max duration of 7 days is a bit of a hack.
-      # Certificates created for pre/postsubmits should be expired after
-      # a couple hours. But the auto-deployments e.g. kf-vmaster... should
-      # last for a couple of days. So we should really be looking at the
-      # host and adjusting the timeout. But the results in the certificates
-      # don't tell us what the hostname is. gcloud returns the host though
-      # so the information should be somewhere. Maybe we just need a newer
-      # version of the API?
-      #
-      # If we decode the pem it should be inter
+
       name = d["name"]
-
-      if not "certificate" in d:
-        logging.warning("Certificate %s is missing certificate", name)
-        continue
-
-      raw_certificate = d["certificate"]
-
-      cert = x509.load_pem_x509_certificate(raw_certificate.encode('utf-8'), default_backend())
-
-      # TODO(jlewi): Is there a way to do this without accessing protected attributes
-      domain = cert.subject._attributes[0]._attributes[0].value # pylint: disable=protected-access
-
+      domain = get_ssl_certificate_domain(d)
       # Expire e2e certs after 4 hours
       if domain.startswith("kfct"):
         max_age = datetime.timedelta(hours=4)
@@ -787,6 +779,23 @@ def execute_rpc(rpc):
   """Execute a Google RPC request with retries."""
   return rpc.execute()
 
+# Wait for 'ops' to finish in 'max_wait_mins' or return the remaining ops.
+# operation_resource must implement 'get()' method.
+def wait_ops_max_mins(operation_resource, args, ops, max_wait_mins=15):
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=max_wait_mins)
+
+  while datetime.datetime.now() < end_time and ops:
+    not_done = []
+    for op in ops:
+      op = operation_resource.get(project=args.project, operation=op["name"]).execute()
+      status = op.get("status", "")
+      if status != "DONE":
+        not_done.append(op)
+    ops = not_done
+    if ops:
+      time.sleep(30)
+  return ops
+
 def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
   logging.info("Cleanup deployments")
 
@@ -799,6 +808,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
   unexpired = []
   expired = []
 
+  delete_ops = []
   for d in deployments.get("deployments", []):
     if not d.get("insertTime", None):
       logging.warning("Deployment %s doesn't have a deployment time "
@@ -832,7 +842,6 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
     expired.append(name)
     logging.info("Deleting deployment %s", name)
 
-    delete_ops = []
     if not args.dryrun:
       try:
         op = deployments_client.delete(project=args.project, deployment=name).execute()
@@ -841,25 +850,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
         # Keep going on error because we want to delete the other deployments.
         # TODO(jlewi): Do we need to handle cases by issuing delete with abandon?
         logging.error("There was a problem deleting deployment %s; error %s", name, e)
-
-      # Wait a total of 10 minutes for all operations to complete
-      end_time = datetime.datetime.now() + datetime.timedelta(minutes=5)
-
-      while datetime.datetime.now() < end_time and delete_ops:
-        not_done = []
-        for op in delete_ops:
-          op = dm.operations().get(project=args.project, operation=op["name"]).execute()
-
-          status = op.get("status", "")
-          # Need to handle other status's
-          if status == "DONE":
-            logging.info("Final operation: %s", op)
-          else:
-            not_done.append(op)
-
-        delete_ops = not_done
-        time.sleep(30)
-
+  delete_ops = wait_ops_max_mins(dm.operations(), args, delete_ops, max_wait_mins=15)
   not_done_names = [op["name"] for op in delete_ops]
 
   logging.info("Delete ops that didn't finish:\n%s", "\n".join(not_done_names))
@@ -941,7 +932,6 @@ def cleanup_all(args):
          cleanup_deployments,
          cleanup_clusters,
          cleanup_endpoints,
-         cleanup_certificates,
          cleanup_service_accounts,
          cleanup_service_account_bindings,
          cleanup_workflows,
@@ -949,6 +939,7 @@ def cleanup_all(args):
          cleanup_forwarding_rules,
          cleanup_target_https_proxies,
          cleanup_target_http_proxies,
+         cleanup_certificates,
          cleanup_url_maps,
          cleanup_backend_services,
          cleanup_firewall_rules,
@@ -1021,6 +1012,12 @@ def main():
     "--max_ci_deployment_resource_age_hours",
     default=24, type=int,
     help=("The age of resources in kubeflow-ci-deployment to gc."))
+
+  parser.add_argument(
+    "--max_proxy_age_hours",
+    default=4, type=int,
+    help=("""The age of forwarding rules, proxy and SSL certificate in
+          kubeflow-ci-deployment to gc."""))
 
   parser.add_argument(
     "--max_wf_age_hours", default=7*24, type=int,
