@@ -31,7 +31,8 @@ class Builder: # pylint: disable=too-many-instance-attributes
     # output_dir is the directory to sync to GCS to contain the output for this
     # job.
     self.output_dir = self.test_dir + "/output"
-    self.artifacts_dir = self.output_dir + "/artifacts"
+
+    self.artifacts_dir = self.output_dir + "/artifacts/junit_{0}".format(name)
 
     # source directory where all repos should be checked out
     self.src_root_dir = self.test_dir + "/src"
