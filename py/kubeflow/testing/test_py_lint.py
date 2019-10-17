@@ -1,10 +1,9 @@
-import argparse
 import fnmatch
 import logging
 import os
 import subprocess
 
-from kubeflow.testing import test_helper, util
+from kubeflow.testing import util
 
 import pytest
 
