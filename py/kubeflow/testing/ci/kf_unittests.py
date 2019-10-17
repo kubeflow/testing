@@ -186,7 +186,7 @@ class Builder: # pylint: disable=too-many-instance-attributes
                                           self.artifacts_dir]
 
 
-    argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, py_tests,
+    argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, mkdir_step,
                                     [checkout["name"]])
 
     #**************************************************************************
@@ -231,7 +231,7 @@ class Builder: # pylint: disable=too-many-instance-attributes
 
     py_lint_step = argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME,
                                                    py_lint,
-                                                   [mkdir_step["name"])
+                                                   [mkdir_step["name"]])
 
     py_lint_step["container"]["workingDir"] = os.path.join(
       self.testing_src_dir, "py/kubeflow/testing")
