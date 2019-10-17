@@ -15,14 +15,19 @@ logging.basicConfig(
 )
 logging.getLogger().setLevel(logging.INFO)
 
-def should_exclude(root, full_dir_excludes):
+def should_exclude(report_xml_attribute, root, full_dir_excludes):
   for e in full_dir_excludes:
     if root.startswith(e):
       return True
   return False
 
 
-def test_lint(src_dir, rcfile): # pylint: disable=redefined-outer-name
+def test_lint(record_xml_attribute, src_dir, rcfile): # pylint: disable=redefined-outer-name
+  # Override the classname attribute in the junit file.
+  # This makes it easy to group related tests in test grid.
+  # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
+  record_xml_attribute("testsuite", "some_fake_test_suite_name")
+
   logging.info('Running test_lint')
   # Print out the pylint version because different versions can produce
   # different results.
