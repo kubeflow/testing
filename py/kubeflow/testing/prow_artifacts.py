@@ -213,6 +213,9 @@ def check_no_errors(gcs_client, artifacts_dir):
 
   for b in bucket.list_blobs(prefix=os.path.join(prefix, "junit")):
     full_path = util.to_gcs_uri(b.bucket, b.path)
+    if not os.path.splitext(b.path)[-1] == ".xml":
+      logging.info("Skipping %s; not an xml file", full_path)
+      continue
     logging.info("Checking %s", full_path)
     xml_contents = b.download_as_string()
 
