@@ -69,6 +69,10 @@ import subprocess
 import sys
 import yaml
 
+# The name of the command line argument for workflows for the var
+# to contain the junit class name
+JUNIT_CLASS_NAME_ARG_NAME = "junit_class_name"
+
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
   if args.namespace:
@@ -328,6 +332,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
+
+      if JUNIT_CLASS_NAME_ARG_NAME not in w.kwargs:
+        w.kwargs[JUNIT_CLASS_NAME_ARG_NAME = w.name
+        logging.info("Workflow %s doesn't set arg %s; defaulting to %s",
+                     w.name, JUNIT_CLASS_NAME_ARG_NAME,
+                     w.kwargs[JUNIT_CLASS_NAME_ARG_NAME])
 
       # TODO(https://github.com/kubeflow/testing/issues/467): We shell out
       # to e2e_tool in order to dumpy the Argo workflow to a file which then

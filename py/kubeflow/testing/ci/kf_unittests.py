@@ -15,7 +15,7 @@ EXIT_DAG_NAME = "exit-handler"
 TEMPLATE_LABEL = "kf_unittests"
 
 class Builder: # pylint: disable=too-many-instance-attributes
-  def __init__(self, name=None, namespace=None, bucket=None):
+  def __init__(self, name=None, namespace=None, bucket=None, **kwargs): # pylint: disable=unused-argument
     self.name = name
     self.namespace = namespace
     self.bucket = bucket
@@ -245,7 +245,7 @@ class Builder: # pylint: disable=too-many-instance-attributes
 
     return workflow
 
-def create_workflow(name=None, namespace=None, bucket=None): # pylint: disable=too-many-statements
+def create_workflow(name=None, namespace=None, bucket=None, **kwargs): # pylint: disable=too-many-statements
   """Create workflow returns an Argo workflow to test kfctl upgrades.
 
   Args:
@@ -253,6 +253,6 @@ def create_workflow(name=None, namespace=None, bucket=None): # pylint: disable=t
      associated with the workflow.
   """
 
-  builder = Builder(name=name, namespace=namespace, bucket=bucket)
+  builder = Builder(name=name, namespace=namespace, bucket=bucket, **kwargs)
 
   return builder.build()
