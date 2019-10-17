@@ -8,6 +8,13 @@ from kubeflow.testing import test_helper, util
 
 import pytest
 
+logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',
+)
+logging.getLogger().setLevel(logging.INFO)
 
 def should_exclude(root, full_dir_excludes):
   for e in full_dir_excludes:
