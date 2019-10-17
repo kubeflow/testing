@@ -801,7 +801,7 @@ def wait_ops_max_mins(operation_resource, args, ops, max_wait_mins=15):
       if status != "DONE":
         not_done.append(op)
     ops = not_done
-    if not ops:
+    if ops:
       time.sleep(30)
   return ops
 
