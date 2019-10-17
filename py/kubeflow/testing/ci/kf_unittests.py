@@ -189,17 +189,24 @@ class Builder: # pylint: disable=too-many-instance-attributes
     py_lint = argo_build_util.deep_copy(task_template)
 
     py_lint["name"] = "py-lint"
-    py_lint["container"]["command"] = ["python",
-                                       "-m",
-                                       "kubeflow.testing.test_py_lint",
-                                       "--artifacts_dir=" + self.artifacts_dir,
+    py_lint["container"]["command"] = ["pytest",
+                                       "test_py_lint.py",
+                                       # I think -s mean stdout/stderr will print out to aid in debugging.
+                                       # Failures still appear to be captured and stored in the junit file.
+                                       "-s",
                                        "--src_dir=" + self.kubeflow_testing_py,
                                        "--rcfile=" + os.path.join(
                                          self.testing_src_dir, ".pylintrc"),
-                                       ]
+                                       # Test timeout in seconds.
+                                       "--timeout=500",
+                                       "--junitxml=" + self.artifacts_dir +
+                                       "/junit_py-lint.xml"],
 
-    argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, py_lint,
-                                    [checkout["name"]])
+    py_lint_step = argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, py_lint,
+                                                   [checkout["name"]])
+
+    py_lint_step["container"]["workingDir"] =  os.path.join(
+      self.testing_src_dir, "py/kubeflow/testing")
 
     #*****************************************************************************
     # create_pr_symlink
