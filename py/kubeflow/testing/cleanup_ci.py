@@ -11,9 +11,6 @@ import sys
 import traceback
 import time
 
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-
 from kubeflow.testing import argo_client
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
@@ -588,16 +585,10 @@ def get_ssl_certificate_domain(certificate):
     # We use one domain per certificate.
     return certificate["managed"]["domains"][0]
 
-  if not "certificate" in certificate:
-    logging.warning("Certificate %s is missing certificate", certificate["name"])
-    return ""
+  if "subjectAlternativeNames" in certificate:
+    return certificate["subjectAlternativeNames"][0]
 
-  raw_certificate = certificate["certificate"]
-
-  cert = x509.load_pem_x509_certificate(raw_certificate.encode('utf-8'), default_backend())
-
-  # TODO(jlewi): Is there a way to do this without accessing protected attributes
-  return cert.subject._attributes[0]._attributes[0].value # pylint: disable=protected-access
+  return ""
 
 def cleanup_certificates(args):
   credentials = GoogleCredentials.get_application_default()
