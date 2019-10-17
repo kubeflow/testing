@@ -276,7 +276,7 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
   parser_copy.add_argument(
     "--bucket",
-    default="",
+    default=PROW_RESULTS_BUCKET,
     type=str,
     help="Bucket to copy the artifacts to.")
 
