@@ -87,7 +87,7 @@ def py_func_import(py_func, kwargs):
   met = getattr(mod, create_function)
   return met(**kwargs)
 
-class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes,useless-object-inheritance
+class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
   """Datastructure to represent a component to submit a workflow."""
   def __init__(self, root_dir, data):
     self.name = data.get("name")
@@ -197,7 +197,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     extra_py_paths.append(path)
 
   kf_test_path = os.path.join(args.repos_dir, "kubeflow/testing/py")
-  if not kf_test_path in extra_py_paths:
+  if kf_test_path not in extra_py_paths:
     logging.info("Adding %s to extra python paths", kf_test_path)
     extra_py_paths.append(kf_test_path)
 
