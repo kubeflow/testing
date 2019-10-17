@@ -14,7 +14,7 @@ EXIT_DAG_NAME = "exit-handler"
 
 TEMPLATE_LABEL = "kf_unittests"
 
-class Builder:
+class Builder: # pylint: disable=too-many-instance-attributes
   def __init__(self, name=None, namespace=None, bucket=None):
     self.name = name
     self.namespace = namespace
@@ -182,9 +182,9 @@ class Builder:
                                     [checkout["name"]])
 
 
-    #*****************************************************************************
+    #***************************************************************************
     # py lint
-    #****************************************************************************
+    #***************************************************************************
     py_lint = argo_build_util.deep_copy(task_template)
 
     py_lint["name"] = "py-lint"
@@ -193,7 +193,8 @@ class Builder:
                                        "kubeflow.testing.test_py_lint",
                                        "--artifacts_dir=" + self.artifacts_dir,
                                        "--src_dir=" + self.kubeflow_testing_py,
-                                       "--rcfile=" + os.path.join(self.testing_src_dir, ".pylintrc"),
+                                       "--rcfile=" + os.path.join(
+                                         self.testing_src_dir, ".pylintrc"),
                                        ]
 
     argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, py_lint,
