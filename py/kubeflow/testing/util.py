@@ -730,7 +730,7 @@ def set_pytest_junit(record_xml_attribute, test_name):
     # Its currently unclear whether testgrid uses classname or testsuite
     # Based on the code it looks like its using testsuite name but it
     # it doesn't look like we can set that using pytest
-    record_xml_attribute("classname", TARGET_ENV_NAME)
+    record_xml_attribute("classname", test_target_name)
 
     # Test grid supports grouping into a hierarchy based on the test name.
     # To support that we set the test name to include target name.
