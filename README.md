@@ -880,6 +880,24 @@ Follow these steps to add a new test to a repository.
   * In particular [record_xml_attribute](http://doc.pytest.org/en/latest/usage.html#record-xml-attribute) allows us to set attributes
     that control how's the results are grouped in test grid
 
+    * **name** - This is the name shown in test grid
+
+      * Testgrid supports [grouping](https://github.com/kubernetes/test-infra/tree/master/testgrid#grouping-tests) by spliting the tests into a hierarchy based on the name
+
+      * **recommendation** Leverage this feature to name tests to support grouping; e.g. use the pattern
+
+        ```
+        {WORKFLOW_NAME}/{PY_FUNC_NAME}
+        ```
+
+        * **workflow_name** Workflow name as set in prow_config.yaml
+        * **PY_FUNC_NAME** the name of the python test function
+
+        * util.py provides the helper method `set_pytest_junit` to set the required attributes
+        * run_e2e_workflow.py will pass the argument `test_target_name` to your py function to create the Argo workflow
+
+          * Use this argument to set the environment variable **TEST_TARGET_NAME** on all Argo pods.
+
     * **classname** - testgrid uses **classname** as the test target and allows results to be grouped by name
 
       * **recommendation** - Set the classname to the workflow name as defined in **prow_config.yaml**
@@ -888,9 +906,7 @@ Follow these steps to add a new test to a repository.
 
         * Each entry in **prow_config.yaml** usually corresponds to a different configuration e.g. "GCP with IAP" vs. "GCP with basic auth"
 
-        * So worflow name is a natural grouping
-
-    * **name** - This is the name shown in test grid
+        * So worflow name is a natural grouping    
     
 
 ### Prow Variables

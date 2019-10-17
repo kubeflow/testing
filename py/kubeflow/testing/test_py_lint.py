@@ -15,7 +15,7 @@ logging.basicConfig(
 )
 logging.getLogger().setLevel(logging.INFO)
 
-def should_exclude(report_xml_attribute, root, full_dir_excludes):
+def should_exclude(root, full_dir_excludes):
   for e in full_dir_excludes:
     if root.startswith(e):
       return True
