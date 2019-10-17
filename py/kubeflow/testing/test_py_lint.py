@@ -22,6 +22,12 @@ def parse_args():
     type=str,
     help=("The root directory of the source tree. Defaults to current "
           "directory."))
+
+  parser.add_argument(
+    "--rcfile",
+    default="",
+    type=str,
+    help=("Path to the rcfile."))
   args, _ = parser.parse_known_args()
   return args
 
@@ -48,7 +54,11 @@ def test_lint(test_case): # pylint: disable=redefined-outer-name
   # TODO(jlewi): Use pathlib once we switch to python3.
   includes = ["*.py"]
   failed_files = []
-  rc_file = os.path.join(args.src_dir, ".pylintrc")
+  if not args.rcfile:
+    rc_file = os.path.join(args.src_dir, ".pylintrc")
+  else:
+    rc_file = args.rcfile
+
   for root, dirs, files in os.walk(os.path.abspath(args.src_dir), topdown=True):
     # Exclude vendor directories and all sub files.
     if "vendor" in root.split(os.sep):
