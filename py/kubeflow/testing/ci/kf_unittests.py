@@ -15,10 +15,13 @@ EXIT_DAG_NAME = "exit-handler"
 TEMPLATE_LABEL = "kf_unittests"
 
 class Builder: # pylint: disable=too-many-instance-attributes
-  def __init__(self, name=None, namespace=None, bucket=None, **kwargs): # pylint: disable=unused-argument
+  def __init__(self, name=None, namespace=None, bucket=None,
+               test_target_name=None,
+               **kwargs): # pylint: disable=unused-argument
     self.name = name
     self.namespace = namespace
     self.bucket = bucket
+    self.test_target_name = test_target_name
 
     #****************************************************************************
     # Define directory locations
@@ -135,6 +138,12 @@ class Builder: # pylint: disable=too-many-instance-attributes
     ]
 
     task_template["container"]["env"].extend(common_env)
+
+    if self.test_target_name:
+      task_template["container"]["env"].append({
+        'name': 'TEST_TARGET_NAME',
+        'value': self.test_target_name,
+      })
 
     task_template = argo_build_util.add_prow_env(task_template)
 

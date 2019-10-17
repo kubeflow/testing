@@ -26,7 +26,7 @@ def test_lint(record_xml_attribute, src_dir, rcfile): # pylint: disable=redefine
   # Override the classname attribute in the junit file.
   # This makes it easy to group related tests in test grid.
   # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
-  record_xml_attribute("testsuite", "some_fake_test_suite_name")
+  util.set_pytest_junit(record_xml_attribute, "test_py_lint")
 
   logging.info('Running test_lint')
   # Print out the pylint version because different versions can produce

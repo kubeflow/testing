@@ -1,6 +1,4 @@
 """Utilities used by our python scripts for building and releasing."""
-from __future__ import print_function
-
 import datetime
 import logging
 import multiprocessing
@@ -708,3 +706,37 @@ class JobTimeoutError(TimeoutError):
   def __init__(self, message, job):
     super(JobTimeoutError, self).__init__(message)
     self.job = job
+
+def set_pytest_junit(record_xml_attribute, test_name):
+  """Set various xml attributes in the junit produced by pytest.
+
+  pytest supports setting various XML attributes in the junit file.
+  http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
+
+  test grid supports grouping based on these attributes
+  https://github.com/kubernetes/test-infra/tree/master/testgrid#grouping-tests
+
+  The goal of this function is to set these attributes in a consistent fashion
+  to allow easy grouping of tests that were run as part of the same workflow.
+  """
+  # Look for an environment variable named test target name.
+  TARGET_ENV_NAME = "TEST_TARGET_NAME"
+  test_target_name = os.getenv(TARGET_ENV_NAME)
+  full_test_name = test_name
+  if test_target_name:
+    # Override the classname attribute in the junit file.
+    # This makes it easy to group related tests in test grid.
+    # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
+    # Its currently unclear whether testgrid uses classname or testsuite
+    # Based on the code it looks like its using testsuite name but it
+    # it doesn't look like we can set that using pytest
+    record_xml_attribute("classname", TARGET_ENV_NAME)
+
+    # Test grid supports grouping into a hierarchy based on the test name.
+    # To support that we set the test name to include target name.
+    full_test_name = "/".join([test_target_name, test_name])
+  else:
+    logging.info("Environment variable %s not set; no target name set.",
+                 TARGET_ENV_NAME)
+
+  record_xml_attribute("name", full_test_name)
