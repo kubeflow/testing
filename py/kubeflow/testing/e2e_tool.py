@@ -15,7 +15,7 @@ from kubeflow.testing import util
 
 # TODO(jlewi): Can we automatically handle the case where py_func points
 # to a builder class? Then create the class and call build.
-class E2EToolMain(object): # pylint: disable=useless-object-inheritance
+class E2EToolMain:
   """A helper class to add some convenient entry points."""
 
   def show(self, py_func, name=None, namespace=None, output=None,

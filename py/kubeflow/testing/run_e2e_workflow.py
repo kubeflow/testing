@@ -197,7 +197,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     extra_py_paths.append(path)
 
   kf_test_path = os.path.join(args.repos_dir, "kubeflow/testing/py")
-  if not kf_test_path in extra_py_paths:
+  if kf_test_path not in extra_py_paths:
     logging.info("Adding %s to extra python paths", kf_test_path)
     extra_py_paths.append(kf_test_path)
 

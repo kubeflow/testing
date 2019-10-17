@@ -4,16 +4,12 @@ import argparse
 import datetime
 from dateutil import parser as date_parser
 import logging
-import os
 import re
 import retrying
 import socket
-import subprocess
 import sys
 import traceback
-import tempfile
 import time
-import yaml
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -290,7 +286,7 @@ def cleanup_instance_groups(args):
           if not args.dryrun:
             try:
               response = instanceGroups.delete(project=args.project,
-                                              zone=zone,
+                                               zone=zone,
                                               instanceGroup=name).execute()
               logging.info("response = %r", response)
               expired.append(name)
@@ -509,7 +505,7 @@ def cleanup_backend_services(args):
           try:
             # An error may be thrown if the backend service is used by a urlMap.
             response = backends.delete(project=args.project,
-                                     backendService=name).execute()
+                                       backendService=name).execute()
             logging.info("response = %r", response)
             expired.append(name)
           except Exception as e: # pylint: disable=broad-except
@@ -670,7 +666,7 @@ def cleanup_service_accounts(args):
   next_page_token = None
   while True:
     service_accounts = iam.projects().serviceAccounts().list(
-           name='projects/' + args.project, pageToken=next_page_token).execute()
+      name='projects/' + args.project, pageToken=next_page_token).execute()
     accounts.extend(service_accounts["accounts"])
     if not "nextPageToken" in service_accounts:
       break
@@ -841,7 +837,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       try:
         op = deployments_client.delete(project=args.project, deployment=name).execute()
         delete_ops.append(op)
-      except Exception as e:
+      except Exception as e: # pylint: disable=broad-except
         # Keep going on error because we want to delete the other deployments.
         # TODO(jlewi): Do we need to handle cases by issuing delete with abandon?
         logging.error("There was a problem deleting deployment %s; error %s", name, e)
@@ -852,14 +848,14 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       while datetime.datetime.now() < end_time and delete_ops:
         not_done = []
         for op in delete_ops:
-            op = dm.operations().get(project=args.project, operation=op["name"]).execute()
+          op = dm.operations().get(project=args.project, operation=op["name"]).execute()
 
-            status = op.get("status", "")
-            # Need to handle other status's
-            if status == "DONE":
-              logging.info("Final operation: %s", op)
-            else:
-              not_done.append(op)
+          status = op.get("status", "")
+          # Need to handle other status's
+          if status == "DONE":
+            logging.info("Final operation: %s", op)
+          else:
+            not_done.append(op)
 
         delete_ops = not_done
         time.sleep(30)
@@ -968,7 +964,7 @@ def cleanup_all(args):
 
 def add_workflow_args(parser):
   parser.add_argument(
-      "--namespace", default="kubeflow-test-infra",
+    "--namespace", default="kubeflow-test-infra",
       help="Namespace to cleanup.")
 
 def add_deployments_args(parser):

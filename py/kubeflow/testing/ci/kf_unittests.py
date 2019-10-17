@@ -14,8 +14,8 @@ EXIT_DAG_NAME = "exit-handler"
 
 TEMPLATE_LABEL = "kf_unittests"
 
-class Builder:
-  def __init__(self, name=None, namespace=None, bucket="kubeflow-ci_temp"):
+class Builder: # pylint: disable=too-many-instance-attributes
+  def __init__(self, name=None, namespace=None, bucket=None):
     self.name = name
     self.namespace = namespace
     self.bucket = bucket
@@ -37,6 +37,9 @@ class Builder:
     self.src_root_dir = self.test_dir + "/src"
     # The directory containing the kubeflow/kubeflow repo
     self.src_dir = self.src_root_dir + "/kubeflow/kubeflow"
+
+    # Root of testing repo.
+    self.testing_src_dir = os.path.join(self.src_root_dir, "kubeflow/testing")
 
     # Top level directories for python code
     self.kubeflow_py = self.src_dir
@@ -179,9 +182,9 @@ class Builder:
                                     [checkout["name"]])
 
 
-    #*****************************************************************************
+    #***************************************************************************
     # py lint
-    #****************************************************************************
+    #***************************************************************************
     py_lint = argo_build_util.deep_copy(task_template)
 
     py_lint["name"] = "py-lint"
@@ -190,6 +193,8 @@ class Builder:
                                        "kubeflow.testing.test_py_lint",
                                        "--artifacts_dir=" + self.artifacts_dir,
                                        "--src_dir=" + self.kubeflow_testing_py,
+                                       "--rcfile=" + os.path.join(
+                                         self.testing_src_dir, ".pylintrc"),
                                        ]
 
     argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, py_lint,
@@ -207,8 +212,11 @@ class Builder:
                                        "kubeflow.testing.prow_artifacts",
                                        "--artifacts_dir=" + self.output_dir,
                                        "create_pr_symlink",
-                                       "--bucket=" + self.bucket,
                                        ]
+
+    if self.bucket:
+      symlink["container"]["command"].append("--bucket=" + self.bucket)
+
     argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, symlink,
                                     [checkout["name"]])
 
@@ -223,9 +231,11 @@ class Builder:
                                               "kubeflow.testing.prow_artifacts",
                                               "--artifacts_dir=" +
                                               self.output_dir,
-                                              "copy_artifacts",
-                                              "--bucket=" + self.bucket,
-                                              "--suffix=fakesuffix",]
+                                              "copy_artifacts"]
+
+    if self.bucket:
+      copy_artifacts["container"]["command"].append("--bucket=" + self.bucket)
+
 
     argo_build_util.add_task_to_dag(workflow, EXIT_DAG_NAME, copy_artifacts, [])
 
@@ -235,7 +245,7 @@ class Builder:
 
     return workflow
 
-def create_workflow(name=None, namespace=None, bucket="kubeflow-ci_temp"): # pylint: disable=too-many-statements
+def create_workflow(name=None, namespace=None, bucket=None): # pylint: disable=too-many-statements
   """Create workflow returns an Argo workflow to test kfctl upgrades.
 
   Args:
