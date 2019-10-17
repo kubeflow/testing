@@ -69,6 +69,13 @@ import subprocess
 import sys
 import yaml
 
+# The name of the command line argument for workflows for the var
+# to contain the test target name.
+# The goal is to be able to use target name grouping in test grid
+# to group related tests
+# https://github.com/kubernetes/test-infra/tree/master/testgrid#grouping-tests
+TEST_TARGET_ARG_NAME = "test_target_name"
+
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
   if args.namespace:
@@ -328,6 +335,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
+
+      if TEST_TARGET_ARG_NAME not in w.kwargs:
+        w.kwargs[TEST_TARGET_ARG_NAME] = w.name
+        logging.info("Workflow %s doesn't set arg %s; defaulting to %s",
+                     w.name, TEST_TARGET_ARG_NAME,
+                     w.kwargs[TEST_TARGET_ARG_NAME])
 
       # TODO(https://github.com/kubeflow/testing/issues/467): We shell out
       # to e2e_tool in order to dumpy the Argo workflow to a file which then
