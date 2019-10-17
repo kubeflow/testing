@@ -4,16 +4,12 @@ import argparse
 import datetime
 from dateutil import parser as date_parser
 import logging
-import os
 import re
 import retrying
 import socket
-import subprocess
 import sys
 import traceback
-import tempfile
 import time
-import yaml
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -290,7 +286,7 @@ def cleanup_instance_groups(args):
           if not args.dryrun:
             try:
               response = instanceGroups.delete(project=args.project,
-                                              zone=zone,
+                                               zone=zone,
                                               instanceGroup=name).execute()
               logging.info("response = %r", response)
               expired.append(name)
@@ -513,7 +509,7 @@ def cleanup_backend_services(args):
           try:
             # An error may be thrown if the backend service is used by a urlMap.
             response = backends.delete(project=args.project,
-                                     backendService=name).execute()
+                                       backendService=name).execute()
             logging.info("response = %r", response)
             expired.append(name)
           except Exception as e: # pylint: disable=broad-except
@@ -671,7 +667,7 @@ def cleanup_service_accounts(args):
   next_page_token = None
   while True:
     service_accounts = iam.projects().serviceAccounts().list(
-           name='projects/' + args.project, pageToken=next_page_token).execute()
+      name='projects/' + args.project, pageToken=next_page_token).execute()
     accounts.extend(service_accounts["accounts"])
     if not "nextPageToken" in service_accounts:
       break
@@ -859,7 +855,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       try:
         op = deployments_client.delete(project=args.project, deployment=name).execute()
         delete_ops.append(op)
-      except Exception as e:
+      except Exception as e: # pylint: disable=broad-except
         # Keep going on error because we want to delete the other deployments.
         # TODO(jlewi): Do we need to handle cases by issuing delete with abandon?
         logging.error("There was a problem deleting deployment %s; error %s", name, e)
@@ -872,7 +868,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
   logging.info("Finished cleanup deployments")
 
 def cleanup_clusters(args):
-  logging.info("Cleanup deployments")
+  logging.info("Cleanup clusters")
   credentials = GoogleCredentials.get_application_default()
   gke = discovery.build("container", "v1", credentials=credentials)
 
@@ -881,6 +877,8 @@ def cleanup_clusters(args):
 
   expired = []
   unexpired = []
+  stopping = []
+
   for zone in args.zones.split(","):
     clusters = clusters_client.list(projectId=args.project, zone=zone).execute()
 
@@ -904,7 +902,20 @@ def cleanup_clusters(args):
       insert_time_utc = insert_time + datetime.timedelta(hours=-1 * hours_offset)
       age = datetime.datetime.utcnow()- insert_time_utc
 
-      if age > datetime.timedelta(hours=args.max_age_hours):
+      # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters#Cluster.Status
+      if c.get("status", "") in ["ERROR", "DEGRADED"]:
+        # Prune failed deployments more aggressively
+        logging.info("Cluster %s is in error state; %s", c["name"], c.get("statusMessage", ""))
+        max_age = datetime.timedelta(minutes=10)
+      else:
+        max_age = datetime.timedelta(hours=args.max_age_hours)
+
+
+      if age > max_age:
+        if c.get("status", "") == "STOPPING":
+          logging.info("Cluster %s is already stopping; not redeleting", c["name"])
+          stopping.append(c["name"])
+          continue
         expired.append(name)
         logging.info("Deleting cluster %s in zone %s", name, zone)
 
@@ -915,6 +926,7 @@ def cleanup_clusters(args):
       else:
         unexpired.append(name)
   logging.info("Unexpired clusters:\n%s", "\n".join(unexpired))
+  logging.info("Already stopping clusters:\n%s", "\n".join(stopping))
   logging.info("expired clusters:\n%s", "\n".join(expired))
   logging.info("Finished cleanup clusters")
 
@@ -952,7 +964,7 @@ def cleanup_all(args):
 
 def add_workflow_args(parser):
   parser.add_argument(
-      "--namespace", default="kubeflow-test-infra",
+    "--namespace", default="kubeflow-test-infra",
       help="Namespace to cleanup.")
 
 def add_deployments_args(parser):
@@ -1094,6 +1106,19 @@ def main():
 
   add_deployments_args(parser_deployments)
   parser_deployments.set_defaults(func=cleanup_deployments)
+
+  ######################################################
+  # Parser for clusters
+  parser_clusters = subparsers.add_parser(
+    "clusters", help="Cleanup clusters")
+
+  parser_clusters.add_argument(
+    "--zones", default="us-east1-d,us-central1-a", type=str,
+    help="Comma separated list of zones to check.")
+
+  parser_clusters.set_defaults(func=cleanup_clusters)
+
+
   args = parser.parse_args()
 
   util.maybe_activate_service_account()
