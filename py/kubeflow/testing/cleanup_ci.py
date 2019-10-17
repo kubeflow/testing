@@ -363,6 +363,7 @@ def cleanup_target_https_proxies(args):
   unexpired = []
   in_use = []
 
+  delete_ops = []
   while True:
     results = targetHttpsProxies.list(project=args.project,
                                       pageToken=next_page_token).execute()
@@ -375,9 +376,9 @@ def cleanup_target_https_proxies(args):
         logging.info("Deleting urlMaps: %s, age = %r", name, age)
         if not args.dryrun:
           try:
-            response = targetHttpsProxies.delete(
+            op = targetHttpsProxies.delete(
               project=args.project, targetHttpsProxy=name).execute()
-            logging.info("response = %r", response)
+            delete_ops.append(op)
             expired.append(name)
           except Exception as e: # pylint: disable=broad-except
             logging.error(e)
@@ -389,6 +390,8 @@ def cleanup_target_https_proxies(args):
       break
     next_page_token = results["nextPageToken"]
 
+  unfinished_ops = wait_ops_max_mins(compute.globalOperations(), args, delete_ops, 20)
+  logging.info("Unfinished targetHttpsProxy deletions:\n%s", "\n".join(unfinished_ops))
   logging.info("Unexpired target https proxies:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired target https proxies:\n%s", "\n".join(expired))
   logging.info("Expired but in-use target https proxies:\n%s",
