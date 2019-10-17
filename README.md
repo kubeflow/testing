@@ -176,6 +176,65 @@ gcloud one liners for fetching logs.
 
 ## Debugging Failed Tests
 
+### Logs and Cluster Access for Kubeflow CI
+
+Our tests are split across three projects
+
+* **k8s-prow-builds**
+
+  * This is owned by the prow team
+  * This is where the prow jobs run
+    * We are working on changing this see [kubeflow/testing#475](https://github.com/kubeflow/testing/issues/475)
+   
+* **kubeflow-ci**
+
+  * This is where the Argo E2E workflows kicked off by the prow jobs run
+  * This is where other Kubeflow test infra (e.g. various cron jobs run)
+
+* **kubeflow-ci-deployment**
+
+   * This is the project where E2E tests actually create Kubeflow clusters
+
+
+#### Access Control 
+
+We currently have the following levels of access
+
+* **ci-viewer-only**
+
+  * This is controlled by the group [ci-viewer](https://github.com/kubeflow/internal-acls/blob/master/ci-viewer.members.txt)
+
+  * This group basically grants viewer only access to projects **kubeflow-ci** and **kubeflow-ci-deployment**
+  * This provides access to stackdriver for both projects
+
+  * Folks making regular and continual contributions to Kubeflow and in need of access to debug
+    tests can generally have access
+
+* **ci-edit/admin** 
+
+  * This is controlled by the group [ci-team](https://github.com/kubeflow/internal-acls/blob/master/ci-team.members.txt)
+
+  * This group grants permissions necessary to administer the infrastructure running in **kubeflow-ci** and **kubeflow-ci-deployment**
+
+  * Access to this group is highly restricted since this is critical infrastructure for the project
+
+  * Following standard operating procedures we want to limit the number of folks with direct access to infrastructure
+
+    * Rather than granting more people access we want to develop scalable practices that eliminate the need for
+      granting large numbers of people access (e.g. developing git ops processes)
+
+ * **example-maintainers**
+
+   * This is controlled by the group [example-maintainers](https://github.com/kubeflow/internal-acls/blob/master/example-maintainers.members.txt)
+
+   * This group provides more direct access to the Kubeflow clusters running **kubeflow-ci-deployment**
+
+   * This group is intended for the folks actively developing and maintaining tests for Kubeflow examples
+
+   * Continuous testing for kubeflow examples should run against regularly updated, auto-deployed clusters in project **kubeflow-ci-deployment**
+
+     * Example maintainers are granted elevated access to these clusters in order to facilitate development of these tests
+
 ### No results show up in Gubernator
 
 If no results show up in Gubernator this means the prow job didn't get far enough to upload any results/logs to GCS.
@@ -209,6 +268,10 @@ To access the stackdriver logs
   ```
 
 ### No Logs in Argo UI For Step or Pod Id missing in Argo Logs
+
+The Argo UI will surface logs for the pod but only if the pod hasn't been deleted yet by Kubernetes.
+
+Using stackdriver to fetch pod logs is more reliable/durable but requires viewer permissions for Kubeflow's ci's infrastructure.
 
 An Argo workflow fails and you click on the failed step in the Argo UI to get the logs
 and you see the error
@@ -794,6 +857,36 @@ Follow these steps to add a new test to a repository.
 
      * **params**: A dictionary of parameters to set on the ksonnet component e.g. by running `ks param set ${COMPONENT} ${PARAM_NAME} ${PARAM_VALUE}`
 
+
+### Using pytest to write tests
+
+* [pytest](https://docs.pytest.org/en/latest/) is really useful for writing tests
+
+   * Results can be emitted as junit files which is what prow needs to report test results
+   * It provides [annotations](http://doc.pytest.org/en/latest/skipping.html) to skip tests or mark flaky tests as expected to fail
+
+* Use pytest to easily script various checks
+
+  * For example [kf_is_ready_test.py](https://github.com/kubeflow/kubeflow/blob/master/testing/kfctl/kf_is_ready_test.py)
+    uses some simple scripting to test that various K8s objects are deployed and healthy
+
+* Pytest provides fixtures for setting additional attributes in the junit files ([docs](http://doc.pytest.org/en/latest/usage.html))
+
+  * In particular [record_xml_attribute](http://doc.pytest.org/en/latest/usage.html#record-xml-attribute) allows us to set attributes
+    that control how's the results are grouped in test grid
+
+    * **classname** - testgrid uses **classname** as the test target and allows results to be grouped by name
+
+      * **recommendation** - Set the classname to the workflow name as defined in **prow_config.yaml**
+
+        * This allows easy grouping of tests by the entries defined in **prow_config.yaml**
+
+        * Each entry in **prow_config.yaml** usually corresponds to a different configuration e.g. "GCP with IAP" vs. "GCP with basic auth"
+
+        * So worflow name is a natural grouping
+
+    * **name** - This is the name shown in test grid
+    
 
 ### Prow Variables
 
