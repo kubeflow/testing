@@ -587,10 +587,27 @@ def cleanup_health_checks(args):
   logging.info("Matched health checks:\n%s", "\n".join(matched))
   logging.info("Finished cleanup firewall rules")
 
+def get_ssl_certificate_domain(certificate):
+  if "managed" in certificate and "domains" in certificate["managed"]:
+    # We use one domain per certificate.
+    return certificate["managed"]["domains"][0]
+
+  if not "certificate" in certificate:
+    logging.warning("Certificate %s is missing certificate", certificate["name"])
+    return ""
+
+  raw_certificate = certificate["certificate"]
+
+  cert = x509.load_pem_x509_certificate(raw_certificate.encode('utf-8'), default_backend())
+
+  # TODO(jlewi): Is there a way to do this without accessing protected attributes
+  return cert.subject._attributes[0]._attributes[0].value # pylint: disable=protected-access
+
 def cleanup_certificates(args):
   credentials = GoogleCredentials.get_application_default()
 
-  compute = discovery.build('compute', 'v1', credentials=credentials)
+  # Using compute beta API other than v1 to get detailed domain information.
+  compute = discovery.build('compute', 'beta', credentials=credentials)
   certificates = compute.sslCertificates()
   next_page_token = None
 
@@ -609,29 +626,9 @@ def cleanup_certificates(args):
       now = datetime.datetime.now(create_time.tzinfo)
 
       age = now - create_time
-      # TODO(jlewi): Using a max duration of 7 days is a bit of a hack.
-      # Certificates created for pre/postsubmits should be expired after
-      # a couple hours. But the auto-deployments e.g. kf-vmaster... should
-      # last for a couple of days. So we should really be looking at the
-      # host and adjusting the timeout. But the results in the certificates
-      # don't tell us what the hostname is. gcloud returns the host though
-      # so the information should be somewhere. Maybe we just need a newer
-      # version of the API?
-      #
-      # If we decode the pem it should be inter
+
       name = d["name"]
-
-      if not "certificate" in d:
-        logging.warning("Certificate %s is missing certificate", name)
-        continue
-
-      raw_certificate = d["certificate"]
-
-      cert = x509.load_pem_x509_certificate(raw_certificate.encode('utf-8'), default_backend())
-
-      # TODO(jlewi): Is there a way to do this without accessing protected attributes
-      domain = cert.subject._attributes[0]._attributes[0].value # pylint: disable=protected-access
-
+      domain = get_ssl_certificate_domain(d)
       # Expire e2e certs after 4 hours
       if domain.startswith("kfct"):
         max_age = datetime.timedelta(hours=4)
