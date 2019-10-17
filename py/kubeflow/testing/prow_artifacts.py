@@ -12,6 +12,12 @@ from google.cloud import storage  # pylint: disable=no-name-in-module
 from kubeflow.testing import test_util
 from kubeflow.testing import util
 
+
+# The default bucket where we should upload artifacts to in
+# prow. Currently test-grid and spyglass are looking at the kubernetes-jenkins
+# bucket and not a bucket in project kubelfow-ci
+PROW_RESULTS_BUCKET = "kubernetes-jenkins"
+
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
 # version. We should do that when we switch tensorflow/k8s to use Argo instead
 # of Airflow.
@@ -291,9 +297,9 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
   parser_link.add_argument(
     "--bucket",
-    default="",
+    default=PROW_RESULTS_BUCKET,
     type=str,
-    help="Bucket to copy the artifacts to.")
+    help="Bucket to copy the artifacts to")
 
   parser_link.set_defaults(func=create_pr_symlink)
 

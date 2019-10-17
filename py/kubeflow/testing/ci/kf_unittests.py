@@ -14,13 +14,8 @@ EXIT_DAG_NAME = "exit-handler"
 
 TEMPLATE_LABEL = "kf_unittests"
 
-# The default bucket where we should upload artifacts to in
-# prow. Currently test-grid and spyglass are looking at the kubernetes-jenkins
-# bucket and not a bucket in project kubelfow-ci
-PROW_RESULTS_BUCKET = "kubernetes-jenkins"
-
 class Builder:
-  def __init__(self, name=None, namespace=None, bucket=PROW_RESULTS_BUCKET):
+  def __init__(self, name=None, namespace=None, bucket=None):
     self.name = name
     self.namespace = namespace
     self.bucket = bucket
@@ -212,8 +207,11 @@ class Builder:
                                        "kubeflow.testing.prow_artifacts",
                                        "--artifacts_dir=" + self.output_dir,
                                        "create_pr_symlink",
-                                       "--bucket=" + self.bucket,
                                        ]
+
+    if self.bucket:
+      symlink["container"]["command"].append("--bucket=" + self.bucket)
+
     argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, symlink,
                                     [checkout["name"]])
 
@@ -228,8 +226,11 @@ class Builder:
                                               "kubeflow.testing.prow_artifacts",
                                               "--artifacts_dir=" +
                                               self.output_dir,
-                                              "copy_artifacts",
-                                              "--bucket=" + self.bucket]
+                                              "copy_artifacts"]
+
+    if self.bucket:
+      copy_artifacts["container"]["command"].append("--bucket=" + self.bucket)
+
 
     argo_build_util.add_task_to_dag(workflow, EXIT_DAG_NAME, copy_artifacts, [])
 
@@ -239,7 +240,7 @@ class Builder:
 
     return workflow
 
-def create_workflow(name=None, namespace=None, bucket=PROW_RESULTS_BUCKET): # pylint: disable=too-many-statements
+def create_workflow(name=None, namespace=None, bucket=None): # pylint: disable=too-many-statements
   """Create workflow returns an Argo workflow to test kfctl upgrades.
 
   Args:
