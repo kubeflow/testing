@@ -200,7 +200,7 @@ class Builder: # pylint: disable=too-many-instance-attributes
                                        # Test timeout in seconds.
                                        "--timeout=500",
                                        "--junitxml=" + self.artifacts_dir +
-                                       "/junit_py-lint.xml"],
+                                       "/junit_py-lint.xml"]
 
     py_lint_step = argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, py_lint,
                                                    [checkout["name"]])
