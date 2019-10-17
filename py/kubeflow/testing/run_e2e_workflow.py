@@ -334,7 +334,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       w.kwargs["namespace"] = get_namespace(args)
 
       if JUNIT_CLASS_NAME_ARG_NAME not in w.kwargs:
-        w.kwargs[JUNIT_CLASS_NAME_ARG_NAME = w.name
+        w.kwargs[JUNIT_CLASS_NAME_ARG_NAME] = w.name
         logging.info("Workflow %s doesn't set arg %s; defaulting to %s",
                      w.name, JUNIT_CLASS_NAME_ARG_NAME,
                      w.kwargs[JUNIT_CLASS_NAME_ARG_NAME])
