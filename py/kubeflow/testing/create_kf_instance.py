@@ -106,18 +106,22 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env):
 
   config_spec["spec"] = util.filter_spartakus(config_spec["spec"])
 
+  # Remove name because we will auto infer from directory.
+  if "name" in config_file["metadata"]:
+    logging.info("Deleting name in kfdef spec.")
+    del config_spec["metadata"]["name"]
+
   logging.info("KFDefSpec:\n%s", str(config_spec))
-  with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as f:
-    config_file = f.name
-    logging.info("Writing file %s", f.name)
-    yaml.dump(config_spec, f)
 
-  util.run([kfctl_path, "init", app_dir, "-V", "--config=" + config_file],
-           env=env)
+  if not os.path.exists(app_dir):
+    logging.info("Creating app dir %s", app_dir)
 
-  util.run([kfctl_path, "generate", "-V", "all"], env=env, cwd=app_dir)
+  config_file = os.path.join(app_dir, "kf_config.yaml")
+  with open(config_file, "w") as hf:
+    logging.info("Writing file %s", config_file)
+    yaml.dump(config_spec, hf)
 
-  util.run([kfctl_path, "apply", "-V", "all"], env=env, cwd=app_dir)
+  util.run([kfctl_path, "apply", "-V", "-f", config_file], env=env)
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
