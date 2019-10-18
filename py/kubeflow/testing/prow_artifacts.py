@@ -199,6 +199,12 @@ def create_pr_symlink(args):
   blob = bucket.blob(path)
   blob.upload_from_string(target)
 
+def _get_actual_junit_files(bucket, prefix):
+  actual_junit = set()
+  for b in bucket.list_blobs(prefix=os.path.join(prefix, "junit")):
+    actual_junit.add(os.path.basename(b.name))
+  return actual_junit
+
 def check_no_errors(gcs_client, artifacts_dir):
   """Check that all the XML files exist and there were no errors.
   Args:
@@ -211,12 +217,14 @@ def check_no_errors(gcs_client, artifacts_dir):
   bucket = gcs_client.get_bucket(bucket_name)
   no_errors = True
 
-  for b in bucket.list_blobs(prefix=os.path.join(prefix, "junit")):
-    full_path = util.to_gcs_uri(b.bucket, b.path)
-    if not os.path.splitext(b.path)[-1] == ".xml":
-      logging.info("Skipping %s; not an xml file", full_path)
-      continue
+  # Get a list of actual junit files.
+  actual_junit = _get_actual_junit_files(bucket, prefix)
+
+  for f in actual_junit:
+    full_path = os.path.join(artifacts_dir, f)
     logging.info("Checking %s", full_path)
+    b = bucket.blob(os.path.join(prefix, f))
+
     xml_contents = b.download_as_string()
 
     if test_util.get_num_failures(xml_contents) > 0:
