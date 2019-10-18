@@ -15,13 +15,10 @@ EXIT_DAG_NAME = "exit-handler"
 TEMPLATE_LABEL = "kf_unittests"
 
 class Builder: # pylint: disable=too-many-instance-attributes
-  def __init__(self, name=None, namespace=None, bucket=None,
-               test_target_name=None,
-               **kwargs): # pylint: disable=unused-argument
+  def __init__(self, name=None, namespace=None, bucket=None):
     self.name = name
     self.namespace = namespace
     self.bucket = bucket
-    self.test_target_name = test_target_name
 
     #****************************************************************************
     # Define directory locations
@@ -34,8 +31,7 @@ class Builder: # pylint: disable=too-many-instance-attributes
     # output_dir is the directory to sync to GCS to contain the output for this
     # job.
     self.output_dir = self.test_dir + "/output"
-
-    self.artifacts_dir = self.output_dir + "/artifacts/junit_{0}".format(name)
+    self.artifacts_dir = self.output_dir + "/artifacts"
 
     # source directory where all repos should be checked out
     self.src_root_dir = self.test_dir + "/src"
@@ -139,12 +135,6 @@ class Builder: # pylint: disable=too-many-instance-attributes
 
     task_template["container"]["env"].extend(common_env)
 
-    if self.test_target_name:
-      task_template["container"]["env"].append({
-        'name': 'TEST_TARGET_NAME',
-        'value': self.test_target_name,
-      })
-
     task_template = argo_build_util.add_prow_env(task_template)
 
     return task_template
@@ -174,22 +164,6 @@ class Builder: # pylint: disable=too-many-instance-attributes
     argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, checkout, [])
 
     #**************************************************************************
-    # Make dir
-    # pytest was failing trying to call makedirs. My suspicion is its
-    # because the two steps ended up trying to create the directory at the
-    # same time and classing. So we create a separate step to do it.
-    mkdir_step = argo_build_util.deep_copy(task_template)
-
-    mkdir_step["name"] = "make-artifacts-dir"
-    mkdir_step["container"]["command"] = ["mkdir",
-                                          "-p",
-                                          self.artifacts_dir]
-
-
-    argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, mkdir_step,
-                                    [checkout["name"]])
-
-    #**************************************************************************
     # Run python unittests
     py_tests = argo_build_util.deep_copy(task_template)
 
@@ -205,7 +179,7 @@ class Builder: # pylint: disable=too-many-instance-attributes
 
 
     argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, py_tests,
-                                    [mkdir_step["name"]])
+                                    [checkout["name"]])
 
 
     #***************************************************************************
@@ -214,27 +188,17 @@ class Builder: # pylint: disable=too-many-instance-attributes
     py_lint = argo_build_util.deep_copy(task_template)
 
     py_lint["name"] = "py-lint"
-    py_lint["container"]["command"] = ["pytest",
-                                       "test_py_lint.py",
-                                       # I think -s mean stdout/stderr will
-                                       # print out to aid in debugging.
-                                       # Failures still appear to be captured
-                                       # and stored in the junit file.
-                                       "-s",
+    py_lint["container"]["command"] = ["python",
+                                       "-m",
+                                       "kubeflow.testing.test_py_lint",
+                                       "--artifacts_dir=" + self.artifacts_dir,
                                        "--src_dir=" + self.kubeflow_testing_py,
                                        "--rcfile=" + os.path.join(
                                          self.testing_src_dir, ".pylintrc"),
-                                       # Test timeout in seconds.
-                                       "--timeout=500",
-                                       "--junitxml=" + self.artifacts_dir +
-                                       "/junit_py-lint.xml"]
+                                       ]
 
-    py_lint_step = argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME,
-                                                   py_lint,
-                                                   [mkdir_step["name"]])
-
-    py_lint_step["container"]["workingDir"] = os.path.join(
-      self.testing_src_dir, "py/kubeflow/testing")
+    argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, py_lint,
+                                    [checkout["name"]])
 
     #*****************************************************************************
     # create_pr_symlink
@@ -281,7 +245,7 @@ class Builder: # pylint: disable=too-many-instance-attributes
 
     return workflow
 
-def create_workflow(name=None, namespace=None, bucket=None, **kwargs): # pylint: disable=too-many-statements
+def create_workflow(name=None, namespace=None, bucket=None): # pylint: disable=too-many-statements
   """Create workflow returns an Argo workflow to test kfctl upgrades.
 
   Args:
@@ -289,6 +253,6 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs): # pylint:
      associated with the workflow.
   """
 
-  builder = Builder(name=name, namespace=namespace, bucket=bucket, **kwargs)
+  builder = Builder(name=name, namespace=namespace, bucket=bucket)
 
   return builder.build()

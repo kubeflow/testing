@@ -150,7 +150,6 @@ def add_task_to_dag(workflow, dag_name, task, dependencies):
 
   workflow["spec"]["templates"].append(new_template)
 
-  return new_template
 def set_task_template_labels(workflow):
   """Automatically set the labels and annotations on each step.
 
