@@ -165,8 +165,8 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   kfctl_path = build_kfctl_go(args)
 
-
-  uid = datetime.datetime.now().strftime("%m%d-%H%M") + "-"
+  # We need to keep the name short to avoid hitting limits with certificates.
+  uid = datetime.datetime.now().strftime("%m%d") + "-"
   uid = uid + uuid.uuid4().hex[0:3]
 
   args.name = args.name.format(uid=uid)
