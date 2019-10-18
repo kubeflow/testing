@@ -433,8 +433,35 @@ def wait_for_deployment(api_client,
       name, namespace))
 
 
+def check_secret(api_client, namespace, name):
+  """Check for secret existance.
+
+  Args:
+    api_client: K8s api client to use.
+    namespace: The namespace for the secret.
+    name: The name of the secret.
+
+  Returns:
+    secret: The secret object describing the deployment.
+
+  Raises:
+    TimeoutError: If timeout waiting for deployment to be ready.
+  """
+
+  core_client = k8s_client.CoreV1Api(api_client)
+
+  try:
+    secret = core_client.read_namespaced_secret(name, namespace)
+    logging.info("Secret %s exists in namespace %s", name, namespace)
+  except Exception:
+    raise RuntimeError(
+      "Error checking secret {0} in namespace {1}".format(
+        name, namespace))
+  return secret
+
+
 def wait_for_statefulset(api_client, namespace, name):
-  """Wait for deployment to be ready.
+  """Wait for statefulset to be ready.
 
   Args:
     api_client: K8s api client to use.
