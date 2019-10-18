@@ -11,6 +11,8 @@
     - [Argo UI](#argo-ui)
     - [Stackdriver logs](#stackdriver-logs)
   - [Debugging Failed Tests](#debugging-failed-tests)
+    - [Logs and Cluster Access for Kubeflow CI](#logs-and-cluster-access-for-kubeflow-ci)
+      - [Access Control](#access-control)
     - [No results show up in Gubernator](#no-results-show-up-in-gubernator)
     - [No Logs in Argo UI For Step or Pod Id missing in Argo Logs](#no-logs-in-argo-ui-for-step-or-pod-id-missing-in-argo-logs)
     - [Debugging Failed Deployments](#debugging-failed-deployments)
@@ -30,6 +32,9 @@
   - [Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>](#setting-up-a-kubeflow-repository-to-use-prow-a-idprow-setupa)
   - [Writing An Argo Workflow For An E2E Test](#writing-an-argo-workflow-for-an-e2e-test)
     - [Adding an E2E test to a repository](#adding-an-e2e-test-to-a-repository)
+      - [Python function](#python-function)
+      - [ksonnet](#ksonnet)
+    - [Using pytest to write tests](#using-pytest-to-write-tests)
     - [Prow Variables](#prow-variables)
     - [Argo Spec](#argo-spec)
     - [Creating K8s resources in tests.](#creating-k8s-resources-in-tests)
@@ -176,6 +181,65 @@ gcloud one liners for fetching logs.
 
 ## Debugging Failed Tests
 
+### Logs and Cluster Access for Kubeflow CI
+
+Our tests are split across three projects
+
+* **k8s-prow-builds**
+
+  * This is owned by the prow team
+  * This is where the prow jobs run
+    * We are working on changing this see [kubeflow/testing#475](https://github.com/kubeflow/testing/issues/475)
+   
+* **kubeflow-ci**
+
+  * This is where the Argo E2E workflows kicked off by the prow jobs run
+  * This is where other Kubeflow test infra (e.g. various cron jobs run)
+
+* **kubeflow-ci-deployment**
+
+   * This is the project where E2E tests actually create Kubeflow clusters
+
+
+#### Access Control 
+
+We currently have the following levels of access
+
+* **ci-viewer-only**
+
+  * This is controlled by the group [ci-viewer](https://github.com/kubeflow/internal-acls/blob/master/ci-viewer.members.txt)
+
+  * This group basically grants viewer only access to projects **kubeflow-ci** and **kubeflow-ci-deployment**
+  * This provides access to stackdriver for both projects
+
+  * Folks making regular and continual contributions to Kubeflow and in need of access to debug
+    tests can generally have access
+
+* **ci-edit/admin** 
+
+  * This is controlled by the group [ci-team](https://github.com/kubeflow/internal-acls/blob/master/ci-team.members.txt)
+
+  * This group grants permissions necessary to administer the infrastructure running in **kubeflow-ci** and **kubeflow-ci-deployment**
+
+  * Access to this group is highly restricted since this is critical infrastructure for the project
+
+  * Following standard operating procedures we want to limit the number of folks with direct access to infrastructure
+
+    * Rather than granting more people access we want to develop scalable practices that eliminate the need for
+      granting large numbers of people access (e.g. developing git ops processes)
+
+ * **example-maintainers**
+
+   * This is controlled by the group [example-maintainers](https://github.com/kubeflow/internal-acls/blob/master/example-maintainers.members.txt)
+
+   * This group provides more direct access to the Kubeflow clusters running **kubeflow-ci-deployment**
+
+   * This group is intended for the folks actively developing and maintaining tests for Kubeflow examples
+
+   * Continuous testing for kubeflow examples should run against regularly updated, auto-deployed clusters in project **kubeflow-ci-deployment**
+
+     * Example maintainers are granted elevated access to these clusters in order to facilitate development of these tests
+
 ### No results show up in Gubernator
 
 If no results show up in Gubernator this means the prow job didn't get far enough to upload any results/logs to GCS.
@@ -209,6 +273,10 @@ To access the stackdriver logs
   ```
 
 ### No Logs in Argo UI For Step or Pod Id missing in Argo Logs
+
+The Argo UI will surface logs for the pod but only if the pod hasn't been deleted yet by Kubernetes.
+
+Using stackdriver to fetch pod logs is more reliable/durable but requires viewer permissions for Kubeflow's ci's infrastructure.
 
 An Argo workflow fails and you click on the failed step in the Argo UI to get the logs
 and you see the error
@@ -794,6 +862,52 @@ Follow these steps to add a new test to a repository.
 
      * **params**: A dictionary of parameters to set on the ksonnet component e.g. by running `ks param set ${COMPONENT} ${PARAM_NAME} ${PARAM_VALUE}`
 
+
+### Using pytest to write tests
+
+* [pytest](https://docs.pytest.org/en/latest/) is really useful for writing tests
+
+   * Results can be emitted as junit files which is what prow needs to report test results
+   * It provides [annotations](http://doc.pytest.org/en/latest/skipping.html) to skip tests or mark flaky tests as expected to fail
+
+* Use pytest to easily script various checks
+
+  * For example [kf_is_ready_test.py](https://github.com/kubeflow/kubeflow/blob/master/testing/kfctl/kf_is_ready_test.py)
+    uses some simple scripting to test that various K8s objects are deployed and healthy
+
+* Pytest provides fixtures for setting additional attributes in the junit files ([docs](http://doc.pytest.org/en/latest/usage.html))
+
+  * In particular [record_xml_attribute](http://doc.pytest.org/en/latest/usage.html#record-xml-attribute) allows us to set attributes
+    that control how's the results are grouped in test grid
+
+    * **name** - This is the name shown in test grid
+
+      * Testgrid supports [grouping](https://github.com/kubernetes/test-infra/tree/master/testgrid#grouping-tests) by spliting the tests into a hierarchy based on the name
+
+      * **recommendation** Leverage this feature to name tests to support grouping; e.g. use the pattern
+
+        ```
+        {WORKFLOW_NAME}/{PY_FUNC_NAME}
+        ```
+
+        * **workflow_name** Workflow name as set in prow_config.yaml
+        * **PY_FUNC_NAME** the name of the python test function
+
+        * util.py provides the helper method `set_pytest_junit` to set the required attributes
+        * run_e2e_workflow.py will pass the argument `test_target_name` to your py function to create the Argo workflow
+
+          * Use this argument to set the environment variable **TEST_TARGET_NAME** on all Argo pods.
+
+    * **classname** - testgrid uses **classname** as the test target and allows results to be grouped by name
+
+      * **recommendation** - Set the classname to the workflow name as defined in **prow_config.yaml**
+
+        * This allows easy grouping of tests by the entries defined in **prow_config.yaml**
+
+        * Each entry in **prow_config.yaml** usually corresponds to a different configuration e.g. "GCP with IAP" vs. "GCP with basic auth"
+
+        * So worflow name is a natural grouping    
+    
 
 ### Prow Variables
 
