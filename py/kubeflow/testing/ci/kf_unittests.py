@@ -215,7 +215,7 @@ class Builder: # pylint: disable=too-many-instance-attributes
 
     py_lint["name"] = "py-lint"
     py_lint["container"]["command"] = ["pytest",
-                                       "test_py_lint.py",
+                                       "py_lint_test.py",
                                        # I think -s mean stdout/stderr will
                                        # print out to aid in debugging.
                                        # Failures still appear to be captured
