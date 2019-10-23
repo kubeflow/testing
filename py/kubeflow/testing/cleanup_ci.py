@@ -17,19 +17,26 @@ from kubernetes import client as k8s_client
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
+# See https://github.com/kubeflow/testing/issues/444
+# We are switching to unique names for auto deployments
+# So this matches the new ones.
+AUTO_DEPLOY_PATTERN = re.compile(r"kf-vmaster-(?!n\d\d)")
+
 # Regexes that select matching deployments
 MATCHING = [re.compile("e2e-.*"), re.compile("kfctl.*"),
-            re.compile("z-.*"), re.compile(".*presubmit.*")]
+            re.compile("z-.*"), re.compile(".*presubmit.*"),
+            AUTO_DEPLOY_PATTERN]
 
 MATCHING_FIREWALL_RULES = [re.compile("gke-kfctl-.*"),
                            re.compile("gke-e2e-.*"),
                            re.compile(".*presubmit.*"),
-                           re.compile(".*postsubmit.*")]
+                           re.compile(".*postsubmit.*"),
+                           AUTO_DEPLOY_PATTERN]
 
 # Regexes that select matching disks
 MATCHING_DISK = [re.compile(".*jlewi.*"), re.compile(".*kfctl.*"),
                  re.compile(".*postsubmit.*"), re.compile(".*presubmit.*"),
-                 ]
+                 AUTO_DEPLOY_PATTERN]
 
 def is_match_disk(name):
   for m in MATCHING_DISK:

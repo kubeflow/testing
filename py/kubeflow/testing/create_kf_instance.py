@@ -2,6 +2,9 @@
 
 The purpose of this script is to automate the creation of Kubeflow Deployments
 corresponding to different versions of Kubeflow.
+
+TODO: This script is obsolete; we should get rid of it in favor of
+      create_unique_kf_instance.py.
 """
 import argparse
 import logging

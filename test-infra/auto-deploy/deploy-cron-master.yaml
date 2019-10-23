@@ -12,56 +12,57 @@ spec:
       backoffLimit: 2
       template:
         spec:
+          initContainers:
+          - command:        
+            - /usr/local/bin/checkout_repos.sh 
+            # Stop using PR #495 once its subbmitted
+            - --repos=kubeflow/kubeflow@HEAD,kubeflow/testing@HEAD
+            - --src_dir=/src
+            env:
+            - name: PYTHONPATH
+              value: /src/kubeflow/testing/py
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /secret/gcp-credentials/key.json
+            image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
+            imagePullPolicy: IfNotPresent
+            name: checkout
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+            - mountPath: /secret/gcp-credentials
+              name: gcp-credentials
+              readOnly: true
+            - mountPath: /src
+              name: src
           containers:
-          - name: deploy-worker
-            image: gcr.io/kubeflow-ci/deploy-worker:v20190819-8723ec6-e3b0c4
+          - name: deploy
+            image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
             env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secret/gcp-credentials/key.json
+            - name: PYTHONPATH
+              value: /src/kubeflow/testing/py
             command:
-            - /usr/local/bin/auto_deploy.sh
-            - --repos=kubeflow/kubeflow;kubeflow/testing
+            - python
+            - -m
+            - kubeflow.testing.create_unique_kf_instance
+            - --apps_dir=/src/apps
+            - --kubeflow_repo=/src/kubeflow/kubeflow
+            - --name=kf-vmaster-{uid}
             - --project=kubeflow-ci-deployment
-            - --job_labels=/etc/pod-info/labels
-            - --data_dir=/mnt/test-data-volume/auto_deploy
-            - --base_name=kf-vmaster
-            - --max_num_cluster=5
-            - --zone=us-east1-b
-            - --github_token_file=/secret/github-token/github_token
+            - --zone=us-central1-a
             - --kfctl_config=https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
             volumeMounts:
             - name: gcp-credentials
               mountPath: /secret/gcp-credentials
               readOnly: true
-            - name: oauth-secret
-              mountPath: /secret/oauth-secret
-              readOnly: true
-            - name: pod-info
-              mountPath: /etc/pod-info
-              readOnly: true
-            - name: github-token
-              mountPath: /secret/github-token
-              readOnly: true
-            - name: test-data-volume
-              mountPath: /mnt/test-data-volume
-              readOnly: false
+            - mountPath: /src
+              name: src
           restartPolicy: Never
           volumes:
           - name: gcp-credentials
             secret:
               secretName: gcp-credentials
-          - name: oauth-secret
-            secret:
-              secretName: kubeflow-ci-deployment-iap-testing-oauth
-          - name: github-token
-            secret:
-              secretName: github-token
-          - name: test-data-volume
-            persistentVolumeClaim:
-              claimName: nfs-external
-          - name: pod-info
-            downwardAPI:
-              items:
-              - path: labels
-                fieldRef:
-                  fieldPath: metadata.labels
+          - name: src
+            emptyDir: {}

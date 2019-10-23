@@ -4,8 +4,10 @@ import logging
 import multiprocessing
 import os
 import re
+import shutil
 import six
 import subprocess
+import tempfile
 import time
 import urllib
 import yaml
@@ -547,7 +549,7 @@ def cluster_has_gpu_nodes(api_client):
       return True
   return False
 
-
+# TODO(jlewi): Is this function obsolete? Can we delete it?
 def setup_cluster(api_client):
   """Setup a cluster.
 
@@ -767,3 +769,59 @@ def set_pytest_junit(record_xml_attribute, test_name):
                  TARGET_ENV_NAME)
 
   record_xml_attribute("name", full_test_name)
+
+
+def use_self_signed_for_ingress(ingress_namespace, ingress_name,
+                                tls_endpoint, api_client):
+  """Creates a self-signed certificate to be used with the specified name.
+
+  This is a work around for Lets encrypt rate limiting.
+
+  Args:
+    ingress_namespace: Namespace of the ingress
+    ingress_name: Name of the ingress.
+    tls_endpoint: The domain to be used.
+    api_client: Kubernetes client.
+  """
+  v1 = k8s_client.CoreV1Api(api_client)
+  secret_name = ingress_name + "-tls"
+
+  secret = None
+  try:
+    secret = v1.read_namespaced_secret(secret_name, ingress_namespace)
+  except rest.ApiException as e:
+    if e.status != 404:
+      raise
+
+  if secret:
+    logging.info("TLS secret %s.%s exists", ingress_namespace, secret_name)
+  else:
+    logging.info("Creating TLS secret %s.%s", ingress_namespace, secret_name)
+    cert_dir = tempfile.mkdtemp()
+    run(["kube-rsa", tls_endpoint], cwd=cert_dir)
+    run(["kubectl", "-n", ingress_namespace, "create", "secret", "tls",
+              secret_name, "--cert=ca.pem", "--key=ca-key.pem"],
+              cwd=cert_dir)
+    shutil.rmtree(cert_dir)
+
+  extensions = k8s_client.ExtensionsV1beta1Api(api_client)
+  ingress = extensions.read_namespaced_ingress(ingress_name, ingress_namespace)
+
+  # Delete GKE managed annotations
+  for a in ["ingress.gcp.kubernetes.io/pre-shared-cert",
+            "networking.gke.io/managed-certificates"]:
+    if a in ingress.metadata.annotations:
+      del ingress.metadata.annotations[a]
+
+  # Set the tls
+  logging.info("Setting TLS")
+  ingress.spec.tls = [{
+    "hosts": [tls_endpoint],
+    'secretName': secret_name,
+   },
+  ]
+
+  logging.info("Updating ingress \n:%s", yaml.safe_dump(ingress.to_dict()))
+  extensions.patch_namespaced_ingress(ingress_name,
+                                      ingress_namespace,
+                                      ingress)
