@@ -200,6 +200,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   # Add any paths to the python path
   extra_py_paths = []
   for p in config.get("python_paths", []):
+    # Assume that python_paths are in the format $REPO_OWNER/$REPO_NAME/path,
+    # we need to ensure that the repo is checked out if it is different from
+    # the main one.
+    segments = p.split("/")
+    if segments[0] != repo_owner and segments[1] != repo_name:
+      util.clone_repo(args.repos_dir, segments[0], segments[1])
+
     path = os.path.join(args.repos_dir, p)
     extra_py_paths.append(path)
 
