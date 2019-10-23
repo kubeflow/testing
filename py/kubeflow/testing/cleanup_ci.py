@@ -20,7 +20,7 @@ from oauth2client.client import GoogleCredentials
 # See https://github.com/kubeflow/testing/issues/444
 # We are switching to unique names for auto deployments
 # So this matches the new ones.
-AUTO_DEPLOY_PATTERN = re.compile("kf-vmaster-(?!n\d\d)")
+AUTO_DEPLOY_PATTERN = re.compile(r"kf-vmaster-(?!n\d\d)")
 
 # Regexes that select matching deployments
 MATCHING = [re.compile("e2e-.*"), re.compile("kfctl.*"),

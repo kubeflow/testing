@@ -110,7 +110,7 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env):
   config_spec["spec"] = util.filter_spartakus(config_spec["spec"])
 
   # Remove name because we will auto infer from directory.
-  if "name" in config_file["metadata"]:
+  if "name" in config_spec["metadata"]:
     logging.info("Deleting name in kfdef spec.")
     del config_spec["metadata"]["name"]
 

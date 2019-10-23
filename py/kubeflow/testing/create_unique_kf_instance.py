@@ -13,21 +13,15 @@ deployments.
 import argparse
 import datetime
 import logging
-import json
 import os
 import re
 import requests
-import shutil
-import subprocess
-import tempfile
 import uuid
 import yaml
 
-from googleapiclient import discovery
 from google.cloud import storage
 from kubeflow.testing import util
 from retrying import retry
-from oauth2client.client import GoogleCredentials
 
 @retry(wait_fixed=60000, stop_max_attempt_number=5)
 def run_with_retry(*args, **kwargs):
@@ -183,9 +177,8 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   env.update(os.environ)
   env.update(oauth_info)
 
-  labels = { "GIT_LABEL": git_describe,
-             "PURPOSE": "kf-test-cluster",
-           }
+  labels = {"GIT_LABEL": git_describe,
+            "PURPOSE": "kf-test-cluster",}
 
   label_args = []
   for k, v in labels.items():
