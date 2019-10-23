@@ -21,6 +21,7 @@ import yaml
 
 from google.cloud import storage
 from kubeflow.testing import util
+from kubernetes import client as k8s_client
 from retrying import retry
 
 @retry(wait_fixed=60000, stop_max_attempt_number=5)
@@ -82,6 +83,7 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
     logging.info("Deleting name in kfdef spec.")
     del config_spec["metadata"]["name"]
 
+  app_name = os.path.basename(app_dir)
   if not "labels" in config_spec["metadata"]:
     config_spec["metadata"]["labels"] = {}
 
@@ -100,6 +102,17 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
     yaml.dump(config_spec, hf)
 
   util.run([kfctl_path, "apply", "-V", "-f", config_file], env=env)
+
+  # We will hit lets encrypt rate limiting with the managed certificates
+  # So create a self signed certificate and update the ingress to use it.
+  util.load_kube_config(persist_config=False)
+  api_client = k8s_client.ApiClient()
+  ingress_namespace = "istio-system"
+  ingress_name = "envoy-ingress"
+  tls_endpoint = "{0}.endpoints.{1}.cloud.goog".format(app_name, args.project)
+  logging.info("Configuring self signed cert for %s", tls_endpoint)
+  util.use_self_signed_for_ingress(ingress_namespace, ingress_name,
+                                   tls_endpoint, api_client)
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
