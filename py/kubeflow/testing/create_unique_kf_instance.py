@@ -63,9 +63,17 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
   if not email:
     raise ValueError("Could not determine GCP account being used.")
 
-  config_spec["spec"]["project"] = args.project
-  config_spec["spec"]["email"] = email
-  config_spec["spec"]["zone"] = args.zone
+  gcp_plugin = None
+  for p in config_spec["spec"]["plugins"]:
+    if p["kind"] != "KfGcpPlugin":
+      continue
+    gcp_plugin = p
+
+  if not gcp_plugin:
+    raise ValueError("No gcpplugin found in spec")
+  gcp_plugin["spec"]["project"] = args.project
+  gcp_plugin["spec"]["email"] = email
+  gcp_plugin["spec"]["zone"] = args.zone
 
   config_spec["spec"] = util.filter_spartakus(config_spec["spec"])
 
@@ -157,7 +165,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   oauth_info = yaml.load(contents)
 
   git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
-                                cwd=args.kubeflow_repo).strip("'")
+                           cwd=args.kubeflow_repo).strip("'")
 
   kfctl_path = build_kfctl_go(args)
 
