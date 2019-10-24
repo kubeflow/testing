@@ -204,7 +204,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # we need to ensure that the repo is checked out if it is different from
     # the main one.
     segments = p.split("/")
-    if segments[0] != repo_owner and segments[1] != repo_name:
+    if segments[0] != repo_owner or segments[1] != repo_name:
+      logging.info("Need to clone %s/%s", segments[0], segments[1])
       util.clone_repo(args.repos_dir, segments[0], segments[1])
 
     path = os.path.join(args.repos_dir, p)
