@@ -205,8 +205,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # the current one, and if the repo is not kubeflow/testing (which is already
     # checked out).
     segments = p.split("/")
-    if (segments[0] != repo_owner or segments[1] != repo_name) and
-      not p.startswith("kubeflow/testing"):
+    if ((segments[0] != repo_owner or segments[1] != repo_name)
+        and not p.startswith("kubeflow/testing")):
       logging.info("Need to clone %s/%s", segments[0], segments[1])
       util.clone_repo(os.path.join(args.repos_dir, segments[0], segments[1]),
                       segments[0], segments[1])
