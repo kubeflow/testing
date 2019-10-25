@@ -198,16 +198,15 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   env.update(os.environ)
   env.update(oauth_info)
 
-  labels = {"GIT_LABEL": git_describe,
-            "PURPOSE": "kf-test-cluster",}
+  # GCP labels can only take as input alphanumeric characters, hyphens, and
+  # underscores. Replace not valid characters with hyphens.
+  labels = {"git": git_describe,
+            "purpose": "kf-test-cluster",}
 
-  label_args = []
   for k, v in labels.items():
-    # labels can only take as input alphanumeric characters, hyphens, and
-    # underscores. Replace not valid characters with hyphens.
     val = v.lower().replace("\"", "")
     val = re.sub(r"[^a-z0-9\-_]", "-", val)
-    label_args.append("{key}={val}".format(key=k.lower(), val=val))
+    labels[k] = v
 
   deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=labels)
 
