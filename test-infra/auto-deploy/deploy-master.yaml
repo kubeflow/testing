@@ -21,7 +21,7 @@ spec:
       - command:        
         - /usr/local/bin/checkout_repos.sh 
         # Stop using PR #495 once its subbmitted
-        - --repos=kubeflow/kubeflow@HEAD,kubeflow/testing@HEAD:495
+        - --repos=kubeflow/kubeflow@HEAD,kubeflow/testing@HEAD:506
         - --src_dir=/src
         env:
         - name: PYTHONPATH
