@@ -206,7 +206,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   for k, v in labels.items():
     val = v.lower().replace("\"", "")
     val = re.sub(r"[^a-z0-9\-_]", "-", val)
-    labels[k] = v
+    labels[k] = val
 
   deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=labels)
 
