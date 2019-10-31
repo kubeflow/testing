@@ -36,5 +36,35 @@ class UtilTest(unittest.TestCase):
     self.assertEqual("some-bucket", bucket)
     self.assertEqual("", path)
 
+  def testBuildReposDefault(self):
+    repos = util.build_repos_str("", [])
+    expected_repos = {
+      "kubeflow/kubeflow": "HEAD",
+      "kubeflow/testing": "HEAD",
+      "kubeflow/tf-operator": "HEAD"
+    }
+    self.assertDictEqual(repos, expected_repos)
+
+  def testBuildReposOverrides(self):
+    repos = util.build_repos_str("kubeflow/kubeflow@12345", ["kubeflow/tf-operator@23456"])
+    expected_repos = {
+      "kubeflow/kubeflow": "12345",
+      "kubeflow/testing": "HEAD",
+      "kubeflow/tf-operator": "23456"
+    }
+    self.assertDictEqual(repos, expected_repos)
+
+  def testBuildReposExtras(self):
+    repos = util.build_repos_str("kubeflow/kfctl@12345", ["kubeflow/katib@23456"])
+    expected_repos = {
+      "kubeflow/kubeflow": "HEAD",
+      "kubeflow/testing": "HEAD",
+      "kubeflow/tf-operator": "HEAD",
+      "kubeflow/kfctl": "12345",
+      "kubeflow/katib", "23456"
+    }
+    self.assertDictEqual(repos, expected_repos)
+
+
 if __name__ == "__main__":
   unittest.main()
