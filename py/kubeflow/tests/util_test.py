@@ -61,7 +61,7 @@ class UtilTest(unittest.TestCase):
       "kubeflow/testing": "HEAD",
       "kubeflow/tf-operator": "HEAD",
       "kubeflow/kfctl": "12345",
-      "kubeflow/katib", "23456"
+      "kubeflow/katib": "23456"
     }
     self.assertDictEqual(repos, expected_repos)
 
