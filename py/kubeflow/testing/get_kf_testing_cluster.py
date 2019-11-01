@@ -9,6 +9,8 @@ Running it with bash:
 """
 
 import argparse
+import datetime
+from dateutil import parser as date_parser
 import logging
 import pprint
 import re
@@ -16,7 +18,11 @@ import subprocess
 import yaml
 
 from googleapiclient import discovery
+from kubeflow.testing import util
 from oauth2client.client import GoogleCredentials
+
+# Default pattern to match auto deployed clusters from master
+DEFAULT_PATTERN = r"kf-vmaster-(?!n\d\d)"
 
 def get_deployment_endpoint(project, deployment):
   """Format endpoint service name using default logic.
@@ -32,15 +38,19 @@ def get_deployment_endpoint(project, deployment):
       project=project,
       deployment=deployment)
 
-def list_deployments(project, name_prefix, testing_label, http=None, desc_ordered=True):
+def list_deployments(project, name_pattern, testing_label, http=None,
+                     desc_ordered=True, min_age=datetime.timedelta(minutes=20)):
   """List all the deployments matching name prefix and having testing labels.
 
   Args:
     project: string, Name of the deployed project.
-    name_prefix: string, Base name of deployments.
+    name_pattern: string, Regex pattern to match eligible clusters.
     testing_label: string, labels assigned to testing clusters used for identification.
     http: httplib2.Http, An instance of httplib2.Http or something that acts
       like it that HTTP requests will be made through. Should only be used in tests.
+    min_age: Minimum age for a deployment to be eligible for inclusion.
+      This is a bit of a hack to ensure a Kubeflow deployment is fully
+      deployed before we start running samples on it.
 
   Returns:
     deployments: list of dictionary in the format of {
@@ -60,9 +70,11 @@ def list_deployments(project, name_prefix, testing_label, http=None, desc_ordere
   dm_client = dm.deployments()
   resource_client = dm.resources()
 
-  list_filter = "labels.purpose eq " + testing_label
+  list_filter = ""
+  if testing_label:
+    list_filter = "labels.purpose eq " + testing_label
   # pylint: disable=anomalous-backslash-in-string
-  name_re = re.compile("{0}\-n[0-9]+\Z".format(name_prefix))
+  name_re = re.compile(name_pattern)
   # pylint: enable=anomalous-backslash-in-string
   deployments = dm_client.list(project=project, filter=list_filter).execute()
   next_page_token = None
@@ -73,7 +85,28 @@ def list_deployments(project, name_prefix, testing_label, http=None, desc_ordere
       name = d.get("name", "")
       if not name or name_re.match(name) is None:
         continue
-      resource = resource_client.get(project=project, deployment=name, resource=name).execute()
+
+      if name.endswith("storage"):
+        continue
+      resource = resource_client.get(project=project, deployment=name,
+                                     resource=name).execute()
+
+      full_insert_time = d.get("insertTime")
+
+      if not full_insert_time:
+        logging.info("Skipping deployment %s; insertion time is unknown",
+                     full_insert_time)
+        continue
+      create_time = date_parser.parse(full_insert_time)
+      now = datetime.datetime.now(create_time.tzinfo)
+
+      age = now - create_time
+
+      if age < min_age:
+        logging.info("Skipping deployment %s with age %s; it is too new",
+                     name, age)
+        continue
+
       # Skip the latest deployment if having any kind of errors.
       if (resource.get("error", None) and resource.get("error", {}).get("errors", [])) or \
       not resource.get("properties", ""):
@@ -85,7 +118,7 @@ def list_deployments(project, name_prefix, testing_label, http=None, desc_ordere
       cls.append({
           "name": name,
           "endpoint": get_deployment_endpoint(project, name),
-          "insertTime": d.get("insertTime", "1969-12-31T23:59:59+00:00"),
+          "insertTime": full_insert_time,
           "zone": info["zone"],
       })
 
@@ -137,12 +170,11 @@ def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=
 
   return deployments[0][field]
 
-def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test-cluster",
-               base_name="kf-v", http=None, field="endpoint"):
-  """Convenient function to get the latest deployment's information using just version.
+def get_latest(project="kubeflow-ci-deployment", testing_label=None,
+               base_name=DEFAULT_PATTERN, http=None, field="endpoint"):
+  """Convenient function to get the latest deployment's information using regex.
 
   Args:
-    version: string, version of deployed testing clusters to find.
     project: string, Name of deployed GCP project. Optional.
     testing_label: string, annotation used to identify testing clusters. Optional.
     http: httplib2.Http, An instance of httplib2.Http or something that acts
@@ -158,34 +190,35 @@ def get_latest(version, project="kubeflow-ci-deployment", testing_label="kf-test
     }
     field == ("endpoint", "zone", "name"): string value of the field specified.
   """
-  name_prefix = base_name + version
-  return get_deployment(project, name_prefix, testing_label, http=http, field=field)
+  return get_deployment(project, base_name, testing_label, http=http, field=field)
 
-def get_latest_credential(version, project="kubeflow-ci-deployment", base_name="kf-v",
-                          testing_label="kf-test-cluster"):
+def get_latest_credential(project="kubeflow-ci-deployment",
+                          base_name=DEFAULT_PATTERN,
+                          testing_label=None):
   """Convenient function to get the latest deployment information and use it to get
   credentials from GCP.
 
   Args:
-    version: string, version of deployed testing clusters to find.
     project: string, Name of deployed GCP project. Optional.
     testing_label: string, annotation used to identify testing clusters. Optional.
   """
-  dm = get_latest(version, project=project, testing_label=testing_label, base_name=base_name,
-                  field="all")
+  util.maybe_activate_service_account()
+  dm = get_latest(project=project, testing_label=testing_label,
+                  base_name=base_name, field="all")
+
   subprocess.call(["gcloud", "container", "clusters", "get-credentials", dm["name"],
                    "--project="+project, "--zone="+dm["zone"]])
 
 def list_dms(args):
   logging.info("Calling list deployments.")
-  name_prefix = args.base_name + args.version
+  name_prefix = args.base_name
   pp = pprint.PrettyPrinter(indent=1)
   pp.pprint(list_deployments(args.project, name_prefix, args.testing_cluster_label,
                              desc_ordered=args.find_latest_deployed))
 
 def get_dm(args):
   logging.info("Calling get deployment.")
-  name_prefix = args.base_name + args.version
+  name_prefix = args.base_name
   pp = pprint.PrettyPrinter(indent=1)
   pp.pprint((get_deployment(args.project, name_prefix, args.testing_cluster_label,
                             field=args.field,
@@ -193,7 +226,7 @@ def get_dm(args):
 
 def get_credential(args):
   logging.info("Calling get_credential - this call needs gcloud client CLI.")
-  name_prefix = args.base_name + args.version
+  name_prefix = args.base_name
   dm = get_deployment(args.project, name_prefix, args.testing_cluster_label,
                       desc_ordered=args.find_latest_deployed,
                       field="all")
@@ -214,12 +247,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
       "--project", default="kubeflow-ci-deployment", type=str,
       help=("The project."))
   parser.add_argument(
-      "--base_name", default="kf-v", type=str, help=("Deployment name prefix"))
+      "--base_name", default=DEFAULT_PATTERN, type=str,
+      help=("Regex to match clusters"))
   parser.add_argument(
-      "--version", default="master", type=str, choices=["0-5", "master"],
-      help=("Kubeflow main version."))
-  parser.add_argument(
-      "--testing_cluster_label", default="kf-test-cluster", type=str,
+      "--testing_cluster_label", default="", type=str,
       help=("Label used to identify the deployment is for testing."))
   parser.add_argument(
       "--field", default="endpoint", type=str,
