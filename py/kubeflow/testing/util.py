@@ -99,26 +99,22 @@ def run(command,
 def run_and_output(*args, **argv):
   return run(*args, **argv)
 
-def build_repos_dict(main_repo, extra_repos):
-  """Build a string from concatenated repo owner/names and commit hashes.
+def combine_repos(list_of_repos):
+  """Builds a dictionary of repo owner/names to commit hashes.
 
   Args:
-    main_repo: The repo that is being edited, in the format "owner/name@commit".
-    extra_repos: A list of extra repos to checkout, each one in the format of
+    list_of_repos: A list of repos to checkout, each one in the format of
       "owner/name@commit".
   Returns:
     repos: A dictionary of repository names to commit hashes. Uses DEFAULT_REPOS as a base.
   """
 
-  # 1. Convert main_repo and extra_repos to a dictionary
+  # 1. Convert list_of_repos to a dictionary
   # where key is "repo_owner/repo_name" and value is the
   # commit hash.
   user_repos = {}
-  if main_repo:
-    parts = main_repo.split('@')
-    user_repos[parts[0]] = parts[1]
-  for er in extra_repos:
-    parts = er.split('@')
+  for r in list_of_repos:
+    parts = r.split('@')
     user_repos[parts[0]] = parts[1]
 
   # 2. Starting with the default repos, merge in any user-defined
