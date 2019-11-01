@@ -51,7 +51,7 @@ MAX_LIFETIME = {
 def name_to_infra_type(name):
   """Given a name map it to the type of infrastructure."""
 
-  if is_match.match(name, patterns=AUTO_DEPLOY_PATTERNS):
+  if is_match(name, patterns=AUTO_DEPLOY_PATTERNS):
     return AUTO_INFRA
 
   if is_match(name, patterns=E2E_PATTERNS):
