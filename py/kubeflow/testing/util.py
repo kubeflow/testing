@@ -462,7 +462,9 @@ def wait_for_job(api_client,
       continue
 
     last_condition = job.status.conditions[-1]
-    if last_condition["type"] in ["Failed", "Complete"]:
+    if last_condition.get("type") in ["Failed", "Complete"]:
+      logging.info("Job %s.%s has condition %s", namespace, name,
+                   last_condition.get("type")
       return job
 
     logging.info("Waiting for job %s.%s", namespace, name)
