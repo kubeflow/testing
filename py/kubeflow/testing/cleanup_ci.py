@@ -739,7 +739,7 @@ def cleanup_service_accounts(args):
       now = datetime.datetime.now(valid_time.tzinfo)
 
       age = now - valid_time
-      if age < MAX_LIFETIME[a["email"]]:
+      if age < MAX_LIFETIME[infra_type]:
         is_expired = False
         break
     if is_expired:
@@ -1065,8 +1065,7 @@ def main():
 
   parser.add_argument(
     "--gc_backend_services", default=False, type=bool,
-    help=("""Whether to GC backend services that are older
-          than --max_ci_deployment_resource_age_hours."""))
+    help=("""Whether to GC backend services."""))
 
   parser.add_argument(
     "--max_wf_age_hours", default=7*24, type=int,
