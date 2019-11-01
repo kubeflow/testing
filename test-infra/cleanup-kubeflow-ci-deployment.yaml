@@ -23,9 +23,9 @@ spec:
       - command:
         - /bin/sh
         - -xc
-        # Stop using PR #481 once its subbmitted
-        - /usr/local/bin/checkout_repos.sh --repos=kubeflow/kubeflow@HEAD,kubeflow/testing@HEAD:486 --src_dir=/src; python -m kubeflow.testing.cleanup_ci --project=kubeflow-ci-deployment
-          --gc_backend_services=true all --delete_script=/src/kubeflow/kubeflow/scripts/gke/delete_deployment.sh
+        # TODO(jlewi): Switch to using init container to check things out
+        - /usr/local/bin/checkout_repos.sh --repos=kubeflow/kubeflow@HEAD,kubeflow/testing@HEAD:512 --src_dir=/src; python -m kubeflow.testing.cleanup_ci --project=kubeflow-ci-deployment
+          --gc_backend_services=true --dryrun all 
         env:
         - name: PYTHONPATH
           value: /src/kubeflow/testing/py

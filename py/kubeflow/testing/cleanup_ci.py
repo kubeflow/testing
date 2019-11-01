@@ -10,7 +10,6 @@ import socket
 import sys
 import traceback
 import time
-import yaml
 
 from kubeflow.testing import argo_client
 from kubeflow.testing import util
@@ -260,7 +259,7 @@ def cleanup_firewall_rules(args):
     for d in results["items"]:
       name = d["name"]
 
-      infra_type = name_to_infra_type(nae)
+      infra_type = name_to_infra_type(name)
 
       for tag in d.get("targetTags", []):
         tag_infra_type = name_to_infra_type(tag)
@@ -275,7 +274,7 @@ def cleanup_firewall_rules(args):
                    infra_type)
       max_age = MAX_LIFETIME[infra_type]
       age = getAge(d["creationTimestamp"])
-      if age > datetime.timedelta(hours=args.max_age_hours):
+      if age > max_age:
         logging.info("Deleting firewall: %s, age = %r", name, age)
         if not args.dryrun:
           response = firewalls.delete(project=args.project,
@@ -722,7 +721,7 @@ def cleanup_service_accounts(args):
   # Service accounts don't specify the creation date time. So we
   # use the creation time of the key associated with the account.
   for a in accounts:
-    infra_type = name_to_infra_type(name)
+    infra_type = name_to_infra_type(a["email"])
 
     if not infra_type:
       logging.info("Skipping service account %s; it does not match any "
@@ -895,7 +894,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
       logging.info("Deployment %s has not expired; max age %s", name, max_age)
       continue
 
-    logging.info("Deployment %s has expired; max_age %s", name), max_age
+    logging.info("Deployment %s has expired; max_age %s", name, max_age)
     expired.append(name)
     logging.info("Deleting deployment %s", name)
 
