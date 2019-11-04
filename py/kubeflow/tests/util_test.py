@@ -38,27 +38,27 @@ class UtilTest(unittest.TestCase):
 
   def testCombineReposDefault(self):
     repos = util.combine_repos([])
-    expected_repos = {
-      "kubeflow/kubeflow": "HEAD",
-      "kubeflow/testing": "HEAD",
-      "kubeflow/tf-operator": "HEAD"
-    }
+    expected_repos = {}
     self.assertDictEqual(repos, expected_repos)
 
   def testCombineReposOverrides(self):
-    repos = util.combine_repos(["kubeflow/kubeflow@12345", "kubeflow/tf-operator@23456"])
+    repos = util.combine_repos(["kubeflow/kubeflow@HEAD",
+                                "kubeflow/tf-operator@HEAD",
+                                "kubeflow/kubeflow@12345",
+                                "kubeflow/tf-operator@23456"])
     expected_repos = {
       "kubeflow/kubeflow": "12345",
-      "kubeflow/testing": "HEAD",
       "kubeflow/tf-operator": "23456"
     }
     self.assertDictEqual(repos, expected_repos)
 
   def testCombineReposExtras(self):
-    repos = util.combine_repos(["kubeflow/kfctl@12345", "kubeflow/katib@23456"])
+    repos = util.combine_repos(["kubeflow/kubeflow@HEAD",
+                                "kubeflow/tf-operator@HEAD",
+                                "kubeflow/kfctl@12345",
+                                "kubeflow/katib@23456"])
     expected_repos = {
       "kubeflow/kubeflow": "HEAD",
-      "kubeflow/testing": "HEAD",
       "kubeflow/tf-operator": "HEAD",
       "kubeflow/kfctl": "12345",
       "kubeflow/katib": "23456"

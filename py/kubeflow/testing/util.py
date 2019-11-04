@@ -31,12 +31,6 @@ MASTER_REPO_NAME = "k8s"
 # How long to wait in seconds for requests to the ApiServer
 TIMEOUT = 120
 
-DEFAULT_REPOS = {
-    "kubeflow/kubeflow": "HEAD",
-    "kubeflow/testing": "HEAD",
-    "kubeflow/tf-operator": "HEAD"
-}
-
 def run(command,
         cwd=None,
         env=None,
@@ -104,23 +98,18 @@ def combine_repos(list_of_repos):
 
   Args:
     list_of_repos: A list of repos to checkout, each one in the format of
-      "owner/name@commit".
+      "owner/name@commit". Later values override earlier ones.
   Returns:
-    repos: A dictionary of repository names to commit hashes. Uses DEFAULT_REPOS as a base.
+    repos: A dictionary of repository names to commit hashes.
   """
 
-  # 1. Convert list_of_repos to a dictionary
-  # where key is "repo_owner/repo_name" and value is the
-  # commit hash.
-  user_repos = {}
+  # Convert list_of_repos to a dictionary where key is "repo_owner/repo_name"
+  # and value is the commit hash. By convention, values that appear later in
+  # the list would override earlier ones.
+  repos = {}
   for r in list_of_repos:
     parts = r.split('@')
-    user_repos[parts[0]] = parts[1]
-
-  # 2. Starting with the default repos, merge in any user-defined
-  # repos with commit hashes.
-  repos = DEFAULT_REPOS
-  repos.update(user_repos)
+    repos[parts[0]] = parts[1]
 
   return repos
 
