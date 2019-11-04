@@ -451,6 +451,48 @@ def wait_for_deployment(api_client,
     "Timeout waiting for deployment {0} in namespace {1}".format(
       name, namespace))
 
+def wait_for_job(api_client,
+                 namespace,
+                 name,
+                 timeout=datetime.timedelta(minutes=30)):
+  """Wait for a Kubernetes batch job to finish.
+
+  Args:
+    api_client: K8s api client to use.
+    namespace: The name space for the deployment.
+    name: The name of the deployment.
+    timeout: Timeout for job
+
+  Returns:
+    job: The kubernetes batch job object
+
+  Raises:
+    TimeoutError: If timeout waiting for deployment to be ready.
+  """
+  batch_api = k8s_client.BatchV1Api(api_client)
+
+  end_time = datetime.datetime.now() + timeout
+  while datetime.datetime.now() < end_time:
+    job = batch_api.read_namespaced_job(name, namespace)
+
+    if not job.status.conditions:
+      logging.info("Job missing condition")
+      time.sleep(10)
+      continue
+
+    last_condition = job.status.conditions[-1]
+    if last_condition.type in ["Failed", "Complete"]:
+      logging.info("Job %s.%s has condition %s", namespace, name,
+                   last_condition.type)
+      return job
+
+    logging.info("Waiting for job %s.%s", namespace, name)
+    time.sleep(10)
+  logging.error("Timeout waiting for job %s.%s to finish.", namespace, name)
+  run(["kubectl", "describe", "job", "-n", namespace, name])
+  raise TimeoutError(
+    "Timeout waiting for job {0}.{1} to finish".format(
+      namespace, name))
 
 def check_secret(api_client, namespace, name):
   """Check for secret existance.
@@ -506,6 +548,7 @@ def wait_for_statefulset(api_client, namespace, name):
     logging.info("Waiting for Statefulset %s in namespace %s", name, namespace)
     time.sleep(10)
 
+    run(["kubectl", "describe", "statefulset", "-n", namespace, name])
   logging.error("Timeout waiting for statefulset %s in namespace %s to be "
                 "ready", name, namespace)
   raise TimeoutError(
