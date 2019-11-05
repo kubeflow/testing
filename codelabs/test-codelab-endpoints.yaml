@@ -1,0 +1,67 @@
+# A Kubernetes job to test the endpoints of a bunch of deployed instances
+#
+# This job runs the kubeflow.testing.bulk-deploy script and takes as input
+# a CSV file on GCS containing the GCS projects to test.
+#
+# To launch this job
+#  1. Change --projects-path to the GCS path of the CSV file  containing your projects
+#  2. Launch the job.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName:  test-codelab-
+  # namespace should
+  namespace: kubeflow-jlewi
+  labels:
+    job: test-codelab
+spec:
+  # TODO(jlewi): Should we add retries
+  backoffLimit: 1
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        job: setup-codelab
+    spec:
+      initContainers:
+      - command:        
+        - /usr/local/bin/checkout_repos.sh 
+        - --depth=all
+        # Keep repos in sync with other jobs
+        # Suggest pinning to specific comits to avoid being broken  by changes
+        - --repos=kubeflow/kubeflow@9741891,kubeflow/testing@HEAD:518
+        - --src_dir=/src
+        env:
+        - name: PYTHONPATH
+          value: /src/kubeflow/testing/py
+        image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
+        imagePullPolicy: IfNotPresent
+        name: checkout
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /src
+          name: src
+      containers:
+      - name: deploy
+        image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
+        env:
+        - name: PYTHONPATH
+          value: /src/kubeflow/testing/py:/src/kubeflow/kubeflow
+        command:
+        - python
+        - -m
+        - kubeflow.testing.bulk_deploy
+        - check-endpoints
+        - --projects-path=gs://kf-codelab-admin/codelab.accounts.20191105.csv
+        volumeMounts:
+        - mountPath: /src
+          name: src
+      # Use a Kubeflow service account which is mapped to a GSA
+      serviceAccount: default-editor
+      restartPolicy: Never
+      volumes:
+      - name: src
+        emptyDir: {}

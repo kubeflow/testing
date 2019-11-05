@@ -1,0 +1,30 @@
+bindings:
+- members:
+  - serviceAccount:codelab-admin-admin@kf-codelab-admin.iam.gserviceaccount.com
+  roles:
+  - roles/source.admin
+  - roles/servicemanagement.admin
+  - roles/compute.networkAdmin
+- members:
+  - serviceAccount:codelab-admin-user@kf-codelab-admin.iam.gserviceaccount.com
+  roles:
+  - roles/cloudbuild.builds.editor
+  - roles/viewer
+  - roles/source.admin
+  - roles/storage.admin
+  - roles/bigquery.admin
+  - roles/dataflow.admin
+  - roles/ml.admin
+  - roles/dataproc.editor
+  - roles/cloudsql.admin
+- members:
+  - serviceAccount:codelab-admin-vm@kf-codelab-admin.iam.gserviceaccount.com
+  roles:
+  - roles/logging.logWriter
+  - roles/monitoring.metricWriter
+  - roles/monitoring.viewer
+  - roles/storage.objectViewer
+- members:
+  - user:jlewi@google.com
+  roles:
+  - roles/iap.httpsResourceAccessor
