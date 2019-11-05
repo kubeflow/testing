@@ -10,7 +10,7 @@ from kubeflow.testing import get_kf_testing_cluster
 TEST_PROJECT = "kubeflow-ci-foo"
 TEST_LABEL = "kf-foo-label"
 
-class Deployment(object):
+class Deployment:
   """Simple data carrier for a deployment."""
   def __init__(self, name, insert_time, zone="us-west1-b"):
     self.name = name
@@ -109,10 +109,11 @@ class GetKfTestingClusterTest(unittest.TestCase):
     self.assertListEqual(actual, expected)
 
   def test_list_deployments_default_insertime(self):
+    """Verify behavior when one of the deployments is missing a timestamp."""
     deployments = [
-        Deployment("kf-vfoo-n00", "2019-04-01T23:59:59+00:00"),
-        Deployment("kf-vfoo-n01", "2019-04-02T23:59:59+00:00"),
-        Deployment("kf-vfoo-n02", "2019-04-03T23:59:59+00:00"),
+        Deployment("kf-vfoo-00", "2019-04-01T23:59:59+00:00"),
+        Deployment("kf-vfoo-01", "2019-04-02T23:59:59+00:00"),
+        Deployment("kf-vfoo-02", "2019-04-03T23:59:59+00:00"),
     ]
     list_resp = {
         "deployments": create_mock_list_resp(deployments),
@@ -127,11 +128,14 @@ class GetKfTestingClusterTest(unittest.TestCase):
         ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[2]))),
     ])
     actual = get_kf_testing_cluster.list_deployments(TEST_PROJECT,
-                                                     "kf-vfoo",
+                                                     "kf-vfoo-??",
                                                      TEST_LABEL,
                                                      http=http)
     expected = create_expected_list_resp(deployments)
-    expected[-1]["insertTime"] = "1969-12-31T23:59:59+00:00"
+
+    # Since the last deployment doesn't have an insertTime it will be ignored
+    expected = expected[0:2]
+
     expected.sort(key=lambda entry: entry["insertTime"],
                   reverse=True)
     self.assertListEqual(actual, expected)
@@ -208,9 +212,9 @@ class GetKfTestingClusterTest(unittest.TestCase):
 
   def test_get_latest(self):
     deployments = [
-        Deployment("kf-vfoo-n00", "2019-04-01T23:59:59+00:00"),
-        Deployment("kf-vfoo-n01", "2019-04-02T23:59:59+00:00"),
-        Deployment("kf-vfoo-n02", "2019-04-03T23:59:59+00:00"),
+        Deployment("kf-vfoo-00", "2019-04-01T23:59:59+00:00"),
+        Deployment("kf-vfoo-01", "2019-04-02T23:59:59+00:00"),
+        Deployment("kf-vfoo-02", "2019-04-03T23:59:59+00:00"),
     ]
     list_resp = {
         "deployments": create_mock_list_resp(deployments),
@@ -222,9 +226,10 @@ class GetKfTestingClusterTest(unittest.TestCase):
         ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[1]))),
         ({"status": "200"}, json.dumps(create_mock_resource_resp(deployments[2]))),
     ])
-    self.assertEqual(get_kf_testing_cluster.get_latest("foo", http=http, project=TEST_PROJECT),
+    self.assertEqual(get_kf_testing_cluster.get_latest(
+                     project=TEST_PROJECT, base_name="kf-vfoo-??", http=http),
                      get_kf_testing_cluster.get_deployment_endpoint(TEST_PROJECT,
-                                                                    "kf-vfoo-n02"))
+                                                                    "kf-vfoo-02"))
 
 if __name__ == '__main__':
   unittest.main()
