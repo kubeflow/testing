@@ -225,7 +225,7 @@ def get_dm(args):
 
 def get_credential(args):
   logging.info("Calling get_credential - this call needs gcloud client CLI.")
-  get_latest_credential(project=args.project, base_name=args.name_prefix)
+  get_latest_credential(project=args.project, base_name=args.base_name)
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
