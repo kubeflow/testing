@@ -14,7 +14,6 @@ from dateutil import parser as date_parser
 import logging
 import pprint
 import re
-import subprocess
 import yaml
 
 from googleapiclient import discovery
