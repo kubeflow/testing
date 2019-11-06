@@ -182,8 +182,6 @@ class BulkDeploy:
     api_client = k8s_client.ApiClient()
     jobs = util.wait_for_jobs_with_label(api_client, namespace, label_filter)
 
-    # TODO(jlewi): Check job statuses and print out whether they succeeded
-    # or didn't
     done = 0
     succeeded = 0
     for job in jobs.items:
@@ -191,7 +189,6 @@ class BulkDeploy:
       if not job.status.conditions:
         logging.info("Project %s Job %s.%s missing condition",
                      project, job.metadata.namespace, job.metadata.name)
-        not_done += 1
         continue
 
       last_condition = job.status.conditions[-1]
