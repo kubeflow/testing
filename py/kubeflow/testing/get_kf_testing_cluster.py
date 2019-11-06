@@ -14,7 +14,6 @@ from dateutil import parser as date_parser
 import logging
 import pprint
 import re
-import subprocess
 import yaml
 
 from googleapiclient import discovery
@@ -206,8 +205,8 @@ def get_latest_credential(project="kubeflow-ci-deployment",
   dm = get_latest(project=project, testing_label=testing_label,
                   base_name=base_name, field="all")
 
-  subprocess.call(["gcloud", "container", "clusters", "get-credentials", dm["name"],
-                   "--project="+project, "--zone="+dm["zone"]])
+  util.run(["gcloud", "container", "clusters", "get-credentials", dm["name"],
+            "--project="+project, "--zone="+dm["zone"]])
 
 def list_dms(args):
   logging.info("Calling list deployments.")
@@ -226,12 +225,7 @@ def get_dm(args):
 
 def get_credential(args):
   logging.info("Calling get_credential - this call needs gcloud client CLI.")
-  name_prefix = args.base_name
-  dm = get_deployment(args.project, name_prefix, args.testing_cluster_label,
-                      desc_ordered=args.find_latest_deployed,
-                      field="all")
-  subprocess.call(["gcloud", "container", "clusters", "get-credentials", dm["name"],
-                   "--project="+args.project, "--zone="+dm["zone"]])
+  get_latest_credential(project=args.project, base_name=args.base_name)
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
