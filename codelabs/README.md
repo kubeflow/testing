@@ -32,6 +32,16 @@ account used by the K8s job
      ```
 
 1. Export the Google Sheet containing the code lab accounts to CSV
+
+   * The csv should end up looking something like the following
+
+      ```
+      Username,Project,Password,Firstname,Lastname,Printout:,https://docs.google.com/a/google.com/open?id=1V4rvfEpCk2wB8cu5Tufn_rz-MK4Oe3U1n7fhZh_tYNo
+      devstar9990@gcplab.me,kf-test-9990,somepassword,Star,Developer 9990,,
+      ```
+
+      * The script only uses the columns **username** and **project** so the others are optional
+
 1. Copy the CSV to `gs://kf-codelab-admin`
 
    ```

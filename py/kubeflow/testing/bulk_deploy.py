@@ -63,6 +63,58 @@ class BulkDeploy:
     job_file = os.path.abspath(job_file)
     return job_file
 
+  def _create_job_spec(self, job_file, group_label, project, user, namespace):
+    """Create the K8s job spec to deploy Kubeflow.
+
+    Args:
+      job_file: YAML file containing the job to use as a template
+      group_label: Label for the group of jobs
+      project: GCP project to deploy into
+      user: User to grant access to Kubeflow
+      namespace: Namespace where job should run.
+    """
+    # Load a new copy of the job template on each run
+    with open(job_file) as hf:
+      job = yaml.load(hf)
+
+    user_label = user.replace("@", "AT")
+    labels = {
+      "project": project,
+      "user": user_label,
+      "group": group_label,
+    }
+
+    job["metadata"]["namespace"] = namespace
+    job["metadata"]["labels"].update(labels)
+    job["spec"]["template"]["metadata"]["labels"].update(labels)
+
+    # Process the command line
+    remove_args = ["--project", "--extra_users"]
+    command = []
+    for a in job["spec"]["template"]["spec"]["containers"][0]["command"]:
+      keep = True
+      for r in remove_args:
+        if a.startswith(r):
+          keep = False
+          break
+
+      if not keep:
+        continue
+
+      command.append(a)
+
+    extra_users = ["user:" + user, "serviceAccount:" + ADMIN_ACCOUNT]
+    command.append("--project=" + project)
+    command.append("--extra_users=" + ",".join(extra_users))
+
+    job["spec"]["template"]["spec"]["containers"][0]["command"] = command
+
+
+    logging.info("Job spec for project: %s\n%s", project,
+                 yaml.safe_dump(job))
+
+    return job
+
   def deploy(self, projects_path, job_file=None, output_dir=None,
              admin_project="kf-codelab-admin", namespace=DEFAULT_NAMESPACE):
     """Fire off a bunch of K8s jobs to deploy many Kubeflow instances.
@@ -115,50 +167,13 @@ class BulkDeploy:
 
       logging.info("Processing project=%s user=%s", project, user)
 
-      # Load a new copy of the job template on each run
-      with open(job_file) as hf:
-        job = yaml.load(hf)
-
-      user_label = user.replace("@", "AT")
-      labels = {
-        "project": project,
-        "user": user_label,
-        "group": group_label,
-      }
-
-      job["metadata"]["namespace"] = namespace
-      job["metadata"]["labels"].update(labels)
-      job["spec"]["template"]["metadata"]["labels"].update(labels)
-
-      # Process the command line
-      remove_args = ["--project", "--extra_users"]
-      command = []
-      for a in job["spec"]["template"]["spec"]["containers"][0]["command"]:
-        keep = True
-        for r in remove_args:
-          if a.startswith(r):
-            keep = False
-            break
-
-        if not keep:
-          continue
-
-        command.append(a)
-
-      extra_users = ["user:" + user, "serviceAccount:" + ADMIN_ACCOUNT]
-      command.append("--project=" + project)
-      command.append("--extra_users=" + ",".join(extra_users))
-
-      job["spec"]["template"]["spec"]["containers"][0]["command"] = command
+      job = self._create_job_spec(job_file, group_label, project, user,
+                                  namespace)
 
       output_file = os.path.join(output_dir, "setup-{0}.yaml".format(project))
       logging.info("Writing job spec to %s", output_file)
       with open(output_file, "w") as hf:
         yaml.safe_dump(job, hf)
-
-      logging.info("Job spec for project: %s\n%s", project,
-                   yaml.safe_dump(job))
-
 
       # submit the job
       logging.info("Creating job")
@@ -168,8 +183,7 @@ class BulkDeploy:
       logging.info("Created job %s.%s:\n%s", actual_job.metadata.namespace,
                    actual_job.metadata.name, yaml.safe_dump(actual_job.to_dict()))
 
-
-    self.wait_for_jobs(namespace, "group=" + labels["group"])
+    self.wait_for_jobs(namespace, "group=" + group_label)
 
   def wait_for_jobs(self, namespace, label_filter):
     """Wait for all the jobs with the specified label to finish.
