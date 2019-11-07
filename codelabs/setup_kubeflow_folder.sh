@@ -5,7 +5,7 @@
 set -x
 
 # The name of the organization
-ORG_NAME=kubeflow.org
+ORG_NAME=gcplab.me
 
 # The name of the folder
 FOLDER=kubeflow-codelabs
