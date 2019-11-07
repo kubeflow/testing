@@ -5,13 +5,13 @@
 set -x
 
 # The name of the organization
-ORG_NAME=gcplab.me
+ORG_NAME=${ORG_NAME:-gcplab.me}
 
 # The name of the folder
-FOLDER=kubeflow-codelabs
+FOLDER=${FOLDER:-kubeflow-codelabs}
 
 # The group to grant ownership of the folder
-GROUP=kubeflow-codelab-folder-admins@google.com
+GROUP=${GROUP:-kubeflow-codelab-folder-admins@google.com}
 
 set -e
 ORG_ID=$(gcloud organizations list --filter=display_name=${ORG_NAME} --format='value(ID)')
