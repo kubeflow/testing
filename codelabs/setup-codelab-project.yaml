@@ -28,7 +28,7 @@ spec:
         - --depth=all
         # Keep repos in sync with other jobs
         # Suggest pinning to specific comits to avoid being broken  by changes
-        - --repos=kubeflow/kubeflow@9741891,kubeflow/testing@HEAD:518
+        - --repos=kubeflow/kubeflow@9741891,kubeflow/testing@HEAD:523
         - --src_dir=/src
         env:
         - name: PYTHONPATH
@@ -60,11 +60,14 @@ spec:
         - --oauth_file=gs://kf-codelab-admin/test-project-iap.oauth.yaml
         # The remaining arguments customize how Kubeflow is setup.
         # You can change the values here in the template to change how bulk deploy will setup kubeflow instances
-        - --name=kflab
-        - --kfctl_path=https://github.com/kubeflow/kubeflow/releases/download/v0.7.0/kfctl_v0.7.0_linux.tar.gz        
+        - --name=kflab            
         - --setup_project
         - --zone=us-central1-a
-        - --kfctl_config=https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml
+        # uncomment for v0.7
+        #- --kfctl_path=https://github.com/kubeflow/kubeflow/releases/download/v0.7.0/kfctl_v0.7.0_linux.tar.gz  
+        #- --kfctl_config=https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml
+        - --kfctl_path=https://github.com/kubeflow/kubeflow/releases/download/v0.6.2/kfctl_v0.6.2_linux.tar.gz
+        - --kfctl_config=https://raw.githubusercontent.com/kubeflow/kubeflow/v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml
         volumeMounts:
         - mountPath: /src
           name: src

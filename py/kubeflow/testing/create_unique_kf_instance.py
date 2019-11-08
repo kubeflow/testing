@@ -12,6 +12,7 @@ deployments.
 """
 import argparse
 import datetime
+import json
 import logging
 import os
 import re
@@ -20,10 +21,15 @@ import tempfile
 import uuid
 import yaml
 
+from googleapiclient import discovery
+from googleapiclient import errors
 from google.cloud import storage
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
+from oauth2client.client import GoogleCredentials
 from retrying import retry
+
+KFDEF_V1ALPHA1 = "kfdef.apps.kubeflow.org/v1alpha1"
 
 @retry(wait_fixed=60000, stop_max_attempt_number=5)
 def run_with_retry(*args, **kwargs):
@@ -39,7 +45,52 @@ def build_kfctl_go(args):
 
   return kfctl_path
 
-def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
+def build_v06_spec(config_spec, project, email, zone, setup_project):
+  """Create a v0.6 KFDef spec."""
+
+  config_spec["spec"]["project"] = project
+  config_spec["spec"]["email"] = email
+  config_spec["spec"]["zone"] = zone
+  config_spec["spec"]["skipInitProject"] = not setup_project
+  return config_spec
+
+def build_v07_spec(config_spec, project, email, zone, setup_project):
+  """Create a v0.7 or later KFDef spec."""
+  gcp_plugin = None
+  for p in config_spec["spec"]["plugins"]:
+    if p["kind"] != "KfGcpPlugin":
+      continue
+    gcp_plugin = p
+
+  if not gcp_plugin:
+    raise ValueError("No gcpplugin found in spec")
+  gcp_plugin["spec"]["project"] = project
+  gcp_plugin["spec"]["email"] = email
+  gcp_plugin["spec"]["zone"] = zone
+  gcp_plugin["spec"]["skipInitProject"] = not setup_project
+
+  return config_spec
+
+def check_if_kfapp_exists(project, name):
+  """Check if a deployment with the specified name already exists."""
+  credentials = GoogleCredentials.get_application_default()
+  dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
+
+  deployments_client = dm.deployments()
+  try:
+    deployments_client.get(project=project, deployment=name).execute()
+  except errors.HttpError as e:
+    if not e.content:
+      raise
+    error_content = json.loads(e.content)
+    if error_content.get('error', {}).get('code', 0) == 404:
+      return False
+
+    raise
+
+  return True
+
+def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None): # pylint: disable=too-many-branches
   """Deploy Kubeflow using kfctl go binary."""
   # username and password are passed as env vars and won't appear in the logs
   #
@@ -60,26 +111,23 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
   #  1. We need to create appropriate RBAC rules to allow the current user
   #     to create the required K8s resources.
   #  2. Setting the IAM policy will fail if the email is invalid.
-  email = util.run(["gcloud", "config", "get-value", "account"])
+  email = args.email
+
+  if not email:
+    logging.info("email not set trying to get default from gcloud")
+    email = util.run(["gcloud", "config", "get-value", "account"])
 
   if not email:
     raise ValueError("Could not determine GCP account being used.")
 
-  gcp_plugin = None
-  for p in config_spec["spec"]["plugins"]:
-    if p["kind"] != "KfGcpPlugin":
-      continue
-    gcp_plugin = p
+  kfdef_version = config_spec["apiVersion"].strip().lower()
 
-  if not gcp_plugin:
-    raise ValueError("No gcpplugin found in spec")
-  gcp_plugin["spec"]["project"] = args.project
-  gcp_plugin["spec"]["email"] = email
-  gcp_plugin["spec"]["zone"] = args.zone
-
-  if args.setup_project:
-    logging.info("Setting skipInitProject to false")
-    gcp_plugin["spec"]["skipInitProject"] = False
+  if kfdef_version == KFDEF_V1ALPHA1:
+    config_spec = build_v06_spec(config_spec, args.project, email, args.zone,
+                                 args.setup_project)
+  else:
+    config_spec = build_v07_spec(config_spec, args.project, email, args.zone,
+                                 args.setup_project)
 
   config_spec["spec"] = util.filter_spartakus(config_spec["spec"])
 
@@ -97,16 +145,44 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
 
   logging.info("KFDefSpec:\n%s", yaml.safe_dump(config_spec))
 
-  if not os.path.exists(app_dir):
-    logging.info("Creating app dir %s", app_dir)
-    os.makedirs(app_dir)
+  if kfdef_version == KFDEF_V1ALPHA1:
+    logging.info("Deploying using v06 syntax")
 
-  config_file = os.path.join(app_dir, "kf_config.yaml")
-  with open(config_file, "w") as hf:
-    logging.info("Writing file %s", config_file)
-    yaml.dump(config_spec, hf)
+    logging.info("Checking if deployment %s already exists in project %s",
+                 args.project, app_name)
 
-  util.run([kfctl_path, "apply", "-V", "-f", config_file], env=env)
+    if check_if_kfapp_exists(args.project, app_name):
+      # With v0.6 kfctl can't successfully run apply a 2nd time so if
+      # the deployment already exists we can't redeploy.
+      logging.info("Deployment %s already exists in project %s; not "
+                   "redeploying", args.project, app_name)
+      return
+
+    with tempfile.NamedTemporaryFile(prefix="tmpkf_config", suffix=".yaml",
+                                     delete=False) as hf:
+      config_file = hf.name
+      logging.info("Writing file %s", config_file)
+      yaml.dump(config_spec, hf)
+
+    util.run([kfctl_path, "init", app_dir, "-V", "--config=" + config_file],
+             env=env)
+
+    util.run([kfctl_path, "generate", "-V", "all"], env=env, cwd=app_dir)
+
+    util.run([kfctl_path, "apply", "-V", "all"], env=env, cwd=app_dir)
+  else:
+    logging.info("Deploying using v07 syntax")
+
+    if not os.path.exists(app_dir):
+      logging.info("Creating app dir %s", app_dir)
+      os.makedirs(app_dir)
+
+    config_file = os.path.join(app_dir, "kf_config.yaml")
+    with open(config_file, "w") as hf:
+      logging.info("Writing file %s", config_file)
+      yaml.dump(config_spec, hf)
+
+    util.run([kfctl_path, "apply", "-V", "-f", config_file], env=env)
 
   # We will hit lets encrypt rate limiting with the managed certificates
   # So create a self signed certificate and update the ingress to use it.
@@ -122,14 +198,17 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
     util.use_self_signed_for_ingress(ingress_namespace, ingress_name,
                                      tls_endpoint, api_client)
 
-def add_extra_users(args):
+def add_extra_users(project, extra_users):
   """Grant appropriate permissions to additional users."""
   logging.info("Adding additional IAM roles")
-  users = args.extra_users.split(",")
+  extra_users = extra_users.strip()
+  users = extra_users.split(",")
   for user in users:
+    if not user:
+      continue
     logging.info("Granting iap.httpsResourceAccessor to %s", user)
     util.run(["gcloud", "projects",
-               "add-iam-policy-binding", args.project,
+               "add-iam-policy-binding", project,
                "--member=" + user,
                "--role=roles/iap.httpsResourceAccessor"])
 
@@ -182,6 +261,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
           help=("Name for the deployment. This can be a python format string "
                 "with the variable uid. Uid will automatically be substituted "
                 "for a unique value based on the time."))
+
+  parser.add_argument(
+          "--email", type=str, default="",
+          help=("(Optional). Email of the person to create the default profile"
+                "for. If not specificied uses the gcloud config value."))
 
   parser.add_argument(
           "--extra_users", type=str, default="",
@@ -271,7 +355,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     labels[k] = val
 
   deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=labels)
-  add_extra_users(args)
+  add_extra_users(args.project, args.extra_users)
 
 if __name__ == "__main__":
   main()
