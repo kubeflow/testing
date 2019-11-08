@@ -44,10 +44,10 @@ def build_kfctl_go(args):
 def build_v06_spec(config_spec, project, email, zone, setup_project):
   """Create a v0.6 KFDef spec."""
 
-  config_spec["spec"]["project"] = args.project
+  config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
-  config_spec["spec"]["zone"] = args.zone
-
+  config_spec["spec"]["zone"] = zone
+  config_spec["spec"]["skipInitProject"] = not setup_project
   return config_spec
 
 def build_v07_spec(config_spec, project, email, zone, setup_project):
@@ -63,10 +63,7 @@ def build_v07_spec(config_spec, project, email, zone, setup_project):
   gcp_plugin["spec"]["project"] = project
   gcp_plugin["spec"]["email"] = email
   gcp_plugin["spec"]["zone"] = zone
-
-  if setup_project:
-    logging.info("Setting skipInitProject to false")
-    gcp_plugin["spec"]["skipInitProject"] = False
+  gcp_plugin["spec"]["skipInitProject"] = not setup_project
 
   return config_spec
 
