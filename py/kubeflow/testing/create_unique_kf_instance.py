@@ -31,10 +31,9 @@ def run_with_retry(*args, **kwargs):
 
 def build_kfctl_go(args):
   """Build kfctl go."""
-  build_dir = os.path.join(args.kubeflow_repo)
   # We need to use retry builds because when building in the test cluster
   # we see intermittent failures pulling dependencies
-  util.run(["make", "build-kfctl"], cwd=build_dir)
+  util.run(["make", "build-kfctl"], cwd=args.kubeflow_repo)
   kfctl_path = os.path.join(build_dir, "bin", "kfctl")
 
   return kfctl_path
