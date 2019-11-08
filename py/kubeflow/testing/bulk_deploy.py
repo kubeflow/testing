@@ -89,7 +89,7 @@ class BulkDeploy:
     job["spec"]["template"]["metadata"]["labels"].update(labels)
 
     # Process the command line
-    remove_args = ["--project", "--extra_users"]
+    remove_args = ["--project", "--extra_users", "--email"]
     command = []
     for a in job["spec"]["template"]["spec"]["containers"][0]["command"]:
       keep = True
@@ -103,7 +103,8 @@ class BulkDeploy:
 
       command.append(a)
 
-    extra_users = ["user:" + user, "serviceAccount:" + ADMIN_ACCOUNT]
+    command.append("--email=" + user)
+    extra_users = ["serviceAccount:" + ADMIN_ACCOUNT]
     command.append("--project=" + project)
     command.append("--extra_users=" + ",".join(extra_users))
 
