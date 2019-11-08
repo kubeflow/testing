@@ -20,8 +20,8 @@ spec:
       initContainers:
       - command:        
         - /usr/local/bin/checkout_repos.sh 
-        # Stop using PR #495 once its subbmitted
-        - --repos=kubeflow/kubeflow@HEAD,kubeflow/testing@HEAD:506
+        # Stop using PR #495 once its subbmitted        
+        - --repos=kubeflow/kfctl@HEAD,kubeflow/testing@HEAD:506
         - --src_dir=/src
         env:
         - name: PYTHONPATH
@@ -53,7 +53,7 @@ spec:
         - -m
         - kubeflow.testing.create_unique_kf_instance
         - --apps_dir=/src/apps
-        - --kubeflow_repo=/src/kubeflow/kubeflow
+        - --kubeflow_repo=/src/kubeflow/kfctl
         - --name=kf-vmaster-{uid}
         - --project=kubeflow-ci-deployment
         - --zone=us-central1-a
