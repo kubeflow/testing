@@ -25,6 +25,8 @@ from kubeflow.testing import util
 from kubernetes import client as k8s_client
 from retrying import retry
 
+KFDEF_V1ALPHA1 = "kfdef.apps.kubeflow.org/v1alpha1"
+
 @retry(wait_fixed=60000, stop_max_attempt_number=5)
 def run_with_retry(*args, **kwargs):
   util.run(*args, **kwargs)
@@ -94,9 +96,14 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
   if not email:
     raise ValueError("Could not determine GCP account being used.")
 
+  kfdef_version = config_spec["apiVersion"].strip().lower()
 
-  config_spec = build_v07_spec(config_spec, args.project, email, args.zone,
-                               args.setup_project)
+  if kfdef_version == KFDEF_V1ALPHA1:
+    config_spec = build_v06_spec(config_spec, args.project, email, args.zone,
+                                 args.setup_project)
+  else:
+    config_spec = build_v07_spec(config_spec, args.project, email, args.zone,
+                                 args.setup_project)
 
   config_spec["spec"] = util.filter_spartakus(config_spec["spec"])
 
@@ -114,8 +121,7 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
 
   logging.info("KFDefSpec:\n%s", yaml.safe_dump(config_spec))
 
-  kfdef_version = config_spec["apiVersion"].strip().lower()
-  if kfdef_version == "kfdef.apps.kubeflow.org/v1alpha1":
+  if kfdef_version == KFDEF_V1ALPHA1:
     logging.info("Deploying using v06 syntax")
     with tempfile.NamedTemporaryFile(prefix="tmpkf_config", suffix=".yaml",
                                      delete=False) as hf:
