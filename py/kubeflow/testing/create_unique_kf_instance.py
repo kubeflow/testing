@@ -39,6 +39,35 @@ def build_kfctl_go(args):
 
   return kfctl_path
 
+def build_v06_spec(config_spec, project, email, zone, setup_project):
+  """Create a v0.6 KFDef spec."""
+
+  config_spec["spec"]["project"] = args.project
+  config_spec["spec"]["email"] = email
+  config_spec["spec"]["zone"] = args.zone
+
+  return config_spec
+
+def build_v07_spec(config_spec, project, email, zone, setup_project):
+  """Create a v0.7 or later KFDef spec."""
+  gcp_plugin = None
+  for p in config_spec["spec"]["plugins"]:
+    if p["kind"] != "KfGcpPlugin":
+      continue
+    gcp_plugin = p
+
+  if not gcp_plugin:
+    raise ValueError("No gcpplugin found in spec")
+  gcp_plugin["spec"]["project"] = project
+  gcp_plugin["spec"]["email"] = email
+  gcp_plugin["spec"]["zone"] = zone
+
+  if setup_project:
+    logging.info("Setting skipInitProject to false")
+    gcp_plugin["spec"]["skipInitProject"] = False
+
+  return config_spec
+
 def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
   """Deploy Kubeflow using kfctl go binary."""
   # username and password are passed as env vars and won't appear in the logs
@@ -65,21 +94,9 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
   if not email:
     raise ValueError("Could not determine GCP account being used.")
 
-  gcp_plugin = None
-  for p in config_spec["spec"]["plugins"]:
-    if p["kind"] != "KfGcpPlugin":
-      continue
-    gcp_plugin = p
 
-  if not gcp_plugin:
-    raise ValueError("No gcpplugin found in spec")
-  gcp_plugin["spec"]["project"] = args.project
-  gcp_plugin["spec"]["email"] = email
-  gcp_plugin["spec"]["zone"] = args.zone
-
-  if args.setup_project:
-    logging.info("Setting skipInitProject to false")
-    gcp_plugin["spec"]["skipInitProject"] = False
+  config_spec = build_v07_spec(config_spec, args.project, email, args.zone,
+                               args.setup_project)
 
   config_spec["spec"] = util.filter_spartakus(config_spec["spec"])
 
@@ -97,16 +114,34 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
 
   logging.info("KFDefSpec:\n%s", yaml.safe_dump(config_spec))
 
-  if not os.path.exists(app_dir):
-    logging.info("Creating app dir %s", app_dir)
-    os.makedirs(app_dir)
+  kfdef_version = config_spec["apiVersion"].strip().lower()
+  if kfdef_version == "kfdef.apps.kubeflow.org/v1alpha1":
+    logging.info("Deploying using v06 syntax")
+    with tempfile.NamedTemporaryFile(prefix="tmpkf_config", suffix=".yaml",
+                                     delete=False) as hf:
+      config_file = hf.name
+      logging.info("Writing file %s", config_file)
+      yaml.dump(config_spec, hf)
 
-  config_file = os.path.join(app_dir, "kf_config.yaml")
-  with open(config_file, "w") as hf:
-    logging.info("Writing file %s", config_file)
-    yaml.dump(config_spec, hf)
+    util.run([kfctl_path, "init", app_dir, "-V", "--config=" + config_file],
+             env=env)
 
-  util.run([kfctl_path, "apply", "-V", "-f", config_file], env=env)
+    util.run([kfctl_path, "generate", "-V", "all"], env=env, cwd=app_dir)
+
+    util.run([kfctl_path, "apply", "-V", "all"], env=env, cwd=app_dir)
+  else:
+    logging.info("Deploying using v07 syntax")
+
+    if not os.path.exists(app_dir):
+      logging.info("Creating app dir %s", app_dir)
+      os.makedirs(app_dir)
+
+    config_file = os.path.join(app_dir, "kf_config.yaml")
+    with open(config_file, "w") as hf:
+      logging.info("Writing file %s", config_file)
+      yaml.dump(config_spec, hf)
+
+    util.run([kfctl_path, "apply", "-V", "-f", config_file], env=env)
 
   # We will hit lets encrypt rate limiting with the managed certificates
   # So create a self signed certificate and update the ingress to use it.
