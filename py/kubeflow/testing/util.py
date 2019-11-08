@@ -494,6 +494,66 @@ def wait_for_job(api_client,
     "Timeout waiting for job {0}.{1} to finish".format(
       namespace, name))
 
+
+def wait_for_jobs_with_label(api_client,
+                             namespace,
+                             label_filter,
+                             timeout=datetime.timedelta(minutes=30)):
+  """Wait for all jobs with the specified label to finish.
+
+  Args:
+    api_client: K8s api client to use.
+    namespace: The name space for the deployment.
+    label_filter: A label filter expression; e.g. "group=somevalue"
+    timeout: Timeout for jobs
+
+  Returns:
+    job: The kubernetes batch job object
+
+  Raises:
+    TimeoutError: If timeout waiting for deployment to be ready.
+  """
+  batch_api = k8s_client.BatchV1Api(api_client)
+
+  end_time = datetime.datetime.now() + timeout
+  while datetime.datetime.now() < end_time:
+    jobs = batch_api.list_namespaced_job(namespace, label_selector=label_filter)
+
+    if not jobs.items:
+      raise ValueError("No jobs found in namespace {0} with labels {1}".format(
+                       namespace, label_filter))
+
+    all_done = True
+    done = 0
+    not_done = 0
+    for job in jobs.items:
+      if not job.status.conditions:
+        logging.info("Job %s.%s missing condition", job.metadata.namespace,
+                     job.metadata.name)
+        all_done = False
+        not_done += 1
+        continue
+
+      last_condition = job.status.conditions[-1]
+      if last_condition.type in ["Failed", "Complete"]:
+        logging.info("Job %s.%s has condition %s", job.metadata.namespace,
+                     job.metadata.name, last_condition.type)
+        done += 1
+
+    if all_done:
+      logging.info("%s of %s jobs finished", len(jobs.items), len(jobs.items))
+      return jobs
+
+    if not all_done:
+      logging.info("Waiting for job %s of %s jobs to finish", not_done,
+                   not_done + done)
+      time.sleep(10)
+
+  message = ("Timeout waiting for jobs to finish; {0} of {1} "
+             "not finished.").format(not_done, not_done + done)
+  logging.error(message)
+  raise TimeoutError(message)
+
 def check_secret(api_client, namespace, name):
   """Check for secret existance.
 

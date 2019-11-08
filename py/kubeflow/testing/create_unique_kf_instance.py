@@ -16,6 +16,7 @@ import logging
 import os
 import re
 import requests
+import tempfile
 import uuid
 import yaml
 
@@ -76,6 +77,10 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
   gcp_plugin["spec"]["email"] = email
   gcp_plugin["spec"]["zone"] = args.zone
 
+  if args.setup_project:
+    logging.info("Setting skipInitProject to false")
+    gcp_plugin["spec"]["skipInitProject"] = False
+
   config_spec["spec"] = util.filter_spartakus(config_spec["spec"])
 
   # Remove name because we will auto infer from directory.
@@ -105,14 +110,28 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None):
 
   # We will hit lets encrypt rate limiting with the managed certificates
   # So create a self signed certificate and update the ingress to use it.
-  util.load_kube_config(persist_config=False)
-  api_client = k8s_client.ApiClient()
-  ingress_namespace = "istio-system"
-  ingress_name = "envoy-ingress"
-  tls_endpoint = "{0}.endpoints.{1}.cloud.goog".format(app_name, args.project)
-  logging.info("Configuring self signed cert for %s", tls_endpoint)
-  util.use_self_signed_for_ingress(ingress_namespace, ingress_name,
-                                   tls_endpoint, api_client)
+  if args.use_self_cert:
+    logging.info("Configuring self signed certificate")
+
+    util.load_kube_config(persist_config=False)
+    api_client = k8s_client.ApiClient()
+    ingress_namespace = "istio-system"
+    ingress_name = "envoy-ingress"
+    tls_endpoint = "{0}.endpoints.{1}.cloud.goog".format(app_name, args.project)
+    logging.info("Configuring self signed cert for %s", tls_endpoint)
+    util.use_self_signed_for_ingress(ingress_namespace, ingress_name,
+                                     tls_endpoint, api_client)
+
+def add_extra_users(args):
+  """Grant appropriate permissions to additional users."""
+  logging.info("Adding additional IAM roles")
+  users = args.extra_users.split(",")
+  for user in users:
+    logging.info("Granting iap.httpsResourceAccessor to %s", user)
+    util.run(["gcloud", "projects",
+               "add-iam-policy-binding", args.project,
+               "--member=" + user,
+               "--role=roles/iap.httpsResourceAccessor"])
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
@@ -143,6 +162,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
       type=str, help=("Path to the Kubeflow repo to use"))
 
   parser.add_argument(
+          "--kfctl_path",
+            default="",
+      type=str, help=("Path to kfctl; can be a URL."))
+
+  parser.add_argument(
           "--kfctl_config",
             default=("https://raw.githubusercontent.com/kubeflow/manifests"
                      "/master/kfdef/kfctl_gcp_iap.yaml"),
@@ -160,8 +184,24 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
                 "for a unique value based on the time."))
 
   parser.add_argument(
-          "--job_name",
-            default="", type=str, help=("Pod name running the job."))
+          "--extra_users", type=str, default="",
+          help=("Comma separated list of additional users to grant access. "
+                "Should be in the form user:donald@google.com or"
+                "serviceAccount:test123@example.domain.com"))
+
+  parser.add_argument("--setup_project", dest="setup_project",
+                      action="store_true", help="Setup the project")
+  parser.add_argument("--no-setup_project", dest="setup_project",
+                      action="store_false", help="Do not setup the project")
+  parser.set_defaults(setup_project=True)
+
+  parser.add_argument("--use_self_cert", dest="use_self_cert",
+                      action="store_true",
+                      help="Use a self signed certificate")
+  parser.add_argument("--no-use_self_cert", dest="use_self_cert",
+                      action="store_false",
+                      help="Do not use a self signed certificate")
+  parser.set_defaults(use_self_cert=True)
 
   args = parser.parse_args()
 
@@ -177,10 +217,32 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   oauth_info = yaml.load(contents)
 
-  git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
-                           cwd=args.kubeflow_repo).strip("'")
+  if args.kubeflow_repo and args.kfctl_path:
+    raise ValueError("Exactly one of --kubeflow_repo and --kfctl_path neeeds "
+                     "to be set.")
 
-  kfctl_path = build_kfctl_go(args)
+  if not args.kubeflow_repo and not args.kfctl_path:
+    raise ValueError("Exactly one of --kubeflow_repo and --kfctl_path neeeds "
+                     "to be set.")
+
+  git_describe = ""
+  if args.kubeflow_repo:
+    git_describe = util.run(["git", "describe", "--tags", "--always", "--dirty"],
+                             cwd=args.kubeflow_repo).strip("'")
+
+    kfctl_path = build_kfctl_go(args)
+  else:
+    if args.kfctl_path.startswith("http"):
+      temp_dir = tempfile.mkdtemp()
+      util.run(["curl", "-L", "-o", "kfctl.tar.gz", args.kfctl_path],
+               cwd=temp_dir)
+      util.run(["tar", "-xvf", "kfctl.tar.gz"], cwd=temp_dir)
+      kfctl_path = os.path.join(temp_dir, "kfctl")
+      git_describe = util.run([kfctl_path, "version"])
+    else:
+      kfctl_path = args.kfctl_path
+
+  logging.info("kfctl path set to %s", kfctl_path)
 
   # We need to keep the name short to avoid hitting limits with certificates.
   uid = datetime.datetime.now().strftime("%m%d") + "-"
@@ -209,6 +271,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     labels[k] = val
 
   deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=labels)
+  add_extra_users(args)
 
 if __name__ == "__main__":
   main()
