@@ -19,9 +19,8 @@ spec:
     spec:
       initContainers:
       - command:        
-        - /usr/local/bin/checkout_repos.sh 
-        # Stop using PR #495 once its subbmitted        
-        - --repos=kubeflow/kfctl@HEAD:,kubeflow/testing@HEAD:522
+        - /usr/local/bin/checkout_repos.sh         
+        - --repos=kubeflow/kfctl@HEAD:,kubeflow/testing@HEAD
         - --src_dir=/src
         env:
         - name: PYTHONPATH
