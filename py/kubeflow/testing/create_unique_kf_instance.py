@@ -37,11 +37,10 @@ def run_with_retry(*args, **kwargs):
 
 def build_kfctl_go(args):
   """Build kfctl go."""
-  build_dir = os.path.join(args.kubeflow_repo, "bootstrap")
   # We need to use retry builds because when building in the test cluster
   # we see intermittent failures pulling dependencies
-  util.run(["make", "build-kfctl"], cwd=build_dir)
-  kfctl_path = os.path.join(build_dir, "bin", "kfctl")
+  util.run(["make", "build-kfctl"], cwd=args.kubeflow_repo)
+  kfctl_path = os.path.join(args.kubeflow_repo, "bin", "kfctl")
 
   return kfctl_path
 
@@ -235,10 +234,14 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
       type=str, help=("The file containing the OAuth client ID & secret"
                     "for IAP."))
 
+
+  # TODO(jlewi): Should rename this argument to something like kfctl_src
+  # We should try to do it in a backwards compatible way.
   parser.add_argument(
           "--kubeflow_repo",
             default="/src/kubeflow/kubeflow",
-      type=str, help=("Path to the Kubeflow repo to use"))
+      type=str, help=("Path to the source for kfctl. Should be the directory "
+                      "containing the Makefile to build kfctl"))
 
   parser.add_argument(
           "--kfctl_path",
