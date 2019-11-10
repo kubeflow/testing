@@ -1,0 +1,10 @@
+apiVersion: container.cnrm.cloud.google.com/v1alpha2
+kind: ContainerCluster
+metadata:
+  labels:
+    application: "kubeflow-community"
+  name: kf-community
+spec:
+  location: us-west1-a
+  initialNodeCount: 1
+  removeDefaultNodePool: false
