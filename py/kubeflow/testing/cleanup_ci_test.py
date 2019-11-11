@@ -10,7 +10,11 @@ def test_match_endpoints():
   ]
 
   for s in service_names:
-    assert cleanup_ci.is_match(s, patterns=cleanup_ci.MATCHING)
+    assert cleanup_ci.is_match(s, patterns=cleanup_ci.E2E_PATTERNS)
+
+def test_match_disk():
+  pvc = "gke-zresubmit-unittest-pvc-e3bf5be4-987b-11e9-8266-42010a8e00e9"
+  assert cleanup_ci.is_match(pvc, patterns=cleanup_ci.E2E_PATTERNS)
 
 if __name__ == "__main__":
   logging.basicConfig(
