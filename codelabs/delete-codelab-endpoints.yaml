@@ -1,4 +1,4 @@
-# A Kubernetes job to launch a bunch of K8s jobs to setup codelab projects
+# A Kubernetes job to test the endpoints of a bunch of deployed instances
 #
 # This job runs the kubeflow.testing.bulk-deploy script and takes as input
 # a CSV file on GCS containing the GCS projects to test.
@@ -9,11 +9,11 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName:  test-codelab-
+  generateName:  codelabs-delete-
   # namespace should
   namespace: kubeflow-jlewi
   labels:
-    job: test-codelab
+    job: codelabs-delete
 spec:
   # TODO(jlewi): Should we add retries
   backoffLimit: 1
@@ -22,7 +22,7 @@ spec:
       annotations:
         sidecar.istio.io/inject: "false"
       labels:
-        job: setup-codelab
+        job: codelabs-delete
     spec:
       initContainers:
       - command:        
@@ -54,12 +54,12 @@ spec:
         - python
         - -m
         - kubeflow.testing.bulk_deploy
-        - deploy
-        # Set project base name and the indexes for the projects to deploy
-        # end index is non-inclusive
-        - --project-base-name=kfkc19-san-
-        - --start-index=8851
-        - --end-index=8901
+        - delete
+        # Edit the following flags to control which projects to cleanup
+        - --kfname=kfv06
+        - --project-base-name=some-project-
+        - --start-index=8701
+        - --end-index=8708
         volumeMounts:
         - mountPath: /src
           name: src
