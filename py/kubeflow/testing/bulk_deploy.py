@@ -14,6 +14,7 @@ import yaml
 
 from google.cloud import storage
 from kubeflow.testing import util
+from kubernetes import config
 from kubernetes import client as k8s_client
 
 # Currently in the kubeflow/kubeflow repo
@@ -129,7 +130,11 @@ class BulkDeploy:
 
       output_dir: Directory to write the job specs to.
     """
-    util.load_kube_config(persist_config=False)
+    if not util.is_in_cluster():
+      util.load_kube_config(persist_config=False)
+    else:
+      config.load_incluster_config()
+
     # Create an API client object to talk to the K8s master.
     api_client = k8s_client.ApiClient()
     batch_api = k8s_client.BatchV1Api(api_client)
@@ -192,7 +197,11 @@ class BulkDeploy:
     Args:
       label_filter: A label filter expression e.g. "group=mygroup"
     """
-    util.load_kube_config(persist_config=False)
+    if not util.is_in_cluster():
+      util.load_kube_config(persist_config=False)
+    else:
+      config.load_incluster_config()
+
     # Create an API client object to talk to the K8s master.
     api_client = k8s_client.ApiClient()
     jobs = util.wait_for_jobs_with_label(api_client, namespace, label_filter)

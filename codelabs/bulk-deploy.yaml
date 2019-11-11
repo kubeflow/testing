@@ -30,7 +30,7 @@ spec:
         - --depth=all
         # Keep repos in sync with other jobs
         # Suggest pinning to specific comits to avoid being broken  by changes
-        - --repos=kubeflow/kubeflow@9741891,kubeflow/testing@HEAD:518
+        - --repos=kubeflow/kubeflow@9741891,kubeflow/testing@HEAD:527
         - --src_dir=/src
         env:
         - name: PYTHONPATH

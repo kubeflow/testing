@@ -947,3 +947,8 @@ def use_self_signed_for_ingress(ingress_namespace, ingress_name,
   extensions.patch_namespaced_ingress(ingress_name,
                                       ingress_namespace,
                                       ingress)
+
+def is_in_cluster():
+  """Check if we are running in cluster."""
+  # Use the existince of a KSA token to determine if we are in the cluster
+  return os.path.exists("/var/run/secrets/kubernetes.io/serviceaccount")
