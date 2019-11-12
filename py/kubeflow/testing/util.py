@@ -19,6 +19,7 @@ from google.cloud import storage  # pylint: disable=no-name-in-module
 
 from googleapiclient import errors
 from kubernetes import client as k8s_client
+from kubernetes import config
 from kubernetes.config import kube_config
 from kubernetes.client import configuration as kubernetes_configuration
 from kubernetes.client import rest
@@ -751,7 +752,7 @@ def load_kube_credentials():
 
   if is_in_cluster():
     logging.info("Using incluster configuration for K8s client")
-    kube_config.load_incluster_config()
+    config.load_incluster_config()
 
   logging.info("Attempting to load credentials from default KUBECONFIG file")
   load_kube_config(persist_config=False)
