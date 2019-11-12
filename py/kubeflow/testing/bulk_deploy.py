@@ -130,10 +130,7 @@ class BulkDeploy:
 
       output_dir: Directory to write the job specs to.
     """
-    if not util.is_in_cluster():
-      util.load_kube_config(persist_config=False)
-    else:
-      config.load_incluster_config()
+    util.load_kube_credentials()
 
     # Create an API client object to talk to the K8s master.
     api_client = k8s_client.ApiClient()

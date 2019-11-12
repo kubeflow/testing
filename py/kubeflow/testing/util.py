@@ -730,6 +730,32 @@ def _refresh_credentials():
   credentials.refresh(request)
   return credentials
 
+def load_kube_credentials():
+  """Load credentials to talk to the K8s APIServer.
+
+  There are a couple cases we need to handle
+
+  1. Running locally - use KubeConfig
+  2. Running in a pod - use the service account token token to talk to
+     the K8s API server
+  3. Running in a pod and talking to a different Kubernetes cluster
+     in which case load from kubeconfig.
+
+  """
+
+  if os.getenv("KUBECONFIG"):
+    logging.info("Environment variable KUBECONFIG=%s; loading credentials from "
+                 "it.", os.getenv("KUBECONFIG"))
+    load_kube_config(persist_config=False)
+    return
+
+  if is_in_cluster():
+    logging.info("Using incluster configuration for K8s client")
+    kube_config.config.load_incluster_config()
+
+  logging.info("Attempting to load credentials from default KUBECONFIG file")
+  load_kube_config(persist_config=False)
+
 
 # TODO(jlewi): This was originally a work around for
 # https://github.com/kubernetes-incubator/client-python/issues/339.

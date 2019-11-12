@@ -27,6 +27,7 @@ from googleapiclient import errors
 from google.cloud import storage
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
+from kubernetes.client import rest
 from oauth2client.client import GoogleCredentials
 from retrying import retry
 
@@ -83,8 +84,8 @@ def retry_if_api_not_enabled_error(exception):
 # We may need to retry if the deployment manager API isn't enabled.
 # However we also observe problems with gcloud timing out trying to enable
 # the API so we may need to retry enabling the API multiple times.
-@retry(stop_max_delay=4*60*1000)
-def check_if_kfapp_exists(project, name):
+@retrying.retry(stop_max_delay=4*60*1000)
+def check_if_kfapp_exists(project, name, zone):
   """Check if a deployment with the specified name already exists."""
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
@@ -113,6 +114,35 @@ def check_if_kfapp_exists(project, name):
               "deploymentmanager.googleapis.com"])
     logging.info("Api enabled; raising ApiNotEnabledError to force retry")
     raise ApiNotEnabledError
+
+  # TODO(jlewi): It would be better to get the actual zone of the deployment
+  util.run(["gcloud", "--project=" + project, "container", "clusters",
+            "get-credentials", "--zone=" + zone, name])
+  logging.info("Checking if project %s kfapp %s finished setup.", project, name)
+  util.load_kube_credentials()
+
+  # TODO(jlewi): This is a bit of a hack for v0.6. For v0.6 we check if the
+  # ingress already exists and if it does we report it as true and otherwise
+  # false. The reasoning is if the ingress doesn't exist we want to see
+  # if we can fix/resume the deployment by running reapply
+  # With v0.7 kfctl apply should be an idempotent operation so we can always
+  # rerun apply; but with v0.6 rerunning apply if the ingress exists results
+  # in an error.
+  api_client = k8s_client.ApiClient()
+  v1 = k8s_client.CoreV1Api(api_client)
+  ingress_namespace = "istio-system"
+  ingress_name = "envoy-ingress"
+
+  extensions = k8s_client.ExtensionsV1beta1Api(api_client)
+  try:
+    extensions.read_namespaced_ingress(ingress_name, ingress_namespace)
+  except rest.ApiException as e:
+    if e.status == 404:
+      logging.info("Project: %s, KFApp: %s is missing ingress %s.%s",
+                   project, name, ingress_namespace, ingress_name)
+      return False
+    raise
+
   return True
 
 def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None): # pylint: disable=too-many-branches
@@ -176,7 +206,7 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None): # pylint:
     logging.info("Checking if deployment %s already exists in project %s",
                  args.project, app_name)
 
-    if check_if_kfapp_exists(args.project, app_name):
+    if check_if_kfapp_exists(args.project, app_name, args.zone):
       # With v0.6 kfctl can't successfully run apply a 2nd time so if
       # the deployment already exists we can't redeploy.
       logging.info("Deployment %s already exists in project %s; not "
@@ -214,7 +244,8 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None): # pylint:
   if args.use_self_cert:
     logging.info("Configuring self signed certificate")
 
-    util.load_kube_config(persist_config=False)
+    util.load_kube_credentials()
+
     api_client = k8s_client.ApiClient()
     ingress_namespace = "istio-system"
     ingress_name = "envoy-ingress"
@@ -246,6 +277,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
                         datefmt='%Y-%m-%dT%H:%M:%S',
                       )
   logging.getLogger().setLevel(logging.INFO)
+
+  # DO NOT SUBMIT
+  check_if_kfapp_exists("kf-test-9997", "kfv06", "us-central1-a")
+  return
 
   parser = argparse.ArgumentParser()
 

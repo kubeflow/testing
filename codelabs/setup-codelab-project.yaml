@@ -51,6 +51,10 @@ spec:
         # TODO(jlewi): We aren't using workload identity because gcloud appears to be flaky.
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/secrets/user-gcp-sa.json
+        # We need to set the KUBECONFIG variable because some of the code uses the existence
+        # of this variable to determine how to authenticate to the cluster
+        - name: KUBECONFIG
+          value: /src/.kube
         command:
         - python
         - -m
