@@ -68,14 +68,13 @@ spec:
         #- --kfctl_config=https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml
         - --kfctl_path=https://github.com/kubeflow/kubeflow/releases/download/v0.6.2/kfctl_v0.6.2_linux.tar.gz
         - --kfctl_config=https://raw.githubusercontent.com/kubeflow/kubeflow/v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml
-        volumeMounts:
-        - mountPath: /src
-          name: src
         # TODO(jlewi): We aren't using workload identity because gcloud appears to be flaky.
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: "/var/secrets/user-sa.json"
         volumeMounts:
+        - mountPath: /src
+          name: src
         - name: gcp-secret
           mountPath: "/var/secrets/user-sa.json"
           readOnly: true
