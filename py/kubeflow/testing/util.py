@@ -751,7 +751,7 @@ def load_kube_credentials():
 
   if is_in_cluster():
     logging.info("Using incluster configuration for K8s client")
-    kube_config.config.load_incluster_config()
+    kube_config.load_incluster_config()
 
   logging.info("Attempting to load credentials from default KUBECONFIG file")
   load_kube_config(persist_config=False)

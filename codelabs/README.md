@@ -107,3 +107,12 @@ account used by the K8s job
       ```
 
     * The job will print out which projects in the CSV file have accessible Kubeflow deployments
+
+
+## Helpful one liners
+
+Get all deploy jobs for a specific project
+
+```
+kubectl -n kubeflow-jlewi  get pods -l project=${PROJECT} --sort-by=.metadata.creationTimestamp 
+```
