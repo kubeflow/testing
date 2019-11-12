@@ -80,10 +80,10 @@ def retry_if_api_not_enabled_error(exception):
      In this case when it's ApiNotEnabled error), False otherwise"""
   return isinstance(exception, ApiNotEnabledError)
 
-# Retry max of two times. The first time we fail it might be because the
-# deployment manager API isn't enabled so we will enable it and then retry
-@retry(stop_max_attempt_number=2,
-       retry_on_exception=retry_if_api_not_enabled_error)
+# We may need to retry if the deployment manager API isn't enabled.
+# However we also observe problems with gcloud timing out trying to enable
+# the API so we may need to retry enabling the API multiple times.
+@retry(stop_max_delay=4*60*1000)
 def check_if_kfapp_exists(project, name):
   """Check if a deployment with the specified name already exists."""
   credentials = GoogleCredentials.get_application_default()
@@ -223,6 +223,8 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None): # pylint:
     util.use_self_signed_for_ingress(ingress_namespace, ingress_name,
                                      tls_endpoint, api_client)
 
+# gcloud appears to timeout so lets add some retries.
+@retrying.retry(stop_max_delay=4*60*1000)
 def add_extra_users(project, extra_users):
   """Grant appropriate permissions to additional users."""
   logging.info("Adding additional IAM roles")
