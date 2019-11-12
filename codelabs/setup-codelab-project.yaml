@@ -50,7 +50,7 @@ spec:
           value: /src/kubeflow/testing/py
         # TODO(jlewi): We aren't using workload identity because gcloud appears to be flaky.
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/secrets/user-sa.json
+          value: /var/secrets/user-gcp-sa.json
         command:
         - python
         - -m
@@ -75,7 +75,7 @@ spec:
         - mountPath: /src
           name: src
         - name: gcp-secret
-          mountPath: /var/secrets/user-sa.json
+          mountPath: /var/secrets
           readOnly: true
       # Use a Kubeflow service account which is mapped to a GSA
       serviceAccount: default-editor
