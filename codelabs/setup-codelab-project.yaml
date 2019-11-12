@@ -84,7 +84,6 @@ spec:
       volumes:
       - name: src
         emptyDir: {}
-      volumes:
       - name: gcp-secret
         secret:
           secretName: user-gcp-sa
