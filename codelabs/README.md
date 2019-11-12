@@ -24,11 +24,27 @@ account used by the K8s job
 
 1. Ensure the Google Sheet containing the code lab account has a field project
 
-   * With the last batch of projects it looked like the convention was 
+   * The convention is 
 
      ```
      USER=devstar${NUMBER}@gcplab.me
-     PROJECT=kf-test-${NUMBER}
+     PROJECT=${PREFIX}-${NUMBER}
+     ```
+
+   * Where ${PREFIX} is based on the name of the google sheet
+
+   * You can use google sheets to easily compute the project for each row
+
+   * Add 1 column to extract the numberic user id from the user email by using a formula like the following
+
+     ```
+     =REGEXEXTRACT($A2, ".*(\d\d\d\d).*")
+     ```
+
+   * Then add a second column with a formula like the following to combine the numeric id with the project prefix
+
+     ```
+     =CONCATENATE("kfkc19-san-",$F2)
      ```
 
 1. Export the Google Sheet containing the code lab accounts to CSV

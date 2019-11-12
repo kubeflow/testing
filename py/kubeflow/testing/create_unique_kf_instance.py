@@ -17,6 +17,7 @@ import logging
 import os
 import re
 import requests
+import retrying
 import tempfile
 import uuid
 import yaml
@@ -70,23 +71,48 @@ def build_v07_spec(config_spec, project, email, zone, setup_project):
 
   return config_spec
 
+class ApiNotEnabledError(Exception):
+  pass
+
+def retry_if_api_not_enabled_error(exception):
+  """Return True if we should retry.
+
+     In this case when it's ApiNotEnabled error), False otherwise"""
+  return isinstance(exception, ApiNotEnabledError)
+
+# Retry max of two times. The first time we fail it might be because the
+# deployment manager API isn't enabled so we will enable it and then retry
+@retry(stop_max_attempt_number=2,
+       retry_on_exception=retry_if_api_not_enabled_error)
 def check_if_kfapp_exists(project, name):
   """Check if a deployment with the specified name already exists."""
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
 
   deployments_client = dm.deployments()
+  enable_api = False
   try:
     deployments_client.get(project=project, deployment=name).execute()
   except errors.HttpError as e:
     if not e.content:
       raise
     error_content = json.loads(e.content)
-    if error_content.get('error', {}).get('code', 0) == 404:
+    if error_content.get("error", {}).get("code", 0) == 404:
       return False
+    elif error_content.get("error", {}).get("code", 0) == 403:
+      # We get a 403 if the deployment manager API isn't enabled
+      logging.info("Fetching deployment %s in project %s returned error:\n%s",
+                   name, project, error_content)
+      enable_api = True
+    else:
+      raise
 
-    raise
-
+  if enable_api:
+    logging.info("Enabling the deployment manager api.")
+    util.run(["gcloud", "--project=" + project, "services", "enable",
+              "deploymentmanager.googleapis.com"])
+    logging.info("Api enabled; raising ApiNotEnabledError to force retry")
+    raise ApiNotEnabledError
   return True
 
 def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None): # pylint: disable=too-many-branches
