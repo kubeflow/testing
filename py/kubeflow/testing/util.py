@@ -19,7 +19,7 @@ from google.cloud import storage  # pylint: disable=no-name-in-module
 
 from googleapiclient import errors
 from kubernetes import client as k8s_client
-from kubernetes import config
+from kubernetes import config as k8s_config
 from kubernetes.config import kube_config
 from kubernetes.client import configuration as kubernetes_configuration
 from kubernetes.client import rest
@@ -752,11 +752,11 @@ def load_kube_credentials():
 
   if is_in_cluster():
     logging.info("Using incluster configuration for K8s client")
-    config.load_incluster_config()
+    k8s_config.load_incluster_config()
+    return
 
   logging.info("Attempting to load credentials from default KUBECONFIG file")
   load_kube_config(persist_config=False)
-
 
 # TODO(jlewi): This was originally a work around for
 # https://github.com/kubernetes-incubator/client-python/issues/339.
