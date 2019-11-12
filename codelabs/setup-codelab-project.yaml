@@ -71,9 +71,21 @@ spec:
         volumeMounts:
         - mountPath: /src
           name: src
+        # TODO(jlewi): We aren't using workload identity because gcloud appears to be flaky.
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/var/secrets/user-sa.json"
+        volumeMounts:
+        - name: gcp-secret
+          mountPath: "/var/secrets/user-sa.json"
+          readOnly: true
       # Use a Kubeflow service account which is mapped to a GSA
       serviceAccount: default-editor
       restartPolicy: Never
       volumes:
       - name: src
         emptyDir: {}
+      volumes:
+      - name: gcp-secret
+        secret:
+          secretName: user-gcp-sa
