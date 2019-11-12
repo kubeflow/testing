@@ -278,10 +278,6 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
                       )
   logging.getLogger().setLevel(logging.INFO)
 
-  # DO NOT SUBMIT
-  check_if_kfapp_exists("kf-test-9997", "kfv06", "us-central1-a")
-  return
-
   parser = argparse.ArgumentParser()
 
   parser.add_argument(
