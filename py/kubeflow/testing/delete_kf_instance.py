@@ -23,7 +23,7 @@ def delete_deployment(dm, project, name):
     message = error_content.get('error', {}).get('message', "")
     logging.info("delete deployment error %s", message)
     code = error_content.get('error', {}).get('code', 0)
-    if code == 404:
+    if code == 404: # pylint: disable=no-else-return
       logging.info("Project %s doesn't have deployment %s", project, name)
       return
     elif code == 409:
@@ -33,7 +33,7 @@ def delete_deployment(dm, project, name):
     raise
   zone = None
   op = util.wait_for_gcp_operation(dm.operations(), project, zone, op["name"])
-  log.info("Final op: %s", op)
+  logging.info("Final op: %s", op)
 
 class KFDeleter:
   def delete_kf(self, project, name):
