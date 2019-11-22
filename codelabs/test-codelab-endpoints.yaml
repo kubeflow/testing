@@ -9,11 +9,11 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName:  test-codelab-
+  generateName:  test-endpoints-
   # namespace should
   namespace: kubeflow-jlewi
   labels:
-    job: test-codelab
+    job: test-endpoints
 spec:
   # TODO(jlewi): Should we add retries
   backoffLimit: 1
@@ -30,7 +30,7 @@ spec:
         - --depth=all
         # Keep repos in sync with other jobs
         # Suggest pinning to specific comits to avoid being broken  by changes
-        - --repos=kubeflow/kubeflow@9741891,kubeflow/testing@HEAD:518
+        - --repos=kubeflow/kubeflow@9741891,kubeflow/testing@HEAD:527
         - --src_dir=/src
         env:
         - name: PYTHONPATH
@@ -50,18 +50,30 @@ spec:
         env:
         - name: PYTHONPATH
           value: /src/kubeflow/testing/py:/src/kubeflow/kubeflow
+        # TODO(jlewi): We aren't using workload identity because gcloud appears to be flaky.
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/user-gcp-sa.json
         command:
         - python
         - -m
         - kubeflow.testing.bulk_deploy
         - check-endpoints
-        - --projects-path=gs://kf-codelab-admin/codelab.accounts.20191105.csv
+        - --kfname=kfv06
+        - --project-base-name=kfkc19-san-
+        - --start-index=8700
+        - --end-index=8901
         volumeMounts:
         - mountPath: /src
           name: src
+        - name: gcp-secret
+          mountPath: /var/secrets
+          readOnly: true
       # Use a Kubeflow service account which is mapped to a GSA
       serviceAccount: default-editor
       restartPolicy: Never
       volumes:
       - name: src
         emptyDir: {}
+      - name: gcp-secret
+        secret:
+          secretName: user-gcp-sa

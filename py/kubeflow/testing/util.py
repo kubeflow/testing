@@ -19,6 +19,7 @@ from google.cloud import storage  # pylint: disable=no-name-in-module
 
 from googleapiclient import errors
 from kubernetes import client as k8s_client
+from kubernetes import config as k8s_config
 from kubernetes.config import kube_config
 from kubernetes.client import configuration as kubernetes_configuration
 from kubernetes.client import rest
@@ -730,6 +731,32 @@ def _refresh_credentials():
   credentials.refresh(request)
   return credentials
 
+def load_kube_credentials():
+  """Load credentials to talk to the K8s APIServer.
+
+  There are a couple cases we need to handle
+
+  1. Running locally - use KubeConfig
+  2. Running in a pod - use the service account token token to talk to
+     the K8s API server
+  3. Running in a pod and talking to a different Kubernetes cluster
+     in which case load from kubeconfig.
+
+  """
+
+  if os.getenv("KUBECONFIG"):
+    logging.info("Environment variable KUBECONFIG=%s; loading credentials from "
+                 "it.", os.getenv("KUBECONFIG"))
+    load_kube_config(persist_config=False)
+    return
+
+  if is_in_cluster():
+    logging.info("Using incluster configuration for K8s client")
+    k8s_config.load_incluster_config()
+    return
+
+  logging.info("Attempting to load credentials from default KUBECONFIG file")
+  load_kube_config(persist_config=False)
 
 # TODO(jlewi): This was originally a work around for
 # https://github.com/kubernetes-incubator/client-python/issues/339.
@@ -802,6 +829,7 @@ def maybe_activate_service_account():
       "gcloud", "auth", "activate-service-account",
       "--key-file=" + os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     ])
+
   else:
     logging.info("GOOGLE_APPLICATION_CREDENTIALS is not set.")
 
@@ -947,3 +975,8 @@ def use_self_signed_for_ingress(ingress_namespace, ingress_name,
   extensions.patch_namespaced_ingress(ingress_name,
                                       ingress_namespace,
                                       ingress)
+
+def is_in_cluster():
+  """Check if we are running in cluster."""
+  # Use the existince of a KSA token to determine if we are in the cluster
+  return os.path.exists("/var/run/secrets/kubernetes.io/serviceaccount")
