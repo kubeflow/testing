@@ -301,8 +301,7 @@ def cleanup_instance_groups(args):
   compute = discovery.build('compute', 'v1', credentials=credentials)
   instanceGroups = compute.instanceGroups()
   next_page_token = None
-  expired = []
-  unexpired = []
+  deleted = []
   in_use = []
 
   # TODO(jlewi): We should check whether the instance group is in use
@@ -318,38 +317,30 @@ def cleanup_instance_groups(args):
       for s in results["items"]:
         name = s["name"]
         age = getAge(s["creationTimestamp"])
-
-        infra_type = name_to_infra_type(name)
-
-        if not infra_type:
-          logging.info("Skipping intance group %s; it does not match any "
-                       "infra type.", name)
+        size = s["size"]
+        if size > 0:
+          logging.info("Skipping instance group %s because it is in use by %d "
+                       "instances.", name, size)
+          in_use.append(name)
           continue
 
-        logging.info("Instance group %s categorized as %s", name, infra_type)
-
-        if age > MAX_LIFETIME[infra_type]:
-          logging.info("Deleting instanceGroups: %s, age = %r", name, age)
-          if not args.dryrun:
-            try:
-              response = instanceGroups.delete(project=args.project,
-                                               zone=zone,
-                                              instanceGroup=name).execute()
-              logging.info("response = %r", response)
-              expired.append(name)
-            except Exception as e: # pylint: disable=broad-except
-              logging.error(e)
-              in_use.append(name)
-        else:
-          unexpired.append(name)
+        if not args.dryrun:
+          try:
+            response = instanceGroups.delete(project=args.project,
+                                             zone=zone,
+                                            instanceGroup=name).execute()
+            logging.info("response = %r", response)
+            deleted.append(name)
+          except Exception as e: # pylint: disable=broad-except
+            logging.error(e)
+            in_use.append(name)
 
       if not "nextPageToken" in results:
         break
       next_page_token = results["nextPageToken"]
 
-  logging.info("Unexpired instance groups:\n%s", "\n".join(unexpired))
-  logging.info("Deleted expired instance groups:\n%s", "\n".join(expired))
-  logging.info("Expired but in-use instance groups:\n%s", "\n".join(in_use))
+  logging.info("Deleted instance groups:\n%s", "\n".join(deleted))
+  logging.info("In-use instance groups:\n%s", "\n".join(in_use))
 
 def cleanup_url_maps(args):
   if not args.gc_backend_services:
