@@ -24,7 +24,7 @@ AUTO_DEPLOY_PATTERNS = [re.compile(r"kf-vmaster-(?!n\d\d)")]
 
 E2E_PATTERNS = [re.compile(".*e2e-.*"), re.compile(".*kfctl.*"),
                 re.compile(".*z-.*"), re.compile(".*presubmit.*"),
-                re.compile(".*unittest.*")]
+                re.compile(".*unittest.*"), re.compile("k8s-ig.*"),]
 
 # Constants enumerating the different classes of infra
 # We currently have 2 types
@@ -293,9 +293,10 @@ def cleanup_firewall_rules(args):
   logging.info("expired firewall rules:\n%s", "\n".join(expired))
 
 def cleanup_instance_groups(args):
+  logging.info("Cleanup instance groups")
+
   if not args.gc_backend_services:
     return
-
   credentials = GoogleCredentials.get_application_default()
   compute = discovery.build('compute', 'v1', credentials=credentials)
   instanceGroups = compute.instanceGroups()
@@ -1157,6 +1158,13 @@ def main():
     help="Comma separated list of zones to check.")
 
   parser_clusters.set_defaults(func=cleanup_clusters)
+
+  ######################################################
+  # Parser for instance groups
+  parser_ig = subparsers.add_parser(
+      "instance_groups", help="Cleanup instance groups")
+  add_deployments_args(parser_ig)
+  parser_ig.set_defaults(func=cleanup_instance_groups)
 
   args = parser.parse_args()
 
