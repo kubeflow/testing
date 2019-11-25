@@ -24,7 +24,7 @@ AUTO_DEPLOY_PATTERNS = [re.compile(r"kf-vmaster-(?!n\d\d)")]
 
 E2E_PATTERNS = [re.compile(".*e2e-.*"), re.compile(".*kfctl.*"),
                 re.compile(".*z-.*"), re.compile(".*presubmit.*"),
-                re.compile(".*unittest.*"), re.compile("k8s-ig.*"),]
+                re.compile(".*unittest.*"),]
 
 # Constants enumerating the different classes of infra
 # We currently have 2 types
