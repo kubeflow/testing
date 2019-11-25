@@ -304,9 +304,6 @@ def cleanup_instance_groups(args):
   deleted = []
   in_use = []
 
-  # TODO(jlewi): We should check whether the instance group is in use
-  # before deleting it. At least in pantheon it looks like instance groups
-  # are listed as in use by clusters.
   for zone in args.zones.split(","): # pylint: disable=too-many-nested-blocks
     while True:
       results = instanceGroups.list(project=args.project,
@@ -316,7 +313,6 @@ def cleanup_instance_groups(args):
         break
       for s in results["items"]:
         name = s["name"]
-        age = getAge(s["creationTimestamp"])
         size = s["size"]
         if size > 0:
           logging.info("Skipping instance group %s because it is in use by %d "
