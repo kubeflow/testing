@@ -302,7 +302,18 @@ def cleanup_instance_groups(args):
   instanceGroups = compute.instanceGroups()
   next_page_token = None
   deleted = []
+  unexpired = []
   in_use = []
+
+  auto_deploy_patterns = re.compile("gke-kf-vmaster.*")
+  e2e_pattern = re.compile("k8s-ig-.*")
+
+  def ig_name_to_infra_type(name):
+    if auto_deploy_patterns.match(name):
+      return AUTO_INFRA
+    if e2e_pattern.match(name):
+      return E2E_INFRA
+    return E2E_OWNERLESS
 
   for zone in args.zones.split(","): # pylint: disable=too-many-nested-blocks
     while True:
@@ -313,11 +324,19 @@ def cleanup_instance_groups(args):
         break
       for s in results["items"]:
         name = s["name"]
+        age = getAge(s["creationTimestamp"])
         size = s["size"]
         if size > 0:
           logging.info("Skipping instance group %s because it is in use by %d "
                        "instances.", name, size)
           in_use.append(name)
+          continue
+
+        infra_type = ig_name_to_infra_type(name)
+        logging.info("Instance group %s has been identified as %s", name, infra_type)
+        if age < MAX_LIFETIME[infra_type]:
+          logging.info("Instance group %s is not expired under policy for %s", name, infra_type)
+          unexpired.append(name)
           continue
 
         if not args.dryrun:
@@ -335,6 +354,7 @@ def cleanup_instance_groups(args):
         break
       next_page_token = results["nextPageToken"]
 
+  logging.info("Unexpired instance groups:\n%s", "\n".join(unexpired))
   logging.info("Deleted instance groups:\n%s", "\n".join(deleted))
   logging.info("In-use instance groups:\n%s", "\n".join(in_use))
 
