@@ -20,11 +20,11 @@ from oauth2client.client import GoogleCredentials
 # See https://github.com/kubeflow/testing/issues/444
 # We are switching to unique names for auto deployments
 # So this matches the new ones.
-AUTO_DEPLOY_PATTERNS = [re.compile(r"kf-vmaster-(?!n\d\d)")]
+AUTO_DEPLOY_PATTERNS = [re.compile(r".*kf-vmaster-(?!n\d\d)")]
 
 E2E_PATTERNS = [re.compile(".*e2e-.*"), re.compile(".*kfctl.*"),
                 re.compile(".*z-.*"), re.compile(".*presubmit.*"),
-                re.compile(".*unittest.*")]
+                re.compile(".*unittest.*"), re.compile("k8s-ig-.*")]
 
 # Constants enumerating the different classes of infra
 # We currently have 2 types
@@ -305,16 +305,6 @@ def cleanup_instance_groups(args):
   unexpired = []
   in_use = []
 
-  auto_deploy_patterns = re.compile("gke-kf-vmaster.*")
-  e2e_pattern = re.compile("k8s-ig-.*")
-
-  def ig_name_to_infra_type(name):
-    if auto_deploy_patterns.match(name):
-      return AUTO_INFRA
-    if e2e_pattern.match(name):
-      return E2E_INFRA
-    return E2E_OWNERLESS
-
   for zone in args.zones.split(","): # pylint: disable=too-many-nested-blocks
     while True:
       results = instanceGroups.list(project=args.project,
@@ -332,8 +322,11 @@ def cleanup_instance_groups(args):
           in_use.append(name)
           continue
 
-        infra_type = ig_name_to_infra_type(name)
+        infra_type = name_to_infra_type(name)
         logging.info("Instance group %s has been identified as %s", name, infra_type)
+        if not infra_type:
+          logging.info("Instance group %s cannot be identified", name)
+          continue
         if age < MAX_LIFETIME[infra_type]:
           logging.info("Instance group %s is not expired under policy for %s", name, infra_type)
           unexpired.append(name)
