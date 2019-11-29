@@ -12,8 +12,8 @@ spec:
   bindings:
     - role: roles/owner
       members:
-        # Make sure to keep the "cnrm-system" service account permission, or else Config Connector will
-        # be locked out from managing GCP resources.
+        # Make sure to keep the "cnrm-system" service account permission, or
+        # else Config Connector will be locked out from managing GCP resources.
         - serviceAccount:cnrm-system@kf-kcc-admin.iam.gserviceaccount.com
     - role: roles/iam.workloadIdentityUser
       members:

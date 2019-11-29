@@ -8,10 +8,10 @@ help()
   echo "Sets up Config Connector using gcloud"
   echo "Requires a project ID as the first parameter"
   echo
-  echo "Usage: bash ccsetup.sh [project-id]"
+  echo "Usage: bash config_connector_setup.sh [project-id]"
 }
 
-if [[ $# -lt 1 ]] || [[ $1 == "-h" ]]; then
+if [[ $# -lt 1 ]] || [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
   help
   exit 1
 fi
@@ -46,6 +46,7 @@ https://us-central1-cnrm-eap.cloudfunctions.net/download/latest/infra/install-bu
 tar zxvf install-bundle.tar.gz && rm install-bundle.tar.gz
 
 kubectl apply -f install-bundle/
+rm -rf install-bundle
 
 echo "Checking for cnrm controller manager..."
 kubectl wait -n cnrm-system \
