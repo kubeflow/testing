@@ -20,11 +20,11 @@ from oauth2client.client import GoogleCredentials
 # See https://github.com/kubeflow/testing/issues/444
 # We are switching to unique names for auto deployments
 # So this matches the new ones.
-AUTO_DEPLOY_PATTERNS = [re.compile(r"kf-vmaster-(?!n\d\d)")]
+AUTO_DEPLOY_PATTERNS = [re.compile(r".*kf-vmaster-(?!n\d\d)")]
 
 E2E_PATTERNS = [re.compile(".*e2e-.*"), re.compile(".*kfctl.*"),
                 re.compile(".*z-.*"), re.compile(".*presubmit.*"),
-                re.compile(".*unittest.*")]
+                re.compile(".*unittest.*"), re.compile("k8s-ig-.*")]
 
 # Constants enumerating the different classes of infra
 # We currently have 2 types
@@ -293,20 +293,18 @@ def cleanup_firewall_rules(args):
   logging.info("expired firewall rules:\n%s", "\n".join(expired))
 
 def cleanup_instance_groups(args):
+  logging.info("Cleanup instance groups")
+
   if not args.gc_backend_services:
     return
-
   credentials = GoogleCredentials.get_application_default()
   compute = discovery.build('compute', 'v1', credentials=credentials)
   instanceGroups = compute.instanceGroups()
   next_page_token = None
-  expired = []
+  deleted = []
   unexpired = []
   in_use = []
 
-  # TODO(jlewi): We should check whether the instance group is in use
-  # before deleting it. At least in pantheon it looks like instance groups
-  # are listed as in use by clusters.
   for zone in args.zones.split(","): # pylint: disable=too-many-nested-blocks
     while True:
       results = instanceGroups.list(project=args.project,
@@ -317,38 +315,41 @@ def cleanup_instance_groups(args):
       for s in results["items"]:
         name = s["name"]
         age = getAge(s["creationTimestamp"])
-
-        infra_type = name_to_infra_type(name)
-
-        if not infra_type:
-          logging.info("Skipping intance group %s; it does not match any "
-                       "infra type.", name)
+        size = s["size"]
+        if size > 0:
+          logging.info("Skipping instance group %s because it is in use by %d "
+                       "instances.", name, size)
+          in_use.append(name)
           continue
 
-        logging.info("Instance group %s categorized as %s", name, infra_type)
-
-        if age > MAX_LIFETIME[infra_type]:
-          logging.info("Deleting instanceGroups: %s, age = %r", name, age)
-          if not args.dryrun:
-            try:
-              response = instanceGroups.delete(project=args.project,
-                                               zone=zone,
-                                              instanceGroup=name).execute()
-              logging.info("response = %r", response)
-              expired.append(name)
-            except Exception as e: # pylint: disable=broad-except
-              logging.error(e)
-              in_use.append(name)
-        else:
+        infra_type = name_to_infra_type(name)
+        logging.info("Instance group %s has been identified as %s", name, infra_type)
+        if not infra_type:
+          logging.info("Instance group %s cannot be identified", name)
+          continue
+        if age < MAX_LIFETIME[infra_type]:
+          logging.info("Instance group %s is not expired under policy for %s", name, infra_type)
           unexpired.append(name)
+          continue
+
+        if not args.dryrun:
+          try:
+            response = instanceGroups.delete(project=args.project,
+                                             zone=zone,
+                                            instanceGroup=name).execute()
+            logging.info("response = %r", response)
+            deleted.append(name)
+          except Exception as e: # pylint: disable=broad-except
+            logging.error(e)
+            in_use.append(name)
 
       if not "nextPageToken" in results:
         break
       next_page_token = results["nextPageToken"]
 
   logging.info("Unexpired instance groups:\n%s", "\n".join(unexpired))
-  logging.info("Deleted expired instance groups:\n%s", "\n".join(expired))
-  logging.info("Expired but in-use instance groups:\n%s", "\n".join(in_use))
+  logging.info("Deleted instance groups:\n%s", "\n".join(deleted))
+  logging.info("In-use instance groups:\n%s", "\n".join(in_use))
 
 def cleanup_url_maps(args):
   if not args.gc_backend_services:
@@ -1157,6 +1158,13 @@ def main():
     help="Comma separated list of zones to check.")
 
   parser_clusters.set_defaults(func=cleanup_clusters)
+
+  ######################################################
+  # Parser for instance groups
+  parser_ig = subparsers.add_parser(
+      "instance_groups", help="Cleanup instance groups")
+  add_deployments_args(parser_ig)
+  parser_ig.set_defaults(func=cleanup_instance_groups)
 
   args = parser.parse_args()
 
