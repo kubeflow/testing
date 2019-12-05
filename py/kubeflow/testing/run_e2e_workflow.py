@@ -415,12 +415,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     raise
   finally:
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
+    logging.info("prow artifacts directory: %s", prow_artifacts_dir)
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
     file_handler.flush()
-    util.upload_file_to_gcs(
-      file_handler.baseFilename,
-      os.path.join(prow_artifacts_dir, "build-log.txt"))
+    build_log_path = os.path.join(prow_artifacts_dir, "build-log.txt")
+    logging.info("Uploading build-log: %s", build_log_path)
+    util.upload_file_to_gcs(file_handler.baseFilename, build_log_path)
 
     # Upload workflow status to GCS.
     for r in results:
@@ -433,9 +434,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
 
       for wf_name, wf_status in workflow_status_yamls.items():
-        util.upload_to_gcs(
-          wf_status,
-          os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
+        wf_path = os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name))
+        logging.info("Uploading workflow result: %s", wf_path)
+        util.upload_to_gcs(wf_status, wf_path)
 
     all_tests_success = prow_artifacts.finalize_prow_job(
       args.bucket, workflow_success, workflow_phase, ui_urls)
