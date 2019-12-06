@@ -628,14 +628,14 @@ def install_gpu_drivers(api_client):
   """
   logging.info("Install GPU Drivers.")
   # Fetch the daemonset to install the drivers.
-  link = "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml"  # pylint: disable=line-too-long
+  link = "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"  # pylint: disable=line-too-long
   logging.info("Using daemonset file: %s", link)
   f = urllib.urlopen(link)
   daemonset_spec = yaml.load(f)
-  ext_client = k8s_client.ExtensionsV1beta1Api(api_client)
+  appv1_client = k8s_client.AppsV1Api(api_client)
   try:
     namespace = daemonset_spec["metadata"]["namespace"]
-    ext_client.create_namespaced_daemon_set(namespace, daemonset_spec)
+    appv1_client.create_namespaced_daemon_set(namespace, daemonset_spec)
   except rest.ApiException as e:
     # Status appears to be a string.
     if e.status == 409:
