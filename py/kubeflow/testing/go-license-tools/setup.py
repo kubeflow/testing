@@ -14,7 +14,7 @@
 
 from setuptools import setup
 
-NAME = 'kfp-license-tools'
+NAME = 'go-license-tools'
 VERSION = '0.0.1'
 
 REQUIRES = [
@@ -25,7 +25,7 @@ REQUIRES = [
 
 setup(name=NAME,
       version=VERSION,
-      description='KubeFlow Pipelines SDK',
+      description='Go license tools',
       author='google',
       install_requires=REQUIRES,
       packages=[
