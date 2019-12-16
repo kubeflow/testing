@@ -13,7 +13,7 @@ numpy==1.14.2
 pbr==4.0.1
 protobuf==3.5.2.post1
 six==1.11.0
-tensorflow==1.6.0
+tensorflow==1.15.0
 tensorflow-serving-api==1.6.0
 tensorboard==1.6.0
 termcolor==1.1.0
