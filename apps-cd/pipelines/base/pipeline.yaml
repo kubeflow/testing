@@ -1,0 +1,86 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: ci-pipeline
+spec:
+  params:
+  - description: docker target arg
+    name: docker_target
+    type: string
+    default: ""
+  - description: The build context used by Kaniko
+    name: path_to_context
+    type: string
+    default: ""
+  - description: The path to the dockerfile to build
+    name: path_to_docker_file
+    type: string
+    default: ""
+  - description: Directory of the application's kustomize manifest
+    name: path_to_manifests_dir
+    type: string
+    default: ""
+  - description: The path of the image in the kustomization file to change
+    name: src_image_url
+    type: string
+    default: ""
+  - description: The container image to use for running the steps
+    name: container_image
+    type: string  
+    default: ""
+  resources:
+  # Pipeline has 3 git resources
+  # kubeflow - Repository containing the source code for the docke rimages to build
+  # manifests - Repostory containing the manifests to update
+  # ci-tools - Repository containing tools used in the CI/CD pipeline  
+  - name: kubeflow
+    type: git
+  - name: manifests
+    type: git
+  - name: ci-tools
+    type: git
+
+  # Image resource defines the docker image to build
+  - name: image
+    type: image
+  tasks:
+  - name: build-push
+    params:
+    - name: docker_target
+      value: "$(params.docker_target)"
+    - name: path_to_context
+      value: "$(params.path_to_context)"
+    - name: path_to_docker_file
+      value: "$(params.path_to_docker_file)"
+    resources:
+      inputs:
+      - name: kubeflow
+        resource: kubeflow
+      - name: image
+        resource: image
+    taskRef:
+      name: build-push
+      kind: namespaced
+  - name: update-manifests
+    runAfter:
+    - build-push
+    params:
+    - name: src_image_url
+      value: "$(params.src_image_url)"
+    - name: path_to_manifests_dir
+      value: "$(params.path_to_manifests_dir)"
+    - name: container_image
+      value: "$(params.container_image)"
+    resources:
+      inputs:
+      - name: manifests
+        resource: manifests
+      - name: kubeflow
+        resource: kubeflow        
+      - name: ci-tools
+        resource: ci-tools
+      - name: image
+        resource: image
+    taskRef:
+      name: update-manifests
+      kind: namespaced
