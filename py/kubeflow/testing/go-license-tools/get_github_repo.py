@@ -201,7 +201,7 @@ def main():
         +'Failed to resolve {} dependencies.'
       ).format(len(dep_succeeded), args.output_file, len(dep_failed)),
       file=sys.stderr)
-    if len(dep_failed) > 0:
+    if dep_failed:
       print('We failed to resolve the following dependencies:', file=sys.stderr)
       for dep in dep_failed:
         print(dep, file=sys.stderr)

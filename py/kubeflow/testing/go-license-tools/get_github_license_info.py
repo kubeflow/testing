@@ -97,7 +97,7 @@ def main():
         repo_failed.append(repo)
     print('Fetched github license info, {} succeeded, {} failed.'.format(
       len(repo_succeeded), len(repo_failed)), file=sys.stderr)
-    if len(repo_failed) > 0:
+    if repo_failed:
       print('The following repos failed:', file=sys.stderr)
       for repo in repo_failed:
         print(repo, file=sys.stderr)
