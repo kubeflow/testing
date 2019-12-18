@@ -17,4 +17,4 @@ tensorflow==1.6.0
 tensorflow-serving-api==1.6.0
 tensorboard==1.6.0
 termcolor==1.1.0
-Werkzeug==0.14.1
+Werkzeug==0.15.3
