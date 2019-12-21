@@ -15,83 +15,55 @@
 This directory contains Tekton pipelines intended to rebuild Kubeflow docker images 
 and open PRs to update Kubeflow kustomize manifests to use the newly built images.
 
+### How it works
 
-### Use Cases
+* pipelines/base/pipeline.yaml defines a reusable pipeline to:
 
-The following use cases can be run on the following components (should be run from the components directory):
-- `kustomize build --reorder none `*centraldashboard*`/ci   | kubectl apply -f -`
-- `kustomize build --reorder none `*jupyter-web-app*`/ci    | kubectl apply -f -`
-- `kustomize build --reorder none `*notebook-controller*`/ci | kubectl apply -f -`
-- `kustomize build --reorder none `*profile-controller*`/ci | kubectl apply -f -
+  1. Build a container image
+  1. Create a PR to update the Kubeflow manifests to use the newly built image
 
-This uses TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/master/docs/pipelineruns.md) to enable the following use case:
+* To launch a pipeline to build a specific application at a specific commit you create an instance of a pipeline run
+  that uses this pipeline
 
-1. A PR is merged into kubeflow/kubeflow updating the component
-1. The merged commit is 1234
-1. This tekton pipelinerun is triggered to build the component image from commit @1234.
-1. The pipelinerun edits manifests/common/centraldashboard/base/kustomization.yaml (using kubeflow-bot repo) and adds the new image tag
-1. The pipelinerun calls `make generate; make test` 
-1. If successful then 
-1.   The pipeline checks in the changes 
-1.   Opens a PR with the updated kubeflow/manifests that uses the newly built image
-1.   Approvers LGTM the PR to kubeflow/manifests and it gets merged
+  * runs/profile_controller_v1795828.yaml provides an example pipeline run to build and update the profile controller image
 
-### Background information on TektonCD pipelineruns, pipelines and tasks
+  * [pipeline resources](https://github.com/tektoncd/pipeline/blob/master/docs/resources.md) and [pipeline parameters](https://github.com/tektoncd/pipeline/blob/master/docs/pipelines.md#parameters) to specify what application to build and the image to create
 
-A TektonCD PipelineRun takes 1 Pipeline and N PipelineResources.
-The PipelineResources can be git repos, git pull requests, docker images.
-These resources are made available to the Pipeline via PipelineRun.
+    * [Git Resources](https://github.com/tektoncd/pipeline/blob/master/docs/resources.md#git-resource) are used to define
 
-The general relationship between TektonCD resources is shown below:
+      * The repo and commit containing the source code to build the image from
+      * The repo containing the manifests to update
+      * The repo and commit containing the tools used for CI/CD
 
-```
-── PipelineRun
-   ├── PipelineResources
-   └── Pipeline
-       └── Tasks
-```
+    * [Image Resource](https://github.com/tektoncd/pipeline/blob/master/docs/resources.md#image-resource) is used to define
+      the docker image to use
 
-In this use case the following instance is created:
+    * Parameters are used to define various values specific to each application such as the relative paths of the Docker file
+      in the source repository
 
-```
-── ci-centraldashboard-pipeline-run
-   ├── resources
-   │   ├── image
-   │   │   └── component
-   │   └── git 
-   │       ├── kubeflow+revision
-   │       └── manifests+revision 
-   └── pipeline
-       └── tasks
-           ├── build-push      
-```
+ * The kubeflow-bot GitHub account is used to create the PRs
 
-The PipelineRun includes a Pipeline that has 1 tasks and 3 PipelineResources of type image (component) and git (kubeflow, manifests). The Tasks reference these resources in their inputs or outputs. 
+### Run a pipeline 
 
-### Parameterization 
+To update a specific application
 
-The PipelineRun uses parameterized PipelineResources which are passed down to the the Pipeline and Tasks.
-The Pipeline uses parameterized Tasks.
-Reusing this pipeline only requires changing parameters in params.env in the target component
+1. Connect to the Kubeflow releasing cluster
 
-The parameters are noted below, those with an asterix should change per component:
-Those parameters without an asterix allow different gcr.io locations and namespace.
+   * **project**: **kf-releasing**
+   * **cluster**: **kf-releasing-0-6-2**
+   * **namespace**: **kf-releasing**
 
-```
-  container_image=gcr.io/kubeflow-ci/test-worker:latest
-* docker_target=serve
-* image_name=centraldashboard
-  image_url=gcr.io/kubeflow_public_images
-* kubeflow_repo_revision=1234
-* kubeflow_repo_url=git@github.com:kubeflow/kubeflow.git
-* manifests_repo_revision=master
-* manifests_repo_url=git@github.com:kubeflow/manifests.git
-  namespace=kubeflow-test-infra
-* path_to_context=components/centraldashboard
-* path_to_docker_file=components/centraldashboard/Dockerfile
-* path_to_manifests_dir=common/centraldashboard/base
-  pvc_mount_path=/kubeflow
-```
+1. Create a PipelineRun file
+
+   * You can use one of the runs in runs/ as a baseline
+   * Set the Tekton PipelineRun parameters and resources as needed to build your
+     application at the desired commit 
+
+1. Run it
+    
+   ```
+   kubectl create -f ${PIPELINERUN_FILE}
+   ```
 
 ### Setting up a cluster to run the pipelines
 
@@ -122,23 +94,6 @@ This is a Kubeflow cluster (v0.6.2) and we rely on that to configure certain thi
 
    ```
    kustomize build pipelines/base/ | kubectl apply -f -
-   ```
-
-### Run a pipeline 
-
-To update a specific application
-
-1. Create a PipelineRun file
-
-   * You can use one of the runs in runs/ as a baseline
-   * Set the Tekton PipelineRun parameters and resources as needed to build your
-     application at the desired commit 
-
-
-1. Run it
-    
-   ```
-   kubectl create -f ${PIPELINERUN_FILE}
    ```
 
 ## References
