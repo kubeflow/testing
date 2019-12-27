@@ -1,0 +1,112 @@
+# TODO(jlewi): We should probably split this into two tasks now; one for building the image
+# and one for updating the image. Now that we know the URL of the image we no longer need to pass along
+# the digest between the steps using a volume mounted pod.
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: build-push
+  annotations:
+    # This gets passed down to the individual pods
+    sidecar.istio.io/inject: "false"
+spec:
+  inputs:
+    params:
+    - description: docker target arg
+      name: docker_target
+      type: string
+    - description: The build context used by Kaniko
+      name: path_to_context
+      type: string
+    - description: The path to the dockerfile to build
+      name: path_to_docker_file
+      type: string
+    resources:
+    - name: kubeflow
+      type: git
+    - name: image
+      type: image  
+  steps:
+  - name: build-push
+    image: gcr.io/kaniko-project/executor:v0.11.0
+    command:
+    - /kaniko/executor
+    - --dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_docker_file)
+    - --target=$(inputs.params.docker_target)
+    - --destination=$(inputs.resources.image.url)
+    - --context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_context)
+    - --digest-file=/workspace/image-digest      
+    env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/user-gcp-sa.json     
+    volumeMounts:
+    - mountPath: /secret
+      name: gcp-credentials  
+  volumes:
+  - name: gcp-credentials
+    secret:
+      secretName: user-gcp-sa
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: update-manifests
+  annotations:
+    # This gets passed down to the individual pods
+    sidecar.istio.io/inject: "false"
+spec:
+  inputs:
+    params:
+    - description: Directory of the application's kustomize manifest
+      name: path_to_manifests_dir
+      type: string
+    - description: The container image to use for running the steps
+      name: container_image
+      type: string
+    - description: The path of the image in the kustomization file to change
+      name: src_image_url
+      type: string 
+      default: ""     
+    resources:
+    - name: manifests
+      type: git
+    # We include the kubeflow repo just to get the commit at which the image is built.
+    - name: kubeflow
+      type: git
+    - name: ci-tools
+      type: git
+    - name: image
+      type: image  
+  steps:
+  - name: update-manifests
+    workingDir: /workspace/$(inputs.resources.manifests.name)/$(inputs.params.path_to_manifests_dir)
+    image: $(inputs.params.container_image)    
+    command:
+    - /workspace/$(inputs.resources.ci-tools.name)/py/kubeflow/testing/ci/rebuild-manifests.sh
+    env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/gcp-credentials/user-gcp-sa.json
+    - name: GITHUB_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: github-token
+          key: github_token
+    - name: SRC_IMAGE_URL          
+      value: $(inputs.params.src_image_url)
+    - name: IMAGE_URL          
+      value: $(inputs.resources.image.url)
+    - name: MANIFESTS_REPO_REVISION
+      value: $(inputs.resources.manifests.revision)
+    - name: PATH_TO_MANIFESTS_DIR
+      value: $(inputs.params.path_to_manifests_dir)
+    volumeMounts:
+    - mountPath: /secret
+      name: gcp-credentials
+  volumes:
+  - name: gcp-credentials
+    secret:
+      secretName: user-gcp-sa
+  - name: github-token
+    secret:
+      secretName: github-token
