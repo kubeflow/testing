@@ -114,7 +114,7 @@ $ python <license_tool>/setup.py install
     Put `license.txt` to `third_party/library/license.txt` where it is read when building docker images.
 4. Manually update a list of dependencies that requires source code, put it into `third_party/library/repo-MPL.txt`.
 
-## Add CI test for checking license information.
+## Add CI tests for license information.
 It is considered as best practice to continuously test whether the right licence information is presented in the `license.txt` file for every new commit in your code repository. So that it is always safe to deliver a new image from the source code.
 
 For examples, you can add the following tests into your CI pipeline.
