@@ -12,21 +12,20 @@
 
 import argparse
 parser = argparse.ArgumentParser(
-    description='Generate dependencies json from license.csv file.')
+    description='Generate dependencies json from license.csv file.'
+)
 parser.add_argument(
     'license_info_file',
     nargs='?',
     default='license_info.csv',
-    help=
-    'CSV file with license info fetched from github using '
+    help='CSV file with license info fetched from github using '
     'get-github-license-info CLI tool. (default: %(default)s)',
 )
 parser.add_argument(
     'additional_license_info_file',
     nargs='?',
     default='additional_license_info.csv',
-    help=
-    'CSV file with license info. Each line is in the form '
+    help='CSV file with license info. Each line is in the form '
     '<license_url>,<license_type>. (default: %(default)s)',
 )
 args = parser.parse_args()
@@ -46,10 +45,19 @@ def main():
     for line in f:
       parts = line.strip().split(',')
       _, license_url, license_type, *_ = parts
-      if license_url in mapping and license_type == 'Other':
+      if license_type == 'Other':
+        if not license_url in mapping:
+          raise ValueError(
+              'Unknown license type: '
+              'please add the right license type for {} in file {}'
+              .format(license_url, args.additional_license_info_file)
+          )
         parts[2] = mapping[license_url]
-        print('Update license {} to type {}'.format(license_url,
-                                                    mapping[license_url]))
+        print(
+            'Update license {} to type {}'.format(
+                license_url, mapping[license_url]
+            )
+        )
       newlines.append(','.join(parts))
 
   with open(args.license_info_file, 'w') as f:

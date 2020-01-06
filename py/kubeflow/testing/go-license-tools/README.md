@@ -39,6 +39,8 @@ $ python <license_tool>/setup.py install
         ```$ go list -m all | cut -d ' ' -f 1 > dep.txt```
 
         to get final versions that will be used in a build for all direct and indirect dependencies, ([reference](https://github.com/golang/go/wiki/Modules#daily-workflow)).
+
+    **Reminder:** don't forget to put your library itself into `dep.txt`.
 2. Run `$ python <licence_tool>/get-github-repo.py` to resolve github repositories of golang imports. Not all imports can be figured out by my script, needs manual help for <2% of libraries. For example, you may see an output like this:
     ```
     ......
