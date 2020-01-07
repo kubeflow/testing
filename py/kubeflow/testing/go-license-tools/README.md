@@ -41,7 +41,7 @@ $ python <license_tool>/setup.py install
         to get final versions that will be used in a build for all direct and indirect dependencies, ([reference](https://github.com/golang/go/wiki/Modules#daily-workflow)).
 
     **Reminder:** don't forget to put your library itself into `dep.txt`.
-2. Run `$ python <licence_tool>/get-github-repo.py` to resolve github repositories of golang imports. Not all imports can be figured out by my script, needs manual help for <2% of libraries. For example, you may see an output like this:
+2. Run `$ python <licence_tool>/get_github_repo.py` to resolve github repositories of golang imports. Not all imports can be figured out by my script, needs manual help for <2% of libraries. For example, you may see an output like this:
     ```
     ......
     Successfully resolved github repo for 89 dependencies and saved to repo.txt. Failed to resolve 3 dependencies.
@@ -51,7 +51,7 @@ $ python <license_tool>/setup.py install
     ml_metadata
     ```
 
-    For a library we cannot resolve, manually put it in `dep-repo-mapping.manual.csv`, so the tool knows how to find its github repo in the future. For example, the corresponding `dep-repo-mapping.manual.csv` for the example above is
+    For a library we cannot resolve, manually put it in `dep_repo.manual.csv`, so the tool knows how to find its github repo in the future. For example, the corresponding `dep_repo.manual.csv` for the example above is
     ```
     gomodules.xyz/jsonpatch/v2,gomodules/jsonpatch
     honnef.co/go/tools,dominikh/go-tools
