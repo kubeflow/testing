@@ -42,7 +42,7 @@ def _sync_repos(repos, src_dir):
     url = _get_param(r["resourceSpec"]["params"], "url")
 
     if not url:
-      raise ValueError(f"Repository {r['name']} is missing param url")
+      raise ValueError(f"Repository {r['name']} is missing param url") # pylint: disable=syntax-error
 
     url = url["value"]
     repo = _parse_git_url(url)

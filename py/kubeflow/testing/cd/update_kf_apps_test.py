@@ -4,7 +4,7 @@ import os
 import pprint
 import yaml
 
-from kubeflow.testing.cd import update_kf_apps
+from kubeflow.testing.cd import update_kf_apps # pylint: disable=no-name-in-module
 
 import pytest
 
