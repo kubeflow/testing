@@ -27,11 +27,13 @@ def test_lint(record_xml_attribute, src_dir, rcfile): # pylint: disable=redefine
   # This makes it easy to group related tests in test grid.
   # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
   util.set_pytest_junit(record_xml_attribute, "test_py_lint")
-
   logging.info('Running test_lint')
+
+  pylint_bin = "pylint"
+
   # Print out the pylint version because different versions can produce
   # different results.
-  util.run(["pylint", "--version"])
+  util.run([pylint_bin, "--version"])
 
   # kubeflow_testing is imported as a submodule so we should exclude it
   # TODO(jlewi): We should make this an argument.
@@ -39,11 +41,17 @@ def test_lint(record_xml_attribute, src_dir, rcfile): # pylint: disable=redefine
     "dashboard/frontend/node_modules",
     "kubeflow_testing",
     "dev-kubeflow-org/ks-app/vendor",
+    # TODO(https://github.com/kubeflow/testing/issues/560) stop skipping
+    # py/kubeflow/testing/cd once we update python & pylint so f style
+    # strings don't generate lint errors.
+    "kubeflow/testing/cd",
     "release-infra",
   ]
   full_dir_excludes = [
     os.path.join(os.path.abspath(src_dir), f) for f in dir_excludes
   ]
+
+  logging.info("Directories to be excluded: %s", ",".join(full_dir_excludes))
 
   # TODO(jlewi): Use pathlib once we switch to python3.
   includes = ["*.py"]
@@ -59,6 +67,7 @@ def test_lint(record_xml_attribute, src_dir, rcfile): # pylint: disable=redefine
     # excludes can be done with fnmatch.filter and complementary set,
     # but it's more annoying to read.
     if should_exclude(root, full_dir_excludes):
+      logging.info("Skipping directory %s", root)
       continue
 
     dirs[:] = [d for d in dirs]
@@ -67,7 +76,7 @@ def test_lint(record_xml_attribute, src_dir, rcfile): # pylint: disable=redefine
         full_path = os.path.join(root, f)
         try:
           util.run(
-            ["pylint", "--rcfile=" + rcfile, full_path], cwd=src_dir)
+            [pylint_bin, "--rcfile=" + rcfile, full_path], cwd=src_dir)
         except subprocess.CalledProcessError:
           failed_files.append(full_path[len(src_dir):])
   if failed_files:

@@ -1,0 +1,61 @@
+# This is a template used for generating PipelineRuns for
+# individual applications at specific commits.
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  # Generate a unique name for each run
+  generateName: ci-profile-controller-
+spec:
+  pipelineRef:
+    name: ci-pipeline
+  params:  
+  - name: "path_to_context"
+    value: "components/profile-controller"
+  - name: "path_to_docker_file"
+    value: "components/profile-controller/Dockerfile"
+  - name: "path_to_manifests_dir"
+    value: "profiles/base"
+  - name: "src_image_url"
+    value: "gcr.io/kubeflow-images-public/profile-controller"
+  - name: "container_image"
+    value: "gcr.io/kubeflow-releasing/test-worker@sha256:35138a42b57160a078e802b7d69aec3c3e79a3e2e55518af7798275ebcc84d25"    
+  resources:
+  # The git resources that will be used
+  - name: kubeflow
+    resourceSpec:    
+      type: git
+      params:
+        - name: revision
+          value: "1795828"
+        - name: url
+          value: git@github.com:kubeflow/kubeflow.git
+  - name: manifests
+    resourceSpec:    
+      type: git
+      params:
+        - name: revision
+          value: master
+        - name: url
+          value: git@github.com:kubeflow/manifests.git  
+  - name: ci-tools
+    resourceSpec:    
+      type: git
+      params:
+        # TODO(jlewi): Replace with kubeflw/testing master once the PR is merged
+        #
+        - name: revision
+          value: cicd
+        - name: url
+          value: git@github.com:jlewi/testing.git
+        #- name: revision
+        #  value: master
+        #- name: url
+        #  value: git@github.com:kubeflow/testing.git
+  # The image we want to build
+  - name:  image
+    resourceSpec:
+      type: image
+      params:
+      - name: url  
+        value: gcr.io/kubeflow-images-public/profile-controller:vmaster-g1795828
+  serviceAccountName: ci-pipeline-run-service-account
