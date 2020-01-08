@@ -43,6 +43,30 @@ and open PRs to update Kubeflow kustomize manifests to use the newly built image
 
  * The kubeflow-bot GitHub account is used to create the PRs
 
+### Adding Applications to continuous delivery
+
+Here are instructions for adding an application for continous delivery
+
+* You should add an entry to [applications.yaml](applications.yaml) for that application
+
+* Set the parameters as needed for that application
+
+### Defining a New Version/Release For Applications
+
+* The versions in [applications.yaml](applications.yaml) specify the different
+  releases e.g. master, v0.X, v0.Y, etc... at which to build the applications
+
+* For every version we define
+
+  * **tag** This is a label like "vmaster" or "v0.X.1" that will be used to tag the images
+  * The source repos and corresponding branch from which to build the images
+
+    * Each time the create-runs script is run it will create a pipeline run that uses the tip
+      of that branch for that source
+
+  * A repo for kubeflow manifests that specifies the branch of the kustomize package to update
+
+
 ### Run a pipeline 
 
 To update a specific application
@@ -59,10 +83,30 @@ To update a specific application
    * Set the Tekton PipelineRun parameters and resources as needed to build your
      application at the desired commit 
 
-1. Run it
+1. Generate the pipeline runs for the latest commits
     
    ```
-   kubectl create -f ${PIPELINERUN_FILE}
+   KUBEFLOW_TESTING=<Path where kubeflow/testing is checked out>
+   OUTPUT_DIR=<Directory to write the PipelineRuns YAML files>
+   SRC_DIR=<Directory where source repos should be checked out>
+   CONFIG=${KUBEFLOW_TESTING}/apps-cd/applications.yaml
+   TEMPLATE=${KUBEFLOW_TESTING}/apps-cd/runs/app-pipeline.template.yaml 
+
+   cd ${KUBEFLOW_TESTING}/py
+   python3 -m kubeflow.testing.cd.update_kf_apps create-runs \
+      --config=${CONFIG} \
+      --output_dir=${OUTPUT_DIR} \
+      --src_dir=${SRC_DIR} \ 
+      --template=${TEMPLATE}
+
+   ```
+
+   * This will create a YAML file for every (application, version) combination
+
+1. Submit PipelineRun's to the release cluster
+
+   ```
+   kubectl create -f ${OUTPUT_DIR}
    ```
 
 ### Setting up a cluster to run the pipelines

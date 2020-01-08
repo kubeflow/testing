@@ -1,0 +1,100 @@
+# This file contains the configuration for the Tekton pipelines
+# To auto update Kubeflow applications
+#
+# Applications provides information about each application to build
+# Note: Keep applications organized alphabetically by name.
+applications:
+  - name: admission-webhook
+    params:  
+    - name: "path_to_context"
+      value: "components/admission-webhook"
+    - name: "path_to_docker_file"
+      value: "components/admission-webhook/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "admission-webhook/webhook/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/admission-webhook"
+    sourceRepo: kubeflow
+  - name: centraldashboard
+    params:  
+    - name: "path_to_context"
+      value: "components/centraldashboard"
+    - name: "path_to_docker_file"
+      value: "components/centraldashboard/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "common/centraldashboard/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/centraldashboard"
+    sourceRepo: kubeflow
+  - name: kfam
+    params:  
+    - name: "path_to_context"
+      value: "components/access-management"
+    - name: "path_to_docker_file"
+      value: "components/acess-management/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "profiles/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/kfam"
+    sourceRepo: kubeflow
+  - name: notebook-controller
+    params:  
+    - name: "path_to_context"
+      value: "components/notebook-controller"
+    - name: "path_to_docker_file"
+      value: "components/notebook-controller/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "jupyter/notebook-controller"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/notebook-controller"
+    # The name of the repo containing the source
+    sourceRepo: kubeflow
+  - name: notebook-webapp
+    params:  
+    - name: "path_to_context"
+      value: "components/jupyter-web-app"
+    - name: "path_to_docker_file"
+      value: "components/jupyter-web-app/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "jupyter/jupyter-web-app/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/jupyter-web-app"
+    # The name of the repo containing the source
+    sourceRepo: kubeflow
+  - name: profile-controller
+    params:  
+    - name: "path_to_context"
+      value: "components/profile-controller"
+    - name: "path_to_docker_file"
+      value: "components/profile-controller/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "profiles/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/profile-controller"
+    # The name of the repo containing the source
+    sourceRepo: kubeflow
+# The versions to build the applications at
+# Each version should consist of a list of repositories and the corresponding
+# branch and a tag
+versions:
+  # master should be the latest code built from all of the master branches
+  - name: master
+    # A tag to prefix image names with
+    tag: vmaster
+    repos:
+      - name: kubeflow
+        resourceSpec:    
+          type: git
+          params:
+            - name: revision
+              value: master
+            - name: url
+              value: git@github.com:kubeflow/kubeflow.git
+      - name: manifests
+        resourceSpec:    
+          type: git
+          params:
+            - name: revision
+              value: master
+            - name: url
+              value: git@github.com:kubeflow/manifests.git
