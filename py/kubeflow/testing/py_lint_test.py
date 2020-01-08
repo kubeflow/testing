@@ -42,7 +42,7 @@ def test_lint(record_xml_attribute, src_dir, rcfile): # pylint: disable=redefine
     # TODO(https://github.com/kubeflow/testing/issues/560) stop skipping
     # py/kubeflow/testing/cd once we update python & pylint so f style
     # strings don't generate lint errors.
-    "py/kubeflow/testing/cd"
+    "kubeflow/testing/cd"
     "release-infra",
   ]
   full_dir_excludes = [
