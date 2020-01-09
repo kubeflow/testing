@@ -62,6 +62,7 @@ def test_lint(record_xml_attribute, src_dir, rcfile): # pylint: disable=redefine
 
     # excludes can be done with fnmatch.filter and complementary set,
     # but it's more annoying to read.
+    logging.info("Checking %s", root)
     if should_exclude(root, full_dir_excludes):
       continue
 
