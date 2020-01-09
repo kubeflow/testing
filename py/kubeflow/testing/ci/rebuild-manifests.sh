@@ -41,6 +41,8 @@ cd /workspace/kubeflow
 kubeflow_commit=$(git rev-parse HEAD)
 kubeflow_commit=${kubeflow_commit:0:8}
 
+full_image_name=$(echo ${IMAGE_URL} | cut -d':' -f 1)
+image_name=$(basename ${full_image_name})
 image_tag=$(echo ${IMAGE_URL} | cut -d':' -f 2)
 new_branch_name='update_'$image_name'_'${image_tag}
 
@@ -68,7 +70,7 @@ cd /workspace/manifests/tests
 make generate-changed-only 
 make test
 if (( $? == 0 )); then
-  git config --global user.email "kubeflow-bot@kubflow.org"
+  git config --global user.email "ci-bot-owners@kubeflow.org"
   git config --global user.name "kubeflow-bot"
   
   tmpfile=$(mktemp)
