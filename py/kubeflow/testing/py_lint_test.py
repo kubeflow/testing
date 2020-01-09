@@ -49,6 +49,8 @@ def test_lint(record_xml_attribute, src_dir, rcfile): # pylint: disable=redefine
     os.path.join(os.path.abspath(src_dir), f) for f in dir_excludes
   ]
 
+  logging.info("Directories to be excluded: %s", ",".join(full_dir_excludes))
+
   # TODO(jlewi): Use pathlib once we switch to python3.
   includes = ["*.py"]
   failed_files = []
