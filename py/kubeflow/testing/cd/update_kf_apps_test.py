@@ -124,6 +124,4 @@ if __name__ == "__main__":
                       datefmt='%Y-%m-%dT%H:%M:%S',
                       )
   logging.getLogger().setLevel(logging.INFO)
-  # DO NOT SUBMIT
-  test_get_image()
-  #pytest.main()
+  pytest.main()
