@@ -361,8 +361,6 @@ class UpdateKfApps:
       logging.info("No pipelines need to be run")
       return
 
-    #pipelines_to_run = ["/tmp/runs/admission-webhook-run-master-6b987df8.yaml",
-                        #"/tmp/runs/kfam-run-master-caf5eb33.yaml"]
     for p in pipelines_to_run:
       with open(p) as hf:
         run = yaml.load(hf)
