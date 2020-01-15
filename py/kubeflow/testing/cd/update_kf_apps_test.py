@@ -1,3 +1,4 @@
+import collections
 import difflib
 import logging
 import os
@@ -80,6 +81,42 @@ def test_parse_git_url():
 
   assert result == update_kf_apps.GIT_TUPLE("git@github.com", "kubeflow",
                                             "manifests")
+
+def test_get_image():
+  kustomize_yaml = """
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- deployment.yaml
+images:
+- name: gcr.io/old/image1
+  newName: gcr.io/new/image1
+  newTag: someTag
+- digest: sha256:1234abcd
+  name: gcr.io/old/image2
+  newName: gcr.io/new/image2:someTag
+- digest: sha256:1234abcd
+  name: gcr.io/old/image3
+  newName: gcr.io/new/image3
+"""
+  config = yaml.load(kustomize_yaml)
+
+  test_case = collections.namedtuple("testcase", ("image_name", "expected"))
+
+  cases = [test_case("gcr.io/old/image1",
+                     update_kf_apps.IMAGE_TUPLE("gcr.io/new/image1", "someTag",
+                                                "")),
+           test_case("gcr.io/old/image2",
+                     update_kf_apps.IMAGE_TUPLE("gcr.io/new/image2", "someTag",
+                                                "sha256:1234abcd")),
+           test_case("gcr.io/old/image3",
+                     update_kf_apps.IMAGE_TUPLE("gcr.io/new/image3", "",
+                                                "sha256:1234abcd")),]
+
+  for c in cases:
+    actual = update_kf_apps._get_image(config, c.image_name)
+    assert c.expected == actual
+
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
                       format=('%(levelname)s|%(asctime)s'
