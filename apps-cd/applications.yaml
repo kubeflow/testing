@@ -31,7 +31,7 @@ applications:
     - name: "path_to_context"
       value: "components/access-management"
     - name: "path_to_docker_file"
-      value: "components/acess-management/Dockerfile"
+      value: "components/access-management/Dockerfile"
     - name: "path_to_manifests_dir"
       value: "profiles/base"
     - name: "src_image_url"

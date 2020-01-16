@@ -43,6 +43,14 @@ and open PRs to update Kubeflow kustomize manifests to use the newly built image
 
  * The kubeflow-bot GitHub account is used to create the PRs
 
+ * Continuous building is achieved by running `update_launcher.py` in a Kubernetes deployment
+
+   * This script periodically fetches the latest code in `kubeflow/testing` to pick up any changes
+     to the code or config
+
+   * It then launches `update_kf_apps.py` to create Tekton PipelineRuns for any applications that
+     need to be updated.
+
 ### Adding Applications to continuous delivery
 
 Here are instructions for adding an application for continous delivery
@@ -139,6 +147,39 @@ This is a Kubeflow cluster (v0.6.2) and we rely on that to configure certain thi
    ```
    kustomize build pipelines/base/ | kubectl apply -f -
    ```
+
+## Developer Guide
+
+You can use skaffold to build a docker image and auto update the deployment running `update_launcher.py`
+
+1. Run skaffold
+
+   ```
+   skaffold dev -v info --cleanup=false --trigger=polling
+   ```
+
+1. During development you can take advantage of skaffold's continuous file sync mode to update
+   the code `update_launcher.py` without rebuilding the docker image or updating the deployment
+
+   * To take advantage of this modify `base/deployment.yaml` and uncomment the lines
+
+     ```
+     - python
+     - run_with_auto_restart.py
+     - --dir=/app
+     ```
+
+   * This runs update_launcher.py in a subprocess and restarts it everytime it detects a change in the file
+
+## Deploying Or Updating the Continuous run
+
+Use skaffold 
+
+```
+skaffold run --cleanup=False
+```
+
+* TODO(jlewi): Do we need to set cleanup to false.
 
 ## References
 
