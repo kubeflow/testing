@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+spec:
+  # We only need and want a single replica.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: update-kfapps
+  template:
+    metadata:
+      labels:
+        app: update-kfapps
+    spec:
+      containers:
+      - name: app
+        image: gcr.io/kubeflow-releasing/update_kf_apps
+        command:
+        # Uncomment the following lines when running with skaffold 
+        # and you want to use skaffold's auto-sync feature wto pick up changes
+        # to update_launcher.
+        # Begin skaffold
+        - python
+        - run_with_auto_restart.py
+        - --dir=/app
+        - --
+        # End skaffold
+        #
+        - python
+        - update_launcher.py
+        - run
+        # repo_dir is the directory where kubeflow testing should be checked out to
+        - --repo_dir=/launcher_src/kubeflow/testing
+        - --repo=https://github.com/kubeflow/testing.git
+        # Extra arguments to be passed to update_kf_apps.py
+        - --namespace=kf-releasing 
+        - --config=/launcher_src/kubeflow/testing/apps-cd/applications.yaml 
+        - --output_dir=/tmp/runs 
+        - --src_dir=/src 
+        - --template=/launcher_src/kubeflow/testing/apps-cd/runs/app-pipeline.template.yaml 
+        env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-token
+              key: github_token
+        resources:
+          requests:
+            cpu: 4
+            memory: 8Gi
+        workingDir: /app

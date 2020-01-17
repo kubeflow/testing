@@ -1,9 +1,14 @@
 """A python script to run Tekton pipelines to update Kubeflow manifests."""
 
+# TODO(jlewi): We might want to emit structured logs and then sync to
+# BigQuery to support easy monitoring.
+
 import fire
 import collections
 import logging
 import os
+import subprocess
+import traceback
 import re
 import yaml
 
@@ -20,7 +25,12 @@ APP_VERSION_TUPLE = collections.namedtuple("app_version", ("app", "version"))
 
 IMAGE_TUPLE = collections.namedtuple("image", ("name", "tag", "digest"))
 
+PR_INFO = collections.namedtuple("pr_info", ("url", "author", "branch"))
+
 MANIFESTS_REPO_NAME = "manifests"
+
+# The name of the GitHub user under which kubeflow-bot branches exist
+KUBEFLOW_BOT ="kubeflow-bot"
 
 def _combine_params(left, right):
   """Combine to lists of name,value pairs."""
@@ -66,6 +76,12 @@ def _sync_repos(repos, src_dir):
   for r in repos:
     repo = _get_repo_url(r)
 
+    # Convert the repo to https so we don't need ssh keys; this is a bit
+    # of a hack.
+    url = f"https://github.com/{repo.owner}/{repo.repo}.git"
+
+    logging.info(f"Sync mapped repo {r} to {url}")
+
     repo_dir = os.path.join(src_dir, repo.owner, repo.repo)
     if not os.path.exists(repo_dir):
       if not os.path.exists(os.path.join(src_dir, repo.owner)):
@@ -74,7 +90,7 @@ def _sync_repos(repos, src_dir):
       util.run(["git", "clone", url, repo.repo],
                cwd=os.path.join(src_dir, repo.owner))
 
-    logging.info("Sync repo {url}")
+    logging.info(f"Sync repo {repo}")
 
     util.run(["git", "fetch", "origin"],
              cwd=os.path.join(src_dir, repo.owner, repo.repo))
@@ -205,6 +221,48 @@ def _get_image(config, image_name):
 
   raise LookupError(f"Could not find image: {image_name}")
 
+def _open_prs(repo_dir):
+  """Return open PRs for the given repository.
+
+  Args:
+    repo_dir: The directory for the repo to list open PRs for.
+
+  Returns:
+    prs: [PR_INFO]; list of PR_INFO objects describing open PRs
+  """
+  # See hub conventions:
+  # https://hub.github.com/hub.1.html
+  # The GitHub repository is determined automatically based on the name
+  # of remote repositories
+  #
+  # Don't use util.run because we don't want to echo output of hub pr
+  output = subprocess.check_output(["hub", "pr", "list", "--format=%U;%H;%t\n"],
+                                   cwd=repo_dir).decode()
+
+
+  lines = output.splitlines()
+
+  prs = []
+  for l in lines:
+    pieces = l.split(";")
+
+    if len(pieces) != 3:
+      logging.error(f"Line {l} doesn't appear to match expected format of "
+                    f"url;head;title")
+      continue
+    url = pieces[0]
+    head = pieces[1]
+    # The head reference of the PRis in the format {author}:{branch}
+    head_pieces = head.split(":")
+    if len(head_pieces) != 2:
+      logging.error(f"Head={head} doesn't appear to be in form $author:$branch")
+      continue
+    author = head_pieces[0]
+    branch = head_pieces[1]
+    prs.append(PR_INFO(url, author, branch))
+
+  return prs
+
 def _handle_app(run, app, version, src_dir, output_dir):
   """Create the PipelineRun for the specified application.
 
@@ -254,6 +312,25 @@ def _handle_app(run, app, version, src_dir, output_dir):
   util.run(["git", "checkout", f"origin/{manifests_branch}"],
            cwd=manifests_dir)
 
+  # Determine whether there is already a PR open to update the image.
+  #
+  # We do this by looking to see if there is a PR open for the branch that
+  # a PR would create.
+  image_tag = run["metadata"]["labels"]["image_tag"]
+  pr_branch = _branch_for_app(app, image_tag)
+
+  open_prs = _open_prs(manifests_dir)
+
+  logging.info(f"Checking if there is a PR from {KUBEFLOW_BOT} "
+               f"for branch {pr_branch}")
+
+  for pr in open_prs:
+    if pr.branch == pr_branch:
+      logging.info(f"For App: {app['name']} Tag: {image_tag} found "
+                   f"open PR {pr.url}")
+
+      return output_file, False
+
   # Determine whether the application/version actually needs to be run or not
   # We do this by loading the kustomize file and seeing if it is up to date
   path_to_manifests_dir = _get_param(app["params"],
@@ -279,6 +356,23 @@ def _handle_app(run, app, version, src_dir, output_dir):
                  f"needs to be updated to tag {current_image.tag}")
 
   return output_file, needs_update
+
+def _branch_for_app(app, image_tag):
+  """Return the branch that will be used to update the specified application.
+
+  Args:
+    app: Dictionary describing the app.
+    image_tag: The tag for image
+  """
+
+  # This logic needs to match what the script creating the PR is doing.
+  # e.g.
+  # https://github.com/kubeflow/testing/blob/909454ab283d6ee67107a1c1607ca4ec9542bfeb/py/kubeflow/testing/ci/rebuild-manifests.sh#L47
+  src_image_url = _get_param(app["params"], "src_image_url")["value"]
+
+  image_name = src_image_url.split("/")[-1]
+
+  return f"update_{image_name}_{image_tag}"
 
 class UpdateKfApps:
 
@@ -328,7 +422,8 @@ class UpdateKfApps:
           failures.append(pair)
           logging.error(f"Exception occured creating run for "
                         f"App: {app['name']} Version: {version['name']} "
-                        f"Exception: {e}")
+                        f"Exception: {e}\n"
+                        f"{traceback.format_exc()}\n.")
 
     if failures:
       failed = [f"(App:{i.app}, Version:{i.version})" for i in failures]
@@ -349,7 +444,14 @@ class UpdateKfApps:
   def apply(config, output_dir, template, src_dir, namespace):
     """Create PipelineRuns for any applications that need to be updated."""
 
-    k8s_config.load_kube_config(persist_config=False)
+    service_account_path = "/var/run/secrets/kubernetes.io"
+    if os.path.exists("/var/run/secrets/kubernetes.io"):
+      logging.info(f"{service_account_path} exists; loading in cluster config")
+      k8s_config.load_incluster_config()
+    else:
+      logging.info(f"{service_account_path} doesn't exists; "
+                    "loading kube config file")
+      k8s_config.load_kube_config(persist_config=False)
 
     client = k8s_client.ApiClient()
     crd_api = k8s_client.CustomObjectsApi(client)
@@ -377,6 +479,8 @@ class UpdateKfApps:
       items = [f"{k}={v}" for k,v in label_filter.items()]
       selector = ",".join(items)
 
+      # TODO(https://github.com/tektoncd/pipeline/issues/1302): We should
+      # probably do some garbage collection of old runs.
       current_runs = crd_api.list_namespaced_custom_object(
         group, version, namespace, plural, label_selector=selector)
 
