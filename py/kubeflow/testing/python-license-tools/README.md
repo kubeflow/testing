@@ -33,7 +33,7 @@ Download the Python files both in go-license-tools folder and this folder.
 3. Manually edit source repository information. Once we find all the package source repositories, we need to update `repo.txt`. For example, we can replace
 line `certifi: None` with its Github source repository `certifi/python-certifi`.
 
-    But we can't update `repo.txt` for `cffi` directly, because it is not hosted on Github. We have to remember to update its license URI and type in the final `license_info.csv`, which is produced in the next step.
+    However, we can't update `repo.txt` for `cffi` directly, because it is not hosted on Github but . We have to remember to update its license URI and type in the final `license_info.csv`, which is produced in the next step.
 
 ### III. Get all license URLs and types
 This step is the same as [the one](https://github.com/kubeflow/testing/blob/master/py/kubeflow/testing/go-license-tools/README.md#iii-get-all-license-urls-and-types) described in the Go license tools guide, but you have to manually add the license information for code not hosted on Github.
