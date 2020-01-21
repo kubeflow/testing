@@ -759,18 +759,23 @@ def cleanup_service_accounts(args):
 
 def trim_unused_bindings(iamPolicy, accounts):
   keepBindings = []
+  deleted_bindings = set()
+  kept_bindings = set()
   for binding in iamPolicy['bindings']:
     members_to_keep = []
     members_to_delete = []
     for member in binding['members']:
       if not member.startswith('serviceAccount:'):
         members_to_keep.append(member)
+        kept_bindings.insert(member)
       else:
         accountEmail = member[15:]
         if accountEmail in accounts:
           members_to_keep.append(member)
+          kept_bindings.insert(member)
         else:
           members_to_delete.append(member)
+          deleted_bindings.insert(member)
     if members_to_keep:
       binding['members'] = members_to_keep
       keepBindings.append(binding)
@@ -780,9 +785,9 @@ def trim_unused_bindings(iamPolicy, accounts):
   iamPolicy['bindings'] = keepBindings
 
   logging.info("Removing bindings for following service accounts which "
-               "do not exist: %s", "\n".join(members_to_delete))
+               "do not exist: %s", "\n".join(deleted_bindings))
   logging.info("Keeping bindings for following service accounts which "
-               "still exist: %s", "\n".join(members_to_delete))
+               "still exist: %s", "\n".join(kept_bindings))
 
 def cleanup_service_account_bindings(args):
   logging.info("Cleanup service account bindings")
