@@ -759,23 +759,18 @@ def cleanup_service_accounts(args):
 
 def trim_unused_bindings(iamPolicy, accounts):
   keepBindings = []
-  deleted_bindings = set()
-  kept_bindings = set()
   for binding in iamPolicy['bindings']:
     members_to_keep = []
     members_to_delete = []
     for member in binding['members']:
       if not member.startswith('serviceAccount:'):
         members_to_keep.append(member)
-        kept_bindings.add(member)
       else:
         accountEmail = member[15:]
-        if accountEmail in accounts:
+        if (not is_match(accountEmail)) or (accountEmail in accounts):
           members_to_keep.append(member)
-          kept_bindings.add(member)
         else:
           members_to_delete.append(member)
-          deleted_bindings.add(member)
     if members_to_keep:
       binding['members'] = members_to_keep
       keepBindings.append(binding)
@@ -783,11 +778,6 @@ def trim_unused_bindings(iamPolicy, accounts):
       logging.info("Delete binding for members:\n%s", "\n".join(
         members_to_delete))
   iamPolicy['bindings'] = keepBindings
-
-  logging.info("Removing bindings for following service accounts which "
-               "do not exist: %s", "\n".join(deleted_bindings))
-  logging.info("Keeping bindings for following service accounts which "
-               "still exist: %s", "\n".join(kept_bindings))
 
 def cleanup_service_account_bindings(args):
   logging.info("Cleanup service account bindings")
@@ -805,8 +795,6 @@ def cleanup_service_account_bindings(args):
       break
     next_page_token = service_accounts["nextPageToken"]
 
-  logging.info("The following service accounts exist so bindings will not be"
-               "deleted:\n%s", "\n".join(accounts))
   resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
   logging.info("Get IAM policy for project %s", args.project)
   iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project, body={}).execute()
