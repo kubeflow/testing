@@ -40,7 +40,7 @@ applications:
   - name: notebook-controller
     params:  
     - name: "path_to_context"
-      value: "components/notebook-controller"
+      value: "components"
     - name: "path_to_docker_file"
       value: "components/notebook-controller/Dockerfile"
     - name: "path_to_manifests_dir"
