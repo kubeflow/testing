@@ -767,15 +767,15 @@ def trim_unused_bindings(iamPolicy, accounts):
     for member in binding['members']:
       if not member.startswith('serviceAccount:'):
         members_to_keep.append(member)
-        kept_bindings.insert(member)
+        kept_bindings.add(member)
       else:
         accountEmail = member[15:]
         if accountEmail in accounts:
           members_to_keep.append(member)
-          kept_bindings.insert(member)
+          kept_bindings.add(member)
         else:
           members_to_delete.append(member)
-          deleted_bindings.insert(member)
+          deleted_bindings.add(member)
     if members_to_keep:
       binding['members'] = members_to_keep
       keepBindings.append(binding)
