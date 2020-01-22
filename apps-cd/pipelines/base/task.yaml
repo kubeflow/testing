@@ -34,7 +34,7 @@ spec:
     - --target=$(inputs.params.docker_target)
     - --destination=$(inputs.resources.image.url)
     - --context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_context)
-    - --digest-file=/workspace/image-digest      
+    - --digest-file=/workspace/image-digest    
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/user-gcp-sa.json     
@@ -83,8 +83,18 @@ spec:
     workingDir: /workspace/$(inputs.resources.manifests.name)/$(inputs.params.path_to_manifests_dir)
     image: $(inputs.params.container_image)    
     command:
-    - /workspace/$(inputs.resources.ci-tools.name)/py/kubeflow/testing/ci/rebuild-manifests.sh
+    # python should be python3.8
+    - python
+    - -m
+    - kubeflow.testing.cd.create_manifests_pr
+    - apply 
+    - --image_url=${IMAGE_URL}
+    - --src_image_url=${SRC_IMAGE_URL} 
+    - --manifests_dir=/workspace/$(inputs.resources.manifests.name)/$(inputs.params.path_to_manifests_dir)
+    - --manifests_base=$(inputs.resources.manifests.revision)
     env:
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.ci-tools.name)/py
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials/user-gcp-sa.json
     - name: GITHUB_TOKEN

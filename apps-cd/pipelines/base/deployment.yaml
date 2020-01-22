@@ -32,7 +32,12 @@ spec:
         - run
         # repo_dir is the directory where kubeflow testing should be checked out to
         - --repo_dir=/launcher_src/kubeflow/testing
-        - --repo=https://github.com/kubeflow/testing.git
+        # repo is the code to check out to get the configuration as well as code for
+        # launching the applications
+        #
+        # To test changes before they are checked in you can set this to the repo containing your PR
+        # e.g. - --repo=https://github.com/jlewi/testing.git?ref=cicd_0.8
+        - --repo=https://github.com/kubeflow/testing.git                
         # Extra arguments to be passed to update_kf_apps.py
         - --namespace=kf-releasing 
         - --config=/launcher_src/kubeflow/testing/apps-cd/applications.yaml 

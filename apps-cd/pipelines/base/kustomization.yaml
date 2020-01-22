@@ -1,8 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
-- name: gcr.io/kubeflow-releasing/update_kf_apps
-  newName: gcr.io/kubeflow-releasing/update_kf_apps
+- digest: sha256:3c9360314639724f4b5e1b675673186b9bad726852b2bc1d5bd14951b6ffd26c
+  name: gcr.io/kubeflow-releasing/update_kf_apps
+  newName: gcr.io/kubeflow-releasing/update_kf_apps:043da55-dirty
 resources:
 - service-account.yaml
 - deployment.yaml

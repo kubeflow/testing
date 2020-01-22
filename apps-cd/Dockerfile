@@ -1,8 +1,13 @@
 FROM ubuntu:18.04
 
 RUN apt-get update -y && \
-    apt-get install -y curl git python3.8 python3-pip && \
+    apt-get install -y curl git python3.8 python3-pip wget && \
     ln -sf /usr/bin/python3.8 /usr/bin/python
+
+# Install go
+RUN cd /tmp && \
+    wget -O /tmp/go.tar.gz https://redirector.gvt1.com/edgedl/go/go1.12.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go.tar.gz
 
 # Install the hub CLI for git
 RUN cd /tmp && \
@@ -11,12 +16,31 @@ RUN cd /tmp && \
     mv hub-linux-amd64-2.13.0 /usr/local && \
     ln -sf /usr/local/hub-linux-amd64-2.13.0/bin/hub /usr/local/bin/hub
 
+RUN export KUSTOMIZE_VERSION=3.2.0 && \
+    cd /tmp && \
+    curl -LO  https://github.com/kubernetes-sigs/kustomize/releases/download/v${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64 && \
+    mv kustomize_${KUSTOMIZE_VERSION}_linux_amd64 /usr/local/bin/kustomize && \
+    chmod a+x /usr/local/bin/kustomize
+
+
 RUN python -m pip install fire \
      google-api-python-client \
      google-cloud-storage \
      kubernetes \
      watchdog
 
+
+# Create go symlinks
+RUN ln -sf /usr/local/go/bin/go /usr/local/bin && \
+    ln -sf /usr/local/go/bin/gofmt /usr/local/bin && \
+    ln -sf /usr/local/go/bin/godoc /usr/local/bin
+
 RUN mkdir -p /app
 COPY update_launcher.py /app
 COPY run_with_auto_restart.py /app
+
+# See(https://github.com/tektoncd/pipeline/issues/1271): Tekton will put ssh
+# credentials in /tekton/home. We can't change the home directory
+# but we can create a symbolic link for .ssh
+RUN mkdir -p /tekton/home && \
+    ln -sf /tekton/home/.ssh /root/.ssh
