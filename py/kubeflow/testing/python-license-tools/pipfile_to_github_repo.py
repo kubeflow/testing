@@ -12,7 +12,6 @@
 import argparse
 import json
 import requests
-import sys
 from bs4 import BeautifulSoup as Soup
 
 parser = argparse.ArgumentParser(
