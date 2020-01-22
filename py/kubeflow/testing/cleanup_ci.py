@@ -11,6 +11,7 @@ import socket
 import sys
 import traceback
 import time
+import yaml
 
 from kubeflow.testing import argo_client
 from kubeflow.testing import util
@@ -868,7 +869,9 @@ def cleanup_service_account_bindings(args):
   setBody = {'policy': iamPolicy}
   if not args.dryrun:
     resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
-
+  else:
+    logging.info("Dryrun mode; policy not set; would set to policy;\n%s",
+                 yaml.safe_dump(iamPolicy))
   logging.info("Finished cleanup service account bindings")
 
 def getAge(tsInRFC3339):
