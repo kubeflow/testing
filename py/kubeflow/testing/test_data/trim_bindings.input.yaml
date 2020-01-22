@@ -1,0 +1,8 @@
+bindings:
+- members:
+  - serviceAccount:deletedaccount@someproject.iam.gserviceaccount.com
+  - serviceAccount:existsaccount@someproject.iam.gserviceaccount.com
+  - serviceAccount:user2@nothisproject.iam.gserviceaccount.com
+  - serviceAccount:gcp@cloudbuild.gserviceaccount.com
+  - serviceAccount:kubeflow-releasing@kubeflow-releasing.iam.gserviceaccount.com
+  role: roles/cloudbuild.builds.builder
