@@ -20,7 +20,8 @@ class CleanupCiTest(unittest.TestCase):
                   'kfctl-expired@kubeflow-ci.iam.gserviceaccount.com']:
         self.assertTrue('serviceAccount:' + act in members)
       cleanup_ci.trim_unused_bindings(iam_bindings,
-                                      ['kfctl-in-use@kubeflow-ci.iam.gserviceaccount.com'])
+                                      ['kfctl-in-use@kubeflow-ci.iam.gserviceaccount.com'],
+                                      "kubeflow-ci")
       # One binding is deleted as it lost all members.
       self.assertTrue(len(iam_bindings['bindings']) == 2)
       trimed_members = iam_bindings['bindings'][0]['members']

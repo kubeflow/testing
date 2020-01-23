@@ -1,8 +1,10 @@
-from kubeflow.testing import cleanup_ci
+import collections
 import logging
 import os
 import pytest
 import yaml
+
+from kubeflow.testing import cleanup_ci
 
 def test_match_endpoints():
   """Verify that cloud endpoint service names match the regex"""
