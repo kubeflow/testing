@@ -9,10 +9,13 @@ import logging
 import os
 import subprocess
 import traceback
+import urllib
 import re
 import yaml
 
 from kubeflow.testing import util
+from kubeflow.testing import yaml_util
+from kubeflow.testing.cd import close_old_prs
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from kubernetes.client import rest
@@ -373,7 +376,6 @@ def _branch_for_app(app, image_tag):
   src_image_url = _get_param(app["params"], "src_image_url")["value"]
 
   image_name = src_image_url.split("/")[-1]
-
   return f"update_{image_name}_{image_tag}"
 
 class UpdateKfApps:
@@ -389,8 +391,7 @@ class UpdateKfApps:
       src_dir: Directory where source should be checked out
     """
 
-    with open(config) as hf:
-      run_config = yaml.load(hf)
+    run_config = yaml_util.load_file(config)
 
     failures = []
 
@@ -407,9 +408,7 @@ class UpdateKfApps:
       for app in run_config["applications"]:
         pair = APP_VERSION_TUPLE(app["name"], version["name"])
         # Load a fresh copy of the template
-        with open(template) as hf:
-          run = yaml.load(hf)
-
+        run = yaml_util.load_file(template)
 
         # Make copies of app and version so that we don't end up modifying them
         try:
@@ -444,7 +443,18 @@ class UpdateKfApps:
 
   @staticmethod
   def apply(config, output_dir, template, src_dir, namespace):
-    """Create PipelineRuns for any applications that need to be updated."""
+    """Create PipelineRuns for any applications that need to be updated.
+
+    Args:
+      config: The path to the configuration; can be local or http file
+      output_dir: Directory where pipeline runs should be written
+      template: The path to the YAML file to act as a template
+      src_dir: Directory where source should be checked out
+    """
+
+    logging.info("Closing old PRs")
+    closer = close_old_prs.PRCloser()
+    closer.apply()
 
     service_account_path = "/var/run/secrets/kubernetes.io"
     if os.path.exists("/var/run/secrets/kubernetes.io"):
@@ -463,55 +473,74 @@ class UpdateKfApps:
 
     if not pipelines_to_run:
       logging.info("No pipelines need to be run")
-      return
+    else:
+      logging.info("Submitting pipeline runs to update applications")
+      for p in pipelines_to_run:
+        with open(p) as hf:
+          run = yaml.load(hf)
 
-    for p in pipelines_to_run:
-      with open(p) as hf:
-        run = yaml.load(hf)
+        group, version = run["apiVersion"].split("/", 1)
+        kind = run["kind"]
+        plural = kind.lower() + "s"
 
-      group, version = run["apiVersion"].split("/", 1)
-      kind = run["kind"]
-      plural = kind.lower() + "s"
+        # Check if there are any pipelines running for the same application
+        label_filter = {}
+        for k in ["app", "version", "image_tag"]:
+          label_filter[k] = run["metadata"]["labels"][k]
 
-      # Check if there are any pipelines running for the same application
-      label_filter = {}
-      for k in ["app", "version", "image_tag"]:
-        label_filter[k] = run["metadata"]["labels"][k]
+        items = [f"{k}={v}" for k,v in label_filter.items()]
+        selector = ",".join(items)
 
-      items = [f"{k}={v}" for k,v in label_filter.items()]
-      selector = ",".join(items)
+        # TODO(https://github.com/tektoncd/pipeline/issues/1302): We should
+        # probably do some garbage collection of old runs.
+        current_runs = crd_api.list_namespaced_custom_object(
+          group, version, namespace, plural, label_selector=selector)
 
-      # TODO(https://github.com/tektoncd/pipeline/issues/1302): We should
-      # probably do some garbage collection of old runs.
-      current_runs = crd_api.list_namespaced_custom_object(
-        group, version, namespace, plural, label_selector=selector)
+        active_run = None
+        for r in current_runs["items"]:
+          conditions = r["status"].get("conditions", [])
 
-      active_run = None
-      for r in current_runs["items"]:
-        conditions = r["status"].get("conditions", [])
+          running = True
 
-        running = True
+          for c in conditions[::-1]:
+            if c.get("type", "").lower() == "succeeded":
+              if c.get("status", "").lower() in ["true", "false"]:
+                running = False
+              break
 
-        for c in conditions[::-1]:
-          if c.get("type", "").lower() == "succeeded":
-            if c.get("status", "").lower() in ["true", "false"]:
-              running = False
+          if running:
+            active_run = r['metadata']['name']
             break
 
-        if running:
-          active_run = r['metadata']['name']
-          break
+        if active_run:
+          logging.info(f"Found pipeline run {active_run} "
+                       f"already running for {p}; not rerunning")
+          continue
 
-      if active_run:
-        logging.info(f"Found pipeline run {active_run} "
-                     f"already running for {p}; not rerunning")
-        continue
+        logging.info(f"Creating run from file {p}")
+        result = crd_api.create_namespaced_custom_object(group, version, namespace, plural,
+                                                         run)
+        logging.info(f"Created run "
+                     f"{result['metadata']['namespace']}"
+                     f".{result['metadata']['name']}")
 
-      logging.info(f"Creating run from file {p}")
-      result = crd_api.create_namespaced_custom_object(group, version, namespace, plural,
-                                                       run)
-      logging.info(f"Created run {result['metadata']['name']}")
 
+  @staticmethod
+  def sync(config, output_dir, template, src_dir, namespace,
+           sync_time_seconds=600):
+    """Perioridically fire off tekton pipelines to update the manifests.
+
+    Args:
+      config: The path to the configuration
+      output_dir: Directory where pipeline runs should be written
+      template: The path to the YAML file to act as a template
+      src_dir: Directory where source should be checked out
+      sync_time_seconds: Time in seconds to wait between launches.
+    """
+    while True:
+      UpdateKfApps.apply(config, output_dir, template, src_dir, namespace)
+      logging.info("Wait before rerunning")
+      time.sleep(sync_time_seconds)
 
 class AppVersion:
   """App version is a wrapper around a combination of application and version.

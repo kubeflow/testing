@@ -37,7 +37,11 @@ spec:
     - --digest-file=/workspace/image-digest    
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/user-gcp-sa.json     
+      value: /secret/user-gcp-sa.json
+    resources:
+      requests:
+        cpu: 7
+        memory: 16Gi
     volumeMounts:
     - mountPath: /secret
       name: gcp-credentials  
@@ -88,8 +92,8 @@ spec:
     - -m
     - kubeflow.testing.cd.create_manifests_pr
     - apply 
-    - --image_url=${IMAGE_URL}
-    - --src_image_url=${SRC_IMAGE_URL} 
+    - --image_url=$(inputs.resources.image.url)
+    - --src_image_url=$(inputs.params.src_image_url)
     - --manifests_dir=/workspace/$(inputs.resources.manifests.name)/$(inputs.params.path_to_manifests_dir)
     - --manifests_base=$(inputs.resources.manifests.revision)
     env:
@@ -102,14 +106,10 @@ spec:
         secretKeyRef:
           name: github-token
           key: github_token
-    - name: SRC_IMAGE_URL          
-      value: $(inputs.params.src_image_url)
-    - name: IMAGE_URL          
-      value: $(inputs.resources.image.url)
-    - name: MANIFESTS_REPO_REVISION
-      value: $(inputs.resources.manifests.revision)
-    - name: PATH_TO_MANIFESTS_DIR
-      value: $(inputs.params.path_to_manifests_dir)
+    resources:
+      requests:
+        cpu: 4
+        memory: 4Gi
     volumeMounts:
     - mountPath: /secret
       name: gcp-credentials

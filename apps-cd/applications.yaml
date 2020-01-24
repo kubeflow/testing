@@ -119,26 +119,3 @@ versions:
               value: v1.0-branch
             - name: url
               value: git@github.com:kubeflow/manifests.git
-  # Define a v0-8 release
-  # This is primarily so we can test that the CI/CD infrastructure is workin 
-  # with release branches. We don't plan on actually releasing 0.8
-  - name: v0-8
-    # A tag to prefix image names with
-    tag: "v0.8.0"
-    repos:
-      - name: kubeflow
-        resourceSpec:    
-          type: git
-          params:
-            - name: revision
-              value: v0.8-branch
-            - name: url
-              value: git@github.com:kubeflow/kubeflow.git
-      - name: manifests
-        resourceSpec:    
-          type: git
-          params:
-            - name: revision
-              value: v0.8-branch
-            - name: url
-              value: git@github.com:kubeflow/manifests.git

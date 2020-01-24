@@ -45,9 +45,13 @@ spec:
         # https://github.com/kubeflow/testing/pull/572
         # is merged
         - name: revision
-          value: master
+          value: cicd_delete_old_prs
         - name: url
-          value: git@github.com:kubeflow/testing.git
+          value: git@github.com:jlewi/testing.git
+        #- name: revision
+        #  value: master
+        #- name: url
+        #  value: git@github.com:kubeflow/testing.git
   # The image we want to build
   - name:  image
     resourceSpec:
