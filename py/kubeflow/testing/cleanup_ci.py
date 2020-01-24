@@ -1,6 +1,7 @@
 """Cleanup Kubeflow deployments in our ci system."""
 # pylint: disable=too-many-lines
 import argparse
+import collections
 import datetime
 from dateutil import parser as date_parser
 import logging
@@ -10,6 +11,7 @@ import socket
 import sys
 import traceback
 import time
+import yaml
 
 from kubeflow.testing import argo_client
 from kubeflow.testing import util
@@ -67,6 +69,31 @@ def is_match(name, patterns=None):
       return True
 
   return False
+
+SERVICE_ACCOUNT = collections.namedtuple("SERVICE_ACCOUNT",
+                                         ("name", "project", "suffix"))
+def parse_service_account_email(email):
+  """Take a string of the form serviceAccount:name@project.suffix
+
+  And returns a tuple with the various pieces
+  """
+  prefix = "serviceAccount:"
+
+  if not prefix in email:
+    return None
+
+  _, just_email = email.split(":", 1)
+
+  name, project_and_suffix = just_email.split("@", 1)
+
+  project, suffix = project_and_suffix.split(".", 1)
+
+  return SERVICE_ACCOUNT(name, project, suffix)
+
+def full_email(service_account):
+  """Generate the full email from service account"""
+  return "{0}@{1}.{2}".format(service_account.name, service_account.project,
+                              service_account.suffix)
 
 def is_retryable_exception(exception):
   """Return True if we consider the exception retryable"""
@@ -757,20 +784,54 @@ def cleanup_service_accounts(args):
   logging.info("expired emails:\n%s", "\n".join(expired_emails))
   logging.info("Finished cleanup service accounts")
 
-def trim_unused_bindings(iamPolicy, accounts):
+def trim_unused_bindings(iamPolicy, accounts, project):
+  """Trim unused bindings
+
+  Args:
+    iamPolicy:The iam policy from which to trim accounts
+    accounts: The list of service accounts that still exist
+    project: The project that owns the service accounts listed in service
+      accounts. Bindings associated with service accounts not owned by
+      this project are not eligible for deletion.
+  """
   keepBindings = []
+  kept_bindings = set()
+  deleted_bindings = set()
   for binding in iamPolicy['bindings']:
     members_to_keep = []
     members_to_delete = []
     for member in binding['members']:
-      if not member.startswith('serviceAccount:'):
+      # Parse the binding
+      service_account = parse_service_account_email(member)
+
+      if not service_account:
         members_to_keep.append(member)
-      else:
-        accountEmail = member[15:]
-        if (not is_match(accountEmail)) or (accountEmail in accounts):
-          members_to_keep.append(member)
-        else:
-          members_to_delete.append(member)
+        kept_bindings.add(member)
+        continue
+
+      # Accounts will only be for the service accounts owned by the
+      # project. So we can only delete a service account binding if it
+      # is associated with a service account that would be owned by
+      # that project; otherwise that service account wouldn't be listed
+      # in the set of service accounts
+      if service_account.project != project:
+        members_to_keep.append(member)
+        kept_bindings.add(member)
+        continue
+
+      if service_account.suffix != "iam.gserviceaccount.com":
+        members_to_keep.append(member)
+        kept_bindings.add(member)
+        continue
+
+      if full_email(service_account) in accounts:
+        members_to_keep.append(member)
+        kept_bindings.add(member)
+        continue
+
+      members_to_delete.append(member)
+      deleted_bindings.add(member)
+
     if members_to_keep:
       binding['members'] = members_to_keep
       keepBindings.append(binding)
@@ -778,6 +839,11 @@ def trim_unused_bindings(iamPolicy, accounts):
       logging.info("Delete binding for members:\n%s", "\n".join(
         members_to_delete))
   iamPolicy['bindings'] = keepBindings
+
+  logging.info("Removing bindings for following service accounts which "
+               "do not exist:\n%s", "\n".join(deleted_bindings))
+  logging.info("Keeping bindings for following service accounts which "
+               "still exist:\n%s", "\n".join(kept_bindings))
 
 def cleanup_service_account_bindings(args):
   logging.info("Cleanup service account bindings")
@@ -798,12 +864,14 @@ def cleanup_service_account_bindings(args):
   resourcemanager = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
   logging.info("Get IAM policy for project %s", args.project)
   iamPolicy = resourcemanager.projects().getIamPolicy(resource=args.project, body={}).execute()
-  trim_unused_bindings(iamPolicy, accounts)
+  trim_unused_bindings(iamPolicy, accounts, args.project)
 
   setBody = {'policy': iamPolicy}
   if not args.dryrun:
     resourcemanager.projects().setIamPolicy(resource=args.project, body=setBody).execute()
-
+  else:
+    logging.info("Dryrun mode; policy not set; would set to policy;\n%s",
+                 yaml.safe_dump(iamPolicy))
   logging.info("Finished cleanup service account bindings")
 
 def getAge(tsInRFC3339):

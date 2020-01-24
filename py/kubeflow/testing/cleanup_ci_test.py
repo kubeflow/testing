@@ -1,6 +1,10 @@
-from kubeflow.testing import cleanup_ci
+import collections
 import logging
+import os
 import pytest
+import yaml
+
+from kubeflow.testing import cleanup_ci
 
 def test_match_endpoints():
   """Verify that cloud endpoint service names match the regex"""
@@ -15,6 +19,65 @@ def test_match_endpoints():
 def test_match_disk():
   pvc = "gke-zresubmit-unittest-pvc-e3bf5be4-987b-11e9-8266-42010a8e00e9"
   assert cleanup_ci.is_match(pvc, patterns=cleanup_ci.E2E_PATTERNS)
+
+def test_match_service_accounts():
+  test_case = collections.namedtuple("test_case", ("input", "expected"))
+
+  cases = [
+    test_case("kf-vmaster-0121-b11-user@"
+              "kubeflow-ci-deployment.iam.gserviceaccount.com",
+              cleanup_ci.AUTO_INFRA)
+  ]
+
+  for c in cases:
+    actual = cleanup_ci.name_to_infra_type(c.input)
+
+    assert actual == c.expected
+
+def test_parse_service_account():
+  test_case = collections.namedtuple("test_case", ("input", "expected"))
+
+  cases = [
+    test_case("serviceAccount:kf-vmaster@"
+              "kubeflow-ci-deployment.iam.gserviceaccount.com",
+              cleanup_ci.SERVICE_ACCOUNT("kf-vmaster", "kubeflow-ci-deployment",
+                                         "iam.gserviceaccount.com")),
+    test_case("serviceAccount:kf-vmaster@"
+              "container-engine-robot.iam.gserviceaccount.com",
+              cleanup_ci.SERVICE_ACCOUNT("kf-vmaster", "container-engine-robot",
+                                         "iam.gserviceaccount.com")),
+    # No match because prefix isn't a serviceAccount
+    test_case("user:kf-vmaster@"
+              "container-engine-robot.iam.gserviceaccount.com",
+              None),
+  ]
+
+  for c in cases:
+    actual = cleanup_ci.parse_service_account_email(c.input)
+
+    assert actual == c.expected
+
+
+def test_trim_unused_bindings():
+  this_dir = os.path.dirname(__file__)
+  test_data_dir = os.path.join(this_dir, "test_data")
+  with open(os.path.join(test_data_dir, "trim_bindings.input.yaml")) as hf:
+    policy = yaml.load(hf)
+
+  accounts = ["existsaccount@someproject.iam.gserviceaccount.com"]
+
+  expected = set([
+    "serviceAccount:existsaccount@someproject.iam.gserviceaccount.com",
+    "serviceAccount:user2@nothisproject.iam.gserviceaccount.com",
+    "serviceAccount:gcp@cloudbuild.gserviceaccount.com",
+    "serviceAccount:kubeflow-releasing@kubeflow-releasing"
+    ".iam.gserviceaccount.com"])
+
+  project = "someproject"
+  cleanup_ci.trim_unused_bindings(policy, accounts, project)
+
+  actual_bindings = set(policy["bindings"][0]["members"])
+  assert actual_bindings == expected
 
 if __name__ == "__main__":
   logging.basicConfig(

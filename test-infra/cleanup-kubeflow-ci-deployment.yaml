@@ -24,8 +24,8 @@ spec:
         - /bin/sh
         - -xc
         # TODO(jlewi): Switch to using init container to check things out
-        - /usr/local/bin/checkout_repos.sh --repos=kubeflow/kubeflow@HEAD,kubeflow/testing@HEAD:512 --src_dir=/src; python -m kubeflow.testing.cleanup_ci --project=kubeflow-ci-deployment
-          --gc_backend_services=true --dryrun all 
+        - /usr/local/bin/checkout_repos.sh --repos=kubeflow/kubeflow@HEAD,kubeflow/testing@HEAD:570 --src_dir=/src; python -m kubeflow.testing.cleanup_ci --project=kubeflow-ci-deployment
+          --gc_backend_services=true --dryrun service_account_bindings
         env:
         - name: PYTHONPATH
           value: /src/kubeflow/testing/py
