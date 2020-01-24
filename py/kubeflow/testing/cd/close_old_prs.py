@@ -7,6 +7,7 @@ import json
 import logging
 import re
 
+from code_intelligence import github_app
 from code_intelligence import graphql
 
 # The name of the GitHub user under which kubeflow-bot branches exist
@@ -22,6 +23,28 @@ class PRCloser:
 
   def __init__(self):
     self._client = graphql.GraphQLClient()
+
+    self._headers = None
+    self._token_refresher = None
+    # Try various methods to obtain credentials
+    try:
+      self._token_refresher = github_app.FixedAccessTokenGenerator.from_env()
+
+    except ValueError:
+      logging.info("Could not create a FixedAccessTokenGenerator; will try "
+                   "other methods for obtaining credentials")
+
+    if not self._token_refresher:
+      app = github_app.GitHubApp.create_from_env()
+      self._token_refresher = github_app.GitHubAppTokenGenerator(
+        app, "kubeflow/manifests")
+
+
+  def _run_query(self, *args, **kwargs):
+    if not kwargs:
+      kwargs = {}
+    kwargs["headers"] = self._token_refresher.auth_headers
+    return self._client.run_query(*args, **kwargs)
 
   def apply(self):
     app_prs = collections.defaultdict(lambda: [])
@@ -73,7 +96,8 @@ class PRCloser:
           }
         }
 
-        results = self._client.run_query(add_comment, variables=add_variables)
+        results = self._client.run_query(add_comment, variables=add_variables,
+                                         headers=self._headers)
 
         if results.get("errors"):
           message = json.dumps(results.get("errors"))
@@ -94,7 +118,8 @@ class PRCloser:
           }
         }
 
-        results = self._client.run_query(close_pr, variables=close_variables)
+        results = self._run_query(close_pr, variables=close_variables,
+                                         headers=self._headers)
 
         if results.get("errors"):
           message = json.dumps(results.get("errors"))
@@ -169,7 +194,7 @@ class PRCloser:
         "pageSize": num_prs_per_page,
         "issueCursor": prs_cursor,
       }
-      results = self._client.run_query(query, variables=variables)
+      results = self._run_query(query, variables=variables)
 
       if results.get("errors"):
         message = json.dumps(results.get("errors"))
