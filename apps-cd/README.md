@@ -152,10 +152,16 @@ This is a Kubeflow cluster (v0.6.2) and we rely on that to configure certain thi
 
 You can use skaffold to build a docker image and auto update the deployment running `update_launcher.py`
 
+* The namespace `kf-releasing-dev` is intended for trying out your local changes
+* You can update the `dev` overlay to pull code from a branch on your fork so you can
+  test out your changes before merging them
+* You can also deploy any changes to tekton resources to that namespace before trying out
+  in prod. 
+
 1. Run skaffold
 
    ```
-   skaffold dev -v info --cleanup=false --trigger=polling
+   skaffold dev -p -v info --cleanup=false --trigger=polling
    ```
 
 1. During development you can take advantage of skaffold's continuous file sync mode to update
