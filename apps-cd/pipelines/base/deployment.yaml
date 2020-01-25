@@ -17,16 +17,6 @@ spec:
       - name: app
         image: gcr.io/kubeflow-releasing/update_kf_apps
         command:
-        # Uncomment the following lines when running with skaffold 
-        # and you want to use skaffold's auto-sync feature wto pick up changes
-        # to update_launcher.
-        # Begin skaffold
-        - python
-        - run_with_auto_restart.py
-        - --dir=/app
-        - --
-        # End skaffold
-        #
         - python
         - update_launcher.py
         - run
@@ -45,13 +35,25 @@ spec:
         - --src_dir=/src 
         - --template=/launcher_src/kubeflow/testing/apps-cd/runs/app-pipeline.template.yaml 
         env:
+        # TODO(jlewi): We should stop using a GITHUB_TOKEN and switch to using
+        # the github APP. Is this only used by the Hub CLI?
         - name: GITHUB_TOKEN
           valueFrom:
             secretKeyRef:
               name: github-token
               key: github_token
+        - name: GITHUB_APP_PEM_KEY
+          value: /var/secrets/github/kubeflow-auto-bot.2020-01-24.private-key.pem
         resources:
           requests:
             cpu: 4
             memory: 8Gi
         workingDir: /app
+        volumeMounts:
+        - name: github-app
+          mountPath: /var/secrets/github
+      volumes:
+      # Secret containing the PEM key for the GitHub app used to close PRs.
+      - name: github-app
+        secret:
+          secretName: github-app-pem

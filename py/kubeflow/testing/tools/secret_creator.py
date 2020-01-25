@@ -79,15 +79,14 @@ class SecretCreator:
     src_namespace, src_name = source.split(".", 1)
     dest_namespace, dest_name = dest.split(".", 1)
 
+    client = k8s_client.ApiClient()
     api = k8s_client.CoreV1Api(client)
 
     try:
-      return api.read_namespaced_secret(name, namespace)
+      source_secret = api.read_namespaced_secret(src_name, src_namespace)
     except rest.ApiException as e:
       if e.status != 404:
         raise
-
-    source_secret = get_secret(src_namespace, src_name, self._k8s_client)
 
     if not source_secret:
       raise ValueError(f"Secret {source} doesn't exist")
@@ -95,30 +94,13 @@ class SecretCreator:
     # delete metadata fields
     for f in ["creation_timestamp", "owner_references", "resource_version",
               "self_link", "uid"]:
-      del source_secret["metadata"][f]
+      setattr(source_secret.metadata, f, None)
 
-    source_secret["metadata"]["name"] = dest_name
-    source_secret["metadata"]["namespace"] = dest_namespace
+    source_secret.metadata.name = dest_name
+    source_secret.metadata.namespace = dest_namespace
 
-
-    data = subprocess.check_output(["kubectl", "-n", src_namespace, "get",
-                                    "secrets", src_name, "-o",
-                                    "yaml"])
-
-    encoded = yaml.load(data)
-    decoded = {}
-
-    for k, v in encoded["data"].items():
-      decoded[k] = base64.b64decode(v).decode()
-
-    command = ["kubectl", "create", "-n", dest_namespace, "secret",
-               "generic", dest_name]
-
-    for k, v in decoded.items():
-      command.append(f"--from-literal={k}={v}")
-
-    subprocess.check_call(command)
-
+    api.create_namespaced_secret(dest_namespace, source_secret)
+    logging.info(f"Created secret {dest}")
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO,

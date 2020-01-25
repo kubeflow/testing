@@ -13,6 +13,7 @@ import re
 import yaml
 
 from kubeflow.testing import util
+from kubeflow.testing.cd import close_old_prs
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from kubernetes.client import rest
@@ -446,6 +447,10 @@ class UpdateKfApps:
   def apply(config, output_dir, template, src_dir, namespace):
     """Create PipelineRuns for any applications that need to be updated."""
 
+    logging.info("Closing old PRs")
+    closer = close_old_prs.PRCloser()
+    closer.apply()
+
     service_account_path = "/var/run/secrets/kubernetes.io"
     if os.path.exists("/var/run/secrets/kubernetes.io"):
       logging.info(f"{service_account_path} exists; loading in cluster config")
@@ -463,54 +468,53 @@ class UpdateKfApps:
 
     if not pipelines_to_run:
       logging.info("No pipelines need to be run")
-      return
+    else:
+      for p in pipelines_to_run:
+        with open(p) as hf:
+          run = yaml.load(hf)
 
-    for p in pipelines_to_run:
-      with open(p) as hf:
-        run = yaml.load(hf)
+        group, version = run["apiVersion"].split("/", 1)
+        kind = run["kind"]
+        plural = kind.lower() + "s"
 
-      group, version = run["apiVersion"].split("/", 1)
-      kind = run["kind"]
-      plural = kind.lower() + "s"
+        # Check if there are any pipelines running for the same application
+        label_filter = {}
+        for k in ["app", "version", "image_tag"]:
+          label_filter[k] = run["metadata"]["labels"][k]
 
-      # Check if there are any pipelines running for the same application
-      label_filter = {}
-      for k in ["app", "version", "image_tag"]:
-        label_filter[k] = run["metadata"]["labels"][k]
+        items = [f"{k}={v}" for k,v in label_filter.items()]
+        selector = ",".join(items)
 
-      items = [f"{k}={v}" for k,v in label_filter.items()]
-      selector = ",".join(items)
+        # TODO(https://github.com/tektoncd/pipeline/issues/1302): We should
+        # probably do some garbage collection of old runs.
+        current_runs = crd_api.list_namespaced_custom_object(
+          group, version, namespace, plural, label_selector=selector)
 
-      # TODO(https://github.com/tektoncd/pipeline/issues/1302): We should
-      # probably do some garbage collection of old runs.
-      current_runs = crd_api.list_namespaced_custom_object(
-        group, version, namespace, plural, label_selector=selector)
+        active_run = None
+        for r in current_runs["items"]:
+          conditions = r["status"].get("conditions", [])
 
-      active_run = None
-      for r in current_runs["items"]:
-        conditions = r["status"].get("conditions", [])
+          running = True
 
-        running = True
+          for c in conditions[::-1]:
+            if c.get("type", "").lower() == "succeeded":
+              if c.get("status", "").lower() in ["true", "false"]:
+                running = False
+              break
 
-        for c in conditions[::-1]:
-          if c.get("type", "").lower() == "succeeded":
-            if c.get("status", "").lower() in ["true", "false"]:
-              running = False
+          if running:
+            active_run = r['metadata']['name']
             break
 
-        if running:
-          active_run = r['metadata']['name']
-          break
+        if active_run:
+          logging.info(f"Found pipeline run {active_run} "
+                       f"already running for {p}; not rerunning")
+          continue
 
-      if active_run:
-        logging.info(f"Found pipeline run {active_run} "
-                     f"already running for {p}; not rerunning")
-        continue
-
-      logging.info(f"Creating run from file {p}")
-      result = crd_api.create_namespaced_custom_object(group, version, namespace, plural,
-                                                       run)
-      logging.info(f"Created run {result['metadata']['name']}")
+        logging.info(f"Creating run from file {p}")
+        result = crd_api.create_namespaced_custom_object(group, version, namespace, plural,
+                                                         run)
+        logging.info(f"Created run {result['metadata']['name']}")
 
 
 class AppVersion:
