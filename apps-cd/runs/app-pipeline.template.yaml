@@ -18,7 +18,7 @@ spec:
   - name: "src_image_url"
     value: "gcr.io/kubeflow-images-public/profile-controller"
   - name: "container_image"
-    value: "gcr.io/kubeflow-releasing/test-worker@sha256:35138a42b57160a078e802b7d69aec3c3e79a3e2e55518af7798275ebcc84d25"    
+    value: "gcr.io/kubeflow-releasing/update_kf_apps:d4b8243@sha256:656a4ad689b17715a287f09772cc48444a2190c353c5b84828db4fbf4ede4acc"
   resources:
   # The git resources that will be used
   - name: kubeflow
@@ -41,16 +41,13 @@ spec:
     resourceSpec:    
       type: git
       params:
-        # TODO(jlewi): Replace with kubeflw/testing master once the PR is merged
-        #
+        # TODO(jlewi): Replace with kubeflow/testing master once the PR 
+        # https://github.com/kubeflow/testing/pull/572
+        # is merged
         - name: revision
-          value: cicd
+          value: master
         - name: url
-          value: git@github.com:jlewi/testing.git
-        #- name: revision
-        #  value: master
-        #- name: url
-        #  value: git@github.com:kubeflow/testing.git
+          value: git@github.com:kubeflow/testing.git
   # The image we want to build
   - name:  image
     resourceSpec:

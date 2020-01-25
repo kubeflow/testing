@@ -246,7 +246,9 @@ def _open_prs(repo_dir):
   for l in lines:
     pieces = l.split(";")
 
-    if len(pieces) != 3:
+    # Title could potentially have semi colons in it so we could wind up
+    # with more than 3 pieces.
+    if len(pieces) < 3:
       logging.error(f"Line {l} doesn't appear to match expected format of "
                     f"url;head;title")
       continue
