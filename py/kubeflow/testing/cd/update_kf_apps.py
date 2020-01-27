@@ -13,6 +13,7 @@ import re
 import yaml
 
 from kubeflow.testing import util
+from kubeflow.testing import yaml_util
 from kubeflow.testing.cd import close_old_prs
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
@@ -377,6 +378,8 @@ def _branch_for_app(app, image_tag):
 
   return f"update_{image_name}_{image_tag}"
 
+url_for_spec = urllib.parse.urlparse(config_path)
+
 class UpdateKfApps:
 
   @staticmethod
@@ -390,8 +393,7 @@ class UpdateKfApps:
       src_dir: Directory where source should be checked out
     """
 
-    with open(config) as hf:
-      run_config = yaml.load(hf)
+    run_config = yaml_util.load_file(config)
 
     failures = []
 
@@ -408,9 +410,7 @@ class UpdateKfApps:
       for app in run_config["applications"]:
         pair = APP_VERSION_TUPLE(app["name"], version["name"])
         # Load a fresh copy of the template
-        with open(template) as hf:
-          run = yaml.load(hf)
-
+        run = yaml_util.load_file(template)
 
         # Make copies of app and version so that we don't end up modifying them
         try:
@@ -445,7 +445,14 @@ class UpdateKfApps:
 
   @staticmethod
   def apply(config, output_dir, template, src_dir, namespace):
-    """Create PipelineRuns for any applications that need to be updated."""
+    """Create PipelineRuns for any applications that need to be updated.
+
+    Args:
+      config: The path to the configuration; can be local or http file
+      output_dir: Directory where pipeline runs should be written
+      template: The path to the YAML file to act as a template
+      src_dir: Directory where source should be checked out
+    """
 
     logging.info("Closing old PRs")
     closer = close_old_prs.PRCloser()
@@ -516,6 +523,22 @@ class UpdateKfApps:
                                                          run)
         logging.info(f"Created run {result['metadata']['name']}")
 
+
+    @staticmethod
+    def sync(config, output_dir, template, src_dir, sync_time_seconds=600):
+      """Perioridically fire off tekton pipelines to update the manifests.
+
+      Args:
+        config: The path to the configuration
+        output_dir: Directory where pipeline runs should be written
+        template: The path to the YAML file to act as a template
+        src_dir: Directory where source should be checked out
+        sync_time_seconds: Time in seconds to wait between launches.
+      """
+      while True:
+        UpdateKfApps.apply(config, output_dir, template, src_dir, namespace)
+        logging.info("Wait before rerunning")
+        time.sleep(sync_time_seconds)
 
 class AppVersion:
   """App version is a wrapper around a combination of application and version.

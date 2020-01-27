@@ -71,7 +71,7 @@ class PRCloser:
 
       # We sort the PRs by URL since this will correspond to PR number
       # We will keep the most recent one.
-      sorted_prs = sorted(prs, key=lambda pr: pr["url"])
+      sorted_prs = sorted(prs, key=lambda pr: int(pr["number"]))
 
       latest = sorted_prs[-1]
       logging.info(f"For app_tag={app} newest pr is {latest['url']}")
@@ -159,6 +159,7 @@ class PRCloser:
             }
           }
           id
+          number
           title
           url
           state

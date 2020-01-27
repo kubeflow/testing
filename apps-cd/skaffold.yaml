@@ -8,7 +8,7 @@ build:
   - image: gcr.io/kubeflow-releasing/update_kf_apps
     # Set the context to the root directory. 
     # All paths in the Dockerfile should be relative to this one.
-    context: .
+    context: ..
     # Automatically sync python files to the container. This should avoid
     # the need to rebuild and redeploy when the files change.
     # TODO(https://github.com/GoogleContainerTools/skaffold/issues/3448): We use manual sync
@@ -21,10 +21,10 @@ build:
     # the sync doesn't appear to work.
     sync:
         manual:
-        - src: 'update_launcher.py'
+        - src: 'py/**/*.py'
           dest: '/app'
     kaniko:
-      dockerfile: Dockerfile
+      dockerfile: ./apps-cd/Dockerfile
       buildContext:
         gcsBucket: kubeflow-releasing_skaffold
       env: 
@@ -42,11 +42,16 @@ build:
 profiles:
   # Build on the kubeflow releasing cluster
   - name: prod
-    build:
+    build:      
       cluster:    
         # Build in a namespace with ISTIO sidecar injection disabled
         # see  GoogleContainerTools/skaffold#3442
-        namespace: kf-releasing        
+        namespace: kf-releasing
+        pullSecretName: user-gcp-sa
+        resources:
+          requests:
+            cpu: 8
+            memory: 16Gi
     deploy:
       kustomize:
         path: pipelines/overlays/prod
@@ -56,6 +61,11 @@ profiles:
         # Build in a namespace with ISTIO sidecar injection disabled
         # see  GoogleContainerTools/skaffold#3442
         namespace: kf-releasing-dev
+        pullSecretName: user-gcp-sa
+        resources:
+          requests:
+            cpu: 8
+            memory: 16Gi
     deploy:
       kustomize:
         path: pipelines/overlays/dev

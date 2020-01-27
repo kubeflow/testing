@@ -15,12 +15,9 @@ spec:
         - run_with_auto_restart.py
         - --dir=/app
         - --
-        # end skaffold config
         - python
-        - update_launcher.py
-        - run
-        # repo_dir is the directory where kubeflow testing should be checked out to
-        - --repo_dir=/launcher_src/kubeflow/testing
+        - -m
+        - kubeflow.testing.cd.update_kf_apps
         # repo is the code to check out to get the configuration as well as code for
         # launching the applications
         #
@@ -32,36 +29,8 @@ spec:
         - --repo=https://github.com/jlewi/testing.git?ref=cicd_delete_old_prs
         # Extra arguments to be passed to update_kf_apps.py
         - --namespace=kf-releasing-dev
-        - --config=/launcher_src/kubeflow/testing/apps-cd/applications.yaml 
+        - --config=https://raw.githubusercontent.com/jlewi/testing/cicd_delete_old_prs/apps-cd/applications.yaml
         - --output_dir=/tmp/runs 
         - --src_dir=/src 
-        - --template=/launcher_src/kubeflow/testing/apps-cd/runs/app-pipeline.template.yaml 
-        # Do not submit this is for testing PR closer.
-        command:
-        # In the dev environment we run with auto_restart for compatibility with
-        # skaffold
-        - python
-        - run_with_auto_restart.py
-        - --dir=/app
-        - --
-        # end skaffold config
-        - python
-        - update_launcher.py
-        - run
-        # repo_dir is the directory where kubeflow testing should be checked out to
-        - --repo_dir=/launcher_src/kubeflow/testing
-        # repo is the code to check out to get the configuration as well as code for
-        # launching the applications
-        #
-        # To test changes before they are checked in you can set this to the repo containing your PR
-        # e.g. 
-        #
-        # In dev mode you usually want to change this to point to the branch
-        # where your changes are checked out so you can test them
-        - --repo=https://github.com/jlewi/testing.git?ref=cicd_delete_old_prs
-        # Extra arguments to be passed to update_kf_apps.py
-        - --namespace=kf-releasing-dev
-        - --config=/launcher_src/kubeflow/testing/apps-cd/applications.yaml 
-        - --output_dir=/tmp/runs 
-        - --src_dir=/src 
-        - --template=/launcher_src/kubeflow/testing/apps-cd/runs/app-pipeline.template.yaml 
+        - --template=https://raw.githubusercontent.com/jlewi/testing/cicd_delete_old_prs/apps-cd/runs/app-pipeline.template.yaml 
+        

@@ -18,22 +18,14 @@ spec:
         image: gcr.io/kubeflow-releasing/update_kf_apps
         command:
         - python
-        - update_launcher.py
-        - run
-        # repo_dir is the directory where kubeflow testing should be checked out to
-        - --repo_dir=/launcher_src/kubeflow/testing
-        # repo is the code to check out to get the configuration as well as code for
-        # launching the applications
-        #
-        # To test changes before they are checked in you can set this to the repo containing your PR
-        # e.g. - --repo=https://github.com/jlewi/testing.git?ref=cicd_0.8
-        - --repo=https://github.com/kubeflow/testing.git                
+        - -m
+        - kubeflow.testing.cd.update_kf_apps
         # Extra arguments to be passed to update_kf_apps.py
         - --namespace=kf-releasing 
-        - --config=/launcher_src/kubeflow/testing/apps-cd/applications.yaml 
+        - --config=https://raw.githubusercontent.com/kubeflow/testing/master/apps-cd/applications.yaml
         - --output_dir=/tmp/runs 
         - --src_dir=/src 
-        - --template=/launcher_src/kubeflow/testing/apps-cd/runs/app-pipeline.template.yaml 
+        - --template=https://raw.githubusercontent.com/kubeflow/testing/master/apps-cd/runs/app-pipeline.template.yaml
         env:
         # TODO(jlewi): We should stop using a GITHUB_TOKEN and switch to using
         # the github APP. Is this only used by the Hub CLI?
