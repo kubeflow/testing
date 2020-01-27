@@ -18,15 +18,12 @@ spec:
         - python
         - -m
         - kubeflow.testing.cd.update_kf_apps
+        - sync
         # repo is the code to check out to get the configuration as well as code for
         # launching the applications
         #
         # To test changes before they are checked in you can set this to the repo containing your PR
         # e.g. 
-        #
-        # In dev mode you usually want to change this to point to the branch
-        # where your changes are checked out so you can test them
-        - --repo=https://github.com/jlewi/testing.git?ref=cicd_delete_old_prs
         # Extra arguments to be passed to update_kf_apps.py
         - --namespace=kf-releasing-dev
         - --config=https://raw.githubusercontent.com/jlewi/testing/cicd_delete_old_prs/apps-cd/applications.yaml

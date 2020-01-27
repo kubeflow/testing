@@ -20,6 +20,7 @@ spec:
         - python
         - -m
         - kubeflow.testing.cd.update_kf_apps
+        - sync
         # Extra arguments to be passed to update_kf_apps.py
         - --namespace=kf-releasing 
         - --config=https://raw.githubusercontent.com/kubeflow/testing/master/apps-cd/applications.yaml

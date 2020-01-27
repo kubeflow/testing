@@ -9,6 +9,7 @@ import logging
 import os
 import subprocess
 import traceback
+import urllib
 import re
 import yaml
 
@@ -375,10 +376,7 @@ def _branch_for_app(app, image_tag):
   src_image_url = _get_param(app["params"], "src_image_url")["value"]
 
   image_name = src_image_url.split("/")[-1]
-
   return f"update_{image_name}_{image_tag}"
-
-url_for_spec = urllib.parse.urlparse(config_path)
 
 class UpdateKfApps:
 
@@ -476,6 +474,7 @@ class UpdateKfApps:
     if not pipelines_to_run:
       logging.info("No pipelines need to be run")
     else:
+      logging.info("Submitting pipeline runs to update applications")
       for p in pipelines_to_run:
         with open(p) as hf:
           run = yaml.load(hf)
@@ -521,24 +520,27 @@ class UpdateKfApps:
         logging.info(f"Creating run from file {p}")
         result = crd_api.create_namespaced_custom_object(group, version, namespace, plural,
                                                          run)
-        logging.info(f"Created run {result['metadata']['name']}")
+        logging.info(f"Created run "
+                     f"{result['metadata']['namespace']}"
+                     f".{result['metadata']['name']}")
 
 
-    @staticmethod
-    def sync(config, output_dir, template, src_dir, sync_time_seconds=600):
-      """Perioridically fire off tekton pipelines to update the manifests.
+  @staticmethod
+  def sync(config, output_dir, template, src_dir, namespace,
+           sync_time_seconds=600):
+    """Perioridically fire off tekton pipelines to update the manifests.
 
-      Args:
-        config: The path to the configuration
-        output_dir: Directory where pipeline runs should be written
-        template: The path to the YAML file to act as a template
-        src_dir: Directory where source should be checked out
-        sync_time_seconds: Time in seconds to wait between launches.
-      """
-      while True:
-        UpdateKfApps.apply(config, output_dir, template, src_dir, namespace)
-        logging.info("Wait before rerunning")
-        time.sleep(sync_time_seconds)
+    Args:
+      config: The path to the configuration
+      output_dir: Directory where pipeline runs should be written
+      template: The path to the YAML file to act as a template
+      src_dir: Directory where source should be checked out
+      sync_time_seconds: Time in seconds to wait between launches.
+    """
+    while True:
+      UpdateKfApps.apply(config, output_dir, template, src_dir, namespace)
+      logging.info("Wait before rerunning")
+      time.sleep(sync_time_seconds)
 
 class AppVersion:
   """App version is a wrapper around a combination of application and version.

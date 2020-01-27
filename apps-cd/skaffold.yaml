@@ -21,8 +21,11 @@ build:
     # the sync doesn't appear to work.
     sync:
         manual:
+        # See https://skaffold.dev/docs/pipeline-stages/filesync/
+        # src is relative to context
+        # dest should be location inside the container where files should be placed
         - src: 'py/**/*.py'
-          dest: '/app'
+          dest: '/app/src/kubeflow/testing'
     kaniko:
       dockerfile: ./apps-cd/Dockerfile
       buildContext:
