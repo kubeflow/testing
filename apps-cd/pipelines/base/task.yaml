@@ -37,7 +37,11 @@ spec:
     - --digest-file=/workspace/image-digest    
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/user-gcp-sa.json     
+      value: /secret/user-gcp-sa.json
+    resources:
+      requests:
+        cpu: 7
+        memory: 16Gi
     volumeMounts:
     - mountPath: /secret
       name: gcp-credentials  
@@ -110,6 +114,10 @@ spec:
       value: $(inputs.resources.manifests.revision)
     - name: PATH_TO_MANIFESTS_DIR
       value: $(inputs.params.path_to_manifests_dir)
+    resources:
+      requests:
+        cpu: 4
+        memory: 4Gi
     volumeMounts:
     - mountPath: /secret
       name: gcp-credentials
