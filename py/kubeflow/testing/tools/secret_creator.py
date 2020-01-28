@@ -2,14 +2,12 @@
 """A script to copy kubernetes secrets from one namespace to another
 """
 
-import base64
 import fire
 from google.cloud import storage
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from kubernetes.client import rest
 import logging
-import yaml
 import os
 import re
 import subprocess
@@ -110,4 +108,3 @@ if __name__ == '__main__':
                       )
 
   fire.Fire(SecretCreator)
-
