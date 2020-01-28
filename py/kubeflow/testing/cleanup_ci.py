@@ -459,7 +459,8 @@ def cleanup_target_https_proxies(args):
       break
     next_page_token = results["nextPageToken"]
 
-  unfinished_ops = wait_ops_max_mins(compute.globalOperations(), args, delete_ops, 20)
+  unfinished_ops = wait_ops_max_mins(compute.globalOperations(), args.project,
+                                     delete_ops, 20)
   logging.info("Unfinished targetHttpsProxy deletions:\n%s", "\n".join(unfinished_ops))
   logging.info("Unexpired target https proxies:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired target https proxies:\n%s", "\n".join(expired))
@@ -548,7 +549,8 @@ def cleanup_forwarding_rules(args):
       break
     next_page_token = results["nextPageToken"]
 
-  unfinished_ops = wait_ops_max_mins(compute.globalOperations(), args, delete_ops, 20)
+  unfinished_ops = wait_ops_max_mins(compute.globalOperations(), args.project,
+                                     delete_ops, 20)
   logging.info("Unfinished forwarding rule deletions:\n%s", "\n".join(unfinished_ops))
   logging.info("Unexpired forwarding rules:\n%s", "\n".join(unexpired))
   logging.info("Deleted expired forwarding rules:\n%s", "\n".join(expired))
@@ -903,13 +905,13 @@ def execute_rpc(rpc):
 
 # Wait for 'ops' to finish in 'max_wait_mins' or return the remaining ops.
 # operation_resource must implement 'get()' method.
-def wait_ops_max_mins(operation_resource, args, ops, max_wait_mins=15):
+def wait_ops_max_mins(operation_resource, project, ops, max_wait_mins=15):
   end_time = datetime.datetime.now() + datetime.timedelta(minutes=max_wait_mins)
 
   while datetime.datetime.now() < end_time and ops:
     not_done = []
     for op in ops:
-      op = operation_resource.get(project=args.project, operation=op["name"]).execute()
+      op = operation_resource.get(project=project, operation=op["name"]).execute()
       status = op.get("status", "")
       if status != "DONE":
         not_done.append(op)
@@ -918,19 +920,204 @@ def wait_ops_max_mins(operation_resource, args, ops, max_wait_mins=15):
       time.sleep(30)
   return ops
 
-def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
-  logging.info("Cleanup deployments")
 
+class AutoDeploymentName:
+  """A class representing the name of an auto deployed KF instance."""
+
+  _PATTERN = re.compile("kf-(v.*)-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{3}")
+  def __init__(self, name="", version=""):
+    # Name for the kf instance
+    self.name = name
+    # The version tag e.g. master
+    self.version = version
+
+  @classmethod
+  def from_deployment_name(cls, name):
+    """Construct the name from the name of a deployment manager name.
+
+    Args:
+      name: The name of a deployment manager name; can be a storage name
+       or the deployment manager config for the cluster.
+
+    Returns:
+      The name or None if its not a valid name
+    """
+
+    STORAGE_SUFFIX = "-storage"
+
+    if name.endswith(STORAGE_SUFFIX):
+      name = name[:-len(STORAGE_SUFFIX)]
+
+
+    m = cls._PATTERN.match(name)
+
+    if not m:
+      return None
+
+    result = AutoDeploymentName()
+    result.name = name
+    result.version = m.group(1)
+
+    return result
+
+  def __eq__(self, other):
+    if self.name != other.name:
+      return False
+    if self.version != other.version:
+      return False
+
+    return True
+
+AUTO_DEPLOYMENT_NAME = collections.namedtuple("auto_deploy_name",
+                                              ("name", "version"))
+
+def _iter_deployments(project):
+  """Iterate over all deployments"""
   credentials = GoogleCredentials.get_application_default()
   dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
 
   deployments_client = dm.deployments()
-  deployments = deployments_client.list(project=args.project).execute()
+
+  next_page_token = None
+  while True:
+    deployments = deployments_client.list(project=project,
+                                          pageToken=next_page_token,
+                                          maxResults=10).execute()
+
+    for d in deployments.get("deployments", []):
+      yield d
+
+    if not deployments.get("nextPageToken"):
+      return
+
+    next_page_token = deployments.get("nextPageToken")
+
+def _delete_deployments(project, deployments, max_wait_mins=15):
+  """Delete the deployments.
+
+  Args:
+   project: The name of the project to delete the deployments in
+   deployments: (iterable) names of the deployments to delete
+   wait_ops_max_mins: (Optional) max time to wait in minutes
+  """
+  credentials = GoogleCredentials.get_application_default()
+  dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
+
+  deployments_client = dm.deployments()
+  delete_ops = []
+  for dm_name in deployments:
+    try:
+      logging.info("Deleting deployment %s in project %s", dm_name,
+                   project)
+      op = deployments_client.delete(project=project,
+                                     deployment=dm_name).execute()
+      delete_ops.append(op)
+    except Exception as e: # pylint: disable=broad-except
+      # Keep going on error because we want to delete the other deployments.
+      # TODO(jlewi): Do we need to handle cases by issuing delete with abandon?
+      logging.error("There was a problem deleting deployment %s; error %s",
+                    dm_name, e)
+
+  delete_ops = wait_ops_max_mins(dm.operations(), project, delete_ops,
+                                 max_wait_mins=max_wait_mins)
+  not_done_names = [op["name"] for op in delete_ops]
+
+  logging.info("Delete ops that didn't finish:\n%s", "\n".join(not_done_names))
+
+
+def cleanup_auto_deployments(args, deployments=None): # pylint: disable=too-many-branches
+  """Cleanup auto deployed clusters.
+
+  For auto deployments we only want to keep the most recent N deployments.
+
+  Args:
+    args: Command line arguments
+    deployments: (Optional) iterator over GCP deployment manager deployments.
+
+  Returns:
+    dm_to_delete: List of deployments to delete
+    dm_to_keep: List of deployments to keep
+  """
+  logging.info("Cleanup auto deployments")
+  # Map from auto-deployed version e.g. "vmaster" to a map of deployment
+  # names to their insert time
+  auto_deployments = collections.defaultdict(lambda: {})
+
+  if not deployments:
+    deployments = _iter_deployments(args.project)
+
+  for d in deployments:
+    if not d.get("insertTime", None):
+      logging.warning("Deployment %s doesn't have a deployment time "
+                      "skipping it", d["name"])
+      continue
+
+    is_auto_deploy = False
+    # Use labels to identify auto-deployed instances
+    for label_pair in d.get("labels", []):
+      if (label_pair["key"] == "purpose" and
+          label_pair["value"] == "kf-test-cluster"):
+        is_auto_deploy = True
+        break
+
+    if not is_auto_deploy:
+      logging.info("Skipping deployment %s; its missing the label", d["name"])
+    name = AutoDeploymentName.from_deployment_name(d["name"])
+
+    if not name:
+      logging.info("Skipping deployment %s; it is not an auto-deployed instance",
+                   d["name"])
+      continue
+
+    logging.info("Deployment %s is auto deployed", d["name"])
+
+
+    if name.name in auto_deployments[name.version]:
+      continue
+
+    auto_deployments[name.version][name.name] = (
+      date_parser.parse(d.get("insertTime")))
+
+  # Garbage collect the auto deployments
+  to_keep = []
+  to_delete = []
+  for version, matched_deployments in auto_deployments.items():
+    logging.info("For version=%s found deployments:\n%s", version,
+                 "\n".join(matched_deployments.keys()))
+
+    # Sort the deployment by the insert time
+    pairs = matched_deployments.items()
+    sorted_pairs = sorted(pairs, key=lambda x: x[1])
+
+    # keep the 3 most recent deployments
+    to_keep.extend([p[0] for p in sorted_pairs[-3:]])
+    to_delete.extend([p[0] for p in sorted_pairs[:-3]])
+
+  logging.info("Auto deployments to delete:\n%s", "\n".join(to_delete))
+  logging.info("Auto deployments to keep:\n%s", "\n".join(to_keep))
+
+  dm_names = []
+  for kf_name in to_delete:
+    for dm_name in [kf_name, kf_name + "-storage"]:
+      dm_names.append(dm_name)
+
+  if not args.dryrun:
+    _delete_deployments(args.project, dm_names)
+  else:
+    logging.info("Dry run; would delete auto deployments:\n%s",
+                 "\n".join(dm_names))
+
+  logging.info("Finish cleanup auto deployments")
+  return to_keep, to_delete
+
+def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-branches
+  logging.info("Cleanup deployments")
+
+  deployments = _iter_deployments(args.project)
 
   unexpired = []
   expired = []
 
-  delete_ops = []
   for d in deployments.get("deployments", []):
     if not d.get("insertTime", None):
       logging.warning("Deployment %s doesn't have a deployment time "
@@ -968,18 +1155,8 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
     expired.append(name)
     logging.info("Deleting deployment %s", name)
 
-    if not args.dryrun:
-      try:
-        op = deployments_client.delete(project=args.project, deployment=name).execute()
-        delete_ops.append(op)
-      except Exception as e: # pylint: disable=broad-except
-        # Keep going on error because we want to delete the other deployments.
-        # TODO(jlewi): Do we need to handle cases by issuing delete with abandon?
-        logging.error("There was a problem deleting deployment %s; error %s", name, e)
-  delete_ops = wait_ops_max_mins(dm.operations(), args, delete_ops, max_wait_mins=15)
-  not_done_names = [op["name"] for op in delete_ops]
+  _delete_deployments(args.project, expired)
 
-  logging.info("Delete ops that didn't finish:\n%s", "\n".join(not_done_names))
   logging.info("Unexpired deployments:\n%s", "\n".join(unexpired))
   logging.info("expired deployments:\n%s", "\n".join(expired))
   logging.info("Finished cleanup deployments")
@@ -1059,6 +1236,7 @@ def cleanup_clusters(args):
 def cleanup_all(args):
   ops = [# Deleting deploymens should be called first because hopefully that will
          # cleanup all the resources associated with the deployment
+         cleanup_auto_deployments,
          cleanup_deployments,
          cleanup_clusters,
          cleanup_endpoints,
@@ -1207,6 +1385,14 @@ def main():
     "certificates", help="Cleanup certificates")
 
   parser_certificates.set_defaults(func=cleanup_certificates)
+
+  ######################################################
+  # Parser for auto deployments
+  parser_auto_deployments = subparsers.add_parser(
+    "auto_deployments", help="Cleanup auto deployments")
+
+  add_deployments_args(parser_auto_deployments)
+  parser_auto_deployments.set_defaults(func=cleanup_auto_deployments)
 
   ######################################################
   # Parser for deployments

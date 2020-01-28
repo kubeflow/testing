@@ -6,6 +6,66 @@ import yaml
 
 from kubeflow.testing import cleanup_ci
 
+class FakeArgs:
+  project = "someproject"
+  dryrun = True
+
+def assert_lists_equal(left, right):
+  message = "Lists are not equal; {0}!={1}".format(left, right)
+  assert len(left) == len(right), message
+
+  for i, _ in enumerate(left):
+    item_message = (message +
+                    "\n; item {0} doesn't match {1}!={2}".format(i, left[i],
+                                                                 right[i]))
+    assert left[i] == right[i], item_message
+
+def test_auto_deployment_name():
+  test_case = collections.namedtuple("test_case", ("name", "expected"))
+
+  test_cases = [
+    test_case("kf-vmaster-0126-823",
+              cleanup_ci.AutoDeploymentName("kf-vmaster-0126-823", "vmaster")),
+    test_case("kf-vmaster-0126-abc",
+              cleanup_ci.AutoDeploymentName("kf-vmaster-0126-abc", "vmaster")),
+    test_case("kf-vmaster-0126-abc-storage",
+              cleanup_ci.AutoDeploymentName("kf-vmaster-0126-abc", "vmaster")),
+    test_case("kf-v1-0-0126-abc",
+              cleanup_ci.AutoDeploymentName("kf-v1-0-0126-abc", "v1-0")),
+    test_case("kf-v1-0-0126-abc-storage",
+              cleanup_ci.AutoDeploymentName("kf-v1-0-0126-abc", "v1-0")),
+    test_case("kf-invalidname", None),
+  ]
+
+  for c in test_cases:
+    actual = cleanup_ci.AutoDeploymentName.from_deployment_name(c.name)
+
+    if c.expected is None:
+      assert actual is None
+    else:
+      assert actual == c.expected, "Failed for name={0}".format(c.name)
+
+
+def test_cleanup_auto_deployments():
+  test_dir = os.path.join(os.path.dirname(__file__), "test_data")
+
+  with open(os.path.join(test_dir, "cleanup_deployments.yaml")) as hf:
+    deployments = yaml.load(hf)
+
+  to_keep, to_delete = cleanup_ci.cleanup_auto_deployments(
+    FakeArgs(), deployments=deployments)
+
+  assert_lists_equal(to_keep, ["kf-vmaster-0128-1ad",
+                               "kf-vmaster-0128-12e",
+                               "kf-vmaster-0128-03c"])
+
+  expected_delete = [
+    "kf-vmaster-0126-1c1", "kf-vmaster-0126-0b5", "kf-vmaster-0126-823",
+    "kf-vmaster-0127-502", "kf-vmaster-0127-bf2", "kf-vmaster-0127-c9a",
+    "kf-vmaster-0127-83a", "kf-vmaster-0127-082", "kf-vmaster-0127-7e2",
+    "kf-vmaster-0128-9d7", "kf-vmaster-0128-54e", "kf-vmaster-0128-ed2"]
+  assert_lists_equal(to_delete, expected_delete)
+
 def test_match_endpoints():
   """Verify that cloud endpoint service names match the regex"""
 
@@ -87,4 +147,5 @@ if __name__ == "__main__":
     datefmt='%Y-%m-%dT%H:%M:%S',
     )
   logging.getLogger().setLevel(logging.INFO)
+  test_cleanup_auto_deployments()
   pytest.main()
