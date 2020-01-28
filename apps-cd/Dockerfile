@@ -1,3 +1,7 @@
+# Build the docker image used to run the scripts
+# to continuously update our docker files.
+#
+# The context for this docker file should be the root of the kubeflow/testing repository.
 FROM ubuntu:18.04
 
 RUN apt-get update -y && \
@@ -22,13 +26,9 @@ RUN export KUSTOMIZE_VERSION=3.2.0 && \
     mv kustomize_${KUSTOMIZE_VERSION}_linux_amd64 /usr/local/bin/kustomize && \
     chmod a+x /usr/local/bin/kustomize
 
-
-RUN python -m pip install fire \
-     google-api-python-client \
-     google-cloud-storage \
-     kubernetes \
-     watchdog
-
+COPY apps-cd/requirements.txt /tmp
+RUN python -m pip install \
+     -r /tmp/requirements.txt
 
 # Create go symlinks
 RUN ln -sf /usr/local/go/bin/go /usr/local/bin && \
@@ -36,8 +36,18 @@ RUN ln -sf /usr/local/go/bin/go /usr/local/bin && \
     ln -sf /usr/local/go/bin/godoc /usr/local/bin
 
 RUN mkdir -p /app
-COPY update_launcher.py /app
-COPY run_with_auto_restart.py /app
+
+RUN cd /app && \
+    mkdir -p /app/src/kubeflow && \
+    cd /app/src/kubeflow && \
+    git clone  https://github.com/kubeflow/code-intelligence code-intelligence && \
+    cd code-intelligence && \
+    git checkout db1230d
+
+COPY apps-cd/run_with_auto_restart.py /app
+COPY py /app/src/kubeflow/testing/py
+
+ENV PYTHONPATH /app/src/kubeflow/testing/py:/app/src/kubeflow/code-intelligence/py:$PYTHONPATH
 
 # See(https://github.com/tektoncd/pipeline/issues/1271): Tekton will put ssh
 # credentials in /tekton/home. We can't change the home directory

@@ -17,41 +17,47 @@ spec:
       - name: app
         image: gcr.io/kubeflow-releasing/update_kf_apps
         command:
-        # Uncomment the following lines when running with skaffold 
-        # and you want to use skaffold's auto-sync feature wto pick up changes
-        # to update_launcher.
-        # Begin skaffold
         - python
-        - run_with_auto_restart.py
-        - --dir=/app
-        - --
-        # End skaffold
-        #
-        - python
-        - update_launcher.py
-        - run
-        # repo_dir is the directory where kubeflow testing should be checked out to
-        - --repo_dir=/launcher_src/kubeflow/testing
-        # repo is the code to check out to get the configuration as well as code for
-        # launching the applications
-        #
-        # To test changes before they are checked in you can set this to the repo containing your PR
-        # e.g. - --repo=https://github.com/jlewi/testing.git?ref=cicd_0.8
-        - --repo=https://github.com/kubeflow/testing.git                
+        - -m
+        - kubeflow.testing.cd.update_kf_apps
+        - sync
         # Extra arguments to be passed to update_kf_apps.py
-        - --namespace=kf-releasing 
-        - --config=/launcher_src/kubeflow/testing/apps-cd/applications.yaml 
+        - --namespace=kf-releasing
+        # TODO(jlewi): Should we just put this in a config map as well and then check in into source control?
+        # Would a tool like Anthos CM be smart enough to detect changes in that file and trigger
+        # updates with kustomize?
+        - --config=https://raw.githubusercontent.com/kubeflow/testing/master/apps-cd/applications.yaml
         - --output_dir=/tmp/runs 
         - --src_dir=/src 
-        - --template=/launcher_src/kubeflow/testing/apps-cd/runs/app-pipeline.template.yaml 
+        - --template=/app/config/app-pipeline.template.yaml
         env:
+        # TODO(jlewi): We should stop using a GITHUB_TOKEN and switch to using
+        # the github APP. Is this only used by the Hub CLI?
         - name: GITHUB_TOKEN
           valueFrom:
             secretKeyRef:
               name: github-token
               key: github_token
+        - name: GITHUB_APP_PEM_KEY
+          value: /var/secrets/github/kubeflow-auto-bot.2020-01-24.private-key.pem
         resources:
           requests:
             cpu: 4
             memory: 8Gi
         workingDir: /app
+        volumeMounts:
+        - name: github-app
+          mountPath: /var/secrets/github
+        volumeMounts:
+        - name: pipelinerun-template
+          mountPath: /app/config
+      volumes:
+      # Secret containing the PEM key for the GitHub app used to close PRs.
+      - name: github-app
+        secret:
+          secretName: github-app-pem
+      - name: pipelinerun-template
+        configMap:
+          # Kustomize will automatically replace the name with the unique name given
+          # to the configmap based on the config contents.
+          name: pipelinerun-template

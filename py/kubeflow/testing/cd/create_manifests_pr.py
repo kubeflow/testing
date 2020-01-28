@@ -74,10 +74,11 @@ class PRCreator:
       logging.info(f"git config user.email not set; defaulting to "
                    f"{default_email}")
       email = default_email
+      user_name = default_name
       util.run(["git", "config", "--global", "user.email",
-                default_email])
+                email])
       util.run(["git", "config", "--global", "user.name",
-                default_name])
+                user_name])
 
     try:
       util.run(["git", "fetch", "--unshallow"], cwd=manifests_repo)
