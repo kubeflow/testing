@@ -166,15 +166,14 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 
 1. Set the IP address in the PV
 
-   ```
-   cd test-infra/ks_app
-   ks param set --env=kubeflow-ci nfs-external nfsServer <NFS-IP-address>
-   ```
+   * Edit `test-infra/base/pvc.yaml`
+   * Change the server address of the persistent volume to the new PV   
 
 1. Recreate the PV and PVC
 
    ```
-   ks apply kubeflow-ci -c nfs-external
+   cd test-infra/
+   kustomize build base | kubectl apply -f -
    ```
 
 1. Make sure the `debug-worker-0` pod is able to successfully mount the PV
