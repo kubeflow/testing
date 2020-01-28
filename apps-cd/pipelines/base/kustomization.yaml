@@ -11,3 +11,9 @@ resources:
 - task.yaml
 - pipeline.yaml
 namespace: kf-releasing
+# Create a configMap containing the template for the pipeline run
+configMapGenerator:
+- name: pipelinerun-template
+  files:
+    # key will be name of the file
+    - ./config/app-pipeline.template.yaml

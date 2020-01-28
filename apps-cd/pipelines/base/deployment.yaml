@@ -22,11 +22,14 @@ spec:
         - kubeflow.testing.cd.update_kf_apps
         - sync
         # Extra arguments to be passed to update_kf_apps.py
-        - --namespace=kf-releasing 
+        - --namespace=kf-releasing
+        # TODO(jlewi): Should we just put this in a config map as well and then check in into source control?
+        # Would a tool like Anthos CM be smart enough to detect changes in that file and trigger
+        # updates with kustomize?
         - --config=https://raw.githubusercontent.com/kubeflow/testing/master/apps-cd/applications.yaml
         - --output_dir=/tmp/runs 
         - --src_dir=/src 
-        - --template=https://raw.githubusercontent.com/kubeflow/testing/master/apps-cd/runs/app-pipeline.template.yaml
+        - --template=/app/config/app-pipeline.template.yaml
         env:
         # TODO(jlewi): We should stop using a GITHUB_TOKEN and switch to using
         # the github APP. Is this only used by the Hub CLI?
@@ -45,8 +48,16 @@ spec:
         volumeMounts:
         - name: github-app
           mountPath: /var/secrets/github
+        volumeMounts:
+        - name: pipelinerun-template
+          mountPath: /app/config
       volumes:
       # Secret containing the PEM key for the GitHub app used to close PRs.
       - name: github-app
         secret:
           secretName: github-app-pem
+      - name: pipelinerun-template
+        configMap:
+          # Kustomize will automatically replace the name with the unique name given
+          # to the configmap based on the config contents.
+          name: pipelinerun-template

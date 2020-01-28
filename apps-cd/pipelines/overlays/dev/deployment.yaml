@@ -29,5 +29,5 @@ spec:
         - --config=https://raw.githubusercontent.com/jlewi/testing/cicd_delete_old_prs/apps-cd/applications.yaml
         - --output_dir=/tmp/runs 
         - --src_dir=/src 
-        - --template=https://raw.githubusercontent.com/jlewi/testing/cicd_delete_old_prs/apps-cd/runs/app-pipeline.template.yaml 
+        - --template=/app/config/app-pipeline.template.yaml
         
