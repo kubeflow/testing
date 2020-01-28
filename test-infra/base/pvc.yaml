@@ -1,0 +1,33 @@
+apiVersion: "v1"
+kind: "PersistentVolume"
+metadata: 
+  name: gcfs
+spec: 
+  accessModes:
+  - "ReadWriteMany"  
+  capacity:
+    storage: "5Gi"
+  nfs:
+    path: "/kubeflow"
+    server: "10.86.7.242"  
+  persistentVolumeReclaimPolicy: "Retain"
+  storageClassName: gcfs-storage
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-external
+  annotations:
+    "volume.beta.kubernetes.io/storage-class": gcfs-storage
+spec:
+  accessModes:
+  - ReadWriteMany
+  dataSource: null
+  resources:
+    requests:
+      storage: 500Mi
+  storageClassName: gcfs-storage
+  volumeMode: Filesystem
+  volumeName: gcfs
