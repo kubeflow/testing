@@ -9,16 +9,16 @@ import logging
 import os
 import subprocess
 import traceback
-import urllib
 import re
+import time
 import yaml
 
+from kubeflow.testing import kf_logging
 from kubeflow.testing import util
 from kubeflow.testing import yaml_util
 from kubeflow.testing.cd import close_old_prs
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
-from kubernetes.client import rest
 
 GIT_URL_RE = re.compile(r"([^:]*):([^/]*)/([^\.]*)\.git")
 
@@ -33,7 +33,11 @@ PR_INFO = collections.namedtuple("pr_info", ("url", "author", "branch"))
 MANIFESTS_REPO_NAME = "manifests"
 
 # The name of the GitHub user under which kubeflow-bot branches exist
-KUBEFLOW_BOT ="kubeflow-bot"
+KUBEFLOW_BOT = "kubeflow-bot"
+
+# The name of the git resource in the Tekton pipeline that will be the
+# git resource containing the application source code.
+APP_REPO_RESOURCE_NAME = "app-repo"
 
 def _combine_params(left, right):
   """Combine to lists of name,value pairs."""
@@ -64,7 +68,7 @@ def _get_repo_url(repo_spec):
   url = _get_param(repo_spec["resourceSpec"]["params"], "url")
 
   if not url:
-    raise ValueError(f"Repository {r['name']} is missing param url") # pylint: disable=syntax-error
+    raise ValueError(f"Repository {repo_spec['name']} is missing param url") # pylint: disable=syntax-error
 
   url = url["value"]
   repo = _parse_git_url(url)
@@ -111,11 +115,13 @@ def _last_commit(branch, repo_root, path):
 
   Args:
     branch: The branch e.g. origin/master
-    path: The relative path
+    path: The relative path; if none or empty run in the root of the repo
   """
   util.run(["git", "checkout", branch], cwd=repo_root)
-  output = util.run(["git", "log", "-n", "1", "--pretty=format:\"%h\"", path],
-                    cwd=repo_root)
+  command = ["git", "log", "-n", "1", "--pretty=format:\"%h\""]
+  if path:
+    command.append(path)
+  output = util.run(command, cwd=repo_root)
 
   return output.strip('"')
 
@@ -149,11 +155,30 @@ def _build_run(app_run, app, version, commit):
                                               app["params"])
 
   # Override the repositories
+  # Before we override the repositories we need to change the name of the
+  # repo containing the source to be the name of the parameter
+  # APP_REPO_RESOURCE_NAME
+  source_index = _param_index(version["repos"], app["sourceRepo"])
+  version["repos"][source_index]["name"] = APP_REPO_RESOURCE_NAME
+
+  # Tekton will give us an error if we include extra resources; i.e. resources
+  # not defined in the Pipeline spec. So we need to remove from version all
+  # the repos we don't need
+  expected_repos = [APP_REPO_RESOURCE_NAME, "manifests", "ci-tools"]
+
+  new_repos = []
+  for v in version["repos"]:
+    if v["name"] in expected_repos:
+      new_repos.append(v)
+
+  version["repos"] = new_repos
+
   app_run["spec"]["resources"] = _combine_params(app_run["spec"]["resources"],
                                                  version["repos"])
 
   # Override the commit for the src repo to pin to a specific commit
-  source_index = _param_index(app_run["spec"]["resources"], app["sourceRepo"])
+  source_index = _param_index(app_run["spec"]["resources"],
+                              APP_REPO_RESOURCE_NAME)
   source_params = app_run["spec"]["resources"][source_index]["resourceSpec"]["params"]
 
   updated_params = _combine_params(source_params, [{
@@ -282,8 +307,9 @@ def _handle_app(run, app, version, src_dir, output_dir):
   src_path = _get_param(app["params"], "path_to_context")["value"]
 
   if not src_path:
-    raise ValueError(f"App {app['name']} is missing parameter "
-                     f"path_to_context")
+    # We want to allow it to be the root of the repository
+    src_path = ""
+    logging.info("src_path not specified or is root of repository")
 
 
   repo_root = os.path.join(src_dir, app_version.repo.owner,
@@ -302,7 +328,8 @@ def _handle_app(run, app, version, src_dir, output_dir):
                                    f"{app['name']}-run-{src_branch}-"
                                    f"{commit}.yaml")
   logging.info(f"Writing run for App: {app['name']} Version: "
-                     f"{version['name']} to file {output_file}")
+               f"{version['name']} to file {output_file}",
+               extra=run["metadata"]["labels"])
   with open(output_file, "w") as hf:
     yaml.dump(run, hf)
 
@@ -421,10 +448,14 @@ class UpdateKfApps:
             pipelines_to_run.append(run_file)
         except (ValueError, LookupError) as e:
           failures.append(pair)
+          extra = {
+            "app": app['name'],
+            "version": version['name'],
+          }
           logging.error(f"Exception occured creating run for "
                         f"App: {app['name']} Version: {version['name']} "
                         f"Exception: {e}\n"
-                        f"{traceback.format_exc()}\n.")
+                        f"{traceback.format_exc()}\n.", extra=extra)
 
     if failures:
       failed = [f"(App:{i.app}, Version:{i.version})" for i in failures]
@@ -436,7 +467,7 @@ class UpdateKfApps:
 
     logging.info(f"Pipelines that need to be run {len(pipelines_to_run)} of "
                  f"{len(all_pipelines)}")
-    logging.info("The pipelines that need to be run are:\n%s","\n".join(
+    logging.info("The pipelines that need to be run are:\n%s", "\n".join(
       pipelines_to_run))
 
     return all_pipelines, pipelines_to_run
@@ -471,7 +502,7 @@ class UpdateKfApps:
     _, pipelines_to_run = UpdateKfApps.create_runs(
       config, output_dir, template, src_dir)
 
-    if not pipelines_to_run:
+    if not pipelines_to_run: # pylint: disable=too-many-nested-blocks
       logging.info("No pipelines need to be run")
     else:
       logging.info("Submitting pipeline runs to update applications")
@@ -488,7 +519,7 @@ class UpdateKfApps:
         for k in ["app", "version", "image_tag"]:
           label_filter[k] = run["metadata"]["labels"][k]
 
-        items = [f"{k}={v}" for k,v in label_filter.items()]
+        items = [f"{k}={v}" for k, v in label_filter.items()]
         selector = ",".join(items)
 
         # TODO(https://github.com/tektoncd/pipeline/issues/1302): We should
@@ -512,17 +543,19 @@ class UpdateKfApps:
             active_run = r['metadata']['name']
             break
 
+        labels = run["metadata"]["labels"]
         if active_run:
           logging.info(f"Found pipeline run {active_run} "
-                       f"already running for {p}; not rerunning")
+                       f"already running for {p}; not rerunning",
+                       extra=labels)
           continue
 
-        logging.info(f"Creating run from file {p}")
+        logging.info(f"Creating run from file {p}", extra=labels)
         result = crd_api.create_namespaced_custom_object(group, version, namespace, plural,
                                                          run)
         logging.info(f"Created run "
                      f"{result['metadata']['namespace']}"
-                     f".{result['metadata']['name']}")
+                     f".{result['metadata']['name']}", extra=labels)
 
 
   @staticmethod
@@ -585,10 +618,13 @@ class AppVersion:
     self.repo = _parse_git_url(self.url)
 
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
-  logging.getLogger().setLevel(logging.INFO)
+  # Emit logs in json format. This way we can do structured logging
+  # and we can query extra fields easily in stackdriver and bigquery.
+  json_handler = logging.StreamHandler()
+  json_handler.setFormatter(kf_logging.CustomisedJSONFormatter())
+
+  logger = logging.getLogger()
+  logger.addHandler(json_handler)
+  logger.setLevel(logging.INFO)
+
   fire.Fire(UpdateKfApps)

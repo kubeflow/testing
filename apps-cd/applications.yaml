@@ -73,6 +73,30 @@ applications:
       value: "gcr.io/kubeflow-images-public/profile-controller"
     # The name of the repo containing the source
     sourceRepo: kubeflow
+  - name: pytorch-operator
+    params:  
+    - name: "path_to_context"
+      value: ""
+    - name: "path_to_docker_file"
+      value: "Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "pytorch-job/pytorch-operator/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/pytorch-operator"
+    # The name of the repo containing the source
+    sourceRepo: pytorch-operator
+  - name: tf-operator
+    params:  
+    - name: "path_to_context"
+      value: ""
+    - name: "path_to_docker_file"
+      value: "build/images/tf_operator/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "tf-training/tf-job-operator/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/tf_operator"
+    # The name of the repo containing the source
+    sourceRepo: tf-operator
 # The versions to build the applications at
 # Each version should consist of a list of repositories and the corresponding
 # branch and a tag
@@ -98,6 +122,22 @@ versions:
               value: master
             - name: url
               value: git@github.com:kubeflow/manifests.git
+      - name: pytorch-operator
+        resourceSpec:    
+          type: git
+          params:
+            - name: revision
+              value: master
+            - name: url
+              value: git@github.com:kubeflow/pytorch-operator.git
+      - name: tf-operator
+        resourceSpec:    
+          type: git
+          params:
+            - name: revision
+              value: master
+            - name: url
+              value: git@github.com:kubeflow/tf-operator.git
   # Define a v1-0 release
   - name: v1-0
     # A tag to prefix image names with
@@ -119,3 +159,19 @@ versions:
               value: v1.0-branch
             - name: url
               value: git@github.com:kubeflow/manifests.git
+      - name: pytorch-operator
+        resourceSpec:    
+          type: git
+          params:
+            - name: revision
+              value: v1.1-branch
+            - name: url
+              value: git@github.com:kubeflow/pytorch-operator.git
+      - name: tf-operator
+        resourceSpec:    
+          type: git
+          params:
+            - name: revision
+              value: v1.1-branch
+            - name: url
+              value: git@github.com:kubeflow/tf-operator.git
