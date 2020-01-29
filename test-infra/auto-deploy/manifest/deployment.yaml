@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+spec:
+  # We only need and want a single replica.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auto-deploy
+  template:
+    metadata:
+      labels:
+        app: auto-deploy
+    spec:
+      containers:
+      - name: server
+        image: gcr.io/kubeflow-ci/auto_deploy
+        command:
+        - python
+        - -m
+        - kubeflow.testing.auto_deploy.server
+        - serve
+        - --template-folder=/app/templates
+        - --deployments-dir=/cache/deployments
+        - --port=80 
+        resources:
+          requests:
+            cpu: 2
+            memory: 8Gi
+        workingDir: /app
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+        - name: cache
+          mountPath: /cache
+      - name: reconciler
+        image: gcr.io/kubeflow-ci/auto_deploy
+        command:
+        - python
+        - -m
+        - kubeflow.testing.auto_deploy.reconciler
+        - run
+        - --config-path=/app/config/deployments.yaml 
+        - --job-template-path=/app/config/deploy-kubeflow.yaml 
+        - --local-dir=/cache/auto_deploy_src
+        - --deployments-dir=/cache/deployments
+        env:
+        - name: JOB_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace 
+        resources:
+          requests:
+            cpu: 2
+            memory: 8Gi
+        workingDir: /app
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+        - name: cache
+          mountPath: /cache
+      # We want to use workload identity
+      serviceAccount: default-editor
+      volumes:      
+      - name: config
+        configMap:
+          # Kustomize will automatically replace the name with the unique name given
+          # to the configmap based on the config contents.
+          name: config        
+      - name: cache
+        emptyDir: {}

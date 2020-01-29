@@ -3,6 +3,10 @@
 # TODO(jlewi): We might want to emit structured logs and then sync to
 # BigQuery to support easy monitoring.
 
+# TODO(jlewi): A lot of the git management code has been refactored into
+# the module git_repo_manager to make it reusable. We should refactor the
+# code to use that.
+
 import fire
 import collections
 import logging
@@ -102,6 +106,7 @@ def _sync_repos(repos, src_dir):
     util.run(["git", "fetch", "origin"],
              cwd=os.path.join(src_dir, repo.owner, repo.repo))
 
+# TODO(jlewi): This is now defined in git_repo_manager
 def _parse_git_url(url):
   m = GIT_URL_RE.match(url)
 

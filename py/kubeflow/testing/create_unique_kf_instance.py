@@ -25,6 +25,7 @@ import yaml
 from googleapiclient import discovery
 from googleapiclient import errors
 from google.cloud import storage
+from kubeflow.testing import gcp_util
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
 from kubernetes.client import rest
@@ -368,6 +369,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
                 "Should be in the form user:donald@google.com or"
                 "serviceAccount:test123@example.domain.com"))
 
+  parser.add_argument(
+          "--labels", type=str, default="",
+          help=("Comma separated list of extra labels; e.g "
+                "--labels=k1=v1,k2=v2"))
+
   parser.add_argument("--setup_project", dest="setup_project",
                       action="store_true", help="Setup the project")
   parser.add_argument("--no-setup_project", dest="setup_project",
@@ -386,9 +392,17 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   util.maybe_activate_service_account()
 
-  # For debugging purposes output the command
-  util.run(["gcloud", "config", "list"])
-  util.run(["gcloud", "auth", "list"])
+  # Wait for credentials to deal with workload identity issues
+  gcp_util.get_gcp_credentials()
+
+  # Wrap gcloud commands in retry loop to deal with metadata; workload
+  # identity issues.
+  @retrying.retry(stop_max_delay=5*60*1000, wait_exponential_max=10000)
+  def _gcloud_list():
+    # For debugging purposes output the command
+    util.run(["gcloud", "config", "list"])
+    util.run(["gcloud", "auth", "list"])
+  _gcloud_list()
 
   bucket, blob_path = util.split_gcs_uri(args.oauth_file)
 
@@ -445,7 +459,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   # GCP labels can only take as input alphanumeric characters, hyphens, and
   # underscores. Replace not valid characters with hyphens.
-  labels = {"git": git_describe,
+  labels = {"kfctl-git": git_describe,
             "purpose": "kf-test-cluster",
             "auto-deploy": "true"}
 
@@ -454,6 +468,18 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     val = re.sub(r"[^a-z0-9\-_]", "-", val)
     labels[k] = val
 
+  if args.labels:
+    logging.info("Parsing labels %s", args.labels)
+    for pair in args.labels.split(","):
+      pieces = pair.split("=")
+      if len(pieces) != 2:
+        logging.error("Skipping pair %s; not of the form key=value", pair)
+        continue
+      key = pieces[0].strip()
+      value = pieces[1].strip()
+
+      labels[key] = value
+  logging.info("labels: %s", labels)
   deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=labels)
   add_extra_users(args.project, args.extra_users)
 
