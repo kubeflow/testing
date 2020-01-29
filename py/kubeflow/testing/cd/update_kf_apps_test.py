@@ -12,7 +12,8 @@ import pytest
 def test_build_run():
   this_dir = os.path.dirname(__file__)
   template_file = os.path.abspath(os.path.join(this_dir, "..", "..", "..", "..",
-                                               "apps-cd", "runs",
+                                               "apps-cd", "pipelines", "base",
+                                               "config",
                                                "app-pipeline.template.yaml"))
 
   with open(template_file) as hf:
@@ -35,7 +36,7 @@ sourceRepo: kubeflow
 
   app = yaml.load(app_spec)
   version_spec = """
-name: master
+name: v1
 # A tag to prefix image names with
 tag: vmaster
 repos:
@@ -52,9 +53,17 @@ repos:
       type: git
       params:
         - name: revision
-          value: master
+          value: v1.0-branch
         - name: url
           value: git@github.com:kubeflow/manifests.git
+  - name: tf-operator
+    resourceSpec:
+      type: git
+      params:
+        - name: revision
+          value: master
+        - name: url
+          value: git@github.com:kubeflow/tf-operator.git
 """
   version = yaml.load(version_spec)
   commit = "1234abcd"

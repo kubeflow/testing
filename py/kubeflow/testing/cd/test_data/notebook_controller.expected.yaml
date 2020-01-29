@@ -3,10 +3,14 @@ kind: PipelineRun
 metadata:
   # Generate a unique name for each run
   generateName: cd-notebook-controller-1234abcd
+  labels:
+    app: notebook-controller
+    image_tag: vmaster-g1234abcd
+    version: v1
 spec:
   pipelineRef:
     name: ci-pipeline
-  params:  
+  params:
   - name: "path_to_context"
     value: "components/notebook-controller"
   - name: "path_to_docker_file"
@@ -16,11 +20,11 @@ spec:
   - name: "src_image_url"
     value: "gcr.io/kubeflow-images-public/notebook-controller"
   - name: "container_image"
-    value: "gcr.io/kubeflow-releasing/test-worker@sha256:35138a42b57160a078e802b7d69aec3c3e79a3e2e55518af7798275ebcc84d25"    
+    value: "gcr.io/kubeflow-releasing/update_kf_apps:d4b8243@sha256:656a4ad689b17715a287f09772cc48444a2190c353c5b84828db4fbf4ede4acc"
   resources:
   # The git resources that will be used
-  - name: kubeflow
-    resourceSpec:    
+  - name: app-repo
+    resourceSpec:
       type: git
       params:
         - name: revision
@@ -28,20 +32,20 @@ spec:
         - name: url
           value: git@github.com:kubeflow/kubeflow.git
   - name: manifests
-    resourceSpec:    
+    resourceSpec:
       type: git
       params:
         - name: revision
-          value: master
+          value: v1.0-branch
         - name: url
           value: git@github.com:kubeflow/manifests.git
   # TODO(jlewi): Replace with kubeflw/kubeflow once the PR is checked in.
   - name: ci-tools
-    resourceSpec:    
+    resourceSpec:
       type: git
       params:
         - name: revision
-          value: tekton
+          value: cicd_delete_old_prs
         - name: url
           value: git@github.com:jlewi/testing.git
   # The image we want to build
@@ -49,6 +53,6 @@ spec:
     resourceSpec:
       type: image
       params:
-      - name: url  
+      - name: url
         value: gcr.io/kubeflow-images-public/notebook-controller:vmaster-g1234abcd
   serviceAccountName: ci-pipeline-run-service-account

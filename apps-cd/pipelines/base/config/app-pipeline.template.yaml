@@ -21,7 +21,7 @@ spec:
     value: "gcr.io/kubeflow-releasing/update_kf_apps:d4b8243@sha256:656a4ad689b17715a287f09772cc48444a2190c353c5b84828db4fbf4ede4acc"
   resources:
   # The git resources that will be used
-  - name: kubeflow
+  - name: app-repo
     resourceSpec:    
       type: git
       params:

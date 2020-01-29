@@ -30,10 +30,10 @@ spec:
     default: ""
   resources:
   # Pipeline has 3 git resources
-  # kubeflow - Repository containing the source code for the docke rimages to build
+  # app-repo - Repository containing the source code for the application repository
   # manifests - Repostory containing the manifests to update
   # ci-tools - Repository containing tools used in the CI/CD pipeline  
-  - name: kubeflow
+  - name: app-repo
     type: git
   - name: manifests
     type: git
@@ -54,8 +54,8 @@ spec:
       value: "$(params.path_to_docker_file)"
     resources:
       inputs:
-      - name: kubeflow
-        resource: kubeflow
+      - name: app-repo
+        resource: app-repo
       - name: image
         resource: image
     taskRef:
@@ -75,8 +75,8 @@ spec:
       inputs:
       - name: manifests
         resource: manifests
-      - name: kubeflow
-        resource: kubeflow        
+      - name: app-repo
+        resource: app-repo        
       - name: ci-tools
         resource: ci-tools
       - name: image

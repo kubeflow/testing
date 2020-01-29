@@ -26,7 +26,7 @@ spec:
         # e.g. 
         # Extra arguments to be passed to update_kf_apps.py
         - --namespace=kf-releasing-dev
-        - --config=https://raw.githubusercontent.com/jlewi/testing/cicd_delete_old_prs/apps-cd/applications.yaml
+        - --config=https://raw.githubusercontent.com/jlewi/testing/cicd_operators/apps-cd/applications.yaml
         - --output_dir=/tmp/runs 
         - --src_dir=/src 
         - --template=/app/config/app-pipeline.template.yaml
