@@ -13,6 +13,8 @@ import traceback
 import time
 import yaml
 
+from kubeflow.testing.auto_deploy.util as auto_deploy_util
+
 from kubeflow.testing import argo_client
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
@@ -920,57 +922,6 @@ def wait_ops_max_mins(operation_resource, project, ops, max_wait_mins=15):
       time.sleep(30)
   return ops
 
-
-class AutoDeploymentName:
-  """A class representing the name of an auto deployed KF instance."""
-
-  _PATTERN = re.compile("kf-(v.*)-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{3}")
-  def __init__(self, name="", version=""):
-    # Name for the kf instance
-    self.name = name
-    # The version tag e.g. master
-    self.version = version
-
-  @classmethod
-  def from_deployment_name(cls, name):
-    """Construct the name from the name of a deployment manager name.
-
-    Args:
-      name: The name of a deployment manager name; can be a storage name
-       or the deployment manager config for the cluster.
-
-    Returns:
-      The name or None if its not a valid name
-    """
-
-    STORAGE_SUFFIX = "-storage"
-
-    if name.endswith(STORAGE_SUFFIX):
-      name = name[:-len(STORAGE_SUFFIX)]
-
-
-    m = cls._PATTERN.match(name)
-
-    if not m:
-      return None
-
-    result = AutoDeploymentName()
-    result.name = name
-    result.version = m.group(1)
-
-    return result
-
-  def __eq__(self, other):
-    if self.name != other.name:
-      return False
-    if self.version != other.version:
-      return False
-
-    return True
-
-AUTO_DEPLOYMENT_NAME = collections.namedtuple("auto_deploy_name",
-                                              ("name", "version"))
-
 def _iter_deployments(project):
   """Iterate over all deployments"""
   credentials = GoogleCredentials.get_application_default()
@@ -1062,7 +1013,7 @@ def cleanup_auto_deployments(args, deployments=None): # pylint: disable=too-many
 
     if not is_auto_deploy:
       logging.info("Skipping deployment %s; its missing the label", d["name"])
-    name = AutoDeploymentName.from_deployment_name(d["name"])
+    name = auto_deploy_util.AutoDeploymentName.from_deployment_name(d["name"])
 
     if not name:
       logging.info("Skipping deployment %s; it is not an auto-deployed instance",

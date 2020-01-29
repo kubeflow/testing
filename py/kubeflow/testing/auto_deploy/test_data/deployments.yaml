@@ -1,0 +1,262 @@
+- fingerprint: J1om4EPHzBpUmb3b5xKwLA==
+  id: '4901054331185203462'
+  insertTime: '2019-09-18T16:04:10.001-07:00'
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/apps/manifests/manifest-1568862702539
+  name: apps
+  operation:
+    endTime: '2019-09-18T20:12:10.134-07:00'
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1568862702369-592df501379d1-7f4cf611-e59be985
+    operationType: update
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1568862702369-592df501379d1-7f4cf611-e59be985
+    startTime: '2019-09-18T20:11:42.609-07:00'
+    status: DONE
+    targetId: '4901054331185203462'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/apps
+    user: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/apps
+  updateTime: '2019-09-18T20:12:10.125-07:00'
+- fingerprint: 6GoIcLcUuWGJHakbmJnU3g==
+  id: '1966637364938737926'
+  insertTime: '2019-09-18T16:04:09.441-07:00'
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/apps-storage/manifests/manifest-1568862701894
+  name: apps-storage
+  operation:
+    endTime: '2019-09-18T20:11:59.061-07:00'
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1568862701726-592df5009acd1-497c410c-645b52f6
+    operationType: update
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1568862701726-592df5009acd1-497c410c-645b52f6
+    startTime: '2019-09-18T20:11:41.964-07:00'
+    status: DONE
+    targetId: '1966637364938737926'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/apps-storage
+    user: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/apps-storage
+  updateTime: '2019-09-18T20:11:59.018-07:00'
+- fingerprint: pVx3f79mESf6jruaWXBXAg==
+  id: '7866637349645334864'
+  insertTime: '2019-04-26T15:35:43.692-07:00'
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/deployapp/manifests/manifest-1556318143694
+  name: deployapp
+  operation:
+    endTime: '2019-04-26T15:38:46.067-07:00'
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1556318143614-587768e1b8d06-8df6fbcf-13d61ebd
+    operationType: insert
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1556318143614-587768e1b8d06-8df6fbcf-13d61ebd
+    startTime: '2019-04-26T15:35:43.709-07:00'
+    status: DONE
+    targetId: '7866637349645334864'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/deployapp
+    user: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/deployapp
+  updateTime: '2019-04-26T15:38:46.059-07:00'
+- fingerprint: OmFTBWDEf9CPP2F4QKMI0Q==
+  id: '4335664157736357964'
+  insertTime: '2019-12-05T12:54:59.137-08:00'
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-latest-storage/manifests/manifest-1578349221015
+  name: kf-latest-storage
+  operation:
+    endTime: '2020-01-28T04:04:18.264-08:00'
+    error:
+      errors:
+      - code: RESOURCE_ERROR
+        location: /deployments/kf-latest-storage/resources/kf-latest-storage-metadata-store
+        message: '{"ResourceType":"compute.v1.disk","ResourceErrorCode":"400","ResourceErrorMessage":{"code":400,"errors":[{"domain":"global","message":"The
+          disk resource ''projects/kubeflow-ci-deployment/zones/us-east1-d/disks/kf-latest-storage-metadata-store''
+          is already being used by ''projects/kubeflow-ci-deployment/zones/us-east1-d/instances/gke-kf-latest-kf-latest-cpu-pool-v1-8510693c-sllp''","reason":"resourceInUseByAnotherResource"}],"message":"The
+          disk resource ''projects/kubeflow-ci-deployment/zones/us-east1-d/disks/kf-latest-storage-metadata-store''
+          is already being used by ''projects/kubeflow-ci-deployment/zones/us-east1-d/instances/gke-kf-latest-kf-latest-cpu-pool-v1-8510693c-sllp''","statusMessage":"Bad
+          Request","requestPath":"https://compute.googleapis.com/compute/v1/projects/kubeflow-ci-deployment/zones/us-east1-d/disks/kf-latest-storage-metadata-store","httpMethod":"DELETE"}}'
+      - code: RESOURCE_ERROR
+        location: /deployments/kf-latest-storage/resources/kf-latest-storage-artifact-store
+        message: '{"ResourceType":"compute.v1.disk","ResourceErrorCode":"400","ResourceErrorMessage":{"code":400,"errors":[{"domain":"global","message":"The
+          disk resource ''projects/kubeflow-ci-deployment/zones/us-east1-d/disks/kf-latest-storage-artifact-store''
+          is already being used by ''projects/kubeflow-ci-deployment/zones/us-east1-d/instances/gke-kf-latest-kf-latest-cpu-pool-v1-8510693c-9r85''","reason":"resourceInUseByAnotherResource"}],"message":"The
+          disk resource ''projects/kubeflow-ci-deployment/zones/us-east1-d/disks/kf-latest-storage-artifact-store''
+          is already being used by ''projects/kubeflow-ci-deployment/zones/us-east1-d/instances/gke-kf-latest-kf-latest-cpu-pool-v1-8510693c-9r85''","statusMessage":"Bad
+          Request","requestPath":"https://compute.googleapis.com/compute/v1/projects/kubeflow-ci-deployment/zones/us-east1-d/disks/kf-latest-storage-artifact-store","httpMethod":"DELETE"}}'
+    httpErrorMessage: BAD REQUEST
+    httpErrorStatusCode: 400
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1580213045868-59d320544b929-01d108a2-eef217e0
+    operationType: delete
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1580213045868-59d320544b929-01d108a2-eef217e0
+    startTime: '2020-01-28T04:04:05.954-08:00'
+    status: DONE
+    targetId: '4335664157736357964'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-latest-storage
+    user: jlewi@google.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-latest-storage
+  update:
+    manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-latest-storage/manifests/empty-manifest-for-delete
+  updateTime: '2020-01-28T04:04:18.088-08:00'
+- fingerprint: d8Ficr2NOISsve5RVzHKJg==
+  id: '828455964708454060'
+  insertTime: '2020-01-26T04:04:19.267-08:00'
+  labels:
+  - key: git
+    value: 331fb9d
+  - key: purpose
+    value: kf-test-cluster
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0126-1c1/manifests/manifest-1580040259299
+  name: kf-vmaster-0126-1c1
+  operation:
+    endTime: '2020-01-26T04:08:22.954-08:00'
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1580040259198-59d09ca615dc8-40655036-00767495
+    operationType: insert
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1580040259198-59d09ca615dc8-40655036-00767495
+    startTime: '2020-01-26T04:04:19.433-08:00'
+    status: DONE
+    targetId: '828455964708454060'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0126-1c1
+    user: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0126-1c1
+  updateTime: '2020-01-26T04:08:22.830-08:00'
+- fingerprint: Gard_42LfyWy9czmsICe3g==
+  id: '5340632886582197933'
+  insertTime: '2020-01-26T04:04:18.751-08:00'
+  labels:
+  - key: git
+    value: 331fb9d
+  - key: purpose
+    value: kf-test-cluster
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0126-1c1-storage/manifests/manifest-1580040258783
+  name: kf-vmaster-0126-1c1-storage
+  operation:
+    endTime: '2020-01-26T04:04:39.905-08:00'
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1580040258685-59d09ca598bd6-87c4781b-e3e68994
+    operationType: insert
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1580040258685-59d09ca598bd6-87c4781b-e3e68994
+    startTime: '2020-01-26T04:04:18.916-08:00'
+    status: DONE
+    targetId: '5340632886582197933'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0126-1c1-storage
+    user: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0126-1c1-storage
+  updateTime: '2020-01-26T04:04:39.781-08:00'
+- fingerprint: -w-ja3PGHAGQojHqO4Wrgg==
+  id: '7331303692307753623'
+  insertTime: '2020-01-27T04:15:52.111-08:00'
+  labels:
+  - key: git
+    value: 331fb9d
+  - key: purpose
+    value: kf-test-cluster
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-082/manifests/manifest-1580127352142
+  name: kf-vmaster-0127-082
+  operation:
+    endTime: '2020-01-27T04:19:24.290-08:00'
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1580127352042-59d1e1184b302-bf97e21b-2ee7a8d5
+    operationType: insert
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1580127352042-59d1e1184b302-bf97e21b-2ee7a8d5
+    startTime: '2020-01-27T04:15:52.281-08:00'
+    status: DONE
+    targetId: '7331303692307753623'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-082
+    user: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-082
+  updateTime: '2020-01-27T04:19:24.283-08:00'
+- fingerprint: PdSS83uPfqrsvMPNrJNyFw==
+  id: '6639128566770657944'
+  insertTime: '2020-01-27T04:15:51.617-08:00'
+  labels:
+  - key: git
+    value: 331fb9d
+  - key: purpose
+    value: kf-test-cluster
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-082-storage/manifests/manifest-1580127351650
+  name: kf-vmaster-0127-082-storage
+  operation:
+    endTime: '2020-01-27T04:16:13.987-08:00'
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1580127351548-59d1e117d2b94-45269a99-c8bc6856
+    operationType: insert
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1580127351548-59d1e117d2b94-45269a99-c8bc6856
+    startTime: '2020-01-27T04:15:51.786-08:00'
+    status: DONE
+    targetId: '6639128566770657944'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-082-storage
+    user: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-082-storage
+  updateTime: '2020-01-27T04:16:13.865-08:00'
+- fingerprint: Et-YSS1pbXK2TMgVLQozfg==
+  id: '1521306310644307474'
+  insertTime: '2020-01-26T16:04:13.855-08:00'
+  labels:
+  - key: git
+    value: 331fb9d
+  - key: purpose
+    value: kf-test-cluster
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-502/manifests/manifest-1580083453886
+  name: kf-vmaster-0127-502
+  operation:
+    endTime: '2020-01-26T16:07:54.862-08:00'
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1580083453786-59d13d8fa7a23-4abfc1a8-a6d77f4c
+    operationType: insert
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1580083453786-59d13d8fa7a23-4abfc1a8-a6d77f4c
+    startTime: '2020-01-26T16:04:14.019-08:00'
+    status: DONE
+    targetId: '1521306310644307474'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-502
+    user: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-502
+  updateTime: '2020-01-26T16:07:54.853-08:00'
+- fingerprint: WXmtzf-E5_LB1kbaghp5-w==
+  id: '5480349779039065618'
+  insertTime: '2020-01-26T16:04:13.370-08:00'
+  labels:
+  - key: git
+    value: 331fb9d
+  - key: purpose
+    value: kf-test-cluster
+  manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-502-storage/manifests/manifest-1580083453401
+  name: kf-vmaster-0127-502-storage
+  operation:
+    endTime: '2020-01-26T16:04:36.759-08:00'
+    id: '0'
+    insertTime: '1969-12-31T16:00:00.000-08:00'
+    kind: deploymentmanager#operation
+    name: operation-1580083453298-59d13d8f3073b-d73a91c2-59a1607e
+    operationType: insert
+    progress: 100
+    selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/0/global/operations/operation-1580083453298-59d13d8f3073b-d73a91c2-59a1607e
+    startTime: '2020-01-26T16:04:13.537-08:00'
+    status: DONE
+    targetId: '5480349779039065618'
+    targetLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-502-storage
+    user: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+  selfLink: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-502-storage
+  updateTime: '2020-01-26T16:04:36.636-08:00'
