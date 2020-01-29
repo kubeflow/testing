@@ -1,0 +1,40 @@
+{
+  "name": "node-license-tools",
+  "version": "1.0.0",
+  "description": "A set of licensing tools for Kubeflow's Node based projects",
+  "main": "get_github_license_info.js",
+  "preferGlobal": true,
+  "scripts": {
+    "start": "node -r esm node_lic.js"
+  },
+  "bin": {
+    "node_lic": "./_esm_entrypoint.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kubeflow/testing.git"
+  },
+  "keywords": [
+    "Node",
+    "Licensing",
+    "Scanner",
+    "License"
+  ],
+  "author": "Apoorv Verma [AP] <avdaredevil@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/kubeflow/testing/issues"
+  },
+  "homepage": "https://github.com/kubeflow/testing#readme",
+  "dependencies": {
+    "@octokit/auth-token": "^2.4.0",
+    "@octokit/plugin-retry": "^3.0.1",
+    "@octokit/rest": "^16.40.0",
+    "await-semaphore": "^0.1.3",
+    "license-checker": "^25.0.1",
+    "yargs": "^15.1.0"
+  },
+  "devDependencies": {
+    "esm": "^3.2.25"
+  }
+}
