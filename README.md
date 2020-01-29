@@ -373,6 +373,7 @@ To debug it we want to look at the K8s events indicating why the K8s deployment 
 In most cases the cluster will already be torn down so we need to look at the
 kubernetes events associated with that deployment.
 
+
 1. Get the cluster used for Kubeflow
 
    1. In prow look at artifacts and find the YAML spec for the Argo workflow that
@@ -398,6 +399,9 @@ kubernetes events associated with that deployment.
       ```
 
        * The argument `kfctl-6742` is the name of the cluster
+
+1. You can use the script `py/kubeflow/testing/troubleshoot_deployment.py` to fetch logs alternatively you 
+   can follow the steps below to filter the logs in the stackdriver UI
 
 1. Use a filter like the [following](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci-deployment&organizationId=714441643818&minLogLevel=0&expandAll=false&customFacets&limitCustomFacetWidth=true&interval=NO_LIMIT&resource=gce_instance_group%2Finstance_group_id%2F1008177806084829541%2Finstance_group_name%2Fk8s-ig--53fc5e0363ccb918&advancedFilter=resource.labels.cluster_name%3D%22kfctl-6742%22%0AlogName%3D%22projects%2Fkubeflow-ci-deployment%2Flogs%2Fevents%22%20%0AjsonPayload.involvedObject.name%3D%22jupyter-web-app%22&scrollTimestamp=2019-04-27T01%3A23%3A48.000000000Z) to get the events associated with the deployment or statefulset
 
