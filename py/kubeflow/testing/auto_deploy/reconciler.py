@@ -75,6 +75,9 @@ def _job_is_running(j):
   """
   conditions = j.status.conditions
 
+  if not conditions:
+    return True
+
   for c in conditions[::-1]:
     if c.type.lower() in ["succeeded", "failed"]:
       if c.status.lower() in ["true"]:
@@ -213,8 +216,11 @@ class Reconciler:
                                                    create_time=create_time,
                                                    deployment_name=d["name"],
                                                    labels=labels)
-      self._deployments[deployment.manifests_branch] = (
-        self._deployments[deployment.manifests_branch] + [deployment])
+
+      version_name = labels.get(auto_deploy_util.AUTO_NAME_LABEL, "unknown")
+      logging.info(f"Found deployment={d['name']} for version={version_name}")
+      self._deployments[version_name] = (self._deployments[version_name] +
+                                         [deployment])
 
     # Sort the values by timestamp
     branches = self._deployments.keys()
@@ -340,7 +346,7 @@ class Reconciler:
         now = datetime.datetime.now(next_oldest.create_time.tzinfo)
         next_age = now - next_oldest.create_time
 
-        if next_oldest < GRACE_PERIOD:
+        if next_age < GRACE_PERIOD:
           logging.info(f"Deployment {d.deployment_name} not eligible for deletion; "
                        f"The next oldest deployment "
                        f"{next_oldest.deployment_nam} is only "

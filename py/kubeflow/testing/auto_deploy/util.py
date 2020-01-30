@@ -8,7 +8,7 @@ STORAGE_SUFFIX = "-storage"
 MANIFESTS_COMMIT_LABEL = "git-manifests"
 BRANCH_LABEL = "git-manifests-branch"
 # Label for the auto deployment config
-AUTO_NAME_LABEL = "auto-name"
+AUTO_NAME_LABEL = "auto-version-name"
 
 def is_storage_deployment(name):
   return name.endswith(STORAGE_SUFFIX)
