@@ -262,11 +262,13 @@ class Reconciler:
       "--apps_dir=/src/apps",
       # TODO(jlewi): Should we optionally support building kfctl?
       "--kfctl_path=" + config[KFCTL_KEY],
-      "--kfctl_repo=",
+      "--kubeflow_repo=",
       f"--name=" + kf_name,
       f"--project={self.config['project']}",
       f"--zone={self.config['zone']}",
       "--kfctl_config=" + commit_url,
+      # The job spec
+      "--label_path=/etc/podinfo/labels",
       # We need to use a self signed certificate otherwise we hit lets
       # encrypt quota issues
       "--use_self_cert",

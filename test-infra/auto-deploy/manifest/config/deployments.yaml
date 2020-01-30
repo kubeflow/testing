@@ -10,4 +10,4 @@ namespace: kubeflow-test-infra
 deployments:
   - name: master
     kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
-    kfctlUrl: https://github.com/kubeflow/kubeflow/releases/download/v0.7.1/kfctl_v0.7.1-2-g55f9b2a_linux.tar.gz
+    kfctlUrl: https://github.com/kubeflow/kfctl/releases/download/v1.0-rc.2/kfctl_v1.0-rc.2-0-ga3d07b4_linux.tar.gz

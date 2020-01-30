@@ -367,6 +367,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
                 "Should be in the form user:donald@google.com or"
                 "serviceAccount:test123@example.domain.com"))
 
+  parser.add_argument(
+          "--labels", type=str, default="",
+          help=("Path to a file containing labels to add to the instance. "
+                "Should be one label per line."))
+
   parser.add_argument("--setup_project", dest="setup_project",
                       action="store_true", help="Setup the project")
   parser.add_argument("--no-setup_project", dest="setup_project",
@@ -453,6 +458,24 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     val = re.sub(r"[^a-z0-9\-_]", "-", val)
     labels[k] = val
 
+  if args.label_path:
+    logging.info(f"Reading labels from file {args.label_path}")
+    with open(args.label_path) as f:
+      while True:
+        line = f.readline()
+        if not line:
+          break
+
+        line = line.strip()
+        pieces = line.split()
+        if len(pieces) != 2:
+          logging.error(f"Skipping line {line}; not of the form key=value")
+
+        key = pieces[0].strip()
+        value = pieces[1].strip
+
+        labels[key] = value
+  logging.info(f"labels: {labels}")
   deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=labels)
   add_extra_users(args.project, args.extra_users)
 
