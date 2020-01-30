@@ -469,13 +469,13 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
         line = line.strip()
         pieces = line.split()
         if len(pieces) != 2:
-          logging.error(f"Skipping line {line}; not of the form key=value")
+          logging.error("Skipping line %s; not of the form key=value", line)
 
         key = pieces[0].strip()
         value = pieces[1].strip
 
         labels[key] = value
-  logging.info(f"labels: {labels}")
+  logging.info("labels: %s", labels)
   deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=labels)
   add_extra_users(args.project, args.extra_users)
 
