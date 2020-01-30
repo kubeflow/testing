@@ -15,6 +15,7 @@ import uuid
 import yaml
 
 from kubeflow.testing.auto_deploy import util as auto_deploy_util
+from kubeflow.testing import delete_kf_instance
 from kubeflow.testing import gcp_util
 from kubeflow.testing import git_repo_manager
 from kubernetes import client as k8s_client
@@ -265,7 +266,7 @@ class Reconciler:
 
     # Kubeflow deployment name
     # We need to keep the name short to avoid hitting limits with certificates.
-    uid = datetime.datetime.now().strftime("%m%d") + "-"
+    uid = datetime.datetime.now().strftime("%m%d%H%M") + "-"
     uid = uid + uuid.uuid4().hex[0:3]
     kf_name = f"kf-{config['name']}-{uid}"
 
@@ -313,6 +314,7 @@ class Reconciler:
 
   def _gc_deployments(self):
     """Delete old deployments"""
+    kf_deleter = delete_kf_instance.KFDeleter()
 
     for name, deployments in self._deployments.items():
       self._log_context = {
@@ -354,7 +356,13 @@ class Reconciler:
                        extra=self._log_context)
           break
 
-        raise NotImplementedError("Need to call deleter")
+        context = {
+          "deployment_name": d.deployment_name
+        }
+        context.update(self._log_context)
+        logging.info(f"Deleting deployment {d.deployment_name}; age={age} "
+                     f"create_time={d.create_time}", extra=context)
+        kf_deleter.delete_kf(self.config["project"], d.deployment_name)
 
   def _reconcile(self):
     # Get the deployments.
@@ -371,6 +379,8 @@ class Reconciler:
     # TODO(jlewi): Stop hardcoding the branch names we should pass this
     # in via some sort of config
     for config in self.config[VERSIONS_KEY]:
+      version_name = config["name"]
+      logging.info(f"Processing version={version_name}")
       kf_def_url = _parse_kfdef_url(config[KFDEF_KEY])
       self._log_context = {
         "version_name": config["name"],
@@ -380,20 +390,22 @@ class Reconciler:
       branch = kf_def_url.branch
       full_branch = f"{self._manifests_repo.remote_name}/{branch}"
       last_commit = self._manifests_repo.last_commit(full_branch, "")
-      self._log(logging.INFO, logging.info, f"Last commit to branch={branch} {last_commit}")
+      logging.info(f"Last commit to version={version_name} "
+                   "commit={last_commit}", extra=self._log_context)
 
       # Get the commit of the last deployment for this version
-      if self._deployments[branch]:
-        last_deployed = self._deployments[branch][-1]
+      if self._deployments[version_name]:
+        last_deployed = self._deployments[version_name][-1]
         last_deployed_commit = last_deployed.labels.get(
           auto_deploy_util.MANIFESTS_COMMIT_LABEL)
 
-        self._log(logging.INFO, f"Branch={branch} last_commit={last_commit} most recent "
+        self._log(logging.INFO, f"version_name={version_name} "
+                                f"last_commit={last_commit} most recent "
                   f"deployment is at commit={last_deployed_commit}",
                      )
 
         if last_deployed_commit == last_commit:
-          self._log(logging.INFO, f"Branch={branch} no sync needed")
+          self._log(logging.INFO, f"version_name={version_name} no sync needed")
           continue
 
         now = datetime.datetime.now(tz=last_deployed.create_time.tzinfo)
@@ -401,28 +413,28 @@ class Reconciler:
 
         if time_since_last_deploy < MIN_TIME_BETWEEN_DEPLOYMENTS:
           minutes = time_since_last_deploy.total_seconds() / 60.0
-          logging.info(f"Branch={branch} can't start a new deployment "
+          logging.info(f"version_name={version_name} can't start a new deployment "
                        f"because deployment for {last_deployed.deployment_name }"
                        f"is only {minutes} minutes old", extra=self._log_context)
           continue
       else:
-        logging.info(f"Branch={branch} has no active deployments",
+        logging.info(f"version_name={version_name} has no active deployments",
                      extra=self._log_context)
 
       if active_deployments >= MAX_ACTIVE_DEPLOYMENTS:
-        logging.info(f"Branch={branch} can't start a new deployment "
+        logging.info(f"version_name={version_name} can't start a new deployment "
                      f"there are currently {active_deployments} active "
                      f"deployments already.", extra=self._log_context)
         continue
 
       self._launch_job(config, last_commit)
 
-      # TODO(jlewi): We should GC the older deployments. We should have
-      # some min TTL so we don't delete clusters from underneath people.
-      # We should then GC any clusters as long as there as a newer cluster
-      # already available. We should require that the new cluster is at least
-      # 30 minutes old so that we know its ready.
-      self._gc_deployments()
+    # TODO(jlewi): We should GC the older deployments. We should have
+    # some min TTL so we don't delete clusters from underneath people.
+    # We should then GC any clusters as long as there as a newer cluster
+    # already available. We should require that the new cluster is at least
+    # 30 minutes old so that we know its ready.
+    self._gc_deployments()
 
   def run(self, period=datetime.timedelta(minutes=5)):
     """Continuously reconcile."""
