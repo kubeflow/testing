@@ -4,13 +4,19 @@ import re
 
 STORAGE_SUFFIX = "-storage"
 
+# The label to keep track of the git commit for the label manifests
+MANIFESTS_COMMIT_LABEL = "git-manifests"
+BRANCH_LABEL = "git-manifests-branch"
+# Label for the auto deployment config
+AUTO_NAME_LABEL = "auto-name"
+
 def is_storage_deployment(name):
   return name.endswith(STORAGE_SUFFIX)
 
 class AutoDeploymentName:
   """A class representing the name of an auto deployed KF instance."""
 
-  _PATTERN = re.compile("kf-(v.*)-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{3}")
+  _PATTERN = re.compile("kf-(.*)-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{3}")
   def __init__(self, name="", version=""):
     # Name for the kf instance
     self.name = name
@@ -54,7 +60,7 @@ class AutoDeployment:
   """A class describing an auto deployment."""
 
   def __init__(self, manifests_branch=None, create_time=None,
-               deployment_name=None):
+               deployment_name=None, labels=None):
     # The kubeflow/manifests branch it was deployed from
     self.manifests_branch = manifests_branch
     # The time it was created
@@ -64,6 +70,10 @@ class AutoDeployment:
 
     # The name of the GCP deployment
     self.deployment_name = deployment_name
+    self.labels = labels
+
+    if not self.labels:
+      self.labels = {}
 
   def __repr__(self):
     return (f"AutoDeployment(deployment_name=\"{self.deployment_name}\", "
@@ -71,7 +81,6 @@ class AutoDeployment:
             f"create_time=\"{self.create_time}\")")
 
   def __eq__(self, other):
-
     for f in ["manifests_branch", "create_time", "deployment_name"]:
       if getattr(self, f) != getattr(other, f):
         return False

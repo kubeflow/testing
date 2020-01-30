@@ -1,4 +1,5 @@
 
+import collections
 import logging
 import os
 import pytest
@@ -7,7 +8,6 @@ import yaml
 from kubeflow.testing import assertions
 from kubeflow.testing.auto_deploy import reconciler
 from kubeflow.testing.auto_deploy import util as auto_deploy_util
-
 
 def test_get_deployments():
   test_dir = os.path.join(os.path.dirname(__file__), "test_data")
@@ -35,6 +35,22 @@ def test_get_deployments():
   }
   assertions.assert_dicts_equal(dm_reconciler._deployments, expected)# pylint: disable=protected-access
 
+def test_parse_kfdef_url():
+  test_case = collections.namedTuple("test_case", ("url", "expected"))
+
+  cases = [
+    test_case("https://raw.githubusercontent.com/kubeflow/"
+              "manifests/master/kfdef/kfctl_gcp_iap.yaml",
+              reconciler.KFDEF_URL_TUPLE("raw.githubusercontent.com",
+                                         "kubeflow", "manifests",
+                                         "master",
+                                         "kfdef/kfctl_gcp_iap.yaml"))
+  ]
+
+  for c in cases:
+    actual = reconciler._parse_kfdef_url(c.url) # pylint: disable=protected-access
+    assert actual == c.expected
+
 if __name__ == "__main__":
   logging.basicConfig(
       level=logging.INFO,
@@ -45,5 +61,5 @@ if __name__ == "__main__":
   logging.getLogger().setLevel(logging.INFO)
 
   # Do not submit
-  test_get_deployments()
+  test_parse_kfdef_url()
   # pytest.main()

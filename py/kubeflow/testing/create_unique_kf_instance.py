@@ -444,7 +444,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
 
   # GCP labels can only take as input alphanumeric characters, hyphens, and
   # underscores. Replace not valid characters with hyphens.
-  labels = {"git": git_describe,
+  labels = {"kfctl-git": git_describe,
             "purpose": "kf-test-cluster",
             "auto-deploy": "true"}
 
