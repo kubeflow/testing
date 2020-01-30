@@ -459,7 +459,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     labels[k] = val
 
   if args.label_path:
-    logging.info(f"Reading labels from file {args.label_path}")
+    logging.info("Reading labels from file %s", args.label_path)
     with open(args.label_path) as f:
       while True:
         line = f.readline()

@@ -25,7 +25,7 @@ MIN_TIME_BETWEEN_DEPLOYMENTS = datetime.timedelta(minutes=20)
 
 # The maximum number of active deployments
 # TODO(jlewi): Maybe bump this later on.
-MAX_ACTIVE_DEPLOYMENTS = 5
+MAX_ACTIVE_DEPLOYMENTS = 10
 
 KFDEF_URL_TUPLE = collections.namedtuple("KfDefUrlTuple",
                                          ("host", "owner", "repo", "branch",
@@ -33,8 +33,23 @@ KFDEF_URL_TUPLE = collections.namedtuple("KfDefUrlTuple",
 
 KFDEF_PATTERN = re.compile("https://([^/]*)/([^/]*)/([^/]*)/([^/]*)/(.*)")
 
+# Name of various keys in the config file
 KFDEF_KEY = "kfDefUrl"
 KFCTL_KEY = "kfctlUrl"
+VERSIONS_KEY = "versions"
+
+# Durations related to GC
+# Minimum amount of time to leave a deployment up before it is eligble for
+# deletion. Try to avoid deleting clusters from underneath people and
+# tests. We need to leave enough time for any tests running on the cluster
+# to finish. Assume 1 hour to setup KF, 1 hour to run tests, 1 hour of buffer
+MIN_LIFETIME = datetime.timedelta(hours=3)
+
+# How old must be the next most recent deployment before a given deployment
+# is deleted. i.e. if x is older than y then before we delete x we want
+# y to be old enough to assume that people have moved over y rather than use
+# x
+GRACE_PERIOD = datetime.timedelta(hours=3)
 
 def _parse_kfdef_url(url):
   m = KFDEF_PATTERN.match(url)
@@ -105,11 +120,11 @@ class Reconciler:
       config = yaml.load(f)
 
 
-    kfdef_url = _parse_kfdef_url(config["deployments"][0][KFDEF_KEY])
+    kfdef_url = _parse_kfdef_url(config[VERSIONS_KEY][0][KFDEF_KEY])
 
     # Ensure there is a single repository; currently the code only handles
     # the case where all deployments are from a single URL
-    for d in config["deployments"][1:]:
+    for d in config[VERSIONS_KEY][1:]:
       new_url = _parse_kfdef_url(d[KFDEF_KEY])
 
       if (new_url.host != kfdef_url.host or new_url.owner != kfdef_url.owner
@@ -136,6 +151,10 @@ class Reconciler:
     reconciler._k8s_client = k8s_client.ApiClient()
     return reconciler
 
+  # TODO(jlewi): This was a failed attempt to create a utility function
+  # to always log the context. It turns out to lead to inconvenient code
+  # because we need to set the level. I think we want to define
+  # self.logging which has functions info, debug, warning, error etc...
   def _log(self, level, message, *args, **kwargs):
     if "extra" not in kwargs:
       kwargs["extra"] = {}
@@ -271,7 +290,8 @@ class Reconciler:
       "--label_path=/etc/podinfo/labels",
       # We need to use a self signed certificate otherwise we hit lets
       # encrypt quota issues
-      "--use_self_cert",
+      # TODO(jlewi): The code to use self cert was giving me problems.
+      #"--use_self_cert",
     ]
 
     # TODO(jlewi): Handle errors
@@ -283,6 +303,51 @@ class Reconciler:
 
     self._log(logging.INFO, logging.info,
               f"Submitted job {job.metadata.namespace}.{job.metadata.name}")
+
+  def _gc_deployments(self):
+    """Delete old deployments"""
+
+    for name, deployments in self._deployments.items():
+      self._log_context = {
+        "version_name": name,
+      }
+
+      logging.info(f"Version {name} has {len(deployments)} active deployments",
+                   extra=self._log_context)
+
+      # We want at least one deployment for each version
+      if len(deployments) <= 1:
+        continue
+
+      # deployments should already be sorted by create time.
+      # we always want to keep at least 1 deployment so we never delete
+      # the last deployment
+      for index, d in deployments[:-1]:
+        now = datetime.datetime.now(d.create_time.tzinfo)
+        age = now - d.create_time
+
+        if age < MIN_LIFETIME:
+          logging.info(f"Deployment {d.deployment_name} not eligible for deletion; "
+                       f"It is only {age} old", extra=self._log_context)
+          # Since all the other deployments will be younger none of them
+          # will be eligible
+          break
+
+        # Make sure the next deployment is at least older than the GRACE_PERIOD
+        # before deleting this one.
+        next_oldest = deployments[index + 1]
+        now = datetime.datetime.now(next_oldest.create_time.tzinfo)
+        next_age = now - next_oldest.create_time
+
+        if next_oldest < GRACE_PERIOD:
+          logging.info(f"Deployment {d.deployment_name} not eligible for deletion; "
+                       f"The next oldest deployment "
+                       f"{next_oldest.deployment_nam} is only "
+                       f"{next_age}(HH:MM:SS) old",
+                       extra=self._log_context)
+          break
+
+        raise NotImplementedError("Need to call deleter")
 
   def _reconcile(self):
     # Get the deployments.
@@ -298,10 +363,10 @@ class Reconciler:
 
     # TODO(jlewi): Stop hardcoding the branch names we should pass this
     # in via some sort of config
-    for config in self.config["deployments"]:
+    for config in self.config[VERSIONS_KEY]:
       kf_def_url = _parse_kfdef_url(config[KFDEF_KEY])
       self._log_context = {
-        "deployment_name": config["name"],
+        "version_name": config["name"],
         "branch": kf_def_url.branch,
       }
       self._log(logging.INFO, f"Reconciling deployment {config['name']}")
@@ -329,10 +394,9 @@ class Reconciler:
 
         if time_since_last_deploy < MIN_TIME_BETWEEN_DEPLOYMENTS:
           minutes = time_since_last_deploy.total_seconds() / 60.0
-          self._log(logging.info,
-                    f"Branch={branch} can't start a new deployment "
-                    f"because deployment for {last_deployed.deployment_name }"
-                    f"is only {minutes} minutes old")
+          logging.info(f"Branch={branch} can't start a new deployment "
+                       f"because deployment for {last_deployed.deployment_name }"
+                       f"is only {minutes} minutes old", extra=self._log_context)
           continue
       else:
         logging.info(f"Branch={branch} has no active deployments",
@@ -351,13 +415,14 @@ class Reconciler:
       # We should then GC any clusters as long as there as a newer cluster
       # already available. We should require that the new cluster is at least
       # 30 minutes old so that we know its ready.
+      self._gc_deployments()
 
   def run(self, period=datetime.timedelta(minutes=5)):
-    """Continuously reconcilation."""
+    """Continuously reconcile."""
 
     while True:
       self._reconcile()
-      logging.info(f"Wait before reconciling; period")
+      logging.info(f"Wait {period}(HH:MM:SS) before reconciling; ")
       time.sleep(period.total_seconds())
 
 class CLI:
