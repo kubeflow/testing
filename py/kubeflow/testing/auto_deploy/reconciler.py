@@ -287,7 +287,7 @@ class Reconciler:
       f"--zone={self.config['zone']}",
       "--kfctl_config=" + commit_url,
       # The job spec
-      "--label_path=/etc/podinfo/labels",
+      "--labels_path=/etc/podinfo/labels",
       # We need to use a self signed certificate otherwise we hit lets
       # encrypt quota issues
       # TODO(jlewi): The code to use self cert was giving me problems.

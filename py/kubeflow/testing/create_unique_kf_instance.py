@@ -368,9 +368,9 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
                 "serviceAccount:test123@example.domain.com"))
 
   parser.add_argument(
-          "--labels_path", type=str, default="",
-          help=("Path to a file containing labels to add to the instance. "
-                "Should be one label per line."))
+          "--labels", type=str, default="",
+          help=("Comma separated list of extra labels; e.g "
+                "--labels=k1=v1,k2=v2"))
 
   parser.add_argument("--setup_project", dest="setup_project",
                       action="store_true", help="Setup the project")
@@ -458,23 +458,17 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     val = re.sub(r"[^a-z0-9\-_]", "-", val)
     labels[k] = val
 
-  if args.labels_path:
-    logging.info("Reading labels from file %s", args.labels_path)
-    with open(args.labels_path) as f:
-      while True:
-        line = f.readline()
-        if not line:
-          break
+  if args.labels:
+    logging.info("Parsing labels %s", args.labels)
+    for pair in args.labels.split(","):
+      pieces = pair.split("=")
+      if len(pieces) != 2:
+        logging.error("Skipping pair %s; not of the form key=value", pair)
+        continue
+      key = pieces[0].strip()
+      value = pieces[1].strip
 
-        line = line.strip()
-        pieces = line.split()
-        if len(pieces) != 2:
-          logging.error("Skipping line %s; not of the form key=value", line)
-
-        key = pieces[0].strip()
-        value = pieces[1].strip
-
-        labels[key] = value
+      labels[key] = value
   logging.info("labels: %s", labels)
   deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=labels)
   add_extra_users(args.project, args.extra_users)

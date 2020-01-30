@@ -70,8 +70,6 @@ spec:
           readOnly: true
         - mountPath: /src
           name: src
-        - name: podinfo
-          mountPath: /etc/podinfo
       restartPolicy: Never
       volumes:
       - name: gcp-credentials
@@ -79,9 +77,4 @@ spec:
           secretName: gcp-credentials
       - name: src
         emptyDir: {}
-      - name: podinfo
-        downwardAPI:
-          items:
-            - path: "labels"
-              fieldRef:
-                fieldPath: metadata.labels        
+  
