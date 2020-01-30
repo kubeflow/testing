@@ -368,7 +368,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
                 "serviceAccount:test123@example.domain.com"))
 
   parser.add_argument(
-          "--labels", type=str, default="",
+          "--labels_path", type=str, default="",
           help=("Path to a file containing labels to add to the instance. "
                 "Should be one label per line."))
 
@@ -458,9 +458,9 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
     val = re.sub(r"[^a-z0-9\-_]", "-", val)
     labels[k] = val
 
-  if args.label_path:
-    logging.info("Reading labels from file %s", args.label_path)
-    with open(args.label_path) as f:
+  if args.labels_path:
+    logging.info("Reading labels from file %s", args.labels_path)
+    with open(args.labels_path) as f:
       while True:
         line = f.readline()
         if not line:
