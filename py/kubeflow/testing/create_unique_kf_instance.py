@@ -466,7 +466,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
         logging.error("Skipping pair %s; not of the form key=value", pair)
         continue
       key = pieces[0].strip()
-      value = pieces[1].strip
+      value = pieces[1].strip()
 
       labels[key] = value
   logging.info("labels: %s", labels)

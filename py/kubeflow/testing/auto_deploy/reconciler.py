@@ -263,14 +263,15 @@ class Reconciler:
     uid = uid + uuid.uuid4().hex[0:3]
     kf_name = f"kf-{config['name']}-{uid}"
 
-    job_config["metadata"]["labels"].update(
-      {auto_deploy_util.MANIFESTS_COMMIT_LABEL: commit,
+    labels = {auto_deploy_util.MANIFESTS_COMMIT_LABEL: commit,
        auto_deploy_util.BRANCH_LABEL: kfdef_url.branch,
        auto_deploy_util.AUTO_NAME_LABEL: config["name"],
        "kf-name": kf_name,
-      }
-    )
+    }
+    job_config["metadata"]["labels"].update(labels)
 
+    label_pairs = [f"{k}={v}" for k, v in labels.items()]
+    labels_value = ",".join(label_pairs)
     commit_url = (f"https://{kfdef_url.host}/{kfdef_url.owner}/"
                   f"{kfdef_url.repo}/{commit}/{kfdef_url.path}")
 
@@ -287,7 +288,7 @@ class Reconciler:
       f"--zone={self.config['zone']}",
       "--kfctl_config=" + commit_url,
       # The job spec
-      "--labels_path=/etc/podinfo/labels",
+      f"--labels={labels_value}",
       # We need to use a self signed certificate otherwise we hit lets
       # encrypt quota issues
       # TODO(jlewi): The code to use self cert was giving me problems.
@@ -322,7 +323,7 @@ class Reconciler:
       # deployments should already be sorted by create time.
       # we always want to keep at least 1 deployment so we never delete
       # the last deployment
-      for index, d in deployments[:-1]:
+      for index, d in enumerate(deployments[:-1]):
         now = datetime.datetime.now(d.create_time.tzinfo)
         age = now - d.create_time
 
