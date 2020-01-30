@@ -193,33 +193,32 @@ class Reconciler:
         labels[label_pair["key"]] = label_pair["value"]
 
       if not is_auto_deploy:
-        logging.info("Skipping deployment %s; its missing the label", d["name"])
-
-      name = auto_deploy_util.AutoDeploymentName.from_deployment_name(d["name"])
-
-      if not name:
-        logging.info("Skipping deployment %s; it is not an auto-deployed instance",
-                     d["name"])
+        logging.info("Skipping deployment %s; its missing the label "
+                     "auto-deploy", d["name"])
         continue
 
+      if d.get("operation", {}).get("operationType") == "delete":
+        logging.info(f"Skipping deployment {d['name']} it is being deleted.")
       if auto_deploy_util.is_storage_deployment(d["name"]):
         logging.info(f"Skipping deployment {d['name']}; it is storage")
         continue
 
-      logging.info("Deployment %s is auto deployed", d["name"])
+      version_name = labels.get(auto_deploy_util.AUTO_NAME_LABEL, "unknown")
 
-      # TODO(jlewi): We should add a label to the deployment to get the branch
-      # rather than relying on the name
-      manifests_branch = name.version
+      context = {
+        "deployment_name" : d['name'],
+        "version_name" : d['name'],
+      }
+
+      manifests_branch = labels.get(auto_deploy_util.BRANCH_LABEL, "unknown")
 
       create_time = date_parser.parse(d.get("insertTime"))
       deployment = auto_deploy_util.AutoDeployment(manifests_branch=manifests_branch,
                                                    create_time=create_time,
                                                    deployment_name=d["name"],
                                                    labels=labels)
-
-      version_name = labels.get(auto_deploy_util.AUTO_NAME_LABEL, "unknown")
-      logging.info(f"Found deployment={d['name']} for version={version_name}")
+      logging.info(f"Found auto deployment={d['name']} for version={version_name}",
+                   extra=context)
       self._deployments[version_name] = (self._deployments[version_name] +
                                          [deployment])
 
@@ -266,7 +265,7 @@ class Reconciler:
 
     # Kubeflow deployment name
     # We need to keep the name short to avoid hitting limits with certificates.
-    uid = datetime.datetime.now().strftime("%m%d%H%M") + "-"
+    uid = datetime.datetime.now().strftime("%m%d") + "-"
     uid = uid + uuid.uuid4().hex[0:3]
     kf_name = f"kf-{config['name']}-{uid}"
 
@@ -351,7 +350,7 @@ class Reconciler:
         if next_age < GRACE_PERIOD:
           logging.info(f"Deployment {d.deployment_name} not eligible for deletion; "
                        f"The next oldest deployment "
-                       f"{next_oldest.deployment_nam} is only "
+                       f"{next_oldest.deployment_name} is only "
                        f"{next_age}(HH:MM:SS) old",
                        extra=self._log_context)
           break

@@ -5,6 +5,8 @@ This is a playbook for build cops to help deal with problems with the CI infrast
 
 ## GCP Quota errors
 
+1. There is a stack driver dashboard named [CI Health](https://console.cloud.google.com/monitoring/dashboards/custom/11734777947337404240?project=kubeflow-ci-deployment&timeDomain=1w) that can be used to check various quota usages like CPUs
+
 1. List regional quotas to see which quotas are running hot
 
    ```
@@ -67,10 +69,16 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 
    * You can adjust the command line arguments in order to do more aggressive garbage collection then usual
 
+## GCP Stockouts
+
+TODO(jlewi): How should we handle moving our test to a different region when stockouts occur?
+
 ## NFS Volume Is Out Of Disk Space.
 
 1. Use [stackdriver](https://cloud.google.com/filestore/docs/monitoring-instances)
    to check the disk usage
+
+   * TODO(jlewi): We should add this to the [Kubeflow CI Health Dashboard](https://console.cloud.google.com/monitoring/dashboards/custom/11734777947337404240?project=kubeflow-ci-deployment&timeDomain=1w)
 
 1. There are two ways to free up disk space
 

@@ -16,7 +16,7 @@ def is_storage_deployment(name):
 class AutoDeploymentName:
   """A class representing the name of an auto deployed KF instance."""
 
-  _PATTERN = re.compile("kf-(.*)-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{3}")
+  _PATTERN = re.compile("kf-(.*)-[a-zA-Z0-9]{1, 10}-[a-zA-Z0-9]{3}")
   def __init__(self, name="", version=""):
     # Name for the kf instance
     self.name = name
