@@ -52,7 +52,11 @@ spec:
           value: /secret/gcp-credentials/key.json
         # TODO(jlewi): Get rid of /src/jlewi once we change repos to checkout kubeflow/testing
         - name: PYTHONPATH
-          value: /src/kubeflow/testing/py:/src/jlewi/testing/py
+          value: /src/kubeflow/testing/py:/src/jlewi/testing/py        
+        # We need to explicitly set the KUBECONFIG variable because that's what our python client uses to determine
+        # whether its an in cluster config or not.
+        - name: KUBECONFIG
+          value: /etc/.kube
         # Note command is completely overwritten by reconciler
         command:
         - python

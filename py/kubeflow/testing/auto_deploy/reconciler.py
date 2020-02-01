@@ -20,6 +20,7 @@ from kubeflow.testing import gcp_util
 from kubeflow.testing import git_repo_manager
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
+from kubernetes.client import rest
 
 # The minimum time to wait before triggering another deployment.
 MIN_TIME_BETWEEN_DEPLOYMENTS = datetime.timedelta(minutes=20)
@@ -109,6 +110,10 @@ class Reconciler:
 
     # Logging context. A dictionary of extra labels for logs
     self._log_context = {}
+
+    # If provided this should be a multiprocessing queue on which to
+    # push info about deployments
+    self._queue = None
 
   @staticmethod
   def from_config_file(config_path, job_template_path, local_dir=None):
@@ -274,6 +279,11 @@ class Reconciler:
        auto_deploy_util.AUTO_NAME_LABEL: config["name"],
        "kf-name": kf_name,
     }
+
+    # Make label value safe
+    for k in labels.keys():
+      labels[k] = labels[k].replace(".", "-")
+
     job_config["metadata"]["labels"].update(labels)
 
     label_pairs = [f"{k}={v}" for k, v in labels.items()]
@@ -295,10 +305,8 @@ class Reconciler:
       "--kfctl_config=" + commit_url,
       # The job spec
       f"--labels={labels_value}",
-      # We need to use a self signed certificate otherwise we hit lets
-      # encrypt quota issues
-      # TODO(jlewi): The code to use self cert was giving me problems.
-      #"--use_self_cert",
+       # Use self signed certificates otherwise we will have problem
+       "--use_self_cert",
     ]
 
     # TODO(jlewi): Handle errors
@@ -308,8 +316,8 @@ class Reconciler:
       logging.error(f"Could not submit Kubrnetes job:\n{e}",
                     extra=self._log_context)
 
-    self._log(logging.INFO, logging.info,
-              f"Submitted job {job.metadata.namespace}.{job.metadata.name}")
+    logging.info(f"Submitted job {job.metadata.namespace}.{job.metadata.name}",
+                 extra=self._log_context)
 
   def _gc_deployments(self):
     """Delete old deployments"""

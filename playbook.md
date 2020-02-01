@@ -71,7 +71,18 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 
 ## GCP Stockouts
 
-TODO(jlewi): How should we handle moving our test to a different region when stockouts occur?
+1. Find a region with available quota
+
+   ```
+   gcloud --project=kubeflow-ci-deployment compute regions describe ${REGION}
+   ```
+
+   * We currently have quota in us-east1 and us-central1
+
+1. Change the kfctl tests to use the other zone
+
+   * Currently this is hardcoded in python in [kfctl_go_test_utils.py](https://github.com/kubeflow/kfctl/blob/c5c55f6d1b79e285f28fa433d6e4e2e739cefb63/py/kubeflow/kfctl/testing/util/kfctl_go_test_utils.py#L247)
+
 
 ## NFS Volume Is Out Of Disk Space.
 

@@ -15,5 +15,5 @@ versions:
   - name: v1
     # TODO(jlewi): Change to the version on the v1.0 branch once it exists; otherwise we won't redeploy on changes
     # to the manifests
-    kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.v1.0.0.yaml
+    kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/v1.0-branch/kfdef/kfctl_gcp_iap.v1.0.0.yaml
     kfctlUrl: https://github.com/kubeflow/kfctl/releases/download/v1.0-rc.2/kfctl_v1.0-rc.2-0-ga3d07b4_linux.tar.gz
