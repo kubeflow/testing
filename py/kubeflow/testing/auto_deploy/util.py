@@ -13,6 +13,7 @@ AUTO_NAME_LABEL = "auto-version-name"
 def is_storage_deployment(name):
   return name.endswith(STORAGE_SUFFIX)
 
+# TODO(jlewi): Do we actually need this anymore?
 class AutoDeploymentName:
   """A class representing the name of an auto deployed KF instance."""
 
@@ -87,6 +88,14 @@ class AutoDeployment:
 
     return True
 
+  def to_dict(self):
+    d = {}
+
+    for a in ["manifests_branch", "deployment_name", "labels"]:
+      d[a] = getattr(self, a)
+
+    d["create_time"] = self.create_time.isoformat()
+    return d
 
 AUTO_DEPLOYMENT_NAME = collections.namedtuple("auto_deploy_name",
                                               ("name", "version"))

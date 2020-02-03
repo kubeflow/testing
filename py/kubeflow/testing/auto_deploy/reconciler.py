@@ -53,6 +53,9 @@ MIN_LIFETIME = datetime.timedelta(hours=3)
 # x
 GRACE_PERIOD = datetime.timedelta(hours=3)
 
+# We want to periodically redeploy even if the version hasn't changed
+PERIODIC_REDEPLOY = datetime.timedelta(hours=12)
+
 def _parse_kfdef_url(url):
   m = KFDEF_PATTERN.match(url)
   if not m:
@@ -233,6 +236,14 @@ class Reconciler:
       self._deployments[b] = sorted(self._deployments[b],
                                     key=lambda x: x.create_time)
 
+    if self._queue:
+      d = {}
+      for k, v in self._deployments.items():
+        d[k] = [i.to_dict() for i in v]
+
+      logging.info("Adding deployments to queue")
+      self._queue.put(d)
+
   def _launch_job(self, config, commit):
     """Launch a K8s job to deploy Kubeflow.
 
@@ -255,11 +266,13 @@ class Reconciler:
 
     if jobs.items:
       for j in jobs.items:
-        self._log(logging.INFO, f"Found job {j.metadata.name}")
+        logging.info(f"Found job {j.metadata.name}", extra=self._log_context)
 
         if _job_is_running(j):
-          self._log(logging.INFO, logging.info, f"Job {j.metadata.name} is still running; not launching "
-                    f"a new job")
+          logging.info(
+            f"Job {j.metadata.name} is still running; not launching "
+            f"a new job",
+            extra=self._log_context)
 
     with open(self._job_template_path) as f:
       job_config = yaml.load(f)
@@ -312,12 +325,13 @@ class Reconciler:
     # TODO(jlewi): Handle errors
     try:
       job = batch_api.create_namespaced_job(namespace, job_config)
+      logging.info(f"Submitted job {job.metadata.namespace}.{job.metadata.name}",
+                   extra=self._log_context)
+
     except rest.ApiException as e:
       logging.error(f"Could not submit Kubrnetes job:\n{e}",
                     extra=self._log_context)
 
-    logging.info(f"Submitted job {job.metadata.namespace}.{job.metadata.name}",
-                 extra=self._log_context)
 
   def _gc_deployments(self):
     """Delete old deployments"""
@@ -406,17 +420,25 @@ class Reconciler:
         last_deployed_commit = last_deployed.labels.get(
           auto_deploy_util.MANIFESTS_COMMIT_LABEL)
 
-        self._log(logging.INFO, f"version_name={version_name} "
-                                f"last_commit={last_commit} most recent "
-                  f"deployment is at commit={last_deployed_commit}",
-                     )
-
-        if last_deployed_commit == last_commit:
-          self._log(logging.INFO, f"version_name={version_name} no sync needed")
-          continue
 
         now = datetime.datetime.now(tz=last_deployed.create_time.tzinfo)
         time_since_last_deploy = now - last_deployed.create_time
+
+        logging.info(f"version_name={version_name} "
+                     f"last_commit={last_commit} most recent "
+                     f"deployment is {last_deployed.deployment_name} "
+                     f"at commit={last_deployed_commit} "
+                     f"age={time_since_last_deploy}",
+                     extra=self._log_context)
+
+        if (last_deployed_commit == last_commit and
+            time_since_last_deploy < PERIODIC_REDEPLOY):
+          logging.info(f"version_name={version_name} no sync needed",
+                       extra=self._log_context)
+          continue
+        else:
+          logging.info(f"version_name={version_name} sync needed",
+                       extra=self._log_context)
 
         if time_since_last_deploy < MIN_TIME_BETWEEN_DEPLOYMENTS:
           minutes = time_since_last_deploy.total_seconds() / 60.0
