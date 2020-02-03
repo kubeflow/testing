@@ -5,7 +5,7 @@ metadata:
   name: kf-apps-cd
 build:
   artifacts:
-  - image: gcr.io/kubeflow-testing/auto_deploy
+  - image: gcr.io/kubeflow-ci/auto_deploy
     # Set the context to the root directory. 
     # All paths in the Dockerfile should be relative to this one.
     # 
@@ -42,23 +42,33 @@ build:
     pullSecretName: user-gcp-sa
     resources:
       requests:
-        cpu: 8
+        cpu: 6
         memory: 16Gi
 profiles:
   # Build on the kubeflow testingcluster
   - name: testing
     activation:
       - kubeContext: kubeflow-testing
+    patches:
+      - op: replace
+        path: /build/artifacts/0/image
+        value: gcr.io/kubeflow-ci/auto_deploy
+      - op: replace
+        path: /build/artifacts/0/kaniko/env/0/value
+        value: /secret/key.json
+      - op: replace
+        path: /build/artifacts/0/kaniko/buildContext/gcsBucket
+        value: kubeflow-ci_skaffold
     build:      
-      cluster:    
+      cluster:
         # Build in a namespace with ISTIO sidecar injection disabled
         # see  GoogleContainerTools/skaffold#3442
         namespace: kubeflow-test-infra
         pullSecretName: gcp-credentials
         resources:
           requests:
-            cpu: 8
+            cpu: 6
             memory: 16Gi
     deploy:
       kustomize:
-        path: manifests/
+        path: manifest

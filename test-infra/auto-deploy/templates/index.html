@@ -1,3 +1,18 @@
 <html>
-hello world
+<table>
+<TR>
+   <TD>Version</TD>
+   <TD>Deployment Name</TD>
+   <TD>Age(HH:MM:SS)</TD>
+   <TD>Manifests Commit</TD>
+</TR>
+{% for item in items %}
+<TR>
+   <TD>{{item["version"]}}</TD>
+   <TD><a href="{{item['endpoint']}}">{{item["deployment_name"]}}</a></TD>
+   <TD>{{item["age"]}}</TD>
+   <TD><a href="{{item['manifests_url']}}">{{item["manifests_git"]}}</a></TD>
+</TR>
+{% endfor %}
+</table>
 </html>

@@ -1,6 +1,7 @@
 """A flask app for auto deploying Kubeflow."""
 
 import datetime
+from dateutil import parser as date_parser
 import fire
 import glob
 import logging
@@ -13,25 +14,10 @@ from kubeflow.testing import kf_logging
 from kubeflow.testing.auto_deploy import reconciler
 from kubeflow.testing.auto_deploy import util
 import flask
-import flask_table
-
-def endpoint_fun():
-  """Generate the endpoint for the KF deployment"""
-  return "https://www.kubeflow.org"
-
-# see https://flask-table.readthedocs.io/en/stable/
-# For info about using tables.
-class AutoDeployTable(flask_table.Table):
-  version = flask_table.Col("Version")
-  deployment_name = flask_table.Col('Deployment')
-  creation_time = flask_table.Col('Creation Time')
-  manifests_git = flask_table.Col('Manifts Git')
-  kfctl_git = flask_table.Col('kfctl Git')
-  labels = flask_table.Col('Labels')
-
-app = flask.Flask(__name__)
 
 _deployments_dir = None
+
+app =  flask.Flask(__name__)
 
 @app.route("/")
 def auto_deploy_status():
@@ -52,15 +38,23 @@ def auto_deploy_status():
     with open(os.path.join(latest)) as hf:
       deployments = yaml.load(hf)
 
+
     for v, deployments_list  in deployments.items():
       for d in deployments_list:
+        create_time = date_parser.parse(d["create_time"])
+        age = datetime.datetime.now(tz=create_time.tzinfo) - create_time
+        manifests_commit = d["labels"].get(util.MANIFESTS_COMMIT_LABEL, "")
         row = {
           "version": v,
           "deployment_name": d["deployment_name"],
           "creation_time": d.get("create_time", ""),
-          "manifests_git": d["labels"].get(util.MANIFESTS_COMMIT_LABEL, ""),
+          "age": f"{age}",
+          "manifests_git": manifests_commit,
+          "manifests_url": (f"https://github.com/kubeflow/manifests/tree/"
+                            f"{manifests_commit}"),
           "kfctl_git": d["labels"].get("kfctl-git", ""),
-          "url": "www.kubeflow.org",
+          "endpoint": f"https://{d['deployment_name']}.endpoints."
+                      f"kubeflow-ci-deployment.cloud.goog",
         }
         labels = []
         for label_key, label_value in d["labels"].items():
@@ -68,11 +62,22 @@ def auto_deploy_status():
         row["labels"] = ", ".join(labels)
         items.append(row)
 
-  # Populate the table
-  table = AutoDeployTable(items)
+  # Define a key function for the sort.
+  # We want to sort by version and age
+  def key_func(i):
+    # We want unknown version to appear last
+    # so we ad a prefix
+    if i["version"] == "unknown":
+      prefix = "z"
+    else:
+      prefix = "a"
+
+    return f"{prefix}-{i['version']}-{i['age']}"
+  items = sorted(items, key=key_func)
 
   # Return the HTML
-  return flask.render_template("index.html", title="Kubeflow Auto Deployments")
+  return flask.render_template("index.html", title="Kubeflow Auto Deployments",
+                               items=items)
 
 class AutoDeployServer:
 
