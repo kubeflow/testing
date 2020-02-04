@@ -31,7 +31,7 @@ build:
         #- src: 'py/**/*.py'
         #  dest: '/app/src/kubeflow/testing'
     kaniko:
-      dockerfile: ./test-infra/auto-deploy/Dockerfile
+      dockerfile: ./test-infra/auto-deploy/Dockerfile.skaffold
       buildContext:
         gcsBucket: kubeflow-releasing_skaffold
       env: 
