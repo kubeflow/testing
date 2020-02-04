@@ -1,11 +1,8 @@
 import collections
 import logging
-import os
 import pytest
-import yaml
 
 from kubeflow.testing.auto_deploy import util
-
 
 def test_auto_deployment_name():
   test_case = collections.namedtuple("test_case", ("name", "expected"))
@@ -40,6 +37,4 @@ if __name__ == "__main__":
     datefmt='%Y-%m-%dT%H:%M:%S',
     )
   logging.getLogger().setLevel(logging.INFO)
-  test_cleanup_auto_deployments()
   pytest.main()
-

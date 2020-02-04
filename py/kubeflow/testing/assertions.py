@@ -41,5 +41,3 @@ def assert_dicts_equal(left, right, item_checker=None):
       assert item_checker(left[k], right[k])
     else:
       assert left[k] == right[k], f"{left[k]}!={right[k]}"
-
-

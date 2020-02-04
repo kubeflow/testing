@@ -6,7 +6,6 @@ import pytest
 import yaml
 
 from kubeflow.testing import assertions
-from kubeflow.testing import kf_logging
 from kubeflow.testing.auto_deploy import reconciler
 from kubeflow.testing.auto_deploy import util as auto_deploy_util
 
@@ -17,7 +16,6 @@ def test_get_deployments():
     deployments = yaml.load(hf)
 
   dm_reconciler = reconciler.Reconciler()
-
 
   dm_reconciler._get_deployments(deployments=deployments) # pylint: disable=protected-access
 
@@ -61,6 +59,4 @@ if __name__ == "__main__":
     )
   logging.getLogger().setLevel(logging.INFO)
 
-  # Do not submit
-  test_parse_kfdef_url()
-  # pytest.main()
+  pytest.main()

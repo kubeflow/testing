@@ -355,6 +355,7 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
        "--use_self_cert",
     ]
 
+    namespace = job_config["metadata"]["namespace"]
     # TODO(jlewi): Handle errors
     try:
       job = batch_api.create_namespaced_job(namespace, job_config)

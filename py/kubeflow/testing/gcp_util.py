@@ -37,4 +37,3 @@ def deployments_iterator(project):
       return
 
     next_page_token = deployments.get("nextPageToken")
-
