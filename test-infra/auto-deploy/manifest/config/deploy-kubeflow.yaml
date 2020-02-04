@@ -5,7 +5,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   generateName: deploy-master-
-  namespace: kubeflow-test-infra
   labels:
     job: deploy-master-oneoff
     version: master
@@ -37,9 +36,6 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
-        - mountPath: /secret/gcp-credentials
-          name: gcp-credentials
-          readOnly: true
         - mountPath: /src
           name: src
       containers:
@@ -71,9 +67,6 @@ spec:
       serviceAccount: default-editor
       restartPolicy: Never
       volumes:
-      - name: gcp-credentials
-        secret:
-          secretName: gcp-credentials
       - name: src
         emptyDir: {}
   

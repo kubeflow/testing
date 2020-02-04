@@ -359,15 +359,15 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
 
     namespace = job_config["metadata"]["namespace"]
     # TODO(jlewi): Handle errors
-    full_name = f"{job.metadata.namespace}.{job.metadata.name}"
     try:
       job = batch_api.create_namespaced_job(namespace, job_config)
+      full_name = f"{namespace}.{job.metadata.name}"
       logging.info(f"Submitted job {full_name}",
                    extra=self._log_context)
 
     except rest.ApiException as e:
-      logging.error(f"Could not submit Kubernetes job {full_name}:\n{e}",
-                    extra=self._log_context)
+      logging.error(f"Could not submit Kubernetes job for deployment {kf_name}"
+                    ":\n{e}", extra=self._log_context)
 
 
   def _gc_deployments(self):

@@ -394,9 +394,14 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   # Wait for credentials to deal with workload identity issues
   gcp_util.get_gcp_credentials()
 
-  # For debugging purposes output the command
-  util.run(["gcloud", "config", "list"])
-  util.run(["gcloud", "auth", "list"])
+  # Wrap gcloud commands in retry loop to deal with metadata; workload
+  # identity issues.
+  @retrying.retry(stop_max_delay=5*60*1000, wait_exponential_max=10000)
+  def _gcloud_list():
+    # For debugging purposes output the command
+    util.run(["gcloud", "config", "list"])
+    util.run(["gcloud", "auth", "list"])
+  _gcloud_list()
 
   bucket, blob_path = util.split_gcs_uri(args.oauth_file)
 
