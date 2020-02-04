@@ -25,6 +25,7 @@ import yaml
 from googleapiclient import discovery
 from googleapiclient import errors
 from google.cloud import storage
+from kubeflow.testing import gcp_util
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
 from kubernetes.client import rest
@@ -389,6 +390,9 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   args = parser.parse_args()
 
   util.maybe_activate_service_account()
+
+  # Wait for credentials to deal with workload identity issues
+  gcp_util.get_gcp_credentials()
 
   # For debugging purposes output the command
   util.run(["gcloud", "config", "list"])

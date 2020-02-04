@@ -278,6 +278,19 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
       config: The deployment config; contains the URL of the repo.
       commit: The commit to launch from.
     """
+    with open(self._job_template_path) as f:
+      job_config = yaml.load(f)
+
+    job_config["metadata"]["generateName"] = f"auto-deploy-{config['name']}-"
+
+    if os.getenv("JOB_NAMESPACE"):
+      namespace = os.getenv("JOB_NAMESPACE")
+      logging.info(f"Setting job namespace to {namespace}",
+                   extra=self._log_context)
+      job_config["metadata"]["namespace"] = namespace
+
+    namespace = job_config["metadata"]["namespace"]
+
     # Check if there is already a running job
     label_filter = {
       auto_deploy_util.MANIFESTS_COMMIT_LABEL: commit,
@@ -286,7 +299,6 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
     items = [f"{k}={v}" for k, v in label_filter.items()]
     selector = ",".join(items)
 
-    namespace = self.config["namespace"]
     # TODO(jlewi): We should switch to using Tekton.
     batch_api = k8s_client.BatchV1Api(self._k8s_client)
     jobs = batch_api.list_namespaced_job(namespace, label_selector=selector)
@@ -300,17 +312,7 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
             f"Job {j.metadata.name} is still running; not launching "
             f"a new job",
             extra=self._log_context)
-
-    with open(self._job_template_path) as f:
-      job_config = yaml.load(f)
-
-    job_config["metadata"]["generateName"] = f"auto-deploy-{config['name']}-"
-
-    if os.getenv("JOB_NAMESPACE"):
-      namespace = os.getenv("JOB_NAMESPACE")
-      logging.info(f"Setting job namespace to {namespace}",
-                   extra=self._log_context)
-      job_config["metadata"]["namespace"] = namespace
+          return
 
     kfdef_url = _parse_kfdef_url(config[KFDEF_KEY])
 
@@ -357,13 +359,14 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
 
     namespace = job_config["metadata"]["namespace"]
     # TODO(jlewi): Handle errors
+    full_name = f"{job.metadata.namespace}.{job.metadata.name}"
     try:
       job = batch_api.create_namespaced_job(namespace, job_config)
-      logging.info(f"Submitted job {job.metadata.namespace}.{job.metadata.name}",
+      logging.info(f"Submitted job {full_name}",
                    extra=self._log_context)
 
     except rest.ApiException as e:
-      logging.error(f"Could not submit Kubrnetes job:\n{e}",
+      logging.error(f"Could not submit Kubernetes job {full_name}:\n{e}",
                     extra=self._log_context)
 
 
