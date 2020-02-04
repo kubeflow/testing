@@ -18,6 +18,7 @@ from kubeflow.testing.auto_deploy import util as auto_deploy_util
 from kubeflow.testing import delete_kf_instance
 from kubeflow.testing import gcp_util
 from kubeflow.testing import git_repo_manager
+from kubeflow.testiing import kf_logging
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from kubernetes.client import rest
@@ -90,7 +91,7 @@ def _job_is_running(j):
 
   return True
 
-class Reconciler:
+class Reconciler: # pylint: disable=too-many-instance-attributes
   def __init__(self, manifests_repo=None, config=None, job_template_path=None):
     """Construct a reconciler
 
@@ -118,19 +119,24 @@ class Reconciler:
     # push info about deployments
     self._queue = None
 
+    # Directory where YAML files listing deployments should be written.
+    # This is used to make it available to other processes
+    self._deployments_dir = None
+
   @staticmethod
-  def from_config_file(config_path, job_template_path, local_dir=None):
+  def from_config_file(config_path, job_template_path, deployments_dir,
+                       local_dir=None):
     """Construct a reconciler from the config path.
 
     Args:
       config_path: Path to configuration
       job_template_path: Path to the YAML file containing a K8s job to
         launch to do the deployments.
+      deployments_dir: Path where YAML should be dumped describing deployments
       local_dir: (Optional): Path were repositories should be checked out.
     """
     with open(config_path) as f:
       config = yaml.load(f)
-
 
     kfdef_url = _parse_kfdef_url(config[VERSIONS_KEY][0][KFDEF_KEY])
 
@@ -143,13 +149,16 @@ class Reconciler:
           or new_url.repo != kfdef_url.repo):
         raise ValueError(f"All deployments must use the same repo for the KFDef")
 
-
     url = _kfdef_url_to_clone_url(kfdef_url)
 
     manifests_repo = git_repo_manager.GitRepoManager(url=url,
                                                      local_dir=local_dir)
     reconciler = Reconciler(config=config, job_template_path=job_template_path,
                             manifests_repo=manifests_repo)
+
+
+    reconciler._deployments_dir = deployments_dir # pylint: disable=protected-access
+    logging.info(f"Using deployments directory={reconciler._deployments_dir}") # pylint: disable=protected-access
 
     service_account_path = "/var/run/secrets/kubernetes.io"
     if os.path.exists("/var/run/secrets/kubernetes.io"):
@@ -160,7 +169,7 @@ class Reconciler:
                     "loading kube config file")
       k8s_config.load_kube_config(persist_config=False)
 
-    reconciler._k8s_client = k8s_client.ApiClient()
+    reconciler._k8s_client = k8s_client.ApiClient() # pylint: disable=protected-access
     return reconciler
 
   # TODO(jlewi): This was a failed attempt to create a utility function
@@ -173,6 +182,30 @@ class Reconciler:
 
     kwargs["extra"].update(self._log_context)
     logging.log(level, message, *args, **kwargs)
+
+  def _save_deployments(self):
+    if not self._deployments_dir:
+      logging.info("No deployments directory provided; not persisting "
+                   "deployments")
+      return
+    # Write to the deployments to a file in order to make them
+    # available to all the flask threads and processes
+    suffix = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
+
+    if not os.path.exists(self._deployments_dir):
+      os.makedirs(self._deployments_dir)
+
+    d = {}
+    for k, v in self._deployments.items():
+      d[k] = [i.to_dict() for i in v]
+
+    path = os.path.join(self._deployments_dir, f"deployments.{suffix}.yaml")
+
+    logging.info(f"Writing deployments to {path}")
+    with open(path, "w") as hf:
+      yaml.dump(d, hf)
+
+    # TODO(jlewi): We should GC old versions of the file.
 
   def _get_deployments(self, deployments=None):
     """Build a map of all deployments
@@ -236,13 +269,7 @@ class Reconciler:
       self._deployments[b] = sorted(self._deployments[b],
                                     key=lambda x: x.create_time)
 
-    if self._queue:
-      d = {}
-      for k, v in self._deployments.items():
-        d[k] = [i.to_dict() for i in v]
-
-      logging.info("Adding deployments to queue")
-      self._queue.put(d)
+    self._save_deployments()
 
   def _launch_job(self, config, commit):
     """Launch a K8s job to deploy Kubeflow.
@@ -294,7 +321,7 @@ class Reconciler:
     }
 
     # Make label value safe
-    for k in labels.keys():
+    for k, _ in labels.items():
       labels[k] = labels[k].replace(".", "-")
 
     job_config["metadata"]["labels"].update(labels)
@@ -468,6 +495,10 @@ class Reconciler:
   def run(self, period=datetime.timedelta(minutes=5)):
     """Continuously reconcile."""
 
+    # Ensure we can get GCP credentials
+    if not gcp_util.get_gcp_credentials():
+      raise RuntimeError("Could not get GCP application default credentials")
+
     while True:
       self._reconcile()
       logging.info(f"Wait {period}(HH:MM:SS) before reconciling; ")
@@ -475,16 +506,20 @@ class Reconciler:
 
 class CLI:
   @staticmethod
-  def run(config_path, job_template_path, local_dir=None):
+  def run(config_path, job_template_path, deployments_dir, local_dir=None):
     reconciler = Reconciler.from_config_file(config_path, job_template_path,
+                                             deployments_dir=deployments_dir,
                                              local_dir=local_dir)
     reconciler.run()
 
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
-  logging.getLogger().setLevel(logging.INFO)
+  # Emit logs in json format. This way we can do structured logging
+  # and we can query extra fields easily in stackdriver and bigquery.
+  json_handler = logging.StreamHandler()
+  json_handler.setFormatter(kf_logging.CustomisedJSONFormatter())
+
+  logger = logging.getLogger()
+  logger.addHandler(json_handler)
+  logger.setLevel(logging.INFO)
+
   fire.Fire(CLI)

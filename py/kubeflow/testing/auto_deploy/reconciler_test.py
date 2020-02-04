@@ -6,6 +6,7 @@ import pytest
 import yaml
 
 from kubeflow.testing import assertions
+from kubeflow.testing import kf_logging
 from kubeflow.testing.auto_deploy import reconciler
 from kubeflow.testing.auto_deploy import util as auto_deploy_util
 

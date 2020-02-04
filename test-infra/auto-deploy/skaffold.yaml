@@ -21,13 +21,15 @@ build:
     # Important: Make sure you current context has the namespace
     # set to the namespace where your pods are deployed otherwise
     # the sync doesn't appear to work.
-    sync:
-        manual:
+    #
+    # TODO(jlewi): Sync mode doesn't appear to be working since we have multiple containers
+    #sync:
+       # manual:
         # See https://skaffold.dev/docs/pipeline-stages/filesync/
         # src is relative to context
         # dest should be location inside the container where files should be placed
-        - src: 'py/**/*.py'
-          dest: '/app/src/kubeflow/testing'
+        #- src: 'py/**/*.py'
+        #  dest: '/app/src/kubeflow/testing'
     kaniko:
       dockerfile: ./test-infra/auto-deploy/Dockerfile
       buildContext:

@@ -12,20 +12,17 @@ from dateutil import parser as date_parser
 import fire
 import glob
 import logging
-import multiprocessing
 import os
 import tempfile
 import yaml
 
 from kubeflow.testing import kf_logging
-from kubeflow.testing import gcp_util
-from kubeflow.testing.auto_deploy import reconciler
 from kubeflow.testing.auto_deploy import util
 import flask
 
 _deployments_dir = None
 
-app =  flask.Flask(__name__)
+app = flask.Flask(__name__)
 
 @app.route("/")
 def auto_deploy_status():
@@ -93,34 +90,16 @@ class AutoDeployServer:
     self._deployments_queue = None
     self._deployments_dir = None
 
-  def _fetch_deployments(self):
-    while True:
-      item = self._deployments_queue.get()
-
-      # Write to the deployments to a file in order to make them
-      # available to all the flask threads and processes
-      suffix = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
-
-      if not os.path.exists(_deployments_dir):
-        os.makedirs(_deployments_dir)
-
-      path = os.path.join(_deployments_dir, f"deployments.{suffix}.yaml")
-
-      logging.info(f"Writing deployments to {path}")
-      with open(path, "w") as hf:
-        yaml.dump(item, hf)
-
-  def serve(self, config_path, job_template_path, template_folder,
-            local_dir=None, port=None):
-    global _deployments_dir
-    global app
+  def serve(self, template_folder, deployments_dir=None, port=None):
+    global _deployments_dir # pylint: disable=global-statement
+    global app # pylint: disable=global-statement
 
     app.template_folder = template_folder
     # make sure things reload
     FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower()
 
     # Need to convert it to boolean
-    if FLASK_DEBUG in ["true", "t"]:
+    if FLASK_DEBUG in ["true", "t"]: # pylint: disable=simplifiable-if-statement
       FLASK_DEBUG = True
     else:
       FLASK_DEBUG = False
@@ -133,27 +112,9 @@ class AutoDeployServer:
     if not local_dir:
       local_dir = tempfile.mkdtemp(prefix="auto_deploy")
 
-    _deployments_dir = os.path.join(local_dir, "deployments")
+    _deployments_dir = deployments_dir
 
-    logging.info(f"Deployments will be written to {self._deployments_dir}")
-
-    # Ensure we can get GCP credentials
-    if not gcp_util.get_gcp_credentials():
-      raise RuntimeError("Could not get GCP application default credentials")
-
-    # Start the reconciler process
-    self._deployments_queue = multiprocessing.Queue()
-    logging.info(f"Starting reconciler.")
-    auto_reconciler = reconciler.Reconciler.from_config_file(
-      config_path, job_template_path, local_dir=local_dir)
-
-    auto_reconciler._queue = self._deployments_queue
-
-    p = multiprocessing.Process(target=auto_reconciler.run)
-    p.start()
-
-    reader = multiprocessing.Process(target=self._fetch_deployments)
-    reader.start()
+    logging.info(f"Deployments will be read from {self._deployments_dir}")
 
     app.run(debug=FLASK_DEBUG, host='0.0.0.0', port=port)
 
@@ -168,4 +129,3 @@ if __name__ == '__main__':
   logger.setLevel(logging.INFO)
 
   fire.Fire(AutoDeployServer)
-
