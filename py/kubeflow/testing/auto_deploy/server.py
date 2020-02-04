@@ -1,4 +1,11 @@
-"""A flask app for auto deploying Kubeflow."""
+"""A flask app for auto deploying Kubeflow.
+
+TODO(jlewi): Rather than use the multiprocessing package it might
+make sense just to run the server and reconciler in separate containers.
+They are already communicating through the filesystem so using multi-processing
+might just be complicating things. One problem we have right now
+is that exceptions in the reconciler aren't propogated to the server.
+"""
 
 import datetime
 from dateutil import parser as date_parser
@@ -11,6 +18,7 @@ import tempfile
 import yaml
 
 from kubeflow.testing import kf_logging
+from kubeflow.testing import gcp_util
 from kubeflow.testing.auto_deploy import reconciler
 from kubeflow.testing.auto_deploy import util
 import flask
@@ -103,7 +111,7 @@ class AutoDeployServer:
         yaml.dump(item, hf)
 
   def serve(self, config_path, job_template_path, template_folder,
-            local_dir=None):
+            local_dir=None, port=None):
     global _deployments_dir
     global app
 
@@ -129,6 +137,10 @@ class AutoDeployServer:
 
     logging.info(f"Deployments will be written to {self._deployments_dir}")
 
+    # Ensure we can get GCP credentials
+    if not gcp_util.get_gcp_credentials():
+      raise RuntimeError("Could not get GCP application default credentials")
+
     # Start the reconciler process
     self._deployments_queue = multiprocessing.Queue()
     logging.info(f"Starting reconciler.")
@@ -143,7 +155,7 @@ class AutoDeployServer:
     reader = multiprocessing.Process(target=self._fetch_deployments)
     reader.start()
 
-    app.run(debug=FLASK_DEBUG, host='0.0.0.0', port=os.getenv('PORT'))
+    app.run(debug=FLASK_DEBUG, host='0.0.0.0', port=port)
 
 if __name__ == '__main__':
   # Emit logs in json format. This way we can do structured logging

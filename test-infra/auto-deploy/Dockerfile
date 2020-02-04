@@ -26,6 +26,22 @@ RUN export KUSTOMIZE_VERSION=3.2.0 && \
     mv kustomize_${KUSTOMIZE_VERSION}_linux_amd64 /usr/local/bin/kustomize && \
     chmod a+x /usr/local/bin/kustomize
 
+
+# Install gcloud
+ENV PATH=${PATH}:/google-cloud-sdk/bin
+
+RUN cd /tmp && \
+    export GCLOUD_TAR=google-cloud-sdk-278.0.0-linux-x86_64.tar.gz && \
+    curl -LO https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_TAR} && \
+    tar xzf ${GCLOUD_TAR} -C / && \
+    rm ${GCLOUD_TAR} && \
+    /google-cloud-sdk/install.sh \
+    --disable-installation-options \
+    --bash-completion=false \
+    --path-update=false \
+    --usage-reporting=false && \
+    gcloud components install alpha beta
+
 COPY test-infra/auto-deploy/requirements.txt /tmp
 RUN python -m pip install \
      -r /tmp/requirements.txt
@@ -41,6 +57,7 @@ RUN cd /app && \
     mkdir -p /app/src/kubeflow
 
 COPY py /app/src/kubeflow/testing/py
+COPY test-infra/auto-deploy/templates /app/templates
 
 ENV PYTHONPATH /app/src/kubeflow/testing/py:$PYTHONPATH
 

@@ -46,16 +46,13 @@ build:
         memory: 16Gi
 profiles:
   # Build on the kubeflow testingcluster
-  - name: testing
+  - name: kf-auto-deploy
     activation:
-      - kubeContext: kubeflow-testing
+      - kubeContext: kf-auto-deploy
     patches:
       - op: replace
         path: /build/artifacts/0/image
         value: gcr.io/kubeflow-ci/auto_deploy
-      - op: replace
-        path: /build/artifacts/0/kaniko/env/0/value
-        value: /secret/key.json
       - op: replace
         path: /build/artifacts/0/kaniko/buildContext/gcsBucket
         value: kubeflow-ci_skaffold
@@ -63,8 +60,8 @@ profiles:
       cluster:
         # Build in a namespace with ISTIO sidecar injection disabled
         # see  GoogleContainerTools/skaffold#3442
-        namespace: kubeflow-test-infra
-        pullSecretName: gcp-credentials
+        namespace: auto-deploy-kaniko
+        pullSecretName: user-gcp-sa
         resources:
           requests:
             cpu: 6

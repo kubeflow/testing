@@ -1,0 +1,26 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: server
+spec:
+  gateways:
+  - kubeflow-gateway
+  hosts:
+  - '*'
+  http:
+  - headers:
+      request:
+        add:
+          x-forwarded-prefix: /auto_deploy
+    match:
+    - uri:
+        prefix: /auto_deploy/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        # This needs to be updated manually to be in sync with kustomize
+        # generated values (i.e. namespace and prefix)
+        host: auto-deploy-service.auto-deploy.svc.cluster.local
+        port:
+          number: 80
