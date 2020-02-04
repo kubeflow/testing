@@ -45,7 +45,11 @@ spec:
         - --job-template-path=/app/config/deploy-kubeflow.yaml 
         - --local-dir=/cache/auto_deploy_src
         - --deployments-dir=/cache/deployments
-        - --port=80 
+        env:
+        - name: JOB_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace 
         resources:
           requests:
             cpu: 2
