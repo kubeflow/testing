@@ -18,7 +18,7 @@ from kubeflow.testing.auto_deploy import util as auto_deploy_util
 from kubeflow.testing import delete_kf_instance
 from kubeflow.testing import gcp_util
 from kubeflow.testing import git_repo_manager
-from kubeflow.testiing import kf_logging
+from kubeflow.testing import kf_logging
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from kubernetes.client import rest

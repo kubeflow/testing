@@ -13,7 +13,6 @@ import fire
 import glob
 import logging
 import os
-import tempfile
 import yaml
 
 from kubeflow.testing import kf_logging
@@ -60,6 +59,10 @@ def auto_deploy_status():
           "kfctl_git": d["labels"].get("kfctl-git", ""),
           "endpoint": f"https://{d['deployment_name']}.endpoints."
                       f"kubeflow-ci-deployment.cloud.goog",
+          # TODO(jlewi): We are hardcoding the project and zone.
+          "gcloud_command": (f"gcloud --project=kubeflow-ci-deployment "
+                             f"container clusters get-credentials "
+                             f"--zone=us-central1-a {d['deployment_name']}")
         }
         labels = []
         for label_key, label_value in d["labels"].items():
@@ -108,9 +111,6 @@ class AutoDeployServer:
     if FLASK_DEBUG:
       app.jinja_env.auto_reload = True
       app.config['TEMPLATES_AUTO_RELOAD'] = True
-
-    if not local_dir:
-      local_dir = tempfile.mkdtemp(prefix="auto_deploy")
 
     _deployments_dir = deployments_dir
 

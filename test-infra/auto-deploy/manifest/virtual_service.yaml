@@ -4,7 +4,7 @@ metadata:
   name: server
 spec:
   gateways:
-  - kubeflow-gateway
+  - kubeflow/kubeflow-gateway
   hosts:
   - '*'
   http:
@@ -21,6 +21,6 @@ spec:
     - destination:
         # This needs to be updated manually to be in sync with kustomize
         # generated values (i.e. namespace and prefix)
-        host: auto-deploy-service.auto-deploy.svc.cluster.local
+        host: auto-deploy-server.auto-deploy.svc.cluster.local
         port:
           number: 80
