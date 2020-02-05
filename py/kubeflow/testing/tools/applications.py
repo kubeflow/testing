@@ -19,6 +19,12 @@ class AppManager:
       directory: (Optional). Directory to run in defaults to current directory.
     """
 
+    # coerce version to a string
+    # This is because versions like "0.2" should be valid
+    # but Fire will convert them to a float and when they get dumped to
+    # yaml they will be treated as a float which will cause problems
+    # with K8s since k8s only allows string labels
+    version = str(version)
     if not directory:
       directory = os.getcwd()
 
@@ -59,6 +65,7 @@ class AppManager:
         if "commonLabels" not in kustomize:
           kustomize["commonLabels"] = {}
 
+        # Include the version in quotes because we want it to be interpreted
         kustomize["commonLabels"]["app.kubernetes.io/version"] = version
         kustomize["commonLabels"]["app.kubernetes.io/instance"] = (
           f"{app_name}-{version}")
