@@ -21,7 +21,7 @@ from kubeflow.testing import util
 from oauth2client.client import GoogleCredentials
 
 # Default pattern to match auto deployed clusters from master
-DEFAULT_PATTERN = r"kf-vmaster-(?!n\d\d)"
+DEFAULT_PATTERN = r"kf-master-(?!n\d\d)"
 
 def get_deployment_endpoint(project, deployment):
   """Format endpoint service name using default logic.
