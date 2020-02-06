@@ -17,6 +17,7 @@
  */
 import yargs from 'yargs'
 import getLicenseInfo from './commands/getLicenseInfo.js'
+import concatenateLicense from './commands/concatenateLicense.js'
 import path from 'path'
 import {homedir} from 'os'
 
@@ -41,7 +42,21 @@ global.argv = yargs
             default: DEFAULT_GH_TOKEN,
             type: 'string',
             alias: 'gh',
-        }
+        },
+    })
+    .command('concatenate_license [license-info-file]', 'Generate dependencies json from license.csv file', {
+        output: {
+            description: 'Concatenated license file path this command generates.',
+            alias: 'o',
+            type: 'string',
+            default: 'license.txt'
+        },
+        'license-info-file': {
+            description: 'Input folder to use (uses $cwd, unless overridden)',
+            default: './license_info.csv',
+            type: 'string',
+            alias: ['l', 'license-info'],
+        },
     })
     .help()
     .alias('help', 'h')
@@ -51,7 +66,8 @@ global.argv = yargs
 
 const runCommand = async command => {
     switch(command) {
-        case 'get_license_info': return await getLicenseInfo(argv)
+        case 'get_license_info': return await getLicenseInfo()
+        case 'concatenate_license': return await concatenateLicense()
     }
     throw `Unimplemented command [${command}] invoked`
 }

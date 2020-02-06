@@ -38,7 +38,9 @@ const readGHToken = _ => new Promise((res, rej) =>
     readFile(argv.gh, (err, data) => 
         err ? rej(`Failed to read github token file: ${err.message}`) : res(data+'')
     )).then(token => {
-        octokit = new RetryableOcto({auth: token, authStrategy: createTokenAuth})
+        // To ignore line endings or whitespace
+        const trimmedToken = token.replace(/\s/g, '')
+        octokit = new RetryableOcto({auth: trimmedToken, authStrategy: createTokenAuth})
     })
 
 const runScanner = _ => new Promise((res, rej) => {
