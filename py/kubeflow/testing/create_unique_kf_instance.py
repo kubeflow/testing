@@ -203,7 +203,8 @@ def deploy_with_kfctl_go(kfctl_path, args, app_dir, env, labels=None): # pylint:
 
   if not email:
     logging.info("email not set trying to get default from gcloud")
-    email = util.run(["gcloud", "config", "get-value", "account"])
+    email = util.run(["gcloud", "auth", "list",
+                      "--filter", "status:ACTIVE", "--format", "value(account)"])
 
   if not email:
     raise ValueError("Could not determine GCP account being used.")
