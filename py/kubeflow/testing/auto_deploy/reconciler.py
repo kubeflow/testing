@@ -380,7 +380,7 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
       logging.info(f"Submitted job {full_name}",
                    extra=self._log_context)
 
-    except rest.ApiException as e:
+    except rest.ApiException as e:  # pylint: disable=unused-variable
       logging.error(f"Could not submit Kubernetes job for deployment {kf_name}"
                     ":\n{e}", extra=self._log_context)
 
