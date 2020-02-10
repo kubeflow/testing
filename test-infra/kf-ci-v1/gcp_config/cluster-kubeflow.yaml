@@ -1,0 +1,43 @@
+imports:
+- path: cluster.jinja
+resources:
+- name: kubeflow
+  properties:
+    autoprovisioning-config:
+      enabled: true
+      max-accelerator:
+      - count: 16
+        type: nvidia-tesla-k80
+      max-cpu: 128
+      max-memory: 2000
+    cluster-version: 1.14.8
+    cpu-pool-enable-autoscaling: true
+    cpu-pool-initialNodeCount: 2
+    cpu-pool-machine-type: n1-standard-8
+    cpu-pool-max-nodes: 10
+    cpu-pool-min-nodes: 0
+    enable-workload-identity: true
+    enable_tpu: false
+    gkeApiVersion: v1beta1
+    gpu-number-per-node: 1
+    gpu-pool-enable-autoscaling: true
+    gpu-pool-initialNodeCount: 0
+    gpu-pool-machine-type: n1-standard-8
+    gpu-pool-max-nodes: 10
+    gpu-pool-min-nodes: 0
+    gpu-type: nvidia-tesla-k80
+    identity-namespace: kubeflow-ci.svc.id.goog
+    ipName: kf-ci-v1-ip
+    pool-version: v1
+    securityConfig:
+      masterAuthorizedNetworksConfigCidr:
+      - cidrBlock: 1.2.3.4/32
+      masterAuthorizedNetworksConfigEnabled: false
+      masterIpv4CidrBlock: 172.16.0.16/28
+      podSecurityPolicy: false
+      privatecluster: false
+      secureNodeMetadata: false
+    users:
+    - user:jlewi@google.com
+    zone: us-east1-d
+  type: cluster.jinja
