@@ -3,13 +3,18 @@ import collections
 import logging
 import os
 import pytest
+from unittest import mock
 import yaml
 
 from kubeflow.testing import assertions
 from kubeflow.testing.auto_deploy import reconciler
 from kubeflow.testing.auto_deploy import util as auto_deploy_util
 
-def test_get_deployments():
+@mock.patch("kubeflow.testing.auto_deploy.reconciler.Reconciler"
+            "._get_deployment_zone")
+def test_get_deployments(mock_zone):
+  mock_zone.return_value = "us-central1-a"
+
   test_dir = os.path.join(os.path.dirname(__file__), "test_data")
 
   with open(os.path.join(test_dir, "deployments.yaml")) as hf:
@@ -20,14 +25,14 @@ def test_get_deployments():
   dm_reconciler._get_deployments(deployments=deployments) # pylint: disable=protected-access
 
   vmaster = [auto_deploy_util.AutoDeployment(deployment_name="kf-vmaster-0126-1c1",
-                            manifests_branch="vmaster",
+                            manifests_branch="master",
                             create_time="2020-01-26 04:04:19.267000-08:00"),
-             auto_deploy_util.AutoDeployment(deployment_name="kf-vmaster-0127-082",
-                            manifests_branch="vmaster",
-                            create_time="2020-01-27 04:15:52.111000-08:00"),
              auto_deploy_util.AutoDeployment(deployment_name="kf-vmaster-0127-502",
-                            manifests_branch="vmaster",
+                            manifests_branch="master",
                             create_time="2020-01-26 16:04:13.855000-08:00"),
+             auto_deploy_util.AutoDeployment(deployment_name="kf-vmaster-0127-082",
+                            manifests_branch="master",
+                            create_time="2020-01-27 04:15:52.111000-08:00"),
              ]
   expected = {
     "vmaster": vmaster,
@@ -35,7 +40,7 @@ def test_get_deployments():
   assertions.assert_dicts_equal(dm_reconciler._deployments, expected)# pylint: disable=protected-access
 
 def test_parse_kfdef_url():
-  test_case = collections.namedTuple("test_case", ("url", "expected"))
+  test_case = collections.namedtuple("test_case", ("url", "expected"))
 
   cases = [
     test_case("https://raw.githubusercontent.com/kubeflow/"

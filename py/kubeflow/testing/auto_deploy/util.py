@@ -13,50 +13,6 @@ AUTO_NAME_LABEL = "auto-version-name"
 def is_storage_deployment(name):
   return name.endswith(STORAGE_SUFFIX)
 
-# TODO(jlewi): Do we actually need this anymore?
-class AutoDeploymentName:
-  """A class representing the name of an auto deployed KF instance."""
-
-  _PATTERN = re.compile("kf-(.*)-[a-zA-Z0-9]{1, 10}-[a-zA-Z0-9]{3}")
-  def __init__(self, name="", version=""):
-    # Name for the kf instance
-    self.name = name
-    # The version tag e.g. master
-    self.version = version
-
-  @classmethod
-  def from_deployment_name(cls, name):
-    """Construct the name from the name of a deployment manager name.
-
-    Args:
-      name: The name of a deployment manager name; can be a storage name
-       or the deployment manager config for the cluster.
-
-    Returns:
-      The name or None if its not a valid name
-    """
-    if name.endswith(STORAGE_SUFFIX):
-      name = name[:-len(STORAGE_SUFFIX)]
-
-    m = cls._PATTERN.match(name)
-
-    if not m:
-      return None
-
-    result = AutoDeploymentName()
-    result.name = name
-    result.version = m.group(1)
-
-    return result
-
-  def __eq__(self, other):
-    if self.name != other.name:
-      return False
-    if self.version != other.version:
-      return False
-
-    return True
-
 class AutoDeployment:
   """A class describing an auto deployment."""
 

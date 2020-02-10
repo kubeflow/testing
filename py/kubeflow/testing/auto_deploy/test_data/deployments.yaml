@@ -112,6 +112,10 @@
     value: 331fb9d
   - key: purpose
     value: kf-test-cluster
+  - key: auto-version-name
+    value: vmaster
+  - key: git-manifests-branch
+    value: master
   manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0126-1c1/manifests/manifest-1580040259299
   name: kf-vmaster-0126-1c1
   operation:
@@ -138,6 +142,10 @@
     value: 331fb9d
   - key: purpose
     value: kf-test-cluster
+  - key: auto-version-name
+    value: vmaster
+  - key: git-manifests-branch
+    value: master
   manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0126-1c1-storage/manifests/manifest-1580040258783
   name: kf-vmaster-0126-1c1-storage
   operation:
@@ -164,6 +172,10 @@
     value: 331fb9d
   - key: purpose
     value: kf-test-cluster
+  - key: auto-version-name
+    value: vmaster
+  - key: git-manifests-branch
+    value: master
   manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-082/manifests/manifest-1580127352142
   name: kf-vmaster-0127-082
   operation:
@@ -190,6 +202,10 @@
     value: 331fb9d
   - key: purpose
     value: kf-test-cluster
+  - key: auto-version-name
+    value: vmaster
+  - key: git-manifests-branch
+    value: master
   manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-082-storage/manifests/manifest-1580127351650
   name: kf-vmaster-0127-082-storage
   operation:
@@ -216,6 +232,10 @@
     value: 331fb9d
   - key: purpose
     value: kf-test-cluster
+  - key: auto-version-name
+    value: vmaster
+  - key: git-manifests-branch
+    value: master
   manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-502/manifests/manifest-1580083453886
   name: kf-vmaster-0127-502
   operation:
@@ -242,6 +262,10 @@
     value: 331fb9d
   - key: purpose
     value: kf-test-cluster
+  - key: auto-version-name
+    value: vmaster
+  - key: git-manifests-branch
+    value: master
   manifest: https://www.googleapis.com/deploymentmanager/v2/projects/kubeflow-ci-deployment/global/deployments/kf-vmaster-0127-502-storage/manifests/manifest-1580083453401
   name: kf-vmaster-0127-502-storage
   operation:

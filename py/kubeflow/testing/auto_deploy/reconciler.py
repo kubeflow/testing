@@ -125,6 +125,8 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
     # This is used to make it available to other processes
     self._deployments_dir = None
 
+    self._manifests_client = None
+
   @staticmethod
   def from_config_file(config_path, job_template_path, deployments_dir,
                        local_dir=None):
@@ -209,6 +211,33 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
 
     # TODO(jlewi): We should GC old versions of the file.
 
+  def _get_deployment_zone(self, deployment_name, manifest_name):
+    """Get the zone for a deployment.
+
+    Args:
+      deployment_name: Name of the deployment
+      manifest_name: Name of the manifest
+
+    Returns:
+      zone:
+    """
+    if not self._manifests_client:
+      credentials = GoogleCredentials.get_application_default()
+      dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
+
+      self._manifests_client = manifests = dm.manifests()
+
+    manifests = self._manifests_client
+
+    m = manifests.get(project=self.config['project'],
+                      deployment=deployment_name,
+                      manifest=manifest_name).execute()
+
+    dm_config = yaml.load(m["config"]["content"])
+    zone = dm_config["resources"][0]["properties"]["zone"]
+
+    return zone
+
   def _get_deployments(self, deployments=None):
     """Build a map of all deployments
 
@@ -221,10 +250,6 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
     if not deployments:
       deployments = gcp_util.deployments_iterator(self.config["project"])
 
-    credentials = GoogleCredentials.get_application_default()
-    dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
-
-    manifests = dm.manifests()
     for d in deployments:
       is_auto_deploy = False
       # Use labels to identify auto-deployed instances
@@ -254,15 +279,11 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
 
       dm_manifest_name = d["manifest"].split("/")[-1]
 
-      m = manifests.get(project=self.config['project'], deployment=d['name'],
-                        manifest=dm_manifest_name).execute()
-
-      dm_config = yaml.load(m["config"]["content"])
-      zone = dm_config["resources"][0]["properties"]["zone"]
+      zone = self._get_deployment_zone(d["name"], dm_manifest_name)
 
       context = {
         "deployment_name" : d['name'],
-        "version_name" : d['name'],
+        "version_name" : version_name,
       }
 
       manifests_branch = labels.get(auto_deploy_util.BRANCH_LABEL, "unknown")
