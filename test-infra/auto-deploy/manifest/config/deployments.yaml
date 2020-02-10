@@ -6,7 +6,7 @@
 # Should we define this in the kustomize package because it will be different
 # for different environments and we will want to easily override it?
 project: kubeflow-ci-deployment
-zone: us-central1-a
+zone: us-east1-c
 # Each version specifies a different combination of versions of KF to deploy.
 versions:
   - name: master

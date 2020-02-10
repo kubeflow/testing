@@ -72,6 +72,7 @@ class AutoDeployment:
     # The name of the GCP deployment
     self.deployment_name = deployment_name
     self.labels = labels
+    self.zone = ""
 
     if not self.labels:
       self.labels = {}
@@ -91,7 +92,7 @@ class AutoDeployment:
   def to_dict(self):
     d = {}
 
-    for a in ["manifests_branch", "deployment_name", "labels"]:
+    for a in ["manifests_branch", "deployment_name", "labels", "zone"]:
       d[a] = getattr(self, a)
 
     d["create_time"] = self.create_time.isoformat()

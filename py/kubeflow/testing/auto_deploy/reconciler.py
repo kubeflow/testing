@@ -22,6 +22,8 @@ from kubeflow.testing import kf_logging
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from kubernetes.client import rest
+from googleapiclient import discovery
+from oauth2client.client import GoogleCredentials
 
 # The minimum time to wait before triggering another deployment.
 MIN_TIME_BETWEEN_DEPLOYMENTS = datetime.timedelta(minutes=20)
@@ -219,6 +221,10 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
     if not deployments:
       deployments = gcp_util.deployments_iterator(self.config["project"])
 
+    credentials = GoogleCredentials.get_application_default()
+    dm = discovery.build("deploymentmanager", "v2", credentials=credentials)
+
+    manifests = dm.manifests()
     for d in deployments:
       is_auto_deploy = False
       # Use labels to identify auto-deployed instances
@@ -246,6 +252,14 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
 
       version_name = labels.get(auto_deploy_util.AUTO_NAME_LABEL, "unknown")
 
+      dm_manifest_name = d["manifest"].split("/")[-1]
+
+      m = manifests.get(project=self.config['project'], deployment=d['name'],
+                        manifest=dm_manifest_name).execute()
+
+      dm_config = yaml.load(m["config"]["content"])
+      zone = dm_config["resources"][0]["properties"]["zone"]
+
       context = {
         "deployment_name" : d['name'],
         "version_name" : d['name'],
@@ -258,6 +272,7 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
                                                    create_time=create_time,
                                                    deployment_name=d["name"],
                                                    labels=labels)
+      deployment.zone = zone
       logging.info(f"Found auto deployment={d['name']} for version={version_name}",
                    extra=context)
       self._deployments[version_name] = (self._deployments[version_name] +

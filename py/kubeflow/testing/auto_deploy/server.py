@@ -62,7 +62,8 @@ def auto_deploy_status():
           # TODO(jlewi): We are hardcoding the project and zone.
           "gcloud_command": (f"gcloud --project=kubeflow-ci-deployment "
                              f"container clusters get-credentials "
-                             f"--zone=us-central1-a {d['deployment_name']}")
+                             f"--zone={d['zone']} "
+                             f"{d['deployment_name']}")
         }
         labels = []
         for label_key, label_value in d["labels"].items():
