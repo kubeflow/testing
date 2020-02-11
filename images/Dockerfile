@@ -1,5 +1,7 @@
 # Docker image for running E2E tests using Argo.
-
+#
+# This image is obsolete
+# we should start using Dockerfile.py3 which has python3
 FROM ubuntu:xenial
 MAINTAINER Jeremy Lewi
 

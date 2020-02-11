@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: worker
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: worker
+  serviceName: ""
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: worker
+    spec:
+      containers:
+      - command:
+        - tail
+        - -f
+        - /dev/null
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/gcp-credentials/key.json
+        image: gcr.io/kubeflow-ci/test-worker-py3
+        imagePullPolicy: Always
+        name: test-container
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /mnt/test-data-volume
+          name: nfs-external
+        - mountPath: /secret/gcp-credentials
+          name: gcp-credentials
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: nfs-external
+        persistentVolumeClaim:
+          claimName: nfs-external
+      - name: gcp-credentials
+        secret:
+          defaultMode: 420
+          secretName: kubeflow-testing-credentials
+  updateStrategy:
+    type: RollingUpdate
