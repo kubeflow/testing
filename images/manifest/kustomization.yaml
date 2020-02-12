@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow-test-infra
+namePrefix: dev-
+images:
+- name: gcr.io/kubeflow-ci/test-worker-py3
+resources:
+- statefulset.yaml
