@@ -11,7 +11,8 @@ RUN apt-get update -y && \
 RUN python3.8 -m pip install \
     fire \
     lint \
-    watchdog
+    watchdog \
+    pytest
 
 # Install go
 RUN cd /tmp && \
