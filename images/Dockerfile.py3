@@ -13,7 +13,10 @@ RUN python3.8 -m pip install \
     lint \
     watchdog \
     pytest \
-    kubernetes
+    kubernetes \
+    google-api-python-client-py3 \
+    yq
+    
 
 # Install go
 RUN cd /tmp && \
