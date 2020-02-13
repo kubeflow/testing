@@ -15,7 +15,8 @@ RUN python3.8 -m pip install \
     pytest \
     kubernetes \
     google-api-python-client-py3 \
-    yq
+    yq \
+    google-cloud
     
 
 # Install go
