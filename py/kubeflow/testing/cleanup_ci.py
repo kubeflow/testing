@@ -19,10 +19,14 @@ from kubernetes import client as k8s_client
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
-# See https://github.com/kubeflow/testing/issues/444
-# We are switching to unique names for auto deployments
-# So this matches the new ones.
-AUTO_DEPLOY_PATTERNS = [re.compile(r".*kf-vmaster-(?!n\d\d)")]
+AUTO_DEPLOY_PATTERNS = [
+  re.compile(r".*kf-master-(?!n\d\d)"),
+  re.compile(r".*kf-v1-(?!n\d\d)"),
+  re.compile(r".*kf-vmaster-(?!n\d\d)"), # The legacy pattern for auto-deploy v1
+                                         # We can get rid of it once
+                                         # all the old deployments have been
+                                         # deleted.
+]
 
 E2E_PATTERNS = [re.compile(".*e2e-.*"), re.compile(".*kfctl.*"),
                 re.compile(".*z-.*"), re.compile(".*presubmit.*"),
