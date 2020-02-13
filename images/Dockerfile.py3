@@ -12,7 +12,8 @@ RUN python3.8 -m pip install \
     fire \
     lint \
     watchdog \
-    pytest
+    pytest \
+    kubernetes
 
 # Install go
 RUN cd /tmp && \
