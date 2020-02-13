@@ -14,9 +14,10 @@ RUN python3.8 -m pip install \
     watchdog \
     pytest \
     kubernetes \
-    google-api-python-client-py3 \
     yq \
-    google-cloud
+    google-api-python-client \
+    google-cloud \
+    google-cloud-storage
     
 
 # Install go
