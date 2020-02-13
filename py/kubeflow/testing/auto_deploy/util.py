@@ -1,6 +1,5 @@
 import collections
 from dateutil import parser as date_parser
-import re
 
 STORAGE_SUFFIX = "-storage"
 
