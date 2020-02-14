@@ -350,6 +350,12 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
             extra=self._log_context)
           return
 
+    if os.getenv("JOB_NAMESPACE"):
+      namespace = os.getenv("JOB_NAMESPACE")
+      logging.info(f"Setting job namespace to {namespace}",
+                   extra=self._log_context)
+      job_config["metadata"]["namespace"] = namespace
+
     kfdef_url = _parse_kfdef_url(config[KFDEF_KEY])
 
     # Kubeflow deployment name
