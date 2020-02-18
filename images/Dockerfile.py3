@@ -12,12 +12,14 @@ RUN python3.8 -m pip install \
     fire \
     lint \
     watchdog \
-    pytest \
     kubernetes \
     yq \
     google-api-python-client \
     google-cloud \
-    google-cloud-storage
+    google-cloud-storage \
+    retrying \
+    oauth2client \
+    pytest
     
 
 # Install go
