@@ -19,7 +19,10 @@ RUN python3.8 -m pip install \
     google-cloud-storage \
     retrying \
     oauth2client \
-    pytest
+    pytest \
+    junit-xml \
+    filelock \
+    httplib2
     
 
 # Install go
