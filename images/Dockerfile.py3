@@ -21,8 +21,7 @@ RUN python3.8 -m pip install \
     oauth2client \
     pytest \
     junit-xml \
-    filelock \
-    httplib2
+    filelock
     
 
 # Install go
