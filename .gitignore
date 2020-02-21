@@ -32,3 +32,4 @@ examples/.ipynb_checkpoints/
 
 
 !testing/test-infra/vendor
+**/.cache

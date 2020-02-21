@@ -147,5 +147,4 @@ if __name__ == "__main__":
     datefmt='%Y-%m-%dT%H:%M:%S',
     )
   logging.getLogger().setLevel(logging.INFO)
-  test_cleanup_auto_deployments()
   pytest.main()

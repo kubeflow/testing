@@ -23,6 +23,10 @@ _deployments_dir = None
 
 app = flask.Flask(__name__)
 
+_deployments_dir = None
+
+app =  flask.Flask(__name__)
+
 @app.route("/")
 def auto_deploy_status():
   """Return the status of the auto deployments."""

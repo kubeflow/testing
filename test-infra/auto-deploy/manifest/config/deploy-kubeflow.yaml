@@ -1,0 +1,74 @@
+# This version of the script has been updated to use unique names
+# See https://github.com/kubeflow/testing/issues/444
+# Its also using an init container to check out the code.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: deploy-master-
+  labels:
+    job: deploy-master-oneoff
+    version: master
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      annotations:
+        # side cars can cause jobs to get stuck.
+        sidecar.istio.io/inject: "false"
+      labels:
+        job: deploy-master-oneoff
+        version: master
+    spec:
+      initContainers:
+      - command:
+        - /usr/local/bin/checkout_repos.sh
+        # TOODO(jlewi): We are only using jlewi/testing to pull in changes to create_unique_kf
+        # instance. Once that's submitted we should switch back to master.
+        # Although we should really switch to tekton and use resources.
+        - --depth=all
+        - --repos=kubeflow/kfctl@HEAD,jlewi/testing@auto_update
+        - --src_dir=/src
+        - --links
+        env:
+        - name: PYTHONPATH
+          value: /src/kubeflow/testing/py
+        image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
+        imagePullPolicy: IfNotPresent
+        name: checkout
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /src
+          name: src
+      containers:
+      - name: deploy
+        image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
+        env:
+        # TODO(jlewi): Get rid of /src/jlewi once we change repos to checkout kubeflow/testing
+        - name: PYTHONPATH
+          value: /src/kubeflow/testing/py:/src/jlewi/testing/py
+        # We need to explicitly set the KUBECONFIG variable because that's what our python client uses to determine
+        # whether its an in cluster config or not.
+        - name: KUBECONFIG
+          value: /etc/.kube
+        # Note command is completely overwritten by reconciler
+        command:
+        - python
+        - -m
+        - kubeflow.testing.create_unique_kf_instance
+        - --apps_dir=/src/apps
+        - --kubeflow_repo=/src/kubeflow/kfctl
+        - --name=kf-vmaster-{uid}
+        - --project=kubeflow-ci-deployment
+        - --zone=us-central1-a
+        - --kfctl_config=https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
+        volumeMounts:
+        - mountPath: /src
+          name: src
+      # Rely on workload identity.
+      serviceAccount: default-editor
+      restartPolicy: Never
+      volumes:
+      - name: src
+        emptyDir: {}
