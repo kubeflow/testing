@@ -9,9 +9,19 @@ RUN apt-get update -y && \
     ln -sf /usr/bin/python3.8 /usr/bin/python
 
 RUN python3.8 -m pip install \
+    filelock \
     fire \
+    google-api-python-client \
+    google-cloud \
+    google-cloud-storage \
+    junit-xml \
+    kubernetes \
     lint \
-    watchdog
+    oauth2client \
+    pytest \
+    retrying \
+    watchdog \
+    yq
 
 # Install go
 RUN cd /tmp && \
