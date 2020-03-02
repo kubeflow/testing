@@ -1,5 +1,6 @@
 
 import collections
+import json
 import logging
 import os
 import pytest
@@ -9,6 +10,11 @@ import yaml
 from kubeflow.testing import assertions
 from kubeflow.testing.auto_deploy import reconciler
 from kubeflow.testing.auto_deploy import util as auto_deploy_util
+from kubernetes import client as k8s_client
+
+class Response(object):
+  def __init__(self, data):
+    self.data = data
 
 @mock.patch("kubeflow.testing.auto_deploy.reconciler.Reconciler"
             "._get_deployment_zone")
@@ -38,6 +44,17 @@ def test_get_deployments(mock_zone):
     "vmaster": vmaster,
   }
   assertions.assert_dicts_equal(dm_reconciler._deployments, expected)# pylint: disable=protected-access
+
+def test_job_complete():
+  test_dir = os.path.join(os.path.dirname(__file__), "test_data")
+
+  with open(os.path.join(test_dir, "completed_job.yaml")) as hf:
+    job = yaml.load(hf)
+
+
+  client = k8s_client.ApiClient()
+  j = client.deserialize(Response(json.dumps(job)), k8s_client.V1Job)
+  assert(not reconciler._job_is_running(j)) # pylint: disable=protected-access
 
 def test_parse_kfdef_url():
   test_case = collections.namedtuple("test_case", ("url", "expected"))

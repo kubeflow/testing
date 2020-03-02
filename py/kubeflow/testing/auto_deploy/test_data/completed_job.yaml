@@ -1,0 +1,101 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: "2020-02-26T07:30:53Z"
+  generateName: auto-deploy-v1-
+  labels:
+    auto-version-name: v1
+    git-manifests: 36f99ce
+    git-manifests-branch: v1-0-branch
+    job: deploy-master-oneoff
+    kf-name: kf-v1-0226-6ce
+    version: master
+  name: auto-deploy-v1-gdv2l
+  namespace: auto-deploy
+  resourceVersion: "18371978"
+  selfLink: /apis/batch/v1/namespaces/auto-deploy/jobs/auto-deploy-v1-gdv2l
+  uid: ebd463d4-5869-11ea-8fba-42010a8e00c1
+spec:
+  backoffLimit: 1
+  completions: 1
+  parallelism: 1
+  selector:
+    matchLabels:
+      controller-uid: ebd463d4-5869-11ea-8fba-42010a8e00c1
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      creationTimestamp: null
+      labels:
+        controller-uid: ebd463d4-5869-11ea-8fba-42010a8e00c1
+        job: deploy-master-oneoff
+        job-name: auto-deploy-v1-gdv2l
+        version: master
+    spec:
+      containers:
+      - command:
+        - python
+        - -m
+        - kubeflow.testing.create_unique_kf_instance
+        - --apps_dir=/src/apps
+        - --kfctl_path=https://github.com/kubeflow/kfctl/releases/download/v1.0-rc.3/kfctl_v1.0-rc.2-13-g521fcfe_linux.tar.gz
+        - --kubeflow_repo=
+        - --name=kf-v1-0226-6ce
+        - --project=kubeflow-ci-deployment
+        - --zone=us-east1-c
+        - --kfctl_config=https://raw.githubusercontent.com/kubeflow/manifests/36f99ce/kfdef/kfctl_gcp_iap.v1.0.0.yaml
+        - --labels=git-manifests=36f99ce,git-manifests-branch=v1-0-branch,auto-version-name=v1,kf-name=kf-v1-0226-6ce
+        - --use_self_cert
+        env:
+        - name: PYTHONPATH
+          value: /src/kubeflow/testing/py:/src/jlewi/testing/py
+        - name: KUBECONFIG
+          value: /etc/.kube
+        image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
+        imagePullPolicy: IfNotPresent
+        name: deploy
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /src
+          name: src
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - command:
+        - /usr/local/bin/checkout_repos.sh
+        - --depth=all
+        - --repos=kubeflow/kfctl@HEAD,jlewi/testing@auto_update
+        - --src_dir=/src
+        - --links
+        env:
+        - name: PYTHONPATH
+          value: /src/kubeflow/testing/py
+        image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
+        imagePullPolicy: IfNotPresent
+        name: checkout
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /src
+          name: src
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: default-editor
+      serviceAccountName: default-editor
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: src
+status:
+  completionTime: "2020-02-26T07:40:31Z"
+  conditions:
+  - lastProbeTime: "2020-02-26T07:40:31Z"
+    lastTransitionTime: "2020-02-26T07:40:31Z"
+    status: "True"
+    type: Complete
+  startTime: "2020-02-26T07:30:53Z"
+  succeeded: 1
