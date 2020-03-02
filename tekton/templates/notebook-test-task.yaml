@@ -1,0 +1,31 @@
+# TODO(gabrielwen): Fill in commands to run the test after it's ready.
+# TODO(gabrielwen): Define subsequent steps to collect artifacts.
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: notebook-test
+  namespace: tektoncd
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  inputs:
+    params:
+    - name: notebook-path
+      type: string
+      description: Testing notebook location.
+    - name: testing-cluster-pattern
+      type: string
+      description:
+        Cluster pattern to run the notebook test.
+        Default to be from master branch.
+      default: "kf-master-(?!n\d\d)"
+    resources:
+    - name: examples-repo
+      type: git
+      targetPath: /workspace/src/kubeflow/examples
+    - name: kf-testing-repo
+      type: git
+      targetPath: /workspace/src/kubeflow/testing
+  steps:
+  - name: run-notebook
+    image: gcr.io/kubeflow-ci/test-worker:latest
