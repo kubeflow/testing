@@ -1122,7 +1122,7 @@ def cleanup_deployments(args): # pylint: disable=too-many-statements,too-many-br
   unexpired = []
   expired = []
 
-  for d in deployments.get("deployments", []):
+  for d in deployments:
     if not d.get("insertTime", None):
       logging.warning("Deployment %s doesn't have a deployment time "
                       "skipping it", d["name"])
