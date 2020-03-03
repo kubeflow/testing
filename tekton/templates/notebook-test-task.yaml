@@ -1,4 +1,4 @@
-# TODO(gabrielwen): Fill in commands to run the test after it's ready.
+# TODO(gabrielwen): Fill in ENV
 # TODO(gabrielwen): Define subsequent steps to collect artifacts.
 apiVersion: tekton.dev/v1alpha1
 kind: Task
@@ -18,14 +18,24 @@ spec:
       description:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
-      default: "kf-master-(?!n\d\d)"
+      default: 'kf-master-(?!n\d\d)'
     resources:
     - name: examples-repo
       type: git
-      targetPath: /workspace/src/kubeflow/examples
+      targetPath: src/kubeflow/examples
     - name: kf-testing-repo
       type: git
-      targetPath: /workspace/src/kubeflow/testing
+      targetPath: src/kubeflow/testing
   steps:
   - name: run-notebook
     image: gcr.io/kubeflow-ci/test-worker:latest
+    command:
+    - pytest
+    args:
+    - run_notebook_test.py
+    - --log-cli-level=info
+    - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
+    - --timeout=1800
+    - --junitxml=/workspace/outputs/junit_xgboost-synthetic-test.xml
+    - --notebook_path=/workspace/src/kubeflow/examples/$(inputs.params.notebook-path)
+    workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
