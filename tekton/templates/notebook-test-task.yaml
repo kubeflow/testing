@@ -12,7 +12,9 @@ spec:
     params:
     - name: notebook-path
       type: string
-      description: Testing notebook location.
+      description:
+        Testing notebook location. Should be in the form of
+        {REPO_OWNER}/{REPO}/path/to/notebook.ipynb
     - name: testing-cluster-pattern
       type: string
       description:
@@ -37,5 +39,20 @@ spec:
     - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
     - --timeout=1800
     - --junitxml=/workspace/outputs/junit_xgboost-synthetic-test.xml
-    - --notebook_path=/workspace/src/kubeflow/examples/$(inputs.params.notebook-path)
+    - --notebook_path=$(inputs.params.notebook-path)
     workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
+    env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+    - name: TEST_TARGET_NAME
+      value: notebooks
+    - name: REPO_OWNER
+      value: kubeflow
+    - name: PROW_JOB_ID
+      value: c5e85454-5d78-11ea-b1ef-abcdefg
+    - name: JOB_TYPE
+      value: manual
+    - name: JOB_NAME
+      value: kubeflow-manual-examples
+    - name: REPO_NAME
+      value: examples
