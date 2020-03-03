@@ -1,4 +1,3 @@
-# TODO(gabrielwen): Fill in ENV
 # TODO(gabrielwen): Define subsequent steps to collect artifacts.
 apiVersion: tekton.dev/v1alpha1
 kind: Task
@@ -29,6 +28,30 @@ spec:
       type: git
       targetPath: src/kubeflow/testing
   steps:
+  - name: get-credential
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    command:
+    - python3
+    args:
+    - -m
+    - kubeflow.testing.get_kf_testing_cluster
+    - --base=$(inputs.params.testing-cluster-pattern)
+    - get-credentials
+    env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+    - name: TEST_TARGET_NAME
+      value: notebooks
+    - name: REPO_OWNER
+      value: kubeflow
+    - name: PROW_JOB_ID
+      value: c5e85454-5d78-11ea-b1ef-abcdefg
+    - name: JOB_TYPE
+      value: manual
+    - name: JOB_NAME
+      value: kubeflow-manual-examples
+    - name: REPO_NAME
+      value: examples
   - name: run-notebook
     image: gcr.io/kubeflow-ci/test-worker:latest
     command:
