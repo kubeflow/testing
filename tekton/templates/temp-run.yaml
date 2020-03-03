@@ -40,3 +40,15 @@ spec:
       params:
       - name: notebook-path
         value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
+    - name: mnist-gcp
+      resources:
+        inputs:
+        - name: examples-repo
+          resource: examples-repo
+        - name: kf-testing-repo
+          resource: testing-repo
+      taskRef:
+        name: notebook-test
+      params:
+      - name: notebook-path
+        value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
