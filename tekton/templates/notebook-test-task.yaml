@@ -20,6 +20,31 @@ spec:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
       default: 'kf-master-(?!n\d\d)'
+    # params below are for prow jobs.
+    - name: test-target-name
+      type: string
+      description:
+        Test target name from Prow ENV. Should be provided at runtime.
+    - name: repo-owner
+      type: string
+      description:
+        Testing repo owner from Prow ENV.
+    - name: prow-job-id
+      type: string
+      description:
+        Prow job ID from Prow ENV.
+    - name: job-type
+      type: string
+      description:
+        Job type from Prow ENV.
+    - name: job-name
+      type: string
+      description:
+        Job name from Prow ENV.
+    - name: repo-name
+      type: string
+      description:
+        Testing repo name from Prow ENV.
     resources:
     - name: examples-repo
       type: git
@@ -41,17 +66,17 @@ spec:
     - name: PYTHONPATH
       value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
     - name: TEST_TARGET_NAME
-      value: notebooks
+      value: $(inputs.params.test-target-name)
     - name: REPO_OWNER
-      value: kubeflow
+      value: $(inputs.params.repo-owner)
     - name: PROW_JOB_ID
-      value: c5e85454-5d78-11ea-b1ef-abcdefg
+      value: $(inputs.params.prow-job-id)
     - name: JOB_TYPE
-      value: manual
+      value: $(inputs.params.job-type)
     - name: JOB_NAME
-      value: kubeflow-manual-examples
+      value: $(inputs.params.job-name)
     - name: REPO_NAME
-      value: examples
+      value: $(inputs.params.repo-name)
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials/key.json
     volumeMounts:
@@ -74,17 +99,17 @@ spec:
     - name: PYTHONPATH
       value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
     - name: TEST_TARGET_NAME
-      value: notebooks
+      value: $(inputs.params.test-target-name)
     - name: REPO_OWNER
-      value: kubeflow
+      value: $(inputs.params.repo-owner)
     - name: PROW_JOB_ID
-      value: c5e85454-5d78-11ea-b1ef-abcdefg
+      value: $(inputs.params.prow-job-id)
     - name: JOB_TYPE
-      value: manual
+      value: $(inputs.params.job-type)
     - name: JOB_NAME
-      value: kubeflow-manual-examples
+      value: $(inputs.params.job-name)
     - name: REPO_NAME
-      value: examples
+      value: $(inputs.params.repo-name)
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials/key.json
     volumeMounts:
