@@ -1,4 +1,5 @@
 # TODO(gabrielwen): Define subsequent steps to collect artifacts.
+# TODO(gabrielwen): Move prow ENVs to configmaps.
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
