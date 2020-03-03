@@ -52,6 +52,12 @@ spec:
       value: kubeflow-manual-examples
     - name: REPO_NAME
       value: examples
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/gcp-credentials/key.json
+    volumeMounts:
+    - name: gcp-credentials
+      readOnly: true
+      mountPath: /secret/gcp-credentials
   - name: run-notebook
     image: gcr.io/kubeflow-ci/test-worker:latest
     command:
@@ -79,3 +85,7 @@ spec:
       value: kubeflow-manual-examples
     - name: REPO_NAME
       value: examples
+  volumes:
+  - name: gcp-credentials
+    secret:
+      secretName: gcp-credentials
