@@ -45,6 +45,14 @@ spec:
       type: string
       description:
         Testing repo name from Prow ENV.
+    - name: pull-number
+      type: string
+      description:
+        Pull number from Prow ENV.
+    - name: build-id
+      type: string
+      description:
+        BUILD_ID from Prow ENV.
     resources:
     - name: examples-repo
       type: git
@@ -110,6 +118,10 @@ spec:
       value: $(inputs.params.job-name)
     - name: REPO_NAME
       value: $(inputs.params.repo-name)
+    - name: PULL_NUMBER
+      value: $(inputs.params.pull-number)
+    - name: BUILD_ID
+      value: $(inputs.params.build-id)
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials/key.json
     volumeMounts:
