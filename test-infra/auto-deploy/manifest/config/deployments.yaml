@@ -11,9 +11,9 @@ zone: us-east1-c
 versions:
   - name: master
     kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
-    kfctlUrl: https://github.com/kubeflow/kfctl/releases/download/v1.0-rc.3/kfctl_v1.0-rc.2-13-g521fcfe_linux.tar.gz
+    kfctlUrl: https://github.com/kubeflow/kfctl/releases/download/v1.0/kfctl_v1.0-0-g94c35cf_linux.tar.gz
   - name: v1
     # TODO(jlewi): Change to the version on the v1.0 branch once it exists; otherwise we won't redeploy on changes
     # to the manifests
     kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/v1.0-branch/kfdef/kfctl_gcp_iap.v1.0.0.yaml
-    kfctlUrl: https://github.com/kubeflow/kfctl/releases/download/v1.0-rc.3/kfctl_v1.0-rc.2-13-g521fcfe_linux.tar.gz
+    kfctlUrl: https://github.com/kubeflow/kfctl/releases/download/v1.0/kfctl_v1.0-0-g94c35cf_linux.tar.gz
