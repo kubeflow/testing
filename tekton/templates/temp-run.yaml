@@ -20,7 +20,7 @@ spec:
       - name: url
         value: https://github.com/kubeflow/testing.git
       - name: revision
-        value: master
+        value: refs/pull/621/head
   pipelineSpec:
     resources:
     - name: examples-repo
