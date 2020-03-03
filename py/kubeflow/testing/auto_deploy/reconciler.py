@@ -87,7 +87,7 @@ def _job_is_running(j):
     return True
 
   for c in conditions[::-1]:
-    if c.type.lower() in ["succeeded", "failed"]:
+    if c.type.lower() in ["succeeded", "failed", "complete"]:
       if c.status.lower() in ["true"]:
         return False
 
