@@ -19,6 +19,7 @@ import yaml
 from googleapiclient import discovery
 from kubeflow.testing import util
 from oauth2client.client import GoogleCredentials
+from retrying import retry
 
 # Default pattern to match auto deployed clusters from master
 DEFAULT_PATTERN = r"kf-master-(?!n\d\d)"
@@ -205,8 +206,12 @@ def get_latest_credential(project="kubeflow-ci-deployment",
   dm = get_latest(project=project, testing_label=testing_label,
                   base_name=base_name, field="all")
 
-  util.run(["gcloud", "container", "clusters", "get-credentials", dm["name"],
-            "--project="+project, "--zone="+dm["zone"]])
+  # This call may be flaky due to timeout.
+  @retry(stop_max_attempt_number=10, wait_fixed=5000)
+  def run_get_credentials():
+    util.run(["gcloud", "container", "clusters", "get-credentials", dm["name"],
+              "--project="+project, "--zone="+dm["zone"]])
+  run_get_credentials()
 
 def list_dms(args):
   logging.info("Calling list deployments.")
