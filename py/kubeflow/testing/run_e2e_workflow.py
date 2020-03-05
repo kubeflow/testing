@@ -384,19 +384,31 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
               {"name": "revision", "value": "refs/pull/{0}/head".format(os.getenv("PULL_NUMBER"))},
             ]
             continue
-      k8s_co = k8s_client.CustomObjectsApi()
-      tekton_run_result = k8s_co.create_namespaced_custom_object(
-        group=group,
-        version=version,
-        namespace=wf_result["metadata"]["namespace"],
-        plural='pipelineruns',
-        body=wf_result)
-      logging.info("Created workflow:\n%s", yaml.safe_dump(tekton_run_result))
+      group, version = tekton_run['apiVersion'].split('/')
+      try:
+        # Currently only tekton tests run in kf-ci-v1.
+        util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
+        util.load_kube_config()
 
-      ui_url = ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
-              "tektoncd/pipelineruns/{0}".format(workflow_name))
-      ui_urls[workflow_name] = ui_url
-      logging.info("URL for workflow: %s", ui_url)
+        k8s_co = k8s_client.CustomObjectsApi()
+        tekton_run_result = k8s_co.create_namespaced_custom_object(
+          group=group,
+          version=version,
+          namespace=tekton_run["metadata"]["namespace"],
+          plural='pipelineruns',
+          body=tekton_run)
+        logging.info("Created workflow:\n%s", yaml.safe_dump(tekton_run_result))
+
+        ui_url = ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
+                "tektoncd/pipelineruns/{0}".format(workflow_name))
+        ui_urls[workflow_name] = ui_url
+        logging.info("URL for workflow: %s", ui_url)
+      except Exception as e:
+        pass
+      finally:
+        # Restore kubectl
+        util.configure_kubectl(args.project, args.zone, args.cluster)
+        util.load_kube_config()
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
