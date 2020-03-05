@@ -378,8 +378,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         for p in r["resourceSpec"].get("params", []):
           if p.get("name", "") == "url" and p.get("value", "") == repo_url:
             r["resourceSpec"]["params"] = [
-              {"name": url, "value": repo_url},
-              {"name" revision, "value": "refs/pull/{0}/head".format(os.getenv("PULL_NUMBER"))},
+              {"name": "url", "value": repo_url},
+              {"name": "revision", "value": "refs/pull/{0}/head".format(os.getenv("PULL_NUMBER"))},
             ]
             continue
       k8s_co = k8s_client.CustomObjectsApi()
