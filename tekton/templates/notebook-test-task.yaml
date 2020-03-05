@@ -21,7 +21,7 @@ spec:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
       default: 'kf-master-(?!n\d\d)'
-    # params below are for prow jobs.
+    # params below are from prow jobs.
     - name: test-target-name
       type: string
       description:

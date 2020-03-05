@@ -344,6 +344,42 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
               "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
+    elif w.tekton_run:
+      tekton_run = None
+      with open(w.tekton_run) as config_f:
+        tekton_run = yaml.load(config_f)
+      if tekton_run.get("kind", "") != "PipelineRun":
+        logging.error("Invalid Tekton config kind: %s", tekton_run.get("kind", ""))
+        pass
+      test_target_name = tekton_run["metadata"].get("name", "")
+      if not test_target_name:
+        test_target_name = workflow_name
+      logging.info("Reading Tekton PipelineRun config: %s", test_target_name)
+      tekton_run["metadata"]["name"] = workflow_name
+      for t in tekton_run.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
+        if not "params" in t:
+          t["params"] = {}
+        t["params"]["test-target-name"] = test_target_name
+        t["params"]["repo-owner"] = repo_owner
+        t["params"]["prow-job-id"] = os.getenv("PROW_JOB_ID")
+        t["params"]["job-type"] = job_type
+        t["params"]["job-name"] = os.getenv("JOB_NAME")
+        t["params"]["repo-name"] = repo_name
+        t["params"]["pull-number"] = os.getenv("PULL_NUMBER")
+        t["params"]["build-id"] = os.getenv("BUILD_NUMBER")
+      k8s_co = k8s_client.CustomObjectsApi()
+      tekton_run_result = k8s_co.create_namespaced_custom_object(
+        group=group,
+        version=version,
+        namespace=wf_result["metadata"]["namespace"],
+        plural='pipelineruns',
+        body=wf_result)
+      logging.info("Created workflow:\n%s", yaml.safe_dump(tekton_run_result))
+
+      ui_url = ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
+              "tektoncd/pipelineruns/{0}".format(workflow_name))
+      ui_urls[workflow_name] = ui_url
+      logging.info("URL for workflow: %s", ui_url)
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
