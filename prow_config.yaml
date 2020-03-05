@@ -19,6 +19,6 @@ workflows:
     kwargs: {}
 
   - tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
-    name: tekton-prow-test
+    name: tekton-prow
     include_dirs:
     - py/*

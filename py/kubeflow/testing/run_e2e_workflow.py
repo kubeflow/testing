@@ -287,9 +287,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # are submitting jobs manually for testing/debugging. Since the prow should
     # vend unique build numbers for each job.
     workflow_name += "-{0}".format(salt)
-    if w.tekton_run:
-      # Tekton requires the name to be within 63 characters.
-      workflow_name = workflow_name.lstrip(os.getenv("JOB_NAME"))
     workflow_names.append(workflow_name)
 
     # check if ks workflow and run
