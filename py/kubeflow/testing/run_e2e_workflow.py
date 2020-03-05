@@ -350,12 +350,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         tekton_run = yaml.load(config_f)
       if tekton_run.get("kind", "") != "PipelineRun":
         logging.error("Invalid Tekton config kind: %s", tekton_run.get("kind", ""))
-        pass
+        continue
       test_target_name = tekton_run["metadata"].get("name", "")
       if not test_target_name:
         test_target_name = workflow_name
       logging.info("Reading Tekton PipelineRun config: %s", test_target_name)
       tekton_run["metadata"]["name"] = workflow_name
+
+      # Fill in prow ENVs.
       for t in tekton_run.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
         if not "params" in t:
           t["params"] = {}
@@ -367,6 +369,19 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         t["params"]["repo-name"] = repo_name
         t["params"]["pull-number"] = os.getenv("PULL_NUMBER")
         t["params"]["build-id"] = os.getenv("BUILD_NUMBER")
+
+      # Update ref to repo under test.
+      repo_url = "https://github.com/{0}/{1}.git".format(repo_owner, repo_name)
+      for r in tekton_run.get("spec", {}).get("resources", []):
+        if not "resourceSpec" in r or r["resourceSpec"].get("type", "") != "git":
+          continue
+        for p in r["resourceSpec"].get("params", []):
+          if p.get("name", "") == "url" and p.get("value", "") == repo_url:
+            r["resourceSpec"]["params"] = [
+              {"name": url, "value": repo_url},
+              {"name" revision, "value": "refs/pull/{0}/head".format(os.getenv("PULL_NUMBER"))},
+            ]
+            continue
       k8s_co = k8s_client.CustomObjectsApi()
       tekton_run_result = k8s_co.create_namespaced_custom_object(
         group=group,
