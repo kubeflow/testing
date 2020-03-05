@@ -360,15 +360,17 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       # Fill in prow ENVs.
       for t in tekton_run.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
         if not "params" in t:
-          t["params"] = {}
-        t["params"]["test-target-name"] = test_target_name
-        t["params"]["repo-owner"] = repo_owner
-        t["params"]["prow-job-id"] = os.getenv("PROW_JOB_ID")
-        t["params"]["job-type"] = job_type
-        t["params"]["job-name"] = os.getenv("JOB_NAME")
-        t["params"]["repo-name"] = repo_name
-        t["params"]["pull-number"] = os.getenv("PULL_NUMBER")
-        t["params"]["build-id"] = os.getenv("BUILD_NUMBER")
+          t["params"] = []
+        t["params"].extend([
+          {"name": "test-target-name", "value": test_target_name},
+          {"name": "repo-owner", "value": repo_owner},
+          {"name": "repo-name", "value": repo_name},
+          {"name": "job-type", "value": job_type},
+          {"name": "job-name", "value": os.getenv("JOB_NAME")},
+          {"name": "prow-job-id", "value": os.getenv("PROW_JOB_ID")},
+          {"name": "pull-number", "value": os.getenv("PULL_NUMBER")},
+          {"name": "build-id", "value": os.getenv("BUILD_NUMBER")},
+        ])
 
       # Update ref to repo under test.
       repo_url = "https://github.com/{0}/{1}.git".format(repo_owner, repo_name)
