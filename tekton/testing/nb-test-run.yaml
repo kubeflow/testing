@@ -12,7 +12,7 @@ spec:
       - name: url
         value: https://github.com/kubeflow/examples.git
       - name: revision
-        value: /refs/pull/764/head
+        value: refs/pull/764/head
   - name: testing-repo
     resourceSpec:
       type: git
