@@ -101,6 +101,7 @@ class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
     self.job_types = data.get("job_types", [])
     self.include_dirs = data.get("include_dirs", [])
     self.app_dir = os.path.join(root_dir, data.get("app_dir")) if data.get("app_dir") else ""
+    self.tekton_run = os.path.join(root_dir, data.get("tekton_run")) if data.get("tekton_run") else ""
     self.component = data.get("component")
     self.params = data.get("params", {})
     self.py_func = data.get("py_func")
