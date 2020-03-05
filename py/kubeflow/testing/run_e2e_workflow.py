@@ -404,7 +404,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         ui_urls[workflow_name] = ui_url
         logging.info("URL for workflow: %s", ui_url)
       except Exception as e:
-        pass
+        logging.error("Error when starting Tekton workflow: %s", e)
       finally:
         # Restore kubectl
         util.configure_kubectl(args.project, args.zone, args.cluster)
