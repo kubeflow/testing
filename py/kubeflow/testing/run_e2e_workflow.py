@@ -63,6 +63,7 @@ from kubernetes import client as k8s_client
 from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
+from kubeflow.testing import tekton_client
 from kubeflow.testing import util
 import uuid
 import subprocess
@@ -75,6 +76,10 @@ import yaml
 # to group related tests
 # https://github.com/kubernetes/test-infra/tree/master/testgrid#grouping-tests
 TEST_TARGET_ARG_NAME = "test_target_name"
+
+# Tekton pipelines run on different cluster.
+TEKTON_CLUSTER_NAME = "kf-ci-v1"
+TEKTON_CLUSTER_ZONE = "us-east1-d"
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
@@ -101,6 +106,10 @@ class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
     self.job_types = data.get("job_types", [])
     self.include_dirs = data.get("include_dirs", [])
     self.app_dir = os.path.join(root_dir, data.get("app_dir")) if data.get("app_dir") else ""
+    self.tekton_run = os.path.join(root_dir, data.get("tekton_run")) if data.get("tekton_run") else ""
+    self.tekton_params = data.get("tekton_params", [])
+    self.tekton_teardown = os.path.join(root_dir, data.get("tekton_teardown")) if data.get("tekton_teardown") else ""
+    self.tekton_teardown_params = data.get("tekton_teardown_params", [])
     self.component = data.get("component")
     self.params = data.get("params", {})
     self.py_func = data.get("py_func")
@@ -229,7 +238,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   util.configure_kubectl(args.project, args.zone, args.cluster)
   util.load_kube_config()
 
+  tekton_runner = tekton_client.TektonRunner()
   workflow_names = []
+  tkn_names = []
+  tkn_cleanup_args = []
   ui_urls = {}
 
   for w in workflows: # pylint: disable=too-many-nested-blocks
@@ -286,7 +298,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # are submitting jobs manually for testing/debugging. Since the prow should
     # vend unique build numbers for each job.
     workflow_name += "-{0}".format(salt)
-    workflow_names.append(workflow_name)
+    if w.tekton_run:
+      tkn_names.append(workflow_name)
+    else:
+      workflow_names.append(workflow_name)
 
     # check if ks workflow and run
     if w.app_dir:
@@ -343,6 +358,26 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
               "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
+    elif w.tekton_run:
+      pipeline_runner = tekton_client.PipelineRunner(
+          workflow_name,
+          w.tekton_params,
+          w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
+          w.tekton_run,
+          args.bucket)
+      if w.tekton_teardown:
+        teardown_w_name = "{name}-teardown-{salt}".format(
+            name=w.name,
+            salt=uuid.uuid4().hex[0:9])
+        logging.info("Appending teardown process %s for %s", teardown_w_name,
+                     workflow_name)
+        pipeline_runner.append_teardown(tekton_client.PipelineRunner(
+          teardown_w_name,
+          w.tekton_teardown_params,
+          w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
+          w.tekton_teardown,
+          args.bucket))
+      tekton_runner.append(pipeline_runner)
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
@@ -393,6 +428,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
 
+  ui_urls.update(tekton_runner.run(
+      tekton_client.ClusterInfo(args.project,
+                                TEKTON_CLUSTER_ZONE,
+                                TEKTON_CLUSTER_NAME),
+      tekton_client.ClusterInfo(args.project, args.zone, args.cluster)))
   # We delay creating started.json until we know the Argo workflow URLs
   create_started_file(args.bucket, ui_urls)
 
@@ -400,12 +440,16 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   workflow_phase = {}
   workflow_status_yamls = {}
   results = []
+  tekton_results = []
   try:
     results = argo_client.wait_for_workflows(
       get_namespace(args), workflow_names,
       timeout=datetime.timedelta(minutes=180),
       status_callback=argo_client.log_status
     )
+    util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
+    util.load_kube_config()
+    tekton_results = tekton_runner.join()
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
     # We explicitly log any exceptions so that they will be captured in the
@@ -413,14 +457,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     logging.exception("Exception occurred: %s", e)
     results = e.workflow_results
     raise
+  except Exception as e:
+    logging.exception("Other exception: %s", e)
+    raise
   finally:
+    util.configure_kubectl(args.project, args.zone, args.cluster)
+    util.load_kube_config()
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
-    # Upload logs to GCS. No logs after this point will appear in the
-    # file in gcs
-    file_handler.flush()
-    util.upload_file_to_gcs(
-      file_handler.baseFilename,
-      os.path.join(prow_artifacts_dir, "build-log.txt"))
 
     # Upload workflow status to GCS.
     for r in results:
@@ -436,6 +479,25 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         util.upload_to_gcs(
           wf_status,
           os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
+
+    for r in tekton_results:
+      condition = "Failed"
+      name = r.get("metadata", {}).get("name")
+      if r.get("status", {}).get("conditions", []):
+        condition = r["status"]["conditions"][0].get("reason", "Failed")
+      workflow_phase[name] = condition
+      workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
+      if condition != "Succeeded":
+        workflow_success = False
+      logging.info("Workflow %s/%s finished phase: %s",
+                   args.tekton_namespace, name, condition)
+
+    # Upload logs to GCS. No logs after this point will appear in the
+    # file in gcs
+    file_handler.flush()
+    util.upload_file_to_gcs(
+      file_handler.baseFilename,
+      os.path.join(prow_artifacts_dir, "build-log.txt"))
 
     all_tests_success = prow_artifacts.finalize_prow_job(
       args.bucket, workflow_success, workflow_phase, ui_urls)
@@ -495,6 +557,12 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     default=None,
     type=str,
     help="Optional namespace to use")
+
+  parser.add_argument(
+    "--tekton_namespace",
+    type=str,
+    default="tektoncd",
+    help="Optional Tekton namespace to use")
 
   #############################################################################
   # Process the command line arguments.

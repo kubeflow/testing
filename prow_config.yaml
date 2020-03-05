@@ -13,7 +13,29 @@ workflows:
     params:
       workflowName: skipmeplease
 
-  # Run unittests 
+  # Run unittests
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
     name: py-unittests
     kwargs: {}
+
+  # Demo purpose change to run Tekton pipelines on Prow.
+  - tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
+    tekton_teardown: kubeflow/testing/tekton/testing/dummy-teardown-run.yaml
+    tekton_teardown_params:
+    - name: utter
+      value: foo
+    name: tekton-master
+    include_dirs:
+    - py/*
+
+  - tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
+    tekton_params:
+    - name: testing-cluster-pattern
+      value: 'kf-v1-(?!n\d\d)'
+    tekton_teardown: kubeflow/testing/tekton/testing/dummy-teardown-run.yaml
+    tekton_teardown_params:
+    - name: utter
+      value: bar
+    name: tekton-v1
+    include_dirs:
+    - py/*
