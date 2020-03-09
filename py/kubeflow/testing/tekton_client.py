@@ -106,7 +106,9 @@ def get_namespaced_custom_object_with_retries(namespace, name):
     GROUP, VERSION, namespace, PLURAL, name)
 
 def get_namespaced_custom_object(namespace, name):
+  logging.info("GG TEST1")
   client = k8s_client.ApiClient()
+  logging.info("GG TEST2")
   crd_api = k8s_client.CustomObectsApi(client)
   logging.info("Listing custom objet %s: %s/%s in %s", PLURAL, GROUP, VERSION, namespace)
   l = crd_api.list_namespaced_custom_object(GROUP, VERSION, namespace, PLURAL)
