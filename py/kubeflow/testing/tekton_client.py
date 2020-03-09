@@ -5,6 +5,7 @@ import logging
 import json
 import six
 import datetime
+import pprint
 
 if six.PY3:
   import http
@@ -112,6 +113,7 @@ def wait_for_workflows(namespace, names):
     try:
       logging.info("Waiting for Tekton Pipelinerun: %s/%s", namespace, n)
       result = get_namespaced_custom_object_with_retries(namespace, n)
-      logging.info("GG TEST:\n%s", result)
+      r = pprint.pformat(result)
+      logging.info("GG TEST:\n%s", r)
     except Exception as e:
       logging.info("GG ERR: %s", e)
