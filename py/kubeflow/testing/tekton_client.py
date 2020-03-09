@@ -105,8 +105,16 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   return crd_api.get_namespaced_custom_object(
     GROUP, VERSION, namespace, PLURAL, name)
 
+def get_namespaced_custom_object(namespace, name):
+  client = k8s_client.ApiClient()
+  crd_api = k8s_client.CustomObectsApi(client)
+  logging.info("Listing custom objet %s: %s/%s in %s", PLURAL, GROUP, VERSION, namespace)
+  l = crd_api.list_namespaced_custom_object(GROUP, VERSION, namespace, PLURAL)
+  logging.info("GG TEST:\n%s", l)
+
 def wait_for_workflows(namespace, names):
-  for n in names:
-    logging.info("Waiting for Tekton Pipelinerun: %s/%s", namespace, n)
-    result = get_namespaced_custom_object_with_retries(namespace, n)
-    logging.info("GG TEST:\n%s", result)
+  get_namespaced_custom_object(namespace, names[0])
+  # for n in names:
+  #   logging.info("Waiting for Tekton Pipelinerun: %s/%s", namespace, n)
+  #   result = get_namespaced_custom_object_with_retries(namespace, n)
+  #   logging.info("GG TEST:\n%s", result)
