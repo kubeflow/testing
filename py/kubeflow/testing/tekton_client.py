@@ -40,6 +40,7 @@ def handle_retriable_exception(exception):
     # store it in HTTP response body
     # see: https://github.com/kubernetes-client/python/blob/5e512ff564c244c50cab780d821542ed56aa965a/kubernetes/client/rest.py#L289  # pylint: disable=line-too-long
     code = None
+    logging.info("Tekton client: handling retriable exception: %s", exception)
     if exception.body:
       if isinstance(exception.body, six.string_types):
         body = {}
