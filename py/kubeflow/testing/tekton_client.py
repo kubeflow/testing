@@ -104,6 +104,9 @@ def get_namespaced_custom_object_with_retries(namespace, name):
 
 def wait_for_workflows(namespace, names):
   for n in names:
-    logging.info("Waiting for Tekton Pipelinerun: %s/%s", namespace, n)
-    result = get_namespaced_custom_object_with_retries(namespace, n)
-    logging.info("GG TEST:\n%s", result)
+    try:
+      logging.info("Waiting for Tekton Pipelinerun: %s/%s", namespace, n)
+      result = get_namespaced_custom_object_with_retries(namespace, n)
+      logging.info("GG TEST:\n%s", result)
+    except Exception as e:
+      logging.info("GG ERR: %s", e)
