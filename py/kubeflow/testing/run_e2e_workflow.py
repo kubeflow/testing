@@ -571,7 +571,6 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
   parser.add_argument(
     "--tekton_namespace",
-    default=None,
     type=str,
     default="tektoncd",
     help="Optional Tekton namespace to use")
