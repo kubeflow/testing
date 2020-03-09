@@ -40,6 +40,8 @@ spec:
       params:
       - name: notebook-path
         value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
+      - name: junit-name
+        value: xgboost-synthetic
     - name: mnist-gcp
       resources:
         inputs:
@@ -52,3 +54,5 @@ spec:
       params:
       - name: notebook-path
         value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
+      - name: junit-name
+        value: mnist-gcp

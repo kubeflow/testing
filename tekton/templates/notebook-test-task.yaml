@@ -21,6 +21,10 @@ spec:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
       default: 'kf-master-(?!n\d\d)'
+    - name: junit-name
+      type: string
+      description:
+        Test JUNIT name, used for artifatcts.
     # params below are from prow jobs.
     - name: test-target-name
       type: string
@@ -101,7 +105,7 @@ spec:
     - --log-cli-level=info
     - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
     - --timeout=1800
-    - --junitxml=/workspace/outputs/junit_xgboost-synthetic-test.xml
+    - --junitxml=/workspace/outputs/artifacts/$(inputs.params.junit-name)/junit_run-notebook.xml
     - --notebook_path=$(inputs.params.notebook-path)
     workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
     env:
@@ -129,14 +133,41 @@ spec:
     - name: gcp-credentials
       readOnly: true
       mountPath: /secret/gcp-credentials
-  - name: debugging
+  - name: copy-artifacts
     image: gcr.io/kubeflow-ci/test-worker:latest
     command:
-    - tail
+    - python
     args:
-    - -f
-    - /dev/null
+    - -m
+    - kubeflow.testing.prow_artifacts
+    - --artifacts_dir=/workspace/outputs
+    - copy_artifacts
     workingDir: /workspace
+    env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+    - name: TEST_TARGET_NAME
+      value: $(inputs.params.test-target-name)
+    - name: REPO_OWNER
+      value: $(inputs.params.repo-owner)
+    - name: PROW_JOB_ID
+      value: $(inputs.params.prow-job-id)
+    - name: JOB_TYPE
+      value: $(inputs.params.job-type)
+    - name: JOB_NAME
+      value: $(inputs.params.job-name)
+    - name: REPO_NAME
+      value: $(inputs.params.repo-name)
+    - name: PULL_NUMBER
+      value: $(inputs.params.pull-number)
+    - name: BUILD_ID
+      value: $(inputs.params.build-id)
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/gcp-credentials/key.json
+    volumeMounts:
+    - name: gcp-credentials
+      readOnly: true
+      mountPath: /secret/gcp-credentials
   volumes:
   - name: gcp-credentials
     secret:
