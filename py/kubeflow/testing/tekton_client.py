@@ -85,8 +85,7 @@ def handle_retriable_exception(exception):
 # https://github.com/kubeflow/testing/issues/169
 # https://github.com/kubeflow/testing/issues/171
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
-       stop_max_delay=5*60*1000,
-       retry_on_exception=handle_retriable_exception)
+       stop_max_delay=5*60*1000)
 def get_namespaced_custom_object_with_retries(namespace, name):
   """Call get_namespaced_customer_object API with retries.
   Args:
@@ -98,10 +97,15 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   # tokens.
   # TODO(richardsliu): Remove this workaround when the k8s client issue
   # is resolved.
-  client = k8s_client.ApiClient()
-  crd_api = k8s_client.CustomObectsApi(client)
-  return crd_api.get_namespaced_custom_object(
-    GROUP, VERSION, namespace, PLURAL, name)
+  try:
+    client = k8s_client.ApiClient()
+    crd_api = k8s_client.CustomObectsApi(client)
+    result = crd_api.get_namespaced_custom_object(
+      GROUP, VERSION, namespace, PLURAL, name)
+    return result
+  except Exception as e:
+    logging.info("Get custom object error: %s", e)
+    raise
 
 def wait_for_workflows(namespace, names):
   for n in names:
