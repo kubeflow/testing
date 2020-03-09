@@ -99,25 +99,11 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   # is resolved.
   client = k8s_client.ApiClient()
   crd_api = k8s_client.CustomObectsApi(client)
-  logging.info("Listing custom objet %s: %s/%s in %s", PLURAL, GROUP, VERSION, namespace)
-  l = crd_api.list_namespaced_custom_object(GROUP, VERSION, namespace, PLURAL)
-  logging.info("GG TEST:\n%s", l)
   return crd_api.get_namespaced_custom_object(
     GROUP, VERSION, namespace, PLURAL, name)
 
-def get_namespaced_custom_object(namespace, name):
-  client = k8s_client.ApiClient()
-  crd_api = k8s_client.CustomObjectsApi(client)
-  logging.info("Listing custom objet %s: %s/%s in %s", PLURAL, GROUP, VERSION, namespace)
-  try:
-    l = crd_api.list_namespaced_custom_object(GROUP, VERSION, namespace, PLURAL)
-    logging.info("GG TEST:\n%s", l)
-  except Exception as e:
-    logging.info("GG ERROR: %s", e)
-
 def wait_for_workflows(namespace, names):
-  get_namespaced_custom_object(namespace, names[0])
-  # for n in names:
-  #   logging.info("Waiting for Tekton Pipelinerun: %s/%s", namespace, n)
-  #   result = get_namespaced_custom_object_with_retries(namespace, n)
-  #   logging.info("GG TEST:\n%s", result)
+  for n in names:
+    logging.info("Waiting for Tekton Pipelinerun: %s/%s", namespace, n)
+    result = get_namespaced_custom_object_with_retries(namespace, n)
+    logging.info("GG TEST:\n%s", result)
