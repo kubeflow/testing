@@ -478,6 +478,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       status_callback=argo_client.log_status
     )
     # TODO(gabrielwen): Finish this.
+    util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
+    util.load_kube_config()
     tekton_client.wait_for_workflows(args.tekton_namespace, tkn_names)
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
@@ -487,6 +489,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     results = e.workflow_results
     raise
   finally:
+    util.configure_kubectl(args.project, args.zone, args.cluster)
+    util.load_kube_config()
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
