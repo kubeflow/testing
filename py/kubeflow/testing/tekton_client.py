@@ -20,7 +20,6 @@ from kubeflow.testing import util # pylint: disable=wrong-import-position
 GROUP = "tekton.dev"
 VERSION = "v1alpha1"
 PLURAL = "pipelineruns"
-KIND = "PipelineRun"
 
 def log_status(workflow):
   """A callback to use with wait_for_workflow."""
@@ -99,7 +98,9 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   # TODO(richardsliu): Remove this workaround when the k8s client issue
   # is resolved.
   client = k8s_client.ApiClient()
-  crd_api = k8s_client.CustomObjectsApi(client)
+  crd_api = k8s_client.CustomObectsApi(client)
+  l = crd_api.list_namespaced_custom_object(GROUP, VERSION, namespace, PLURAL)
+  logging.info("GG TEST:\n%s", l)
   return crd_api.get_namespaced_custom_object(
     GROUP, VERSION, namespace, PLURAL, name)
 
