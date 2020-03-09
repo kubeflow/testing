@@ -63,6 +63,7 @@ from kubernetes import client as k8s_client
 from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
 from kubeflow.testing import prow_artifacts
+from kubeflow.testing import tekton_client
 from kubeflow.testing import util
 import uuid
 import subprocess
@@ -231,6 +232,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   util.load_kube_config()
 
   workflow_names = []
+  tkn_names = []
   ui_urls = {}
 
   for w in workflows: # pylint: disable=too-many-nested-blocks
@@ -287,7 +289,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # are submitting jobs manually for testing/debugging. Since the prow should
     # vend unique build numbers for each job.
     workflow_name += "-{0}".format(salt)
-    workflow_names.append(workflow_name)
+    if w.tekton_run:
+      tkn_names.append(workflow_name)
+    else:
+      workflow_names.append(workflow_name)
 
     # check if ks workflow and run
     if w.app_dir:
@@ -472,6 +477,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       timeout=datetime.timedelta(minutes=180),
       status_callback=argo_client.log_status
     )
+    # TODO(gabrielwen): Finish this.
+    tekton_client.wait_for_workflows(args.tekton_namespace, tkn_names)
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
     # We explicitly log any exceptions so that they will be captured in the
@@ -561,6 +568,13 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     default=None,
     type=str,
     help="Optional namespace to use")
+
+  parser.add_argument(
+    "--tekton_namespace",
+    default=None,
+    type=str,
+    default="tektoncd",
+    help="Optional Tekton namespace to use")
 
   #############################################################################
   # Process the command line arguments.
