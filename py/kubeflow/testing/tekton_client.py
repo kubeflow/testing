@@ -99,7 +99,7 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   # is resolved.
   try:
     client = k8s_client.ApiClient()
-    crd_api = k8s_client.CustomObectsApi(client)
+    crd_api = k8s_client.CustomObjectsApi(client)
     result = crd_api.get_namespaced_custom_object(
       GROUP, VERSION, namespace, PLURAL, name)
     return result
