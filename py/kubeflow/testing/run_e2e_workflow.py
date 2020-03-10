@@ -488,41 +488,48 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     results = e.workflow_results
     raise
   finally:
+    logging.info("GG TEST 0")
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
+    logging.info("GG TEST 1")
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
+    logging.info("GG TEST 2")
     file_handler.flush()
     util.upload_file_to_gcs(
       file_handler.baseFilename,
       os.path.join(prow_artifacts_dir, "build-log.txt"))
 
+    logging.info("GG TEST 3")
     # Upload workflow status to GCS.
     for r in results:
+      logging.info("GG TEST 4")
       phase = r.get("status", {}).get("phase")
       name = r.get("metadata", {}).get("name")
       workflow_phase[name] = phase
       workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
+      logging.info("GG TEST 5")
       if phase != "Succeeded":
         workflow_success = False
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
 
+      logging.info("GG TEST 6")
       for wf_name, wf_status in workflow_status_yamls.items():
         util.upload_to_gcs(
           wf_status,
           os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
 
     for r in tekton_results:
-      logging.info("GG TEST1")
+      logging.info("GG TEST 7")
       condition = "Failed"
       name = r.get("metadata", {}).get("name")
       if r.get("status", {}).get("conditions", []):
         condition = result["status"]["conditions"][0].get("reason", "Failed")
-      logging.info("GG TEST2")
+      logging.info("GG TEST 8")
       workflow_phase[name] = condition
       workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
-      logging.info("GG TEST3")
+      logging.info("GG TEST 9")
       if condition != "Succeeded":
         workflow_success = False
       logging.info("Workflow %s/%s finished phase: %s",
