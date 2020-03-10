@@ -495,9 +495,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # file in gcs
     try:
       file_handler.flush()
+      logging.info("before uploading...")
       util.upload_file_to_gcs(
         file_handler.baseFilename,
         os.path.join(prow_artifacts_dir, "build-log.txt"))
+      logging.info("after uploading...")
     except Exception as e:
       logging.info("GG TEST err: %s", e)
 
