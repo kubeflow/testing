@@ -498,31 +498,26 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     #   file_handler.baseFilename,
     #   os.path.join(prow_artifacts_dir, "build-log.txt"))
 
-    logging.info("GG TEST 3")
     # Upload workflow status to GCS.
     for r in results:
-      logging.info("GG TEST 4")
       phase = r.get("status", {}).get("phase")
       name = r.get("metadata", {}).get("name")
       workflow_phase[name] = phase
       workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
-      logging.info("GG TEST 5")
       if phase != "Succeeded":
         workflow_success = False
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
 
-      logging.info("GG TEST 6")
       for wf_name, wf_status in workflow_status_yamls.items():
         util.upload_to_gcs(
           wf_status,
           os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
 
     for r in tekton_results:
-      logging.info("GG TEST 7")
       condition = "Failed"
       name = r.get("metadata", {}).get("name")
       if r.get("status", {}).get("conditions", []):
-        condition = result["status"]["conditions"][0].get("reason", "Failed")
+        condition = r["status"]["conditions"][0].get("reason", "Failed")
       logging.info("GG TEST 8")
       workflow_phase[name] = condition
       workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
