@@ -111,9 +111,11 @@ def get_namespaced_custom_object_with_retries(namespace, name):
 
 def wait_for_workflows(namespace, names):
   if not len(names):
+    logging.info("GG TEST1")
     return True
 
   try:
+    logging.info("GG TEST2")
     p = Pool(len(names))
     args_list = ([namespace, n] for n in names)
     # Deal with result.
