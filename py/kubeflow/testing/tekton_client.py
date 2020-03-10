@@ -111,10 +111,6 @@ def retry_if_not_ended(result):
   if not result.get("status", {}).get("conditions", []):
     return False
   reason = result["status"]["conditions"][0].get("reason", "")
-  logging.info("Tekton PipelineRun %s/%s; condition = %s",
-               result["metadata"]["namespace"],
-               result["metadata"]["name"],
-               reason)
   return not result["status"]["conditions"][0].get("reason", "") in ("Failed", "Succeeded")
 
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
