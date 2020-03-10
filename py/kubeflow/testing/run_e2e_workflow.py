@@ -477,10 +477,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       timeout=datetime.timedelta(minutes=180),
       status_callback=argo_client.log_status
     )
-    # TODO(gabrielwen): Finish this.
     util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
     util.load_kube_config()
-    tekton_client.wait_for_workflows(args.tekton_namespace, tkn_names)
+    tekton_results = tekton_client.wait_for_workflows(args.tekton_namespace, tkn_names)
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
     # We explicitly log any exceptions so that they will be captured in the
@@ -513,6 +512,18 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         util.upload_to_gcs(
           wf_status,
           os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
+
+    for r in tekton_results:
+      condition = "Failed"
+      name = r.get("metadata", {}).get("name")
+      if r.get("status", {}).get("conditions", []):
+        condition = result["status"]["conditions"][0].get("reason", "Failed")
+      workflow_phase[name] = condition
+      workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
+      if condition != "Succeeded":
+        workflow_success = False
+      logging.info("Workflow %s/%s finished phase: %s",
+                   args.tekton_namespace, name, condition)
 
     all_tests_success = prow_artifacts.finalize_prow_job(
       args.bucket, workflow_success, workflow_phase, ui_urls)

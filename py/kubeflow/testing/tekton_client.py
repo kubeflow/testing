@@ -126,17 +126,11 @@ def get_result(args):
 def wait_for_workflows(namespace, names):
   if not len(names):
     logging.info("Skipped waiting for Tekton pipelines; no pipeline found.")
-    return True
+    return []
 
-  try:
-    logging.info("Waiting for Tekton PipelineRun: %s",  names)
-    p = Pool(len(names))
-    args_list = []
-    for n in names:
-      args_list.append((namespace, n))
-    logging.info("args list: %s", args_list)
-    # Deal with result.
-    results = p.map(get_result, args_list)
-    logging.info("results = %s", results)
-  except Exception as e:
-    logging.error("wait for Tekton PipelineRun error: %s", e)
+  logging.info("Waiting for Tekton PipelineRun: %s",  names)
+  p = Pool(len(names))
+  args_list = []
+  for n in names:
+    args_list.append((namespace, n))
+  return p.map(get_result, args_list)
