@@ -502,7 +502,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         file_handler.baseFilename,
         os.path.join(prow_artifacts_dir, "build-log.txt"))
     except Exception as e:
-      logging.error("GG TEST err: %s", e)
+      logging.info("GG TEST err: %s", e)
       raise
 
     logging.info("GG TEST 3")
