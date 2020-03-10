@@ -514,17 +514,21 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
 
     for r in tekton_results:
+      logging.info("GG TEST1")
       condition = "Failed"
       name = r.get("metadata", {}).get("name")
       if r.get("status", {}).get("conditions", []):
         condition = result["status"]["conditions"][0].get("reason", "Failed")
+      logging.info("GG TEST2")
       workflow_phase[name] = condition
       workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
+      logging.info("GG TEST3")
       if condition != "Succeeded":
         workflow_success = False
       logging.info("Workflow %s/%s finished phase: %s",
                    args.tekton_namespace, name, condition)
 
+    logging.info("GG TEST: %s", workflow_phase)
     all_tests_success = prow_artifacts.finalize_prow_job(
       args.bucket, workflow_success, workflow_phase, ui_urls)
 
