@@ -38,7 +38,6 @@ def log_status(workflow):
     logging.exception('KeyError: %s', e)
 
 def handle_retriable_exception(exception):
-  logging.info("Tekton client: trying to handle exception: %s", exception)
   if isinstance(exception, rest.ApiException):
     # ApiException could store the exit code in status or it might
     # store it in HTTP response body
@@ -88,7 +87,7 @@ def handle_retriable_exception(exception):
 # https://github.com/kubeflow/testing/issues/169
 # https://github.com/kubeflow/testing/issues/171
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
-       stop_max_delay=5*60*1000,
+       stop_max_delay=30*60*1000,
        retry_on_exception=handle_retriable_exception)
 def get_namespaced_custom_object_with_retries(namespace, name):
   """Call get_namespaced_customer_object API with retries.
@@ -119,7 +118,7 @@ def retry_if_not_ended(result):
   return not result["status"]["conditions"][0].get("reason", "") in ("Failed", "Succeeded")
 
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
-       stop_max_delay=5*60*1000,
+       stop_max_delay=30*60*1000,
        retry_on_result=retry_if_not_ended)
 def get_result(args):
   return get_namespaced_custom_object_with_retries(*args)
