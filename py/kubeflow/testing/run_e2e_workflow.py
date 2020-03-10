@@ -496,10 +496,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
     logging.info("GG TEST 2")
-    file_handler.flush()
-    util.upload_file_to_gcs(
-      file_handler.baseFilename,
-      os.path.join(prow_artifacts_dir, "build-log.txt"))
+    try:
+      file_handler.flush()
+      util.upload_file_to_gcs(
+        file_handler.baseFilename,
+        os.path.join(prow_artifacts_dir, "build-log.txt"))
+    except Exception as e:
+      logging.error("GG TEST err: %s", e)
+      raise
 
     logging.info("GG TEST 3")
     # Upload workflow status to GCS.
