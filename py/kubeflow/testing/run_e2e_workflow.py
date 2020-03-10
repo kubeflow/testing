@@ -488,14 +488,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     results = e.workflow_results
     raise
   finally:
-    logging.info("GG TEST 0")
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
-    logging.info("GG TEST 1")
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
-    logging.info("GG TEST 2")
     try:
       file_handler.flush()
       util.upload_file_to_gcs(
@@ -503,7 +500,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         os.path.join(prow_artifacts_dir, "build-log.txt"))
     except Exception as e:
       logging.info("GG TEST err: %s", e)
-      raise
 
     logging.info("GG TEST 3")
     # Upload workflow status to GCS.
