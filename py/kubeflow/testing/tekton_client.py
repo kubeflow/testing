@@ -110,6 +110,10 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   return result
 
 def get_result(args):
+  # TODO(gabrielwen): retry on result.
+  result = get_namespaced_custom_object_with_retries(*args)
+  logging.info("IS RESULT in [FAILED, SUCCEEDED]? %s",
+               workflow["status"]["conditions"][0]["reason"] in ("FAILED", "SUCCEEDED"))
   return get_namespaced_custom_object_with_retries(*args)
 
 def wait_for_workflows(namespace, names):
@@ -128,9 +132,3 @@ def wait_for_workflows(namespace, names):
     p.map(get_result, args_list)
   except Exception as e:
     logging.error("wait for Tekton PipelineRun error: %s", e)
-
-  # for n in names:
-  #   logging.info("Waiting for Tekton Pipelinerun: %s/%s", namespace, n)
-  #   result = get_namespaced_custom_object_with_retries(namespace, n)
-  #   r = pprint.pformat(result)
-  #   logging.info("GG TEST:\n%s", r)
