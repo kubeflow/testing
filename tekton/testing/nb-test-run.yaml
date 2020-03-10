@@ -28,20 +28,20 @@ spec:
     - name: testing-repo
       type: git
     tasks:
-    - name: xgboost-synthetic
-      resources:
-        inputs:
-        - name: examples-repo
-          resource: examples-repo
-        - name: kf-testing-repo
-          resource: testing-repo
-      taskRef:
-        name: notebook-test
-      params:
-      - name: notebook-path
-        value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
-      - name: junit-name
-        value: xgboost-synthetic
+            # - name: xgboost-synthetic
+            #   resources:
+            #     inputs:
+            #     - name: examples-repo
+            #       resource: examples-repo
+            #     - name: kf-testing-repo
+            #       resource: testing-repo
+            #   taskRef:
+            #     name: notebook-test
+            #   params:
+            #   - name: notebook-path
+            #     value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
+            #   - name: junit-name
+            #     value: xgboost-synthetic
     - name: mnist-gcp
       resources:
         inputs:
