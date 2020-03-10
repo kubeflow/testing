@@ -113,10 +113,13 @@ def wait_for_workflows(namespace, names):
   if not len(names):
     return True
 
-  p = Pool(len(names))
-  args_list = ([namespace, n] for n in names)
-  # Deal with result.
-  p.map(get_namespaced_custom_object_with_retries, args_list)
+  try:
+    p = Pool(len(names))
+    args_list = ([namespace, n] for n in names)
+    # Deal with result.
+    p.map(get_namespaced_custom_object_with_retries, args_list)
+  except Exception as e:
+    logging.exception("wait for Tekton PipelineRun error: %s", e)
 
   # for n in names:
   #   logging.info("Waiting for Tekton Pipelinerun: %s/%s", namespace, n)
