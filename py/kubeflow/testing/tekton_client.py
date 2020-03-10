@@ -109,6 +109,9 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   log_status(result)
   return result
 
+def get_result(args):
+  return get_namespaced_custom_object_with_retries(*args)
+
 def wait_for_workflows(namespace, names):
   if not len(names):
     logging.info("Skipped waiting for Tekton pipelines; no pipeline found.")
@@ -122,7 +125,7 @@ def wait_for_workflows(namespace, names):
       args_list.append((namespace, n))
     logging.info("args list: %s", args_list)
     # Deal with result.
-    p.map(get_namespaced_custom_object_with_retries, args_list)
+    p.map(get_result, args_list)
   except Exception as e:
     logging.error("wait for Tekton PipelineRun error: %s", e)
 
