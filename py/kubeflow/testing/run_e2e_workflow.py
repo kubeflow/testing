@@ -493,15 +493,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
-    try:
-      file_handler.flush()
-      logging.info("before uploading...")
-      util.upload_file_to_gcs(
-        file_handler.baseFilename,
-        os.path.join(prow_artifacts_dir, "build-log.txt"))
-      logging.info("after uploading...")
-    except Exception as e:
-      logging.info("GG TEST err: %s", e)
+    # file_handler.flush()
+    # util.upload_file_to_gcs(
+    #   file_handler.baseFilename,
+    #   os.path.join(prow_artifacts_dir, "build-log.txt"))
 
     logging.info("GG TEST 3")
     # Upload workflow status to GCS.
@@ -538,6 +533,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                    args.tekton_namespace, name, condition)
 
     logging.info("GG TEST: %s", workflow_phase)
+    # Upload logs to GCS. No logs after this point will appear in the
+    # file in gcs
+    file_handler.flush()
+    util.upload_file_to_gcs(
+      file_handler.baseFilename,
+      os.path.join(prow_artifacts_dir, "build-log.txt"))
+
     all_tests_success = prow_artifacts.finalize_prow_job(
       args.bucket, workflow_success, workflow_phase, ui_urls)
 
