@@ -369,9 +369,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         # Update Junit artifacts XML.
         for i in range(len(t["params"])):
           if t["params"][i]["name"] == "junit-path":
-            param = ("/workspace/outputs/artifacts/"
-                     "junit_{workflow_name}/"
-                     "junit_{task_name}.xml").format(
+            param = ("$(workspaces.junit-artifacts.path)/{workflow_name}"
+                     "/artifacts/junit_{workflow_name}/junit_{task_name}.xml"
+                     ).format(
                          workflow_name=workflow_name,
                          task_name=t["name"])
             logging.info("Setting Junit path to %s", param)
@@ -387,6 +387,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           {"name": "prow-job-id", "value": os.getenv("PROW_JOB_ID")},
           {"name": "pull-number", "value": os.getenv("PULL_NUMBER")},
           {"name": "build-id", "value": os.getenv("BUILD_NUMBER")},
+          {"name": "workflow-name", "value": workflow_name},
         ])
 
       # Update ref to repo under test.

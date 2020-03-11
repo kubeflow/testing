@@ -4,6 +4,10 @@ metadata:
   name: run-testing
   namespace: tektoncd
 spec:
+  workspaces:
+  - name: junit-artifacts
+    persistentVolumeClaim:
+      claimName: junit-pvc
   resources:
   - name: examples-repo
     resourceSpec:
@@ -22,6 +26,8 @@ spec:
       - name: revision
         value: refs/pull/<pull-number>/head
   pipelineSpec:
+    workspaces:
+    - name: junit-artifacts
     resources:
     - name: examples-repo
       type: git
@@ -43,6 +49,9 @@ spec:
             #   - name: junit-name
             #     value: xgboost-synthetic
     - name: mnist-gcp
+      workspaces:
+      - name: junit-artifacts
+        workspace: junit-artifacts
       resources:
         inputs:
         - name: examples-repo
@@ -56,3 +65,11 @@ spec:
         value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
       - name: junit-path
         value: /workspace/outputs/artifacts/junit_mnist-gcp.xml
+    - name: debug
+      workspaces:
+      - name: junit-artifacts
+        workspace: junit-artifacts
+      taskRef:
+        name: debug
+      runAfter:
+      - mnist-gcp
