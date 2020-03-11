@@ -362,10 +362,22 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       logging.info("Reading Tekton PipelineRun config: %s", test_target_name)
       tekton_run["metadata"]["name"] = workflow_name
 
-      # Fill in prow ENVs.
       for t in tekton_run.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
         if not "params" in t:
           t["params"] = []
+
+        # Update Junit artifacts XML.
+        for i in range(len(t["params"])):
+          if t["params"][i]["name"] == "junit-path":
+            param = ("--junitxml=/workspace/outputs/artifacts/"
+                     "{workflow_name}/"
+                     "junit_{task_name}.xml").format(
+                         workflow_name=workflow_name,
+                         task_name=t["name"])
+            logging.info("Setting Junit path to %s", param)
+            t["params"][i]["value"] = param
+
+        # Fill in prow ENVs.
         t["params"].extend([
           {"name": "test-target-name", "value": test_target_name},
           {"name": "repo-owner", "value": repo_owner},
@@ -530,16 +542,13 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       name = r.get("metadata", {}).get("name")
       if r.get("status", {}).get("conditions", []):
         condition = r["status"]["conditions"][0].get("reason", "Failed")
-      logging.info("GG TEST 8")
       workflow_phase[name] = condition
       workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
-      logging.info("GG TEST 9")
       if condition != "Succeeded":
         workflow_success = False
       logging.info("Workflow %s/%s finished phase: %s",
                    args.tekton_namespace, name, condition)
 
-    logging.info("GG TEST: %s", workflow_phase)
     # Upload logs to GCS. No logs after this point will appear in the
     # file in gcs
     file_handler.flush()

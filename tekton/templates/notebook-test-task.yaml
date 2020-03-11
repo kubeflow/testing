@@ -21,10 +21,6 @@ spec:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
       default: 'kf-master-(?!n\d\d)'
-    - name: junit-name
-      type: string
-      description:
-        Test JUNIT name, used for artifatcts.
     # params below are from prow jobs.
     - name: test-target-name
       type: string
@@ -65,6 +61,11 @@ spec:
     - name: kf-testing-repo
       type: git
       targetPath: src/kubeflow/testing
+    # params updated by run_e2e_workflow on the fly.
+    - name: junit-path
+      type: string
+      description:
+        Test JUNIT XML artifacts path.
   steps:
   - name: get-credential
     image: gcr.io/kubeflow-ci/test-worker:latest
@@ -105,7 +106,7 @@ spec:
     - --log-cli-level=info
     - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
     - --timeout=1800
-    - --junitxml=/workspace/outputs/artifacts/junit_$(inputs.params.junit-name).xml
+    - --junitxml=$(inputs.params.junit-path)
     - --notebook_path=$(inputs.params.notebook-path)
     workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
     env:

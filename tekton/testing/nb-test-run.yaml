@@ -54,5 +54,5 @@ spec:
       params:
       - name: notebook-path
         value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
-      - name: junit-name
-        value: mnist-gcp
+      - name: junit-path
+        value: /workspace/outputs/artifacts/junit_mnist-gcp.xml
