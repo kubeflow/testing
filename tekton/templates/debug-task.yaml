@@ -47,10 +47,6 @@ spec:
       type: string
       description:
         Name of the testing workflow, updated by run_e2e_workflow.py
-    resources:
-    - name: kf-testing-repo
-      type: git
-      targetPath: src/kubeflow/testing
   steps:
   - name: debug
     image: gcr.io/kubeflow-ci/test-worker:latest
