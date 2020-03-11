@@ -380,10 +380,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         # Update Junit xml args.
         for i in range(len(t.get("args", []))):
           if "junitxml" in t["args"][i]:
-            t["args"][i] = ("--junitxml=/workspace/outputs/artifacts/"
-                            "{workflow_name}/"
-                            "junit_$(inputs.params.junit-name).xml").format(
-                                workflow_name=workflow_name)
+            param = ("--junitxml=/workspace/outputs/artifacts/"
+                     "{workflow_name}/"
+                     "junit_$(inputs.params.junit-name).xml").format(
+                         workflow_name=workflow_name)
+            logging.info("GG TEST param = %s", param)
+            t["args"][i] = param
+          else:
+            logging.info("GG TEST not = %s", t["args"][i])
 
       # Update ref to repo under test.
       repo_url = "https://github.com/{0}/{1}.git".format(repo_owner, repo_name)
