@@ -370,7 +370,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         for i in range(len(t["params"])):
           if t["params"][i]["name"] == "junit-path":
             param = ("--junitxml=/workspace/outputs/artifacts/"
-                     "{workflow_name}/"
+                     "junit_{workflow_name}/"
                      "junit_{task_name}.xml").format(
                          workflow_name=workflow_name,
                          task_name=t["name"])
