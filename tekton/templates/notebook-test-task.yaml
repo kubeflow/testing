@@ -105,7 +105,7 @@ spec:
     - --log-cli-level=info
     - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
     - --timeout=1800
-    - --junitxml=/workspace/outputs/artifacts/$(inputs.params.junit-name)/junit_run-notebook.xml
+    - --junitxml=/workspace/outputs/artifacts/junit_$(inputs.params.junit-name).xml
     - --notebook_path=$(inputs.params.notebook-path)
     workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
     env:
