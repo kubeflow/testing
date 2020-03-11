@@ -54,6 +54,11 @@ spec:
       type: string
       description:
         BUILD_ID from Prow ENV.
+    # params updated by run_e2e_workflow on the fly.
+    - name: junit-path
+      type: string
+      description:
+        Test JUNIT XML artifacts path.
     resources:
     - name: examples-repo
       type: git
@@ -61,11 +66,6 @@ spec:
     - name: kf-testing-repo
       type: git
       targetPath: src/kubeflow/testing
-    # params updated by run_e2e_workflow on the fly.
-    - name: junit-path
-      type: string
-      description:
-        Test JUNIT XML artifacts path.
   steps:
   - name: get-credential
     image: gcr.io/kubeflow-ci/test-worker:latest
