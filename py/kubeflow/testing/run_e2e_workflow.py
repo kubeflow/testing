@@ -369,7 +369,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         # Update Junit artifacts XML.
         for i in range(len(t["params"])):
           if t["params"][i]["name"] == "junit-path":
-            param = ("--junitxml=/workspace/outputs/artifacts/"
+            param = ("/workspace/outputs/artifacts/"
                      "junit_{workflow_name}/"
                      "junit_{task_name}.xml").format(
                          workflow_name=workflow_name,
