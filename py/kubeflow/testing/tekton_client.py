@@ -178,7 +178,7 @@ def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
   if not len(tkn_cleanup_args):
     logging.info("Skipped teardown process; no pipeline found.")
 
-  logging.info("Running tekton teardown: %s", tkn_cleanup_args.keys())
+  logging.info("Running tekton teardown: %s", [w[0] for w in tkn_cleanup_args])
   p = Pool(len(tkn_cleanup_args))
   args_list = []
   for w in tkn_cleanup_args:
