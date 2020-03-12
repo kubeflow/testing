@@ -156,6 +156,9 @@ def teardown(repos_dir, namespace, name, params):
   logging.info("Creating teardown workflow:\n%s", yaml.safe_dump(config))
   # call k8s client to deploy.
 
+def run_teardown(args):
+  return teardown(*args)
+
 def run_tekton_teardown(repos_dir, namespace, names, params):
   if not len(names):
     logging.info("Skipped teardown process; no pipeline found.")
@@ -165,4 +168,4 @@ def run_tekton_teardown(repos_dir, namespace, names, params):
   args_list = []
   for n in names:
     args_list.append((repos_dir, namespace, n, params))
-  return p.map(lambda args: teardown(*args), args_list)
+  return p.map(run_teardown, args_list)
