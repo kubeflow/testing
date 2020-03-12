@@ -5,7 +5,8 @@ import logging
 import json
 import six
 import datetime
-import pprint
+import yaml
+import uuid
 
 if six.PY3:
   import http
@@ -130,3 +131,42 @@ def wait_for_workflows(namespace, names):
   for n in names:
     args_list.append((namespace, n))
   return p.map(get_result, args_list)
+
+def teardown(repos_dir, namespace, name, params):
+  run_path = os.path.join(repos_dir,
+                          "kubeflow/testing/tekton/templates/teardown-run.yaml")
+  # load pipelinerun
+  with open(run_path) as f:
+    config = yaml.load(f)
+
+  if config.get("kind", "") != "PipelineRun":
+    return []
+
+  # Making PipelineRun name unique.
+  if os.getenv("REPO_OWNER"):
+    config["metadata"]["name"] += os.getenv("REPO_OWNER")
+  if os.getenv("REPO_NAME"):
+    config["metadata"]["name"] += os.getenv("REPO_NAME")
+  config["metadata"]["name"] += uuid.uuid4().hex[:10]
+  for t in config.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
+    if not "params" in t:
+      t["params"] = []
+    t["params"].append({
+        "name": "workflow-name",
+        "value": name,
+    })
+    t["params"].extend(params)
+
+  logging.info("Creating teardown workflow:\n%s", yaml.safe_dump(config))
+  # call k8s client to deploy.
+
+def run_tekton_teardown(repos_dir, namespace, names, params):
+  if not len(names):
+    logging.info("Skipped teardown process; no pipeline found.")
+
+  logging.info("Running tekton teardown: %s", names)
+  p = Pool(len(names))
+  args_list = []
+  for n in names:
+    args_list.append((repos_dir, namespace, n, params))
+  return p.map(lambda args: teardown(*args), args_list)

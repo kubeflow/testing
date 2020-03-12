@@ -501,6 +501,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     results = e.workflow_results
     raise
   finally:
+    # Run Tekton testing teardown process
+    tekton_client.run_tekton_teardown(args.repos_dir, args.tekton_namespace, tkn_names)
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)

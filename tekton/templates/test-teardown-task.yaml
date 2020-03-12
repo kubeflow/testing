@@ -10,7 +10,7 @@ spec:
   - name: junit-artifacts
   inputs:
     params:
-    - name: artifacts-dir
+    - name: workflow-name
       type: string
       description:
         Path to the directory with artifacts to upload to GCS.
@@ -55,7 +55,7 @@ spec:
     args:
     - -m
     - kubeflow.testing.prow_artifacts
-    - --artifacts_dir=$(inputs.params.artifacts-dir)
+    - --artifacts_dir=$(workspaces.junit-artifacts.path)/$(inputs.params.workflow-name)
     - copy_artifacts
     env:
     - name: PYTHONPATH
