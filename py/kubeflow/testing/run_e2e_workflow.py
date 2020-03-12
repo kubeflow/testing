@@ -377,18 +377,19 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
             logging.info("Setting Junit path to %s", param)
             t["params"][i]["value"] = param
 
+        prow_params = [
+            {"name": "test-target-name", "value": test_target_name},
+            {"name": "repo-owner", "value": repo_owner},
+            {"name": "repo-name", "value": repo_name},
+            {"name": "job-type", "value": job_type},
+            {"name": "job-name", "value": os.getenv("JOB_NAME")},
+            {"name": "prow-job-id", "value": os.getenv("PROW_JOB_ID")},
+            {"name": "pull-number", "value": os.getenv("PULL_NUMBER")},
+            {"name": "build-id", "value": os.getenv("BUILD_NUMBER")},
+            {"name": "workflow-name", "value": workflow_name},
+        ]
         # Fill in prow ENVs.
-        t["params"].extend([
-          {"name": "test-target-name", "value": test_target_name},
-          {"name": "repo-owner", "value": repo_owner},
-          {"name": "repo-name", "value": repo_name},
-          {"name": "job-type", "value": job_type},
-          {"name": "job-name", "value": os.getenv("JOB_NAME")},
-          {"name": "prow-job-id", "value": os.getenv("PROW_JOB_ID")},
-          {"name": "pull-number", "value": os.getenv("PULL_NUMBER")},
-          {"name": "build-id", "value": os.getenv("BUILD_NUMBER")},
-          {"name": "workflow-name", "value": workflow_name},
-        ])
+        t["params"].extend(prow_params)
 
       # Update ref to repo under test.
       repo_url = "https://github.com/{0}/{1}.git".format(repo_owner, repo_name)
@@ -502,7 +503,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     raise
   finally:
     # Run Tekton testing teardown process
-    tekton_client.run_tekton_teardown(args.repos_dir, args.tekton_namespace, tkn_names)
+    tekton_client.run_tekton_teardown(args.repos_dir,
+                                      args.tekton_namespace,
+                                      tkn_names,
+                                      prow_params)
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)

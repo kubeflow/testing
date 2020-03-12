@@ -151,10 +151,6 @@ def teardown(repos_dir, namespace, name, params):
   for t in config.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
     if not "params" in t:
       t["params"] = []
-    t["params"].append({
-        "name": "workflow-name",
-        "value": name,
-    })
     t["params"].extend(params)
 
   logging.info("Creating teardown workflow:\n%s", yaml.safe_dump(config))
