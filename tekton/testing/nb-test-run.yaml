@@ -46,8 +46,8 @@ spec:
       params:
       - name: notebook-path
         value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
-      - name: junit-name
-        value: xgboost-synthetic
+      - name: junit-path
+        value: /workspace/outputs/artifacts/junit_xgboost-synthetic.xml
     - name: mnist-gcp
       workspaces:
       - name: junit-artifacts
