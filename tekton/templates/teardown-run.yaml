@@ -1,0 +1,36 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: teardown-workflow
+  namespace: tektoncd
+spec:
+  workspaces:
+  - name: junit-artifacts
+    persistentVolumeClaim:
+      claimName: junit-pvc
+  - name: testing-repo
+    resourceSpec:
+      type: git
+      params:
+      - name: url
+        value: https://github.com/kubeflow/testing.git
+      - name: revision
+        value: refs/pull/<pull-number>/head
+  pipelineSpec:
+    workspaces:
+    - name: junit-artifacts
+    resources:
+    - name: testing-repo
+      type: git
+    tasks:
+    - name: teardown
+      workspaces:
+      - name: junit-artifacts
+        workspace: junit-artifacts
+      resources:
+        inputs:
+        - name: kf-testing-repo
+          resource: testing-repo
+      taskRef:
+        name: test-teardown
+      # Params will be provided during prow runtime.
