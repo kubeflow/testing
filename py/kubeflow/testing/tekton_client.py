@@ -169,7 +169,7 @@ def teardown(repos_dir, namespace, name, params):
       plural="pipelineruns",
       body=config)
   logging.info("Created workflow:\n%s", yaml.safe_dump(result))
-  time.sleep(300)
+  time.sleep(120)
 
 def run_teardown(args):
   return teardown(*args)
