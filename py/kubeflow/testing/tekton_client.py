@@ -166,10 +166,10 @@ def teardown(repos_dir, namespace, name, params):
       group=group,
       version=version,
       namespace=namespace,
-      plural="pipelineruns",
+      plural=PLURAL,
       body=config)
   logging.info("Created workflow:\n%s", yaml.safe_dump(result))
-  time.sleep(120)
+  return get_namespaced_custom_object_with_retries(namespace, name)
 
 def run_teardown(args):
   return teardown(*args)
