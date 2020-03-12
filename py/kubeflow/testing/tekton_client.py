@@ -5,8 +5,9 @@ import logging
 import json
 import six
 import datetime
-import yaml
+import os
 import uuid
+import yaml
 
 if six.PY3:
   import http
