@@ -174,13 +174,13 @@ def teardown(repos_dir, namespace, name, params):
 def run_teardown(args):
   return teardown(*args)
 
-def run_tekton_teardown(repos_dir, namespace, names, params):
-  if not len(names):
+def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
+  if not len(tkn_cleanup_args):
     logging.info("Skipped teardown process; no pipeline found.")
 
-  logging.info("Running tekton teardown: %s", names)
-  p = Pool(len(names))
+  logging.info("Running tekton teardown: %s", tkn_cleanup_args.keys())
+  p = Pool(len(tkn_cleanup_args))
   args_list = []
-  for n in names:
-    args_list.append((repos_dir, namespace, n, params))
+  for w in tkn_cleanup_args:
+    args_list.append((repos_dir, namespace, w[0], w[1]))
   return p.map(run_teardown, args_list)

@@ -233,6 +233,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   workflow_names = []
   tkn_names = []
+  tkn_cleanup_args = []
   ui_urls = {}
 
   for w in workflows: # pylint: disable=too-many-nested-blocks
@@ -388,6 +389,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
             {"name": "build-id", "value": os.getenv("BUILD_NUMBER")},
             {"name": "workflow-name", "value": workflow_name},
         ]
+        tkn_cleanup_args.append((workflow_name, prow_params))
         # Fill in prow ENVs.
         t["params"].extend(prow_params)
 
@@ -505,8 +507,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # Run Tekton testing teardown process
     tekton_client.run_tekton_teardown(args.repos_dir,
                                       args.tekton_namespace,
-                                      tkn_names,
-                                      prow_params)
+                                      tkn_cleanup_args)
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
