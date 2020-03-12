@@ -65,11 +65,3 @@ spec:
         value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
       - name: junit-path
         value: /workspace/outputs/artifacts/junit_mnist-gcp.xml
-    - name: debug
-      workspaces:
-      - name: junit-artifacts
-        workspace: junit-artifacts
-      taskRef:
-        name: debug
-      runAfter:
-      - mnist-gcp
