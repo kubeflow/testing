@@ -17,8 +17,3 @@ workflows:
   - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
     name: py-unittests
     kwargs: {}
-
-  - tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
-    name: tekton-prow
-    include_dirs:
-    - py/*
