@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: copy-artifacts
+  name: test-teardown
   namespace: tektoncd
   annotations:
     sidecar.istio.io/inject: "false"
@@ -10,6 +10,10 @@ spec:
   - name: junit-artifacts
   inputs:
     params:
+    - name: artifacts-dir
+      type: string
+      description:
+        Path to the directory with artifacts to upload to GCS.
     # params below are from prow jobs.
     - name: test-target-name
       type: string
@@ -43,14 +47,6 @@ spec:
       type: string
       description:
         BUILD_ID from Prow ENV.
-    - name: workflow-name
-      type: string
-      description:
-        Name of the testing workflow, updated by run_e2e_workflow.py
-    resources:
-    - name: kf-testing-repo
-      type: git
-      targetPath: src/kubeflow/testing
   steps:
   - name: copy-artifacts
     image: gcr.io/kubeflow-ci/test-worker:latest
@@ -59,12 +55,11 @@ spec:
     args:
     - -m
     - kubeflow.testing.prow_artifacts
-    - --artifacts_dir=$(workspaces.junit-artifacts.path)/$(inputs.params.workflow-name)
+    - --artifacts_dir=$(inputs.params.artifacts-dir)
     - copy_artifacts
-    workingDir: /workspace
     env:
     - name: PYTHONPATH
-      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+      value: /workspace/src/kubeflow/testing/py
     - name: TEST_TARGET_NAME
       value: $(inputs.params.test-target-name)
     - name: REPO_OWNER
