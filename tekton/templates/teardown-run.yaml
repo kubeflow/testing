@@ -16,7 +16,7 @@ spec:
       - name: url
         value: https://github.com/kubeflow/testing.git
       - name: revision
-        value: refs/pull/<pull-number>/head
+        value: master
   pipelineSpec:
     workspaces:
     - name: junit-artifacts
