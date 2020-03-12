@@ -47,6 +47,10 @@ spec:
       type: string
       description:
         BUILD_ID from Prow ENV.
+    resources:
+    - name: kf-testing-repo
+      type: git
+      targetPath: src/kubeflow/testing
   steps:
   - name: copy-artifacts
     image: gcr.io/kubeflow-ci/test-worker:latest
