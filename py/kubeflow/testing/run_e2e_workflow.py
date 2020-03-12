@@ -510,12 +510,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
-    # Upload logs to GCS. No logs after this point will appear in the
-    # file in gcs
-    # file_handler.flush()
-    # util.upload_file_to_gcs(
-    #   file_handler.baseFilename,
-    #   os.path.join(prow_artifacts_dir, "build-log.txt"))
 
     # Upload workflow status to GCS.
     for r in results:
