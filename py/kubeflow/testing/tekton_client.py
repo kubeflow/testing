@@ -6,6 +6,7 @@ import json
 import six
 import datetime
 import os
+import time
 import uuid
 import yaml
 
@@ -144,11 +145,13 @@ def teardown(repos_dir, namespace, name, params):
     return []
 
   # Making PipelineRun name unique.
+  name_comps = [config["metadata"]["name"]]
   if os.getenv("REPO_OWNER"):
-    config["metadata"]["name"] += os.getenv("REPO_OWNER")
+    name_comps.append(os.getenv("REPO_OWNER"))
   if os.getenv("REPO_NAME"):
-    config["metadata"]["name"] += os.getenv("REPO_NAME")
-  config["metadata"]["name"] += uuid.uuid4().hex[:10]
+    name_comps.append(os.getenv("REPO_NAME"))
+  name_comps.append(uuid.uuid4().hex[:10])
+  config["metadata"]["name"] = "-".join(name_comps)
   for t in config.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
     if not "params" in t:
       t["params"] = []
@@ -156,6 +159,17 @@ def teardown(repos_dir, namespace, name, params):
 
   logging.info("Creating teardown workflow:\n%s", yaml.safe_dump(config))
   # call k8s client to deploy.
+  group, version = config["apiVersion"].split("/")
+  client = k8s_client.ApiClient()
+  crd_api = k8s_client.CustomObjectsApi(client)
+  result = crd_api.create_namespaced_custom_object(
+      group=group,
+      version=version,
+      namespace=namespace,
+      plural="pipelineruns",
+      body=config)
+  logging.info("Created workflow:\n%s", yaml.safe_dump(result))
+  time.sleep(300)
 
 def run_teardown(args):
   return teardown(*args)
