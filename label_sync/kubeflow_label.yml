@@ -67,6 +67,8 @@ default:
     - name: community/discussion
   - color: ecfc15
     name: community/maintenance
+  - color: fcd915
+    name: community/gsoc
   - color: 2515fc
     name: kind/question
     previously:
