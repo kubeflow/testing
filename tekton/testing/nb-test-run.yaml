@@ -76,6 +76,9 @@ spec:
           resource: examples-repo
         - name: kf-testing-repo
           resource: testing-repo
+        outputs:
+        - name: gcs-test-repo
+          resource: gcs-test-repo
       taskRef:
         name: notebook-test
       params:
