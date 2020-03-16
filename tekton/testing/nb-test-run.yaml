@@ -34,7 +34,7 @@ spec:
       - name: location
         value: gs://kubeflow-ci
       - name: dir
-        value: "gabrielwen-testing"
+        value: "y"
   pipelineSpec:
     workspaces:
     - name: junit-artifacts
