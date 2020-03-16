@@ -395,6 +395,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
       # Update ref to repo under test.
       repo_url = "https://github.com/{0}/{1}.git".format(repo_owner, repo_name)
+      revision = "master"
+      if job_type == "presubmit":
+        revision = "refs/pull/{0}/head".format(os.getenv("PULL_NUMBER"))
+      elif job_type == "postsubmit":
+        revision = os.getenv("PULL_BASE_SHA", "master")
+      else:
+        revision = os.getenv("BRANCH_NAME", "master")
+
       for r in tekton_run.get("spec", {}).get("resources", []):
         if not "resourceSpec" in r or r["resourceSpec"].get("type", "") != "git":
           continue
@@ -402,7 +410,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           if p.get("name", "") == "url" and p.get("value", "") == repo_url:
             r["resourceSpec"]["params"] = [
               {"name": "url", "value": repo_url},
-              {"name": "revision", "value": "refs/pull/{0}/head".format(os.getenv("PULL_NUMBER"))},
+              {"name": "revision", "value": revision},
             ]
             continue
       group, version = tekton_run['apiVersion'].split('/')
