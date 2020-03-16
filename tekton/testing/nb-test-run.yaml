@@ -32,7 +32,7 @@ spec:
       - name: type
         value: gcs
       - name: location
-        value: gs://kubeflow-ci
+        value: gs://kubeflow-ci/storage-testing
       - name: dir
         value: "y"
   pipelineSpec:
