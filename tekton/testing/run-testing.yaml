@@ -1,0 +1,70 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: run-testing
+  namespace: tektoncd
+spec:
+  workspaces:
+  - name: junit-artifacts
+    persistentVolumeClaim:
+      claimName: junit-pvc
+  resources:
+  - name: examples-repo
+    resourceSpec:
+      type: git
+      params:
+      - name: url
+        value: https://github.com/kubeflow/examples.git
+      - name: revision
+        value: refs/pull/764/head
+  - name: testing-repo
+    resourceSpec:
+      type: git
+      params:
+      - name: url
+        value: https://github.com/kubeflow/testing.git
+      - name: revision
+        value: refs/pull/<pull-number>/head
+  pipelineSpec:
+    workspaces:
+    - name: junit-artifacts
+    resources:
+    - name: examples-repo
+      type: git
+    - name: testing-repo
+      type: git
+    tasks:
+    - name: xgboost-synthetic
+      workspaces:
+      - name: junit-artifacts
+        workspace: junit-artifacts
+      resources:
+        inputs:
+        - name: examples-repo
+          resource: examples-repo
+        - name: kf-testing-repo
+          resource: testing-repo
+      taskRef:
+        name: notebook-test
+      params:
+      - name: notebook-path
+        value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
+      - name: junit-path
+        value: /workspace/outputs/artifacts/junit_xgboost-synthetic.xml
+    - name: mnist-gcp
+      workspaces:
+      - name: junit-artifacts
+        workspace: junit-artifacts
+      resources:
+        inputs:
+        - name: examples-repo
+          resource: examples-repo
+        - name: kf-testing-repo
+          resource: testing-repo
+      taskRef:
+        name: notebook-test
+      params:
+      - name: notebook-path
+        value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
+      - name: junit-path
+        value: /workspace/outputs/artifacts/junit_mnist-gcp.xml
