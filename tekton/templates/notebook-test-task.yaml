@@ -70,10 +70,11 @@ spec:
     - name: kf-testing-repo
       type: git
       targetPath: src/kubeflow/testing
-      outputs:
-      - name: gcs-test-repo
-        type: storage
-        targetPath: /gabrielwen-testing
+  outputs:
+    resources:
+    - name: gcs-test-repo
+      type: storage
+      targetPath: /gabrielwen-testing
   steps:
   - name: get-credential
     image: gcr.io/kubeflow-ci/test-worker:latest
