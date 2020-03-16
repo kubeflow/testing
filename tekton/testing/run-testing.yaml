@@ -25,6 +25,16 @@ spec:
         value: https://github.com/kubeflow/testing.git
       - name: revision
         value: refs/pull/<pull-number>/head
+  - name: gcs-test-repo
+    resourceSpec:
+      type: storage
+      params:
+      - name: type
+        value: gcs
+      - name: location
+        value: gs://kubeflow-ci
+      - name: dir
+        value: "gabrielwen-testing"
   pipelineSpec:
     workspaces:
     - name: junit-artifacts
@@ -33,6 +43,8 @@ spec:
       type: git
     - name: testing-repo
       type: git
+    - name: gcs-test-repo
+      type: storage
     tasks:
     - name: xgboost-synthetic
       workspaces:
@@ -44,6 +56,9 @@ spec:
           resource: examples-repo
         - name: kf-testing-repo
           resource: testing-repo
+        outputs:
+        - name: gcs-test-repo
+          resource: gcs-test-repo
       taskRef:
         name: notebook-test
       params:
