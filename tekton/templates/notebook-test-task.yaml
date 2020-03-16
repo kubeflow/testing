@@ -70,9 +70,10 @@ spec:
     - name: kf-testing-repo
       type: git
       targetPath: src/kubeflow/testing
-    - name: gcs-test-repo
-      type: storage
-      targetPath: /gabrielwen-testing
+      outputs:
+      - name: gcs-test-repo
+        type: storage
+        targetPath: /gabrielwen-testing
   steps:
   - name: get-credential
     image: gcr.io/kubeflow-ci/test-worker:latest
@@ -115,7 +116,7 @@ spec:
     - --timeout=1800
     - --junitxml=$(inputs.params.junit-path)
     - --notebook_path=$(inputs.params.notebook-path)
-    - --gcs_test_path=$(resources.gcs-test-repo.path)
+    - --gcs_test_path=$(resources.outputs.gcs-test-repo.path)
     workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
     env:
     - name: PYTHONPATH
