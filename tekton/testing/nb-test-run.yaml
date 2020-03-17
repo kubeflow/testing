@@ -46,26 +46,26 @@ spec:
     - name: gcs-test-repo
       type: storage
     tasks:
-            # - name: xgboost-synthetic
-            #   workspaces:
-            #   - name: junit-artifacts
-            #     workspace: junit-artifacts
-            #   resources:
-            #     inputs:
-            #     - name: examples-repo
-            #       resource: examples-repo
-            #     - name: kf-testing-repo
-            #       resource: testing-repo
-            #     outputs:
-            #     - name: gcs-test-repo
-            #       resource: gcs-test-repo
-            #   taskRef:
-            #     name: notebook-test
-            #   params:
-            #   - name: notebook-path
-            #     value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
-            #   - name: junit-path
-            #     value: /workspace/outputs/artifacts/junit_xgboost-synthetic.xml
+    - name: xgboost-synthetic
+      workspaces:
+      - name: junit-artifacts
+        workspace: junit-artifacts
+      resources:
+        inputs:
+        - name: examples-repo
+          resource: examples-repo
+        - name: kf-testing-repo
+          resource: testing-repo
+        outputs:
+        - name: gcs-test-repo
+          resource: gcs-test-repo
+      taskRef:
+        name: notebook-test
+      params:
+      - name: notebook-path
+        value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
+      - name: junit-path
+        value: /workspace/outputs/artifacts/junit_xgboost-synthetic.xml
     - name: mnist-gcp
       workspaces:
       - name: junit-artifacts
