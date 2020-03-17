@@ -39,6 +39,8 @@ default:
     name: area/front-end
     previously:
     - name: area/ui
+  - color: fcd915
+    name: area/gsoc
   - color: d2b48c
     name: area/lifecycle
   - color: d2b48c
