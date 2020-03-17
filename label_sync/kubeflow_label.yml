@@ -39,6 +39,8 @@ default:
     name: area/front-end
     previously:
     - name: area/ui
+  - color: fcd915
+    name: area/gsoc
   - color: d2b48c
     name: area/lifecycle
   - color: d2b48c
@@ -67,8 +69,6 @@ default:
     - name: community/discussion
   - color: ecfc15
     name: community/maintenance
-  - color: fcd915
-    name: community/gsoc
   - color: 2515fc
     name: kind/question
     previously:
