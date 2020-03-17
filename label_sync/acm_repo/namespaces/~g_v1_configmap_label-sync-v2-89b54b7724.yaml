@@ -1,0 +1,48 @@
+apiVersion: v1
+data:
+  kubeflow_label.yml: "default:\n  labels:\n  - color: ef1ad6\n    name: area/0.2.0\n
+    \   previously:\n    - name: release/0.2.0\n  - color: ef1ad6\n    name: area/0.3.0\n
+    \   previously:\n    - name: release/0.3.0\n  - color: ef1ad6\n    name: area/0.4.0\n
+    \   previously:\n    - name: release/0.4.0\n  - color: ef1ad6\n    name: area/1.0.0\n
+    \   previously:\n    - name: release/1.0.0\n  - color: d2b48c\n    name: area/api\n
+    \ - color: d2b48c\n    name: area/engprod\n    previously:\n    - name: area/build-release\n
+    \   - name: area/release-eng\n    - name: area/releasing\n  - color: d2b48c\n
+    \   name: area/kfctl\n    previously:\n    - name: area/deployment\n    - name:
+    area/bootstrap\n  - color: d2b48c\n    name: area/docs\n  - color: d2b48c\n    name:
+    area/devices\n  - color: d2b48c\n    name: area/example\n  - color: d2b48c\n    name:
+    area/front-end\n    previously:\n    - name: area/ui\n  - color: fcd915\n    name:
+    area/gsoc\n  - color: d2b48c\n    name: area/lifecycle\n  - color: d2b48c\n    name:
+    area/logging\n  - color: d2b48c\n    name: area/operator\n  - color: d2b48c\n
+    \   name: area/inference\n    previously:\n    - name: inference  \n  - color:
+    d2b48c\n    name: area/usage\n  - color: 2515fc\n    name: effort/1-days\n  -
+    color: db1203\n    name: effort/3-days\n  - color: cb03cc\n    name: effort/5-days\n
+    \ - color: fc9915\n    name: effort/2-weeks\n  - color: fc2515\n    name: effort/2-weeks+\n
+    \ - color: ecfc15\n    name: kind/discussion\n    previously:\n    - name: community/discussion\n
+    \ - color: ecfc15\n    name: community/maintenance\n  - color: 2515fc\n    name:
+    kind/question\n    previously:\n    - name: community/question\n    - name: question\n
+    \ - color: 2515fc\n    name: kind/feature\n    previously:\n    - name: feature\n
+    \   - name: addition/feature\n    - name: improvement/enhancement\n  - color:
+    2515fc\n    name: kind/process  \n  - color: ecfc15\n    name: cuj/build-train-deploy\n
+    \ - color: 00daff\n    name: cuj/multi-user\n  - color: 00daff\n    name: do-not-merge\n
+    \ - color: 00daff\n    name: duplicate\n  - color: 2515fc\n    name: platform/aws\n
+    \   previously:\n    - name: area/platform/aws\n  - color: 2515fc\n    name: platform/azure\n
+    \   previously:\n    - name: area/platform/azure\n    - name: cloud/azure\n  -
+    color: 2515fc\n    name: platform/gcp\n    previously:\n    - name: area/platform/gke\n
+    \   - name: cloud/gke\n  - color: 2515fc\n    name: platform/minikube\n    previously:\n
+    \   - name: area/platform/minikube\n  - color: 2515fc\n    name: platform/other\n
+    \ - color: db1203\n    name: priority/p0\n  - color: cb03cc\n    name: priority/p1\n
+    \ - color: fc9915\n    name: priority/p2\n  - color: fc2515\n    name: kind/bug\n
+    \   previously:\n    - name: bug\n    - name: problem/bug\n  - color: 00daff\n
+    \   name: starter\n  - color: 03db12\n    name: approved\n    previously:\n    -
+    name: status/approved\n  - color: bc9090\n    name: status/backlog\n  - color:
+    fca42e\n    name: status/done\n  - color: '707070'\n    name: status/icebox\n
+    \ # Don't remove, this label is being used by prow\n  - color: ffa500\n    name:
+    do-not-merge/work-in-progress\n    previously:\n    - name: status/in progress\n
+    \ - color: 2efca4\n    name: lgtm\n    previously:\n    - name: status/lgtm\n
+    \ - color: 00daff\n    name: area/testing\n    previously:\n    - name: testing\n
+    \ - color: 00daff\n    name: wontfix\n  - color: 8cd2b4\n    name: sprint/2018-05-29-to-06-08\n
+    \ - color: 8cd2b4\n    name: sprint/2018-06-11-to-06-22\n  - color: 8cd2b4\n    name:
+    sprint/2018-06-25-to-07-06\n  - color: 8cd2b4\n    name: sprint/2018-07-09-to-07-20\n"
+kind: ConfigMap
+metadata:
+  name: label-sync-v2-89b54b7724

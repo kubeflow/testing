@@ -34,4 +34,4 @@ spec:
               secretName: bot-token-github
           - name: config
             configMap:
-              name: label-config-v2
+              name: label-sync-v2

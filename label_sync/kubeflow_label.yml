@@ -77,6 +77,7 @@ default:
   - color: 2515fc
     name: kind/feature
     previously:
+    - name: feature
     - name: addition/feature
     - name: improvement/enhancement
   - color: 2515fc

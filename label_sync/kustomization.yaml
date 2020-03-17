@@ -1,0 +1,11 @@
+# This package is primarily intended to generate the configmap
+# from the label file
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- cluster/label_sync_cron_job.yaml
+configMapGenerator:
+- name: label-sync-v2
+  files:
+    # configfile is used as key
+    - kubeflow_label.yml    
