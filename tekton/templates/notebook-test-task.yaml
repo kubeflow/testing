@@ -74,7 +74,6 @@ spec:
     resources:
     - name: gcs-test-repo
       type: storage
-      targetPath: gabrielwen-testing
   steps:
   - name: get-credential
     image: gcr.io/kubeflow-ci/test-worker:latest
