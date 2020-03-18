@@ -10,7 +10,6 @@ spec:
   # clusterName is required and must be unique among all managed clusters
   clusterName: my-cluster
   git:
-    # TODO(jlewi): Change to master before committing
     syncRepo: https://github.com/kubeflow/testing.git
     syncBranch: master
     secretType: none
