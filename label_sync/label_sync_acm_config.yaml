@@ -1,0 +1,16 @@
+# Synchronize the label sync config to the kubeflow-admin cluster
+apiVersion: configmanagement.gke.io/v1
+kind: ConfigManagement
+metadata:
+  # name: config-management
+  name: label-sync
+  # Does this need to be in the same namespace as the configmanagement system?
+  namespace: config-management-system
+spec:
+  # clusterName is required and must be unique among all managed clusters
+  clusterName: my-cluster
+  git:
+    syncRepo: https://github.com/kubeflow/testing.git
+    syncBranch: master
+    secretType: none
+    policyDir: "label_sync/acm_repo"

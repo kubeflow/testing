@@ -1,0 +1,37 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: label-sync-cron
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        app: label-sync
+    spec:
+      template:
+        spec:
+          containers:
+          - args:
+            - --config=/etc/config/kubeflow_label.yml
+            - --confirm=true
+            - --orgs=kubeflow
+            - --token=/etc/github/bot-token
+            image: gcr.io/k8s-testimages/label_sync:v20180921-f7ff24f34
+            name: label-sync
+            volumeMounts:
+            - mountPath: /etc/github
+              name: oauth
+              readOnly: true
+            - mountPath: /etc/config
+              name: config
+              readOnly: true
+          restartPolicy: Never
+          volumes:
+          - name: oauth
+            secret:
+              secretName: bot-token-github
+          - configMap:
+              name: label-sync-v2-89b54b7724
+            name: config
+  schedule: 0 */6 * * *
