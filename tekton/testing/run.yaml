@@ -1,0 +1,62 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: resource-chain
+  namespace: tektoncd
+spec:
+  resources:
+  - name: workspace
+    resourceSpec:
+      type: storage
+      params:
+      - name: type
+        value: gcs
+      - name: location
+        value: gs://kubeflow-ci
+      - name: dir
+        value: "y"
+      secrets:
+      - fieldName: GOOGLE_APPLICATION_CREDENTIALS
+        secretName: gcp-credentials
+        secretKey: key.json
+  pipelineSpec:
+    resources:
+    - name: workspace
+      type: git
+    tasks:
+    - name: write
+      taskRef:
+        name: write-test
+      params:
+      - name: folder
+        value: foo
+      resources:
+        inputs:
+        - name: workspace
+          resource: workspace
+        outputs:
+        - name: workspace
+          resource: workspace
+    - name: second-write
+      taskRef:
+        name: write-test
+      params:
+      - name: folder
+        value: bar
+      resources:
+        inputs:
+        - name: workspace
+          resource: workspace
+        outputs:
+        - name: workspace
+          resource: workspace
+          # - name: debug
+          #   taskRef:
+          #     name: debug
+          #   resources:
+          #     inputs:
+          #     - name: workspace
+          #       resource: workspace
+          #       from:
+          #       - write
+          #       - second-write

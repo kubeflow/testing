@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: write-test
+  namespace: tektoncd
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  inputs:
+    resources:
+    - name: workspace
+      type: storage
+      targetPath: write-test
+    params:
+    - name: folder
+      type: string
+      description: folder to write to.
+  outputs:
+    resources:
+    - name: workspace
+      type: storage
+  steps:
+  - name: write
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    script: |
+        #!/usr/bin/env bash
+        set -x
+        _p=$(outputs.resources.workspace.path)/$(inputs.params.folder)
+        mkdir -p ${_p}
+        echo hello something > ${_p}/test-out
+        # exit 1
