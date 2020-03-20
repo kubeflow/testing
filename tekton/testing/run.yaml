@@ -12,7 +12,7 @@ spec:
       - name: type
         value: gcs
       - name: location
-        value: gs://kubeflow-ci
+        value: gs://kubeflow-ci/tekton-testing
       - name: dir
         value: "y"
       secrets:
