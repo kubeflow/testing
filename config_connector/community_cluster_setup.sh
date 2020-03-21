@@ -12,12 +12,16 @@ if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
   exit 1
 fi
 
-if [[ ! $(kubectl get ns kf-community) ]]; then
-  echo "Creating namespace 'kf-community'"
-  kubectl create ns kf-community
+namespace="kf-kcc-admin"
+
+if [[ ! $(kubectl get ns ${namespace} 2> /dev/null) ]]; then
+  echo -e "\e[31mCreating namespace 'kf-kcc-admin'\e[0m"
+  kubectl create ns ${namespace}
 fi
 
-kubectl -n kf-community apply -f containercluster.yaml
-kubectl -n kf-community apply -f serviceaccount.yaml
-kubectl -n kf-community apply -f iamserviceaccount.yaml
-kubectl -n kf-community apply -f iampolicy.yaml
+echo -e "\e[31mApplying YAML files\e[0m"
+kubectl -n ${namespace} apply -f serviceaccount.yaml
+kubectl -n ${namespace} apply -f iamserviceaccount.yaml
+kubectl -n ${namespace} apply -f iampolicy.yaml
+kubectl -n ${namespace} apply -f containercluster.yaml
+kubectl -n ${namespace} apply -f containernodepool.yaml

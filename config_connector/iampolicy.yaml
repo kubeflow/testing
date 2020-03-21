@@ -1,23 +1,13 @@
-apiVersion: iam.cnrm.cloud.google.com/v1alpha1
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMPolicy
 metadata:
-  name: iampolicy-kf-community
-  annotations:
-    iam.gke.io/gcp-service-account: iampolicy-gsa-dep@kf-kcc-admin.iam.gserviceaccount.com
+  name: iampolicy-kf-workloadidentity
 spec:
   resourceRef:
-    apiVersion: iam.cnrm.cloud.google.com/v1alpha1
+    apiVersion: iam.cnrm.cloud.google.com/v1beta1
     kind: IAMServiceAccount
-    name: iampolicy-gsa-dep
+    name: iampolicy-dep-workloadidentity
   bindings:
-    - role: roles/owner
-      members:
-        # Make sure to keep the "cnrm-system" service account permission, or
-        # else Config Connector will be locked out from managing GCP resources.
-        - serviceAccount:cnrm-system@kf-kcc-admin.iam.gserviceaccount.com
     - role: roles/iam.workloadIdentityUser
       members:
-        - serviceAccount:kf-kcc-admin.svc.id.goog[default/iampolicy-ksa-dep]
-    - role: roles/container.serviceAgent
-      members:
-        - serviceAccount:service-kf-kcc-admin@container-engine-robot.iam.gserviceaccount.com
+        - serviceAccount:kf-kcc-admin.svc.id.goog[default/iampolicy-dep-workloadidentity]

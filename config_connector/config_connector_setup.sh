@@ -18,37 +18,39 @@ fi
 
 PROJECT_ID="${1}"
 
-echo "Setting up service accounts and IAM"
+echo -e "\e[31mBeginning setup...\e[0m"
+
 if [[ ! $(gcloud iam service-accounts list | grep cnrm-system) ]]; then
+  echo -e "\e[31mSetting up service accounts and IAM\e[0m"
   gcloud iam service-accounts create cnrm-system
 
   gcloud projects add-iam-policy-binding ${PROJECT_ID} \
---member serviceAccount:cnrm-system@${PROJECT_ID}.iam.gserviceaccount.com \
---role roles/owner
+  --member serviceAccount:cnrm-system@${PROJECT_ID}.iam.gserviceaccount.com \
+  --role roles/owner
 fi
 
-gcloud iam service-accounts keys create --iam-account \
-cnrm-system@${PROJECT_ID}.iam.gserviceaccount.com key.json
-
-echo "Creating namespace and secret"
 if [[ ! $(kubectl get ns cnrm-system) ]]; then
+  echo -e "\e[31mCreating namespace and secret\e[0m"
   kubectl create namespace cnrm-system
-  kubectl create secret generic gcp-key --from-file key.json --namespace cnrm-system
+
+  gcloud iam service-accounts keys create --iam-account \
+  cnrm-system@${PROJECT_ID}.iam.gserviceaccount.com key.json
+
+  kubectl create secret generic gcp-key --from-file key.json \
+  --namespace cnrm-system
+
   rm key.json
 fi
 
-echo "Downloading and installing config connector"
-curl -X GET -sLO \
--H "Authorization: Bearer $(gcloud auth print-access-token)" \
---location-trusted \
-https://us-central1-cnrm-eap.cloudfunctions.net/download/latest/infra/install-bundle.tar.gz
+echo -e "\e[31mDownloading and installing config connector\e[0m"
+gsutil cp gs://cnrm/latest/release-bundle.tar.gz release-bundle.tar.gz
 
-tar zxvf install-bundle.tar.gz && rm install-bundle.tar.gz
+tar -zxvf release-bundle.tar.gz && rm release-bundle.tar.gz
 
-kubectl apply -f install-bundle/
-rm -rf install-bundle
+kubectl apply -f install-bundle-gcp-identity/
+rm -rf install-bundle-*/ samples/
 
-echo "Checking for cnrm controller manager..."
-kubectl wait -n cnrm-system \
---for=condition=Initialized pod \
-cnrm-controller-manager-0
+echo -e "\e[31mChecking for cnrm controller manager...\e[0m"
+kubectl wait -n cnrm-system --for=condition=Initialized pod cnrm-controller-manager-0
+
+echo -e "\e[31mSetup finished!\e[0m"
