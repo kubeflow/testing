@@ -185,3 +185,31 @@ def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
   for w in tkn_cleanup_args:
     args_list.append((repos_dir, namespace, w[0], w[1]))
   return p.map(run_teardown, args_list)
+
+class PipelineRunner(object):
+  def __init__(self, config_path, namespace, name):
+    self.name = name
+    self.namespace = namespace
+
+    with open(config_path) as f:
+      self.config = yaml.load(f)
+      if self.config.get("kind", "") != "PipelineRun":
+        raise ValueError("Invalid config (not PipelineRun): " + self.config)
+
+  def run(self):
+    # TODO(gabrielwen): Should we create a client per job?
+    client = k8s_client.ApiClient()
+    crd_api = k8s_client.CustomObjectsApi(client)
+
+    group, version = self.config["apiVersion"].split("/")
+    result = crd_api.create_namespaced_custom_object(
+        group=group,
+        version=version,
+        namespace=namespace,
+        plural=PLURAL,
+        body=self.config)
+    logging.info("Creating teardown workflow:\n%s", yaml.safe_dump(result))
+    return result
+
+  def wait(self):
+    return get_namespaced_custom_object_with_retries(self.namespace, self.name)
