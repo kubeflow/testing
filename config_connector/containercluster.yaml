@@ -1,0 +1,18 @@
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerCluster
+metadata:
+  annotations:
+    cnrm.cloud.google.com/remove-default-node-pool: "false"
+    cnrm.cloud.google.com/project-id: "kf-kcc-admin"
+  name: kf-community
+spec:
+  location: us-west1-a
+  initialNodeCount: 1
+  loggingService: logging.googleapis.com/kubernetes
+  monitoringService: monitoring.googleapis.com/kubernetes
+  nodeConfig:
+    diskSizeGb: 100
+    diskType: pd-standard
+    machineType: n1-standard-1
+  nodeVersion: 1.15.9-gke.24
+  minMasterVersion: 1.15.9-gke.24
