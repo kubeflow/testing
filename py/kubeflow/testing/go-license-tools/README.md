@@ -77,7 +77,7 @@ $ python <license_tool>/setup.py install
     Fetching license for kubernetes-sigs/yaml
     Fetched github license info, 91 succeeded, 0 failed.
     ```
-    You have to create a `<github_token_file>` in order to access Github repositories, because it sends a lot of requests to github. Follow instructions in `get-github-license-info -h`.
+    You have to create a `<github_token_file>` in order to access GitHub repositories, because it sends a lot of requests to github. Follow instructions in `get-github-license-info -h`.
 
     For repositories that fails to fetch license, it's usually because their github repo
     doesn't have a github understandable license file. Check its readme and
