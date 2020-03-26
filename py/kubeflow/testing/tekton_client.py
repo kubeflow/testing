@@ -313,5 +313,6 @@ class TektonRunner(object):
     return urls
 
   def join(self):
+    # TODO(gabrielwen): check if len is 0
     p = Pool(len(self.workflows))
     return p.map(wait_, self.workflows)
