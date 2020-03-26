@@ -270,8 +270,8 @@ class PipelineRunner(object):
 
   @property
   def ui_url(self):
-    return ui_url = ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
-                     "tektoncd/pipelineruns/{0}".format(self.name))
+    return ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
+            "tektoncd/pipelineruns/{0}".format(self.name))
 
   def wait(self):
     return get_namespaced_custom_object_with_retries(self.namespace, self.name)
