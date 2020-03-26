@@ -273,6 +273,9 @@ class PipelineRunner(object):
     return ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
             "tektoncd/pipelineruns/{0}".format(self.name))
 
+  def name(self):
+    return self.name
+
   def wait(self):
     return get_namespaced_custom_object_with_retries(self.namespace, self.name)
 
@@ -289,7 +292,7 @@ class TektonRunner(object):
     self.workflows.append(PipelineRunner(*args))
 
   def run(self):
-    urls = []
+    urls = dict()
     try:
       # Currently only tekton tests run in kf-ci-v1.
       util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
@@ -297,8 +300,9 @@ class TektonRunner(object):
 
       for w in self.workflows:
         w.run()
+        urls[w.name()] = w.ui_url
         urls.append(w.ui_url)
-        logging.info("URL for workflow: %s", urls[-1])
+        logging.info("URL for workflow: %s", w.ui_url)
     except Exception as e:
       logging.error("Error when starting Tekton workflow: %s", e)
     finally:
