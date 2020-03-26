@@ -26,7 +26,7 @@ parser.add_argument(
   nargs='?',
   default='repo.txt',
   help=
-  'Github repo list file with one line per github repo. Format: org/repo. (default: %(default)s)',
+  'GitHub repo list file with one line per github repo. Format: org/repo. (default: %(default)s)',
 )
 parser.add_argument(
   '-o',
@@ -61,7 +61,7 @@ def main():
   except FileNotFoundError:
     raise Exception((
         'Please put a github api token file at {}, or specify a different token file path by '
-        +'--github-api-token-file. Github API token is needed because anonymous API access limit '
+        +'--github-api-token-file. GitHub API token is needed because anonymous API access limit '
         +'is not enough.'
       ).format(args.github_api_token_file))
 
