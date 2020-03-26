@@ -193,7 +193,7 @@ def load_tekton_run(workflow_name, tekton_run, repo_owner, repo_name):
       raise ValueError("Invalid config (not PipelineRun): " + config)
 
   test_target_name = config["metadata"].get("name", workflow_name)
-  logging.info("eading Tekton PipelineRun config: %s", test_target_name)
+  logging.info("Reading Tekton PipelineRun config: %s", test_target_name)
   config["metadata"]["name"] = workflow_name
 
   for t in config.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
@@ -295,7 +295,7 @@ class TektonRunner(object):
     urls = dict()
     try:
       # Currently only tekton tests run in kf-ci-v1.
-      util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
+      util.configure_kubectl(project, "us-east1-d", "kf-ci-v1")
       util.load_kube_config()
 
       for w in self.workflows:
