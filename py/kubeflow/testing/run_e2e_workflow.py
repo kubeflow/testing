@@ -492,7 +492,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
 
-  ui_urls.update(tekton_runner.run())
+  ui_urls.update(tekton_runner.run(args.project, args.zone, args.cluster))
   # We delay creating started.json until we know the Argo workflow URLs
   create_started_file(args.bucket, ui_urls)
 

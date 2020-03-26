@@ -291,7 +291,7 @@ class TektonRunner(object):
     # TODO(gabrielwen): Fix args.
     self.workflows.append(PipelineRunner(*args))
 
-  def run(self):
+  def run(self, project, zone, cluster):
     urls = dict()
     try:
       # Currently only tekton tests run in kf-ci-v1.
@@ -307,7 +307,7 @@ class TektonRunner(object):
       logging.error("Error when starting Tekton workflow: %s", e)
     finally:
       # Restore kubectl
-      util.configure_kubectl(args.project, args.zone, args.cluster)
+      util.configure_kubectl(project, zone, cluster)
       util.load_kube_config()
 
     return urls
