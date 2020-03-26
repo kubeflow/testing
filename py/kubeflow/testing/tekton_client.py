@@ -201,7 +201,7 @@ def load_tekton_run(workflow_name, namespace, tekton_run, repo_owner, repo_name)
       t["params"] = []
 
     for i in range(len(t["params"])):
-      if t["params"][i]["name"] = "junit-path":
+      if t["params"][i]["name"] == "junit-path":
         param = ("$(workspaces.junit-artifacts.path)/{workflow_name}"
                  "/artifacts/junit_{self.name}/junit_{task_name}.xml"
                  ).format(
