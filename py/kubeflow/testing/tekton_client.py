@@ -186,6 +186,8 @@ def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
     args_list.append((repos_dir, namespace, w[0], w[1]))
   return p.map(run_teardown, args_list)
 
+# TODO(gabrielwen): add status logging.
+# TODO(gabrielwen): Add sanity checks.
 class PipelineRunner(object):
   def __init__(self, config_path, namespace, name):
     self.name = name
@@ -208,8 +210,27 @@ class PipelineRunner(object):
         namespace=namespace,
         plural=PLURAL,
         body=self.config)
-    logging.info("Creating teardown workflow:\n%s", yaml.safe_dump(result))
+    logging.info("Created teardown workflow:\n%s", yaml.safe_dump(result))
     return result
 
   def wait(self):
     return get_namespaced_custom_object_with_retries(self.namespace, self.name)
+
+def wait_(runner):
+  return runner.wait()
+
+# TODO(gabrielwen): Add teardown process.
+class TektonRunner(object):
+  def __init__(self):
+    self.workflows = []
+
+  def append(self, path, namespace, name):
+    self.append(PipelineRunner(path, namespace, name))
+
+  def run(self):
+    for w in self.workflows:
+      w.run()
+
+  def join(self):
+    p = Pool(len(self.workflows))
+    return p.map(wait_, self.workflows)
