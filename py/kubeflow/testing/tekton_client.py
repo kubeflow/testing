@@ -221,6 +221,7 @@ def load_tekton_run(workflow_name, tekton_run, repo_owner, repo_name):
           {"name": "build-id", "value": os.getenv("BUILD_NUMBER")},
           {"name": "workflow-name", "value": workflow_name},
       ]
+    t["params"].extend(prow_params)
 
     repo_url = "https://github.com/{0}/{1}.git".format(repo_owner, repo_name)
     revision = "master"
