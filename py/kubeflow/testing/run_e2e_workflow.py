@@ -354,8 +354,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     elif w.tekton_run:
-      tekton_runner.append(workflow_name, namespace, w.tekton_run, repo_owner,
-                           repo_name)
+      tekton_runner.append(workflow_name, w.tekton_run, repo_owner, repo_name)
       # tekton_run = None
       # with open(w.tekton_run) as config_f:
       #   tekton_run = yaml.load(config_f)

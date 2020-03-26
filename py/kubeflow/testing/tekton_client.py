@@ -186,7 +186,7 @@ def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
     args_list.append((repos_dir, namespace, w[0], w[1]))
   return p.map(run_teardown, args_list)
 
-def load_tekton_run(workflow_name, namespace, tekton_run, repo_owner, repo_name):
+def load_tekton_run(workflow_name, tekton_run, repo_owner, repo_name):
   with open(tekton_run) as f:
     config = yaml.load(f)
     if config.get("kind", "") != "PipelineRun":
@@ -247,11 +247,10 @@ def load_tekton_run(workflow_name, namespace, tekton_run, repo_owner, repo_name)
 # TODO(gabrielwen): add status logging.
 # TODO(gabrielwen): Add sanity checks.
 class PipelineRunner(object):
-  def __init__(self, name, namespace, config_path, repo_owner, repo_name):
+  def __init__(self, name, config_path, repo_owner, repo_name):
     self.name = name
-    self.namespace = namespace
-    self.config = load_tekton_run(name, namespace, config_path, repo_owner,
-                                  repo_name)
+    self.config = load_tekton_run(name, config_path, repo_owner, repo_name)
+    self.namespace = self.config["metadata"].get("namespace", "tektoncd")
 
   def run(self):
     # TODO(gabrielwen): Should we create a client per job?
@@ -262,7 +261,7 @@ class PipelineRunner(object):
     result = crd_api.create_namespaced_custom_object(
         group=group,
         version=version,
-        namespace=self.config["metadata"]["namespace"],
+        namespace=self.namespace,
         plural=PLURAL,
         body=self.config)
     logging.info("Created workflow:\n%s", yaml.safe_dump(result))
