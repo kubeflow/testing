@@ -274,9 +274,6 @@ class PipelineRunner(object):
     return ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
             "tektoncd/pipelineruns/{0}".format(self.name))
 
-  def name(self):
-    return self.name
-
   def wait(self):
     return get_namespaced_custom_object_with_retries(self.namespace, self.name)
 
@@ -301,7 +298,7 @@ class TektonRunner(object):
 
       for w in self.workflows:
         w.run()
-        urls[w.name()] = w.ui_url
+        urls[w.name] = w.ui_url
         urls.append(w.ui_url)
         logging.info("URL for workflow: %s", w.ui_url)
     except Exception as e:
