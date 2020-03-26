@@ -286,7 +286,7 @@ class TektonRunner(object):
 
   def append(self, args):
     # TODO(gabrielwen): Fix args.
-    self.append(PipelineRunner(*args))
+    self.workflows.append(PipelineRunner(*args))
 
   def run(self):
     urls = []
