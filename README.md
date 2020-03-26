@@ -13,7 +13,7 @@
   - [Debugging Failed Tests](#debugging-failed-tests)
     - [Logs and Cluster Access for Kubeflow CI](#logs-and-cluster-access-for-kubeflow-ci)
       - [Access Control](#access-control)
-    - [No results show up in Gubernator](#no-results-show-up-in-gubernator)
+    - [No results show up in Spyglass](#no-results-show-up-in-spyglass)
     - [No Logs in Argo UI For Step or Pod Id missing in Argo Logs](#no-logs-in-argo-ui-for-step-or-pod-id-missing-in-argo-logs)
     - [Debugging Failed Deployments](#debugging-failed-deployments)
   - [Testing Changes to the ProwJobs](#testing-changes-to-the-prowjobs)
@@ -69,7 +69,7 @@ Here's how it works
   * The Argo workflow will use an NFS volume to attach a shared POSIX compliant filesystem to each step in the
     workflow.
   * Each step in the pipeline can write outputs and junit.xml files to a test directory in the volume
-  * A final step in the Argo pipeline will upload the outputs to GCS so they are available in gubernator
+  * A final step in the Argo pipeline will upload the outputs to GCS so they are available in spyglass
 
 Quick Links
 
@@ -116,8 +116,8 @@ Logs from the E2E tests are available in a number of places and can be used to t
 
 These should be publicly accessible.
 
-The logs from each step are copied to GCS and made available through gubernator. The K8s-ci robot should post
-a link to the gubernator UI in the PR. You can also find them as follows
+The logs from each step are copied to GCS and made available through spyglass. The K8s-ci robot should post
+a link to the spyglass UI in the PR. You can also find them as follows
 
 1. Open up the prow jobs dashboard e.g. [for kubeflow/kubeflow](https://prow.k8s.io/?repo=kubeflow%2Fkubeflow)
 1. Find your job
@@ -125,7 +125,7 @@ a link to the gubernator UI in the PR. You can also find them as follows
 1. Click on artifacts
 1. Navigate to artifacts/logs
 
-If these logs aren't available it could indicate a problem running the step that uploads the artifacts to GCS for gubernator. In this
+If these logs aren't available it could indicate a problem running the step that uploads the artifacts to GCS for spyglass. In this
 case you can use one of the alternative methods listed below.
 
 ### Argo UI
@@ -240,22 +240,22 @@ We currently have the following levels of access
 
      * Example maintainers are granted elevated access to these clusters in order to facilitate development of these tests
 
-### No results show up in Gubernator
+### No results show up in Spyglass
 
-If no results show up in Gubernator this means the prow job didn't get far enough to upload any results/logs to GCS.
+If no results show up in Spyglass this means the prow job didn't get far enough to upload any results/logs to GCS.
 
 To debug this you need the pod logs. You can access the pod logs via the build log link for your job in the [prow jobs UI](https://prow.k8s.io/)
 
   * Pod logs are ephmeral so you need to check shortly after your job runs.
 
 The pod logs are available in StackDriver but only the Google Kubeflow Team has access
-  * Prow runs on a cluster owned by the K8s team not Kubeflow
-  * This policy is determined by K8s not Kubeflow
-  * This could potentially be fixed by using our own prow build cluster [issue#32](https://github.com/kubeflow/testing/issues/32)
+  * Prow controllers run on a cluster (`k8s-prow/prow`) owned by the K8s team
+  * Prow jobs (i.e. pods) run on a build cluster (`kubeflow-ci/kubeflow-testing`) owned by the Kubeflow team
+  * This policy for controller logs is owned by K8s, while the policy for job logs is governed by Kubeflow
 
 To access the stackdriver logs 
   
-  * Open stackdriver for project [k8s-prow-builds](https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project=k8s-prow-builds&folder&minLogLevel=0&expandAll=false&timestamp=2018-05-22T17:09:26.625000000Z&customFacets&limitCustomFacetWidth=true&dateRangeStart=2018-05-22T11:09:27.032Z&dateRangeEnd=2018-05-22T17:09:27.032Z&interval=PT6H&resource=gce_firewall_rule&scrollTimestamp=2018-05-22T15:40:23.000000000Z&advancedFilter=resource.type%3D"container"%0Aresource.labels.pod_id%3D"15f5a424-5dd6-11e8-826c-0a580a6c0117"%0A)
+  * Open stackdriver for project [kubeflow-ci](https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project=kubeflow-testing&folder&minLogLevel=0&expandAll=false&timestamp=2018-05-22T17:09:26.625000000Z&customFacets&limitCustomFacetWidth=true&dateRangeStart=2018-05-22T11:09:27.032Z&dateRangeEnd=2018-05-22T17:09:27.032Z&interval=PT6H&resource=gce_firewall_rule&scrollTimestamp=2018-05-22T15:40:23.000000000Z&advancedFilter=resource.type%3D"container"%0Aresource.labels.pod_id%3D"15f5a424-5dd6-11e8-826c-0a580a6c0117"%0A)
   * Get the pod ID by clicking on the build log in the [prow jobs UI](https://prow.k8s.io/)
   * Filter the logs using 
 
