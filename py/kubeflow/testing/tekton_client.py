@@ -186,17 +186,72 @@ def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
     args_list.append((repos_dir, namespace, w[0], w[1]))
   return p.map(run_teardown, args_list)
 
+def load_tekton_run(workflow_name, namespace, tekton_run, repo_owner, repo_name):
+  with open(tekton_run) as f:
+    config = yaml.load(f)
+    if config.get("kind", "") != "PipelineRun":
+      raise ValueError("Invalid config (not PipelineRun): " + config)
+
+  test_target_name = config["metadata"].get("name", workflow_name)
+  logging.info("eading Tekton PipelineRun config: %s", test_target_name)
+  config["metadata"]["name"] = workflow_name
+
+  for t in config.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
+    if not "params" in t:
+      t["params"] = []
+
+    for i in range(len(t["params"])):
+      if t["params"][i]["name"] = "junit-path":
+        param = ("$(workspaces.junit-artifacts.path)/{workflow_name}"
+                 "/artifacts/junit_{self.name}/junit_{task_name}.xml"
+                 ).format(
+                     workflow_name=workflow_name,
+                     task_name=t["name"])
+        logging.info("Setting Junit path to %s", param)
+        t["params"][i]["value"] = param
+
+      prow_params = [
+          {"name": "test-target-name", "value": test_target_name},
+          {"name": "repo-owner", "value": repo_owner},
+          {"name": "repo-name", "value": repo_name},
+          {"name": "job-type", "value": os.getenv("JOB_TYPE")},
+          {"name": "job-name", "value": os.getenv("JOB_NAME")},
+          {"name": "prow-job-id", "value": os.getenv("PROW_JOB_ID")},
+          {"name": "pull-number", "value": os.getenv("PULL_NUMBER")},
+          {"name": "build-id", "value": os.getenv("BUILD_NUMBER")},
+          {"name": "workflow-name", "value": workflow_name},
+      ]
+
+    repo_url = "https://github.com/{0}/{1}.git".format(repo_owner, repo_name)
+    revision = "master"
+    if job_type == "presubmit":
+      revision = "refs/pull/{0}/head".format(os.getenv("PULL_NUMBER"))
+    elif job_type == "postsubmit":
+      revision = os.getenv("PULL_BASE_SHA", "master")
+    else:
+      revision = os.getenv("BRANCH_NAME", "master")
+
+    for r in config.get("spec", {}).get("resources", []):
+      if not "resourceSpec" in r or r["resourceSpec"].get("type", "") != "git":
+        continue
+      for p in r["resourceSpec"].get("params", []):
+        if p.get("name", "") == "url" and p.get("value", "") == repo_url:
+          r["resourceSpec"]["params"] = [
+            {"name": "url", "value": repo_url},
+            {"name": "revision", "value": revision},
+          ]
+          continue
+
+  return config
+
 # TODO(gabrielwen): add status logging.
 # TODO(gabrielwen): Add sanity checks.
 class PipelineRunner(object):
-  def __init__(self, config_path, namespace, name):
+  def __init__(self, name, namespace, config_path, repo_owner, repo_name):
     self.name = name
     self.namespace = namespace
-
-    with open(config_path) as f:
-      self.config = yaml.load(f)
-      if self.config.get("kind", "") != "PipelineRun":
-        raise ValueError("Invalid config (not PipelineRun): " + self.config)
+    self.config = load_tekton_run(name, namespace, config_path, repo_owner,
+                                  repo_name)
 
   def run(self):
     # TODO(gabrielwen): Should we create a client per job?
@@ -207,11 +262,16 @@ class PipelineRunner(object):
     result = crd_api.create_namespaced_custom_object(
         group=group,
         version=version,
-        namespace=namespace,
+        namespace=self.config["metadata"]["namespace"],
         plural=PLURAL,
         body=self.config)
-    logging.info("Created teardown workflow:\n%s", yaml.safe_dump(result))
+    logging.info("Created workflow:\n%s", yaml.safe_dump(result))
     return result
+
+  @property
+  def ui_url(self):
+    return ui_url = ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
+                     "tektoncd/pipelineruns/{0}".format(self.name))
 
   def wait(self):
     return get_namespaced_custom_object_with_retries(self.namespace, self.name)
@@ -228,8 +288,24 @@ class TektonRunner(object):
     self.append(PipelineRunner(path, namespace, name))
 
   def run(self):
-    for w in self.workflows:
-      w.run()
+    urls = []
+    try:
+      # Currently only tekton tests run in kf-ci-v1.
+      util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
+      util.load_kube_config()
+
+      for w in self.workflows:
+        w.run()
+        urls.append(w.ui_url)
+        logging.info("URL for workflow: %s", urls[-1])
+    except Exception as e:
+      logging.error("Error when starting Tekton workflow: %s", e)
+    finally:
+      # Restore kubectl
+      util.configure_kubectl(args.project, args.zone, args.cluster)
+      util.load_kube_config()
+
+    return urls
 
   def join(self):
     p = Pool(len(self.workflows))

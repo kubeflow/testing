@@ -233,6 +233,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   util.configure_kubectl(args.project, args.zone, args.cluster)
   util.load_kube_config()
 
+  tekton_runner = tekton_client.TektonRunner()
   workflow_names = []
   tkn_names = []
   tkn_cleanup_args = []
