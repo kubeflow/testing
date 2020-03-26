@@ -299,7 +299,6 @@ class TektonRunner(object):
       for w in self.workflows:
         w.run()
         urls[w.name] = w.ui_url
-        urls.append(w.ui_url)
         logging.info("URL for workflow: %s", w.ui_url)
     except Exception as e:
       logging.error("Error when starting Tekton workflow: %s", e)
