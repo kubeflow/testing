@@ -224,6 +224,7 @@ def load_tekton_run(workflow_name, tekton_run, repo_owner, repo_name):
 
     repo_url = "https://github.com/{0}/{1}.git".format(repo_owner, repo_name)
     revision = "master"
+    job_type = os.getenv("JOB_TYPE", "")
     if job_type == "presubmit":
       revision = "refs/pull/{0}/head".format(os.getenv("PULL_NUMBER"))
     elif job_type == "postsubmit":
