@@ -1,0 +1,70 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: nb-tests
+  namespace: tektoncd
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  inputs:
+    params:
+    - name: notebook-path
+      type: string
+      description:
+        Testing notebook location. Should be in the form of
+        {REPO_OWNER}/{REPO}/path/to/notebook.ipynb
+    - name: testing-cluster-pattern
+      type: string
+      description:
+        Cluster pattern to run the notebook test.
+        Default to be from master branch.
+      default: 'kf-master-(?!n\d\d)'
+    - name: junit-path
+      type: string
+      description:
+        Path to the GCS artifacts will be uploaded to.
+    resources:
+    - name: examples-repo
+      type: git
+      targetPath: src/kubeflow/examples
+    - name: kf-testing-repo
+      type: git
+      targetPath: src/kubeflow/testing
+  steps:
+  - name: get-credential
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    command:
+    - python3
+    args:
+    - -m
+    - kubeflow.testing.get_kf_testing_cluster
+    - --base=$(inputs.params.testing-cluster-pattern)
+    - get-credentials
+    env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/gcp-credentials/key.json
+    volumeMounts:
+    - name: gcp-credentials
+      readOnly: true
+      mountPath: /secret/gcp-credentials
+  - name: run-notebook
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    command:
+    - pytest
+    args:
+    - run_notebook_test.py
+    - --log-cli-level=info
+    - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
+    - --timeout=1800
+    - --junitxml=$(inputs.params.junit-path)
+    - --notebook_path=$(inputs.params.notebook-path)
+    workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
+    env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+  volumes:
+  - name: gcp-credentials
+    secret:
+      secretName: gcp-credentials
