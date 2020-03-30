@@ -29,7 +29,7 @@
     - [Creating secret for deployapp test](#creating-secret-for-deployapp-test)
     - [Troubleshooting](#troubleshooting)
   - [Setting up Kubeflow Release Clusters For Testing](#setting-up-kubeflow-release-clusters-for-testing)
-  - [Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>](#setting-up-a-kubeflow-repository-to-use-prow-a-idprow-setupa)
+  - [Setting up a Kubeflow Repository to Use Prow](#setting-up-a-kubeflow-repository-to-use-prow-a-idprow-setupa)
   - [Writing An Argo Workflow For An E2E Test](#writing-an-argo-workflow-for-an-e2e-test)
     - [Adding an E2E test to a repository](#adding-an-e2e-test-to-a-repository)
       - [Python function](#python-function)
@@ -714,7 +714,7 @@ configure the OAuth credential.
    ```
 1. Create a PR with the resulting config.  
 
-## Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>
+## Setting up a Kubeflow Repository to Use Prow 
 
 
 1. Define ProwJobs see [pull/4951](https://github.com/kubernetes/test-infra/pull/4951)
