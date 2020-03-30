@@ -19,10 +19,22 @@ spec:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
       default: 'kf-master-(?!n\d\d)'
+    - name: artifacts-gcs
+      type: string
+      description:
+        GCS bucket and directory artifacts will be uploaded to.
+        Should be in the form of 'gs://'
     - name: junit-path
       type: string
       description:
-        Path to the GCS artifacts will be uploaded to.
+        Relative path to the GCS artifacts will be uploaded to.
+        Base path is artifacts-gcs so the actual GCS blob will be
+        artifacts-gcs/junit-path
+    - name: test-target-name
+      type: string
+      description:
+        Test targe name, used to group test results in JUNIT.
+      default: manual-testing
     resources:
     - name: examples-repo
       type: git
@@ -58,8 +70,10 @@ spec:
     - --log-cli-level=info
     - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
     - --timeout=1800
-    - --junitxml=$(inputs.params.junit-path)
+    - --junitxml=$(inputs.params.artifacts-gcs)/$(inputs.params.junit-path)
     - --notebook_path=$(inputs.params.notebook-path)
+    - --test-target-name=$(inputs.params.test-target-name)
+    - --artifacts-gcs=$(inputs.params.artifacts-gcs)
     workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
     env:
     - name: PYTHONPATH
