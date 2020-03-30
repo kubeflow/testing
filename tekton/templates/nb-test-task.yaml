@@ -84,12 +84,6 @@ spec:
     - name: gcp-credentials
       readOnly: true
       mountPath: /secret/gcp-credentials
-  - name: debug
-    image: gcr.io/kubeflow-ci/test-worker:latest
-    command:
-    - tail
-    - -f
-    - /dev/null
   volumes:
   - name: gcp-credentials
     secret:
