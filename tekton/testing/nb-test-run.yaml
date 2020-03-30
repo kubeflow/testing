@@ -94,7 +94,7 @@ spec:
       - name: notebook-path
         value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
       - name: junit-path
-        value: /workspace/outputs/$(junit-path)
+        value: /workspace/outputs/$(params.junit-path)
       - name: test-target-name
         value: $(params.test-target-name)
       - name: artifacts-gcs

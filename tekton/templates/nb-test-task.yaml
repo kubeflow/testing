@@ -78,6 +78,18 @@ spec:
     env:
     - name: PYTHONPATH
       value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/gcp-credentials/key.json
+    volumeMounts:
+    - name: gcp-credentials
+      readOnly: true
+      mountPath: /secret/gcp-credentials
+  - name: debug
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    command:
+    - tail
+    - -f
+    - /dev/null
   volumes:
   - name: gcp-credentials
     secret:
