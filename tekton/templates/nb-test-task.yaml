@@ -70,7 +70,7 @@ spec:
     - --log-cli-level=info
     - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
     - --timeout=1800
-    - --junitxml=$(inputs.params.artifacts-gcs)/$(inputs.params.junit-path)
+    - --junitxml=$(inputs.params.junit-path)
     - --notebook_path=$(inputs.params.notebook-path)
     - --test-target-name=$(inputs.params.test-target-name)
     - --artifacts-gcs=$(inputs.params.artifacts-gcs)

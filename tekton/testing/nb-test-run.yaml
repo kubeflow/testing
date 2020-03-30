@@ -8,7 +8,7 @@ spec:
   - name: test-target-name
     value: manual-testinig
   - name: artifacts-gcs
-    value: gs://path/to/your/gcs
+    value: gs://kubeflow-ci-deployment/gabrielwen-testing
   - name: junit-path
     value: artifacts/junit_manual-testing
   resources:
@@ -27,7 +27,7 @@ spec:
       - name: url
         value: https://github.com/kubeflow/testing.git
       - name: revision
-        value: refs/pull/<pull-number>/head
+        value: refs/pull/622/head
   pipelineSpec:
     params:
     - name: test-target-name
@@ -89,7 +89,7 @@ spec:
         - name: kf-testing-repo
           resource: testing-repo
       taskRef:
-        name: notebook-test
+        name: nb-tests
       params:
       - name: notebook-path
         value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
