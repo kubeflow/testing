@@ -99,4 +99,3 @@ spec:
         value: $(params.test-target-name)
       - name: artifacts-gcs
         value: $(params.artifacts-gcs)
-
