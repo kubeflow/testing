@@ -8,7 +8,7 @@ spec:
   - name: test-target-name
     value: manual-testinig
   - name: artifacts-gcs
-    value: gs://kubeflow-ci-deployment/gabrielwen-testing
+    value: gs://kubeflow-ci-deployment/gabrielwen-testing-2
   - name: junit-path
     value: artifacts/junit_manual-testing
   resources:
