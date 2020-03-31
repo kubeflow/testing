@@ -318,7 +318,7 @@ class TektonRunner(object):
 def junit_parse_and_upload(artifacts_dir, output_gcs):
   logging.info("Walking through directory: %s", artifacts_dir)
   junit_pattern = re.compile("junit.*\.xml")
-  success = True
+  failed_num = 0
   for root, _, files in os.walk(artifacts_dir):
     for filename in files:
       if not junit_pattern.match(filename):
@@ -326,10 +326,8 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
       logging.info("Parsing JUNIT: %s", filename)
       tree = ET.parse(os.path.join(root, filename))
       root = tree.getroot()
-      failed = int(root.attrib.get(
+      failed_num = int(root.attrib.get(
           "errors", "0")) + int(root.attrib.get("failures", "0"))
-      if failed > 0:
-        success = False
 
       for testcase in root:
         testname = testcase.attrib.get("name", "unknown-test")
@@ -337,6 +335,10 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
           logging.error("%s has failure: %s",
                         testname,
                         failure.attrib.get("message", "message not found"))
+
+  if failed_num:
+    raise ValueError(
+        "This task is failed with {0} errors/failures.".format(failed_num))
 
 def main(unparsed_args=None): # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
