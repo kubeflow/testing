@@ -63,6 +63,24 @@ spec:
     - name: testing-repo
       type: git
     tasks:
+    - name: xgboost-synthetic
+      resources:
+        inputs:
+        - name: examples-repo
+          resource: examples-repo
+        - name: kf-testing-repo
+          resource: testing-repo
+      taskRef:
+        name: nb-tests
+      params:
+      - name: notebook-path
+        value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
+      - name: junit-path
+        value: /workspace/outputs/$(params.junit-path)/xgboost-synthetic.xml
+      - name: test-target-name
+        value: $(params.test-target-name)
+      - name: artifacts-gcs
+        value: $(params.artifacts-gcs)
     - name: mnist-gcp
       resources:
         inputs:
