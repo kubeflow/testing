@@ -316,15 +316,26 @@ class TektonRunner(object):
     return p.map(wait_, self.workflows)
 
 def junit_parse_and_upload(artifacts_dir, output_gcs):
-  print("GG TEST junit_parse_and_upload")
   logging.info("Walking through directory: %s", artifacts_dir)
   junit_pattern = re.compile("junit.*\.xml")
+  success = True
   for root, _, files in os.walk(artifacts_dir):
     for filename in files:
-      if junit_pattern.match(filename):
-        logging.info("file to be parsed: %s", filename)
-      else:
-        logging.info("file ignored: %s", filename)
+      if not junit_pattern.match(filename):
+        continue
+      logging.info("Parsing JUNIT: %s", filename)
+      tree = ET.parse(os.path.join(root, filename))
+      root = tree.getroot()
+      failed = int(root.attrib.get(
+          "errors", "0")) + int(root.attrib.get("failures", "0"))
+      if failed > 0:
+        success = False
+
+      for testcase in root:
+        testname = testcase.attrib("name", "unknown-test")
+        for failure in testcase:
+          logging.error("%s has failure: %s",
+                        failure.attrib("message", "message not found"))
 
 def main(unparsed_args=None): # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
