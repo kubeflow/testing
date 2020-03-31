@@ -332,10 +332,10 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
         success = False
 
       for testcase in root:
-        testname = testcase.attrib("name", "unknown-test")
+        testname = testcase.attrib.get("name", "unknown-test")
         for failure in testcase:
           logging.error("%s has failure: %s",
-                        failure.attrib("message", "message not found"))
+                        failure.attrib.get("message", "message not found"))
 
 def main(unparsed_args=None): # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
