@@ -321,7 +321,7 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
   junit_pattern = re.compile("junit.*\.xml")
   for root, _, files in os.walk(artifacts_dir):
     for filename in files:
-      if junit_pattern.fullmatch(filename):
+      if junit_pattern.match(filename):
         logging.info("file to be parsed: %s", filename)
       else:
         logging.info("file ignored: %s", filename)
