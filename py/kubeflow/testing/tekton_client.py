@@ -6,6 +6,7 @@ import json
 import six
 import datetime
 import os
+import re
 import time
 import uuid
 import yaml
@@ -16,6 +17,7 @@ else:
   import httplib
 
 from multiprocessing import Pool
+from xml.etree import ElementTree as ET
 
 from kubernetes import client as k8s_client # pylint: disable=wrong-import-position
 from kubernetes.client import rest # pylint: disable=wrong-import-position
@@ -313,3 +315,13 @@ class TektonRunner(object):
     # TODO(gabrielwen): check if len is 0
     p = Pool(len(self.workflows))
     return p.map(wait_, self.workflows)
+
+  def junit_parse_and_upload(artifacts_dir, output_gcs):
+    logging.info("Walking through directory: %s", artifacts_dir)
+    junit_pattern = re.compile("junit.*\.xml")
+    for root, _, files in os.walk(artifacts_dir):
+      for filename in files:
+        if junit_pattern.fullmatch(filename):
+          logging.info("file to be parsed: %s", filename)
+        else:
+          logging.info("file ignored: %s", filename)
