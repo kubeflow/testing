@@ -338,13 +338,13 @@ def main(unparsed_args=None): # pylint: disable=too-many-locals
   parser_copy = subparsers.add_parser(
     "junit_parse_and_upload", help="Parse and upload the artifacts.")
 
-  parser_copy.add_parser(
+  parser_copy.add_argument(
     "--artifacts_dir",
     default="",
     type=str,
     help="Directory having artifacts to be parsed and uploaded.")
 
-  parser_copy.add_parser(
+  parser_copy.add_argument(
     "--output_gcs",
     default="",
     type=str,
