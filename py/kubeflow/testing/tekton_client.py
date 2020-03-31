@@ -319,10 +319,12 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
   logging.info("Walking through directory: %s", artifacts_dir)
   junit_pattern = re.compile("junit.*\.xml")
   failed_num = 0
+  found_xml = False
   for root, _, files in os.walk(artifacts_dir):
     for filename in files:
       if not junit_pattern.match(filename):
         continue
+      found_xml = True
       logging.info("Parsing JUNIT: %s", filename)
       tree = ET.parse(os.path.join(root, filename))
       root = tree.getroot()
@@ -336,6 +338,8 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
                         testname,
                         failure.attrib.get("message", "message not found"))
 
+  if not found_xml:
+    raise ValueError("No JUNIT artifats found in " + artifacts_dir)
   if failed_num:
     raise ValueError(
         "This task is failed with {0} errors/failures.".format(failed_num))
