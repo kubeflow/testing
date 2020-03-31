@@ -1,6 +1,7 @@
 """Utility function to wait for Tekton Pipelineruns.
 """
 
+import argparse
 import logging
 import json
 import six
@@ -325,3 +326,46 @@ class TektonRunner(object):
           logging.info("file to be parsed: %s", filename)
         else:
           logging.info("file ignored: %s", filename)
+
+
+def main(unparsed_args=None): # pylint: disable=too-many-locals
+  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+  # create the top-level parser
+  parser = argparse.ArgumentParser(description="Tekton helper.")
+
+  #############################################################################
+  # Copy artifacts and parse the status.
+  parser_copy = subparsers.add_parser(
+    "junit_parse_and_upload", help="Parse and upload the artifacts.")
+
+  parser_copy.add_parser(
+    "--artifacts_dir",
+    default="",
+    type=str,
+    help="Directory having artifacts to be parsed and uploaded.")
+
+  parser_copy.add_parser(
+    "--output_gcs",
+    default="",
+    type=str,
+    help=("GCS blob to upload artifacts. "
+          "If not given, artifacts will not be uploaded."))
+
+  parser_copy.set_defaults(func=lambda args: junit_parse_and_upload(
+    args.artifacts_dir,
+    args.output_gcs))
+
+  #############################################################################
+  # Process the command line arguments.
+  # Parse the args
+  args = parser.parse_args(args=unparsed_args)
+  args.func(args)
+
+if __name__ == "__main__":
+  logging.basicConfig(level=logging.INFO,
+                      format=('%(levelname)s|%(asctime)s'
+                              '|%(pathname)s|%(lineno)d| %(message)s'),
+                      datefmt='%Y-%m-%dT%H:%M:%S',
+                      )
+  logging.getLogger().setLevel(logging.INFO)
+  main()
