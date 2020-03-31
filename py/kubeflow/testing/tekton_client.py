@@ -1,5 +1,3 @@
-"""Utility function to wait for Tekton Pipelineruns.
-"""
 
 import argparse
 import logging
@@ -330,10 +328,10 @@ class TektonRunner(object):
 
 
 def main(unparsed_args=None): # pylint: disable=too-many-locals
-  print("GG TEST")
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
   # create the top-level parser
   parser = argparse.ArgumentParser(description="Tekton helper.")
+  subparsers = parser.add_subparsers()
 
   #############################################################################
   # Copy artifacts and parse the status.

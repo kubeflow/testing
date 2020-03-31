@@ -98,14 +98,16 @@ spec:
   - name: copy-artifacts
     image: gcr.io/kubeflow-ci/test-worker:latest
     command:
-    - gsutil
+    - python
     args:
     - -m
-    - rsync
-    - -r
-    - '/workspace/outputs'
-    - $(inputs.params.artifacts-gcs)
+    - kubeflow.testing.tekton_client
+    - junit_parse_and_upload
+    - --artifacts_dir=/workspace/outputs
+    - --output_gcs=$(inputs.params.artifacts-gcs)
     env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials/key.json
     volumeMounts:
