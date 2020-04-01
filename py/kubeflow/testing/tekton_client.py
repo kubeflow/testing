@@ -233,9 +233,9 @@ class PipelineRunner(object):
                                   bucket)
     self.namespace = self.config["metadata"].get("namespace", "tektoncd")
     self.artifacts_bucket = bucket
+    self.teardown_runner = None
 
   def run(self):
-    # TODO(gabrielwen): Should we create a client per job?
     client = k8s_client.ApiClient()
     crd_api = k8s_client.CustomObjectsApi(client)
 
@@ -255,7 +255,11 @@ class PipelineRunner(object):
             "tektoncd/pipelineruns/{0}".format(self.name))
 
   def wait(self):
-    return get_namespaced_custom_object_with_retries(self.namespace, self.name)
+    if not self.teardown_runner:
+      return get_namespaced_custom_object_with_retries(self.namespace, self.name)
+
+    _ = get_namespaced_custom_object_with_retries(self.namespace, self.name)
+    return self.teardown_runner.wait()
 
 def wait_(runner):
   return runner.wait()
