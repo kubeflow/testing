@@ -233,7 +233,7 @@ class PipelineRunner(object):
                                   bucket)
     self.namespace = self.config["metadata"].get("namespace", "tektoncd")
     self.artifacts_bucket = bucket
-    self.teardown_runner = None
+    self.teardown_runners = []
 
   def run(self):
     client = k8s_client.ApiClient()
@@ -249,21 +249,27 @@ class PipelineRunner(object):
     logging.info("Created workflow:\n%s", yaml.safe_dump(result))
     return result
 
+  def append_teardown(self, runner):
+    self.teardown_runners.append(runner)
+
   @property
   def ui_url(self):
     return ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
             "tektoncd/pipelineruns/{0}".format(self.name))
 
   def wait(self):
-    if not self.teardown_runner:
+    if not self.teardown_runners:
       return get_namespaced_custom_object_with_retries(self.namespace, self.name)
 
-    _ = get_namespaced_custom_object_with_retries(self.namespace, self.name)
+    r = get_namespaced_custom_object_with_retries(self.namespace, self.name)
     try:
-      self.teardown_runner.run()
+      for r in self.teardown_runners:
+        r.run()
     except Exception as e:
       logging.error("Error when running workflow: %s", e)
-    return self.teardown_runner.wait()
+
+    results = p.map(wait_, self.teardown_runners)
+    return r
 
 def wait_(runner):
   return runner.wait()

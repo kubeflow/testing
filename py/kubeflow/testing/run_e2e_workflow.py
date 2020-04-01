@@ -104,7 +104,8 @@ class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
     self.job_types = data.get("job_types", [])
     self.include_dirs = data.get("include_dirs", [])
     self.app_dir = os.path.join(root_dir, data.get("app_dir")) if data.get("app_dir") else ""
-    self.tekton_run = os.path.join(root_dir, data.get("tekton_run")) if data.get("tekton_run") else ""
+    self.tekton_run = os.path.join(root_dir, data.get("tekton_run", ""))
+    self.tekton_teardown = os.path.join(root_dir, data.get("tekton_teardown", ""))
     self.tekton_params = data.get("tekton_params", [])
     self.component = data.get("component")
     self.params = data.get("params", {})
@@ -355,12 +356,23 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     elif w.tekton_run:
-      tekton_runner.append(tekton_client.PipelineRunner(
+      pipeline_runner = tekton_client.PipelineRunner(
           workflow_name,
           w.tekton_params,
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_run,
           args.bucket))
+      if w.tekton_teardown:
+        teardown_w_name = "{name}-teardown-{salt}".format(
+            name=w.name,
+            salt=uuid.uuid4().hex[0:4])
+        pipeline_runner.append_teardown(tekton_client.PipelineRunner(
+          teardown_w_name,
+          w.tekton_params,
+          w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
+          w.tekton_teardown,
+          args.bucket))
+      tekton_runner.append(pipeline_runner)
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
