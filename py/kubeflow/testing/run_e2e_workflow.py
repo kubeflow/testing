@@ -105,7 +105,7 @@ class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
     self.include_dirs = data.get("include_dirs", [])
     self.app_dir = os.path.join(root_dir, data.get("app_dir")) if data.get("app_dir") else ""
     self.tekton_run = os.path.join(root_dir, data.get("tekton_run")) if data.get("tekton_run") else ""
-    self.tekton_args = data.get("tekton_args", [])
+    self.tekton_params = data.get("tekton_params", [])
     self.component = data.get("component")
     self.params = data.get("params", {})
     self.py_func = data.get("py_func")
@@ -356,6 +356,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       logging.info("URL for workflow: %s", ui_url)
     elif w.tekton_run:
       tekton_runner.append([workflow_name,
+                            w.tekton_params,
                             w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
                             w.tekton_run, args.bucket, repo_owner, repo_name])
     else:
