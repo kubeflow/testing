@@ -188,7 +188,8 @@ def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
     args_list.append((repos_dir, namespace, w[0], w[1]))
   return p.map(run_teardown, args_list)
 
-def load_tekton_run(workflow_name, tekton_run, bucket, repo_owner, repo_name):
+def load_tekton_run(workflow_name, test_target_name, tekton_run, bucket,
+                    repo_owner, repo_name):
   with open(tekton_run) as f:
     config = yaml.load(f)
     if config.get("kind", "") != "PipelineRun":
@@ -198,7 +199,6 @@ def load_tekton_run(workflow_name, tekton_run, bucket, repo_owner, repo_name):
   logging.info("Reading Tekton PipelineRun config: %s", name)
   config["metadata"]["name"] = workflow_name
 
-  test_target_name = os.getenv("TEST_TARGET_NAME")
   artifacts_gcs = prow_artifacts.get_gcs_dir(bucket)
   junit_path = "artifacts/junit_{run_name}/junit_{run_name}.xml".format(
     run_name=name)
