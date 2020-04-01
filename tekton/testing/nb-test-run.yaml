@@ -76,7 +76,7 @@ spec:
       - name: notebook-path
         value: 'kubeflow/examples/xgboost_synthetic/build-train-deploy.ipynb'
       - name: junit-path
-        value: /workspace/outputs/$(params.junit-path)/xgboost-synthetic.xml
+        value: /workspace/outputs/$(params.junit-path)/junit_xgboost-synthetic.xml
       - name: test-target-name
         value: $(params.test-target-name)
       - name: artifacts-gcs
