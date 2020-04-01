@@ -188,7 +188,7 @@ def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
     args_list.append((repos_dir, namespace, w[0], w[1]))
   return p.map(run_teardown, args_list)
 
-def load_tekton_run(workflow_name, test_target_name, tekton_run, bucket,
+def load_tekton_run(workflow_name, params, test_target_name, tekton_run, bucket,
                     repo_owner, repo_name):
   with open(tekton_run) as f:
     config = yaml.load(f)
@@ -215,6 +215,7 @@ def load_tekton_run(workflow_name, test_target_name, tekton_run, bucket,
       args[n] = v
 
   config["spec"]["params"] = []
+  logging.info("GG TEST: params = %s", params)
   for n in args:
     logging.info("Writing Tekton param: %s -> %s", n, args[n])
     config["spec"]["params"].append({
@@ -227,11 +228,11 @@ def load_tekton_run(workflow_name, test_target_name, tekton_run, bucket,
 # TODO(gabrielwen): add status logging.
 # TODO(gabrielwen): Add sanity checks.
 class PipelineRunner(object):
-  def __init__(self, name, test_target_name, config_path, bucket,
+  def __init__(self, name, params, test_target_name, config_path, bucket,
                repo_owner, repo_name):
     self.name = name
-    self.config = load_tekton_run(name, test_target_name, config_path, bucket,
-                                  repo_owner, repo_name)
+    self.config = load_tekton_run(name, params, test_target_name, config_path,
+                                  bucket, repo_owner, repo_name)
     self.namespace = self.config["metadata"].get("namespace", "tektoncd")
     self.artifacts_bucket = bucket
 
