@@ -188,8 +188,8 @@ def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
     args_list.append((repos_dir, namespace, w[0], w[1]))
   return p.map(run_teardown, args_list)
 
-def load_tekton_run(workflow_name, params, test_target_name, tekton_run, bucket,
-                    repo_owner, repo_name):
+def load_tekton_run(workflow_name, params, test_target_name, tekton_run,
+                    bucket):
   with open(tekton_run) as f:
     config = yaml.load(f)
     if config.get("kind", "") != "PipelineRun":
@@ -227,11 +227,10 @@ def load_tekton_run(workflow_name, params, test_target_name, tekton_run, bucket,
   return config
 
 class PipelineRunner(object):
-  def __init__(self, name, params, test_target_name, config_path, bucket,
-               repo_owner, repo_name):
+  def __init__(self, name, params, test_target_name, config_path, bucket):
     self.name = name
     self.config = load_tekton_run(name, params, test_target_name, config_path,
-                                  bucket, repo_owner, repo_name)
+                                  bucket)
     self.namespace = self.config["metadata"].get("namespace", "tektoncd")
     self.artifacts_bucket = bucket
 
@@ -266,9 +265,8 @@ class TektonRunner(object):
   def __init__(self):
     self.workflows = []
 
-  def append(self, args):
-    # TODO(gabrielwen): Fix args.
-    self.workflows.append(PipelineRunner(*args))
+  def append(self, runner):
+    self.workflows.append(runner)
 
   def run(self, project, zone, cluster):
     urls = dict()

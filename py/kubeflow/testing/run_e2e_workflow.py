@@ -355,10 +355,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     elif w.tekton_run:
-      tekton_runner.append([workflow_name,
-                            w.tekton_params,
-                            w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
-                            w.tekton_run, args.bucket, repo_owner, repo_name])
+      tekton_runner.append(tekton_client.PipelineRunner(
+          workflow_name,
+          w.tekton_params,
+          w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
+          w.tekton_run,
+          args.bucket))
     else:
       w.kwargs["name"] = workflow_name
       w.kwargs["namespace"] = get_namespace(args)
