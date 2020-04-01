@@ -208,6 +208,8 @@ def load_tekton_run(workflow_name, params, test_target_name, tekton_run, bucket,
       "artifacts-gcs": artifacts_gcs,
       "junit-path": junit_path,
   }
+  for p in params:
+    args[p["name"]] = p["value"]
   for param in config.get("spec", {}).get("params", []):
     n = param.get("name", "")
     v = param.get("value", "")
@@ -215,7 +217,6 @@ def load_tekton_run(workflow_name, params, test_target_name, tekton_run, bucket,
       args[n] = v
 
   config["spec"]["params"] = []
-  logging.info("GG TEST: params = %s", params)
   for n in args:
     logging.info("Writing Tekton param: %s -> %s", n, args[n])
     config["spec"]["params"].append({
