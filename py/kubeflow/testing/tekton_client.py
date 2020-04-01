@@ -329,6 +329,10 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
     raise ValueError(
         "This task is failed with {0} errors/failures.".format(failed_num))
 
+  logging.info("Uploading %s to GCS %s", artifacts_dir, output_gcs)
+  util.maybe_activate_service_account()
+  util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
+
 def main(unparsed_args=None): # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
   # create the top-level parser
