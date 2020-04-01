@@ -200,8 +200,7 @@ def load_tekton_run(workflow_name, test_target_name, tekton_run, bucket,
   config["metadata"]["name"] = workflow_name
 
   artifacts_gcs = prow_artifacts.get_gcs_dir(bucket)
-  junit_path = "artifacts/junit_{run_name}/junit_{run_name}.xml".format(
-    run_name=name)
+  junit_path = "artifacts/junit_{run_name}".format(run_name=name)
 
   # TODO(gabrielwen): Deal with extra args.
   args = {
