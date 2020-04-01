@@ -331,7 +331,7 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
 
   logging.info("Uploading %s to GCS %s", artifacts_dir, output_gcs)
   util.maybe_activate_service_account()
-  util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
+  util.run(["gsutil", "-m", "rsync", "-r", artifacts_dir, output_gcs])
 
 def main(unparsed_args=None): # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
