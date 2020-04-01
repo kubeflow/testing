@@ -259,12 +259,15 @@ class PipelineRunner(object):
       return get_namespaced_custom_object_with_retries(self.namespace, self.name)
 
     _ = get_namespaced_custom_object_with_retries(self.namespace, self.name)
+    try:
+      self.teardown_runner.run()
+    except Exception as e:
+      logging.error("Error when running workflow: %s", e)
     return self.teardown_runner.wait()
 
 def wait_(runner):
   return runner.wait()
 
-# TODO(gabrielwen): Add teardown process.
 class TektonRunner(object):
   def __init__(self):
     self.workflows = []
