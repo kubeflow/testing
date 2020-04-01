@@ -18,7 +18,6 @@ spec:
       description:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
-      default: 'kf-master-(?!n\d\d)'
     - name: artifacts-gcs
       type: string
       description:

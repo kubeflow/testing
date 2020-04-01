@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
-  name: run-testing
+  name: nb-test-run
   namespace: tektoncd
 spec:
   params:
@@ -11,6 +11,8 @@ spec:
     value: gs://kubeflow-ci-deployment/gabrielwen-testing-2
   - name: junit-path
     value: artifacts/junit_manual-testing
+  - name: testing-cluster-pattern
+    value: 'kf-master-(?!n\d\d)'
   resources:
   - name: examples-repo
     resourceSpec:
@@ -46,17 +48,11 @@ spec:
         Relative path to the GCS artifacts will be uploaded to.
         Base path is artifacts-gcs so the actual GCS blob will be
         artifacts-gcs/junit-path
-    - name: notebook-path
-      type: string
-      description:
-        Testing notebook location. Should be in the form of
-        {REPO_OWNER}/{REPO}/path/to/notebook.ipynb
     - name: testing-cluster-pattern
       type: string
       description:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
-      default: 'kf-master-(?!n\d\d)'
     resources:
     - name: examples-repo
       type: git
@@ -81,6 +77,8 @@ spec:
         value: $(params.test-target-name)
       - name: artifacts-gcs
         value: $(params.artifacts-gcs)
+      - name: testing-cluster-pattern
+        value: $(params.testing-cluster-pattern)
     - name: mnist-gcp
       resources:
         inputs:
@@ -99,3 +97,5 @@ spec:
         value: $(params.test-target-name)
       - name: artifacts-gcs
         value: $(params.artifacts-gcs)
+      - name: testing-cluster-pattern
+        value: $(params.testing-cluster-pattern)
