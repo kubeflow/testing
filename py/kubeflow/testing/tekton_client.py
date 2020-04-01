@@ -200,7 +200,7 @@ def load_tekton_run(workflow_name, test_target_name, tekton_run, bucket,
   config["metadata"]["name"] = workflow_name
 
   artifacts_gcs = prow_artifacts.get_gcs_dir(bucket)
-  junit_path = "artifacts/junit_{run_name}".format(run_name=name)
+  junit_path = "artifacts/junit_{run_name}".format(run_name=workflow_name)
 
   # TODO(gabrielwen): Deal with extra args.
   args = {
@@ -322,15 +322,15 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
         if not has_failure:
           logging.info("%s has passed all the tests.", testname)
 
+  logging.info("Uploading %s to GCS %s", artifacts_dir, output_gcs)
+  util.maybe_activate_service_account()
+  util.run(["gsutil", "-m", "rsync", "-r", artifacts_dir, output_gcs])
+
   if not found_xml:
     raise ValueError("No JUNIT artifats found in " + artifacts_dir)
   if failed_num:
     raise ValueError(
         "This task is failed with {0} errors/failures.".format(failed_num))
-
-  logging.info("Uploading %s to GCS %s", artifacts_dir, output_gcs)
-  util.maybe_activate_service_account()
-  util.run(["gsutil", "-m", "rsync", "-r", artifacts_dir, output_gcs])
 
 def main(unparsed_args=None): # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals

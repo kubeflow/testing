@@ -355,7 +355,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       logging.info("URL for workflow: %s", ui_url)
     elif w.tekton_run:
       tekton_runner.append([workflow_name,
-                            w.kwargs.get(TEST_TARGET_ARG_NAME, workflow_name),
+                            w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
                             w.tekton_run, args.bucket, repo_owner, repo_name])
     else:
       w.kwargs["name"] = workflow_name
