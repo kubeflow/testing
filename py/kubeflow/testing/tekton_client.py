@@ -333,10 +333,14 @@ def junit_parse_and_upload(artifacts_dir, output_gcs):
 
       for testcase in root:
         testname = testcase.attrib.get("name", "unknown-test")
+        has_failure = False
         for failure in testcase:
+          has_failure = True
           logging.error("%s has failure: %s",
                         testname,
                         failure.attrib.get("message", "message not found"))
+        if not has_failure:
+          logging.info("%s has passed all the tests.", testname)
 
   if not found_xml:
     raise ValueError("No JUNIT artifats found in " + artifacts_dir)
