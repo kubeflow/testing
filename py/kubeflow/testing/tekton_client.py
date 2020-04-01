@@ -226,8 +226,6 @@ def load_tekton_run(workflow_name, params, test_target_name, tekton_run, bucket,
 
   return config
 
-# TODO(gabrielwen): add status logging.
-# TODO(gabrielwen): Add sanity checks.
 class PipelineRunner(object):
   def __init__(self, name, params, test_target_name, config_path, bucket,
                repo_owner, repo_name):
@@ -293,7 +291,8 @@ class TektonRunner(object):
     return urls
 
   def join(self):
-    # TODO(gabrielwen): check if len is 0
+    if not self.workflows:
+      return []
     p = Pool(len(self.workflows))
     return p.map(wait_, self.workflows)
 
