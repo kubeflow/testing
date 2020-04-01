@@ -228,10 +228,11 @@ def load_tekton_run(workflow_name, test_target_name, tekton_run, bucket,
 # TODO(gabrielwen): add status logging.
 # TODO(gabrielwen): Add sanity checks.
 class PipelineRunner(object):
-  def __init__(self, name, config_path, bucket, repo_owner, repo_name):
+  def __init__(self, name, test_target_name, config_path, bucket,
+               repo_owner, repo_name):
     self.name = name
-    self.config = load_tekton_run(name, config_path, bucket, repo_owner,
-                                  repo_name)
+    self.config = load_tekton_run(name, test_target_name, config_path, bucket,
+                                  repo_owner, repo_name)
     self.namespace = self.config["metadata"].get("namespace", "tektoncd")
     self.artifacts_bucket = bucket
 
