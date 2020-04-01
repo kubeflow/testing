@@ -22,6 +22,7 @@ from kubernetes import client as k8s_client # pylint: disable=wrong-import-posit
 from kubernetes.client import rest # pylint: disable=wrong-import-position
 from retrying import retry # pylint: disable=wrong-import-position
 
+from kubeflow.testing import prow_artifacts
 from kubeflow.testing import util # pylint: disable=wrong-import-position
 
 GROUP = "tekton.dev"
@@ -187,73 +188,52 @@ def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
     args_list.append((repos_dir, namespace, w[0], w[1]))
   return p.map(run_teardown, args_list)
 
-def load_tekton_run(workflow_name, tekton_run, repo_owner, repo_name):
+def load_tekton_run(workflow_name, tekton_run, bucket, repo_owner, repo_name):
   with open(tekton_run) as f:
     config = yaml.load(f)
     if config.get("kind", "") != "PipelineRun":
       raise ValueError("Invalid config (not PipelineRun): " + config)
 
-  test_target_name = config["metadata"].get("name", workflow_name)
-  logging.info("Reading Tekton PipelineRun config: %s", test_target_name)
+  name = config["metadata"].get("name", "unknown-pipelinerun")
+  logging.info("Reading Tekton PipelineRun config: %s", name)
   config["metadata"]["name"] = workflow_name
 
-  for t in config.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
-    if not "params" in t:
-      t["params"] = []
+  test_target_name = os.getenv("TEST_TARGET_NAME")
+  artifacts_gcs = prow_artifacts.get_gcs_dir(bucket)
+  junit_path = "artifacts/junit_{run_name}/junit_{run_name}.xml".format(
+    run_name=name)
 
-    for i in range(len(t["params"])):
-      if t["params"][i]["name"] == "junit-path":
-        param = ("$(workspaces.junit-artifacts.path)/{workflow_name}"
-                 "/artifacts/junit_{task_name}/junit_{task_name}.xml"
-                 ).format(
-                     workflow_name=workflow_name,
-                     task_name=t["name"])
-        logging.info("Setting Junit path to %s", param)
-        t["params"][i]["value"] = param
+  # TODO(gabrielwen): Deal with extra args.
+  args = {
+      "test-target-name": test_target_name,
+      "artifacts-gcs": artifacts_gcs,
+      "junit-path": junit_path,
+  }
+  for param in config.get("spec", {}).get("params", []):
+    n = param.get("name", "")
+    v = param.get("value", "")
+    if n and v and not n in args:
+      args[n] = v
 
-      prow_params = [
-          {"name": "test-target-name", "value": test_target_name},
-          {"name": "repo-owner", "value": repo_owner},
-          {"name": "repo-name", "value": repo_name},
-          {"name": "job-type", "value": os.getenv("JOB_TYPE")},
-          {"name": "job-name", "value": os.getenv("JOB_NAME")},
-          {"name": "prow-job-id", "value": os.getenv("PROW_JOB_ID")},
-          {"name": "pull-number", "value": os.getenv("PULL_NUMBER")},
-          {"name": "build-id", "value": os.getenv("BUILD_NUMBER")},
-          {"name": "workflow-name", "value": workflow_name},
-      ]
-    t["params"].extend(prow_params)
-
-    repo_url = "https://github.com/{0}/{1}.git".format(repo_owner, repo_name)
-    revision = "master"
-    job_type = os.getenv("JOB_TYPE", "")
-    if job_type == "presubmit":
-      revision = "refs/pull/{0}/head".format(os.getenv("PULL_NUMBER"))
-    elif job_type == "postsubmit":
-      revision = os.getenv("PULL_BASE_SHA", "master")
-    else:
-      revision = os.getenv("BRANCH_NAME", "master")
-
-    for r in config.get("spec", {}).get("resources", []):
-      if not "resourceSpec" in r or r["resourceSpec"].get("type", "") != "git":
-        continue
-      for p in r["resourceSpec"].get("params", []):
-        if p.get("name", "") == "url" and p.get("value", "") == repo_url:
-          r["resourceSpec"]["params"] = [
-            {"name": "url", "value": repo_url},
-            {"name": "revision", "value": revision},
-          ]
-          continue
+  config["spec"]["params"] = []
+  for n in args:
+    logging.info("Writing Tekton param: %s -> %s", n, args[n])
+    config["spec"]["params"].append({
+      "name": n,
+      "value": args[n],
+    })
 
   return config
 
 # TODO(gabrielwen): add status logging.
 # TODO(gabrielwen): Add sanity checks.
 class PipelineRunner(object):
-  def __init__(self, name, config_path, repo_owner, repo_name):
+  def __init__(self, name, config_path, bucket, repo_owner, repo_name):
     self.name = name
-    self.config = load_tekton_run(name, config_path, repo_owner, repo_name)
+    self.config = load_tekton_run(name, config_path, bucket, repo_owner,
+                                  repo_name)
     self.namespace = self.config["metadata"].get("namespace", "tektoncd")
+    self.artifacts_bucket = bucket
 
   def run(self):
     # TODO(gabrielwen): Should we create a client per job?
