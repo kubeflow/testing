@@ -361,11 +361,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           w.tekton_params,
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_run,
-          args.bucket))
+          args.bucket)
       if w.tekton_teardown:
         teardown_w_name = "{name}-teardown-{salt}".format(
             name=w.name,
-            salt=uuid.uuid4().hex[0:4])
+            salt=uuid.uuid4().hex[0:9])
         pipeline_runner.append_teardown(tekton_client.PipelineRunner(
           teardown_w_name,
           w.tekton_params,
