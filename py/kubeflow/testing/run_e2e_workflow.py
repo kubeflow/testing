@@ -373,7 +373,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_teardown,
           args.bucket)
-        ui_urls[teardown_w_name] = teardown_runner.url
+        ui_urls[teardown_w_name] = teardown_runner.ui_url
         pipeline_runner.append_teardown(teardown_runner)
       tekton_runner.append(pipeline_runner)
     else:
