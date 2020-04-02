@@ -80,6 +80,8 @@ def handle_retriable_exception(exception):
       # is resolved.
       util.load_kube_config()
       return True
+
+  logging.info("Retry on exception: %s", exception)
   return not isinstance(exception, util.TimeoutError)
 
 
