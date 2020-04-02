@@ -472,6 +472,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     for r in tekton_results:
       condition = "Failed"
       name = r.get("metadata", {}).get("name")
+      logging.info("GG TEST: %s", name)
       if r.get("status", {}).get("conditions", []):
         condition = r["status"]["conditions"][0].get("reason", "Failed")
       workflow_phase[name] = condition
