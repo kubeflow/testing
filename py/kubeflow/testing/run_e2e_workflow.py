@@ -367,12 +367,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
             salt=uuid.uuid4().hex[0:9])
         logging.info("Appending teardown process %s for %s", teardown_w_name,
                      workflow_name)
-        pipeline_runner.append_teardown(tekton_client.PipelineRunner(
+        teardown_runner = tekton_client.PipelineRunner(
           teardown_w_name,
           w.tekton_teardown_params,
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_teardown,
-          args.bucket))
+          args.bucket)
+        ui_urls[teardown_w_name] = teardown_runner.url
+        pipeline_runner.append_teardown(teardown_runner)
       tekton_runner.append(pipeline_runner)
     else:
       w.kwargs["name"] = workflow_name
