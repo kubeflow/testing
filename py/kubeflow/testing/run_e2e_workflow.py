@@ -433,6 +433,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   workflow_status_yamls = {}
   results = []
   tekton_results = []
+  logging.info("GG TEST 0")
   try:
     results = argo_client.wait_for_workflows(
       get_namespace(args), workflow_names,
