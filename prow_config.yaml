@@ -19,14 +19,22 @@ workflows:
     kwargs: {}
 
   - tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
+    tekton_teardown: kubeflow/testing/tekton/testing/dummy-teardown-run.yaml
+    tekton_teardown_params:
+    - name: utter
+      value: foo
     name: tekton-master
     include_dirs:
     - py/*
 
   - tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
-    name: tekton-v1
     tekton_params:
     - name: testing-cluster-pattern
       value: 'kf-v1-(?!n\d\d)'
+    tekton_teardown: kubeflow/testing/tekton/testing/dummy-teardown-run.yaml
+    tekton_teardown_params:
+    - name: utter
+      value: bar
+    name: tekton-v1
     include_dirs:
     - py/*

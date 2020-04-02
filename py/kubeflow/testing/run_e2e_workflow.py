@@ -103,8 +103,9 @@ class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
     self.include_dirs = data.get("include_dirs", [])
     self.app_dir = os.path.join(root_dir, data.get("app_dir")) if data.get("app_dir") else ""
     self.tekton_run = os.path.join(root_dir, data.get("tekton_run")) if data.get("tekton_run") else ""
-    self.tekton_teardown = os.path.join(root_dir, data.get("tekton_teardown")) if data.get("tekton_teardown") else ""
     self.tekton_params = data.get("tekton_params", [])
+    self.tekton_teardown = os.path.join(root_dir, data.get("tekton_teardown")) if data.get("tekton_teardown") else ""
+    self.tekton_teardown_params = data.get("tekton_teardown_params", [])
     self.component = data.get("component")
     self.params = data.get("params", {})
     self.py_func = data.get("py_func")
@@ -366,7 +367,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
             salt=uuid.uuid4().hex[0:9])
         pipeline_runner.append_teardown(tekton_client.PipelineRunner(
           teardown_w_name,
-          w.tekton_params,
+          w.tekton_teardown_params,
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_teardown,
           args.bucket))
