@@ -157,7 +157,7 @@ class PipelineRunner(object):
                                   bucket)
     self.namespace = self.config["metadata"].get("namespace", "tektoncd")
     self.artifacts_bucket = bucket
-    self.teardown_runners = []
+    self.teardown_runner = None
 
   def run(self):
     client = k8s_client.ApiClient()
@@ -174,7 +174,7 @@ class PipelineRunner(object):
     return result
 
   def append_teardown(self, runner):
-    self.teardown_runners.append(runner)
+    self.teardown_runner = runner
 
   @property
   def ui_url(self):
@@ -183,21 +183,13 @@ class PipelineRunner(object):
 
   def wait(self):
     r = get_namespaced_custom_object_with_retries(self.namespace, self.name)
-    if not self.teardown_runners:
+    if not self.teardown_runner:
       logging.info("Skipping teardown process for %s, no teardown process found",
                    self.name)
       return r
 
-    try:
-      for r in self.teardown_runners:
-        logging.info("Running teardown process: %s", r.name)
-        r.run()
-    except Exception as e:
-      logging.error("Error when running workflow: %s", e)
-
-    p = Pool(len(self.teardown_runners))
-    results = p.map(wait_, self.teardown_runners)
-    return r
+    r.run()
+    return r.wait()
 
 def wait_(runner):
   return runner.wait()
