@@ -112,82 +112,6 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   log_status(result)
   return result
 
-def retry_if_not_ended(result):
-  if not result.get("status", {}).get("conditions", []):
-    return False
-  reason = result["status"]["conditions"][0].get("reason", "")
-  return not result["status"]["conditions"][0].get("reason", "") in ("Failed", "Succeeded")
-
-@retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
-       stop_max_delay=30*60*1000,
-       retry_on_result=retry_if_not_ended)
-def get_result(args):
-  return get_namespaced_custom_object_with_retries(*args)
-
-def wait_for_workflows(namespace, names):
-  if not len(names):
-    logging.info("Skipped waiting for Tekton pipelines; no pipeline found.")
-    return []
-
-  logging.info("Waiting for Tekton PipelineRun: %s",  names)
-  p = Pool(len(names))
-  args_list = []
-  for n in names:
-    args_list.append((namespace, n))
-  return p.map(get_result, args_list)
-
-def teardown(repos_dir, namespace, name, params):
-  run_path = os.path.join(repos_dir,
-                          "kubeflow/testing/tekton/templates/teardown-run.yaml")
-  # load pipelinerun
-  with open(run_path) as f:
-    config = yaml.load(f)
-
-  if config.get("kind", "") != "PipelineRun":
-    return []
-
-  # Making PipelineRun name unique.
-  name_comps = [config["metadata"]["name"]]
-  if os.getenv("REPO_OWNER"):
-    name_comps.append(os.getenv("REPO_OWNER"))
-  if os.getenv("REPO_NAME"):
-    name_comps.append(os.getenv("REPO_NAME"))
-  name_comps.append(uuid.uuid4().hex[:10])
-  config["metadata"]["name"] = "-".join(name_comps)
-  for t in config.get("spec", {}).get("pipelineSpec", {}).get("tasks", []):
-    if not "params" in t:
-      t["params"] = []
-    t["params"].extend(params)
-
-  logging.info("Creating teardown workflow:\n%s", yaml.safe_dump(config))
-  # call k8s client to deploy.
-  group, version = config["apiVersion"].split("/")
-  client = k8s_client.ApiClient()
-  crd_api = k8s_client.CustomObjectsApi(client)
-  result = crd_api.create_namespaced_custom_object(
-      group=group,
-      version=version,
-      namespace=namespace,
-      plural=PLURAL,
-      body=config)
-  logging.info("Created workflow:\n%s", yaml.safe_dump(result))
-  return get_namespaced_custom_object_with_retries(namespace, name)
-
-def run_teardown(args):
-  return teardown(*args)
-
-def run_tekton_teardown(repos_dir, namespace, tkn_cleanup_args):
-  if not len(tkn_cleanup_args):
-    logging.info("Skipped teardown process; no pipeline found.")
-    return []
-
-  logging.info("Running tekton teardown: %s", [w[0] for w in tkn_cleanup_args])
-  p = Pool(len(tkn_cleanup_args))
-  args_list = []
-  for w in tkn_cleanup_args:
-    args_list.append((repos_dir, namespace, w[0], w[1]))
-  return p.map(run_teardown, args_list)
-
 def load_tekton_run(workflow_name, params, test_target_name, tekton_run,
                     bucket):
   with open(tekton_run) as f:
@@ -258,10 +182,12 @@ class PipelineRunner(object):
             "tektoncd/pipelineruns/{0}".format(self.name))
 
   def wait(self):
-    if not self.teardown_runners:
-      return get_namespaced_custom_object_with_retries(self.namespace, self.name)
-
     r = get_namespaced_custom_object_with_retries(self.namespace, self.name)
+    if not self.teardown_runners:
+      logging.info("Skipping teardown process for %s, no teardown process found",
+                   self.name)
+      return r
+
     try:
       for r in self.teardown_runners:
         r.run()

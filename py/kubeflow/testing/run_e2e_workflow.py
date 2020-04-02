@@ -365,6 +365,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         teardown_w_name = "{name}-teardown-{salt}".format(
             name=w.name,
             salt=uuid.uuid4().hex[0:9])
+        logging.info("Appending teardown process %s for %s", teardown_w_name,
+                     workflow_name)
         pipeline_runner.append_teardown(tekton_client.PipelineRunner(
           teardown_w_name,
           w.tekton_teardown_params,
@@ -447,10 +449,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     results = e.workflow_results
     raise
   finally:
-    # Run Tekton testing teardown process
-    tekton_client.run_tekton_teardown(args.repos_dir,
-                                      args.tekton_namespace,
-                                      tkn_cleanup_args)
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
