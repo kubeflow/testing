@@ -439,9 +439,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       timeout=datetime.timedelta(minutes=180),
       status_callback=argo_client.log_status
     )
+    logging.info("GG TEST 1")
     util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
     util.load_kube_config()
-    logging.info("GG TEST 0")
+    logging.info("GG TEST 2")
     tekton_results = tekton_runner.join()
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
@@ -456,9 +457,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
 
     # Upload workflow status to GCS.
+    logging.info("GG TEST 3")
     for r in results:
       phase = r.get("status", {}).get("phase")
       name = r.get("metadata", {}).get("name")
+      logging.info("GG TEST 4: %s", name)
       workflow_phase[name] = phase
       workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
       if phase != "Succeeded":
@@ -470,10 +473,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           wf_status,
           os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
 
-    logging.info("GG TEST: %s", tekton_results)
     for r in tekton_results:
       condition = "Failed"
       name = r.get("metadata", {}).get("name")
+      logging.info("GG TEST 5: %s", name)
       if r.get("status", {}).get("conditions", []):
         condition = r["status"]["conditions"][0].get("reason", "Failed")
       workflow_phase[name] = condition
