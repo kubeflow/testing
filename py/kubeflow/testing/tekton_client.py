@@ -190,6 +190,7 @@ class PipelineRunner(object):
 
     try:
       for r in self.teardown_runners:
+        logging.info("Running teardown process: %s", r.name)
         r.run()
     except Exception as e:
       logging.error("Error when running workflow: %s", e)
