@@ -441,6 +441,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     )
     util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
     util.load_kube_config()
+    logging.info("GG TEST 0")
     tekton_results = tekton_runner.join()
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
@@ -469,10 +470,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           wf_status,
           os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
 
+    logging.info("GG TEST: %s", tekton_results)
     for r in tekton_results:
       condition = "Failed"
       name = r.get("metadata", {}).get("name")
-      logging.info("GG TEST: %s", name)
       if r.get("status", {}).get("conditions", []):
         condition = r["status"]["conditions"][0].get("reason", "Failed")
       workflow_phase[name] = condition
