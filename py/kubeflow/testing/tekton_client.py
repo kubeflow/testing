@@ -195,6 +195,7 @@ class PipelineRunner(object):
     except Exception as e:
       logging.error("Error when running workflow: %s", e)
 
+    p = Pool(len(self.teardown_runners))
     results = p.map(wait_, self.teardown_runners)
     return r
 
