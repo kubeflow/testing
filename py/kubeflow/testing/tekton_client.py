@@ -192,10 +192,10 @@ class PipelineRunner(object):
     if not self.teardown_runner:
       logging.info("Skipping teardown process for %s, no teardown process found",
                    self.name)
-      return r
+      return [r]
 
     self.teardown_runner.run()
-    return self.teardown_runner.wait()
+    return [r, self.teardown_runner.wait()]
 
 def wait_(runner):
   return runner.wait()

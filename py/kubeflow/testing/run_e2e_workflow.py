@@ -443,7 +443,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     )
     util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
     util.load_kube_config()
-    tekton_results = tekton_runner.join()
+    results = tekton_runner.join()
+    for r in results:
+      tekton_results.extend(r)
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
     # We explicitly log any exceptions so that they will be captured in the
