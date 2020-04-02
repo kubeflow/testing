@@ -453,6 +453,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     logging.exception("Exception occurred: %s", e)
     results = e.workflow_results
     raise
+  except Exception as e:
+    logging.exception("Other exception: %s", e)
+    raise
   finally:
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
