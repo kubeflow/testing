@@ -188,8 +188,8 @@ class PipelineRunner(object):
                    self.name)
       return r
 
-    r.run()
-    return r.wait()
+    self.teardown_runner.run()
+    return self.teardown_runner.wait()
 
 def wait_(runner):
   return runner.wait()
