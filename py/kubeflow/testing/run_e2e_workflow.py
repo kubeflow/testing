@@ -433,16 +433,19 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   workflow_status_yamls = {}
   results = []
   tekton_results = []
+  logging.info("GG TEST 0")
   try:
     results = argo_client.wait_for_workflows(
       get_namespace(args), workflow_names,
       timeout=datetime.timedelta(minutes=180),
       status_callback=argo_client.log_status
     )
+    logging.info("GG TEST 1")
     util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
     util.load_kube_config()
+    logging.info("GG TEST 2")
     tekton_results = tekton_runner.join()
-    logging.info("GG TEST: %s", tekton_results)
+    logging.info("result: %s", tekton_results)
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
     # We explicitly log any exceptions so that they will be captured in the
@@ -456,9 +459,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
 
     # Upload workflow status to GCS.
+    logging.info("GG TEST 3")
     for r in results:
       phase = r.get("status", {}).get("phase")
       name = r.get("metadata", {}).get("name")
+      logging.info("GG TEST 4: %s", name)
       workflow_phase[name] = phase
       workflow_status_yamls[name] = yaml.safe_dump(r, default_flow_style=False)
       if phase != "Succeeded":
