@@ -112,7 +112,7 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   result = crd_api.get_namespaced_custom_object(
     GROUP, VERSION, namespace, PLURAL, name)
   log_status(result)
-  condition = workflow["status"]["conditions"][0]["reason"]
+  condition = result["status"]["conditions"][0]["reason"]
   if not condition in ["Failed", "Succeeded"]:
     raise ValueError("Waiting for %s/%s to finish", namespace, name)
 
