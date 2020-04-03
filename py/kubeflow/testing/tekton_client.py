@@ -120,8 +120,12 @@ def get_namespaced_custom_object_with_retries(namespace, name):
 
 def load_tekton_run(workflow_name, params, test_target_name, tekton_run,
                     bucket):
-  """
-  TODO(gabrielwen): Doc
+  """Load Tekton configs and override information from Prow.
+  Args:
+    params: Extra parameters to be passed into Tekton pipelines.
+    test_target_name: test target name as classname in JUNIT.
+    tekton_run: File path to the PipelineRun config.
+    bucket: GCS bucket to write artifacts to.
   """
   with open(tekton_run) as f:
     config = yaml.load(f)
@@ -159,20 +163,17 @@ def load_tekton_run(workflow_name, params, test_target_name, tekton_run,
   return config
 
 class PipelineRunner(object):
-  """
-  TODO(gabrielwen): Doc
+  """Runs and wait for the Tekton pipeline to finish.
   """
   def __init__(self, name, params, test_target_name, config_path, bucket):
     self.name = name
     self.config = load_tekton_run(name, params, test_target_name, config_path,
                                   bucket)
     self.namespace = self.config["metadata"].get("namespace", "tektoncd")
-    self.artifacts_bucket = bucket
     self.teardown_runner = None
 
   def run(self):
-    """
-    TODO: Doc
+    """Runs the Tekton pipeline async.
     """
     client = k8s_client.ApiClient()
     crd_api = k8s_client.CustomObjectsApi(client)
@@ -196,8 +197,7 @@ class PipelineRunner(object):
             "tektoncd/pipelineruns/{0}".format(self.name))
 
   def wait(self):
-    """
-    Doc
+    """Wait for the workflow to finish.
     """
     r = [get_namespaced_custom_object_with_retries(self.namespace, self.name)]
     if not self.teardown_runner:
@@ -215,8 +215,7 @@ def wait_(runner):
   return runner.wait()
 
 class ClusterInfo(object):
-  """
-  Simple data carrier to provide access to the cluster running test.
+  """Simple data carrier to provide access to the cluster running test.
   """
   def __init__(self, project, zone, cluster_name):
     self.project = project
@@ -224,8 +223,7 @@ class ClusterInfo(object):
     self.cluster_name = cluster_name
 
 class TektonRunner(object):
-  """
-  TODO: Doc
+  """Runs Tekton pipelines and wait for all the workflows to finish.
   """
   def __init__(self):
     self.workflows = []
@@ -234,8 +232,12 @@ class TektonRunner(object):
     self.workflows.append(runner)
 
   def run(self, project, zone, cluster):
-    """
-    TODO: Doc
+    """Kicks off all the Tekton pipelines.
+    Args:
+      cluster_info: ClusterInfo having the info to run pipelines on.
+
+    Returns:
+      a list of UI urls.
     """
     urls = dict()
     try:
@@ -257,8 +259,7 @@ class TektonRunner(object):
     return urls
 
   def join(self):
-    """
-    Wait for all the Tekton workflows to finish.
+    """Join all the running pipelines and returns the results.
     """
     if not self.workflows:
       return []
@@ -266,8 +267,10 @@ class TektonRunner(object):
     return p.map(wait_, self.workflows)
 
 def junit_parse_and_upload(artifacts_dir, output_gcs):
-  """
-  TODO(gabrielwen): Doc
+  """Parse all JUNIT xml files and upload to GCS.
+  Args:
+    artifacts_dir: The directory having JUNIT files.
+    output_gcs: GCS location to upload artifacts to.
   """
   logging.info("Walking through directory: %s", artifacts_dir)
   junit_pattern = re.compile("junit.*\.xml")
