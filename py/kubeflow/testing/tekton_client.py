@@ -120,6 +120,9 @@ def get_namespaced_custom_object_with_retries(namespace, name):
 
 def load_tekton_run(workflow_name, params, test_target_name, tekton_run,
                     bucket):
+  """
+  TODO(gabrielwen): Doc
+  """
   with open(tekton_run) as f:
     config = yaml.load(f)
     if config.get("kind", "") != "PipelineRun":
@@ -132,7 +135,6 @@ def load_tekton_run(workflow_name, params, test_target_name, tekton_run,
   artifacts_gcs = prow_artifacts.get_gcs_dir(bucket)
   junit_path = "artifacts/junit_{run_name}".format(run_name=workflow_name)
 
-  # TODO(gabrielwen): Deal with extra args.
   args = {
       "test-target-name": test_target_name,
       "artifacts-gcs": artifacts_gcs,
@@ -157,6 +159,9 @@ def load_tekton_run(workflow_name, params, test_target_name, tekton_run,
   return config
 
 class PipelineRunner(object):
+  """
+  TODO(gabrielwen): Doc
+  """
   def __init__(self, name, params, test_target_name, config_path, bucket):
     self.name = name
     self.config = load_tekton_run(name, params, test_target_name, config_path,
@@ -166,6 +171,9 @@ class PipelineRunner(object):
     self.teardown_runner = None
 
   def run(self):
+    """
+    TODO: Doc
+    """
     client = k8s_client.ApiClient()
     crd_api = k8s_client.CustomObjectsApi(client)
 
@@ -188,6 +196,9 @@ class PipelineRunner(object):
             "tektoncd/pipelineruns/{0}".format(self.name))
 
   def wait(self):
+    """
+    Doc
+    """
     r = [get_namespaced_custom_object_with_retries(self.namespace, self.name)]
     if not self.teardown_runner:
       logging.info("Skipping teardown process for %s, no teardown process found",
@@ -198,10 +209,24 @@ class PipelineRunner(object):
     r.extend(self.teardown_runner.wait())
     return r
 
+# Simple function to invoke wait. Pool is not able to take as input lambda
+# functions.
 def wait_(runner):
   return runner.wait()
 
+class ClusterInfo(object):
+  """
+  Simple data carrier to provide access to the cluster running test.
+  """
+  def __init__(self, project, zone, cluster_name):
+    self.project = project
+    self.zone = zone
+    self.cluster_name = cluster_name
+
 class TektonRunner(object):
+  """
+  TODO: Doc
+  """
   def __init__(self):
     self.workflows = []
 
@@ -209,6 +234,9 @@ class TektonRunner(object):
     self.workflows.append(runner)
 
   def run(self, project, zone, cluster):
+    """
+    TODO: Doc
+    """
     urls = dict()
     try:
       # Currently only tekton tests run in kf-ci-v1.
@@ -229,12 +257,18 @@ class TektonRunner(object):
     return urls
 
   def join(self):
+    """
+    Wait for all the Tekton workflows to finish.
+    """
     if not self.workflows:
       return []
     p = Pool(len(self.workflows))
     return p.map(wait_, self.workflows)
 
 def junit_parse_and_upload(artifacts_dir, output_gcs):
+  """
+  TODO(gabrielwen): Doc
+  """
   logging.info("Walking through directory: %s", artifacts_dir)
   junit_pattern = re.compile("junit.*\.xml")
   failed_num = 0
