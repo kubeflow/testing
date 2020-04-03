@@ -231,10 +231,12 @@ class TektonRunner(object):
   def append(self, runner):
     self.workflows.append(runner)
 
-  def run(self, project, zone, cluster):
+  def run(self, tekton_cluster_info, current_cluster_info):
     """Kicks off all the Tekton pipelines.
     Args:
-      cluster_info: ClusterInfo having the info to run pipelines on.
+      tekton_cluster_info: ClusterInfo having the info to run pipelines on.
+      Tekton runs on different cluster right now.
+      current_cluster_info: Current cluster info.
 
     Returns:
       a list of UI urls.
@@ -242,7 +244,10 @@ class TektonRunner(object):
     urls = dict()
     try:
       # Currently only tekton tests run in kf-ci-v1.
-      util.configure_kubectl(project, "us-east1-d", "kf-ci-v1")
+      util.configure_kubectl(tekton_cluster_info.project,
+                             tekton_cluster_info.zone,
+                             tekton_cluster_info.cluster_name)
+      # util.configure_kubectl(project, "us-east1-d", "kf-ci-v1")
       util.load_kube_config()
 
       for w in self.workflows:
@@ -253,7 +258,9 @@ class TektonRunner(object):
       logging.error("Error when starting Tekton workflow: %s", e)
     finally:
       # Restore kubectl
-      util.configure_kubectl(project, zone, cluster)
+      util.configure_kubectl(current_cluster_info.project
+                             current_cluster_info.zone,
+                             current_cluster_info.cluster_name)
       util.load_kube_config()
 
     return urls

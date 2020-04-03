@@ -77,6 +77,10 @@ import yaml
 # https://github.com/kubernetes/test-infra/tree/master/testgrid#grouping-tests
 TEST_TARGET_ARG_NAME = "test_target_name"
 
+# Tekton pipelines run on different cluster.
+TEKTON_CLUSTER_NAME = "kf-ci-v1"
+TEKTON_CLUSTER_ZONE = "us-east1-d"
+
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
   if args.namespace:
@@ -426,7 +430,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
 
-  ui_urls.update(tekton_runner.run(args.project, args.zone, args.cluster))
+  ui_urls.update(tekton_runner.run(
+      tekton_client.ClusterInfo(args.project,
+                                TEKTON_CLUSTER_ZONE,
+                                TEKTON_CLUSTER_NAME),
+      tekton_client.ClusterInfo(args.project, args.zone, args.cluster)))
   # We delay creating started.json until we know the Argo workflow URLs
   create_started_file(args.bucket, ui_urls)
 
