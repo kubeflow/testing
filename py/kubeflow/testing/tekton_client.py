@@ -188,14 +188,15 @@ class PipelineRunner(object):
             "tektoncd/pipelineruns/{0}".format(self.name))
 
   def wait(self):
-    r = get_namespaced_custom_object_with_retries(self.namespace, self.name)
+    r = [get_namespaced_custom_object_with_retries(self.namespace, self.name)]
     if not self.teardown_runner:
       logging.info("Skipping teardown process for %s, no teardown process found",
                    self.name)
-      return [r]
+      return r
 
     self.teardown_runner.run()
-    return [r, self.teardown_runner.wait()]
+    r.extend(self.teardown_runner.wait())
+    return r
 
 def wait_(runner):
   return runner.wait()
