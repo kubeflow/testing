@@ -258,7 +258,7 @@ class TektonRunner(object):
       logging.error("Error when starting Tekton workflow: %s", e)
     finally:
       # Restore kubectl
-      util.configure_kubectl(current_cluster_info.project
+      util.configure_kubectl(current_cluster_info.project,
                              current_cluster_info.zone,
                              current_cluster_info.cluster_name)
       util.load_kube_config()
