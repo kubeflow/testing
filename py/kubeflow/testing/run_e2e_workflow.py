@@ -371,14 +371,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
             salt=uuid.uuid4().hex[0:9])
         logging.info("Appending teardown process %s for %s", teardown_w_name,
                      workflow_name)
-        teardown_runner = tekton_client.PipelineRunner(
+        pipeline_runner.append_teardown(tekton_client.PipelineRunner(
           teardown_w_name,
           w.tekton_teardown_params,
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_teardown,
-          args.bucket)
-        ui_urls[teardown_w_name] = teardown_runner.ui_url
-        pipeline_runner.append_teardown(teardown_runner)
+          args.bucket))
       tekton_runner.append(pipeline_runner)
     else:
       w.kwargs["name"] = workflow_name
@@ -451,10 +449,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     )
     util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
     util.load_kube_config()
-    rs = tekton_runner.join()
-    for r in rs:
-      # Flatten the list.
-      tekton_results.extend(r)
+    tekton_results = tekton_runner.join()
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
     # We explicitly log any exceptions so that they will be captured in the

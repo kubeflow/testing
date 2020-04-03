@@ -253,6 +253,8 @@ class TektonRunner(object):
       for w in self.workflows:
         w.run()
         urls[w.name] = w.ui_url
+        if w.teardown_runner:
+          urls[w.teardown_runner.name] = w.teardown_runner.ui_url
         logging.info("URL for workflow: %s", w.ui_url)
     except Exception as e:
       logging.error("Error when starting Tekton workflow: %s", e)
@@ -271,7 +273,11 @@ class TektonRunner(object):
     if not self.workflows:
       return []
     p = Pool(len(self.workflows))
-    return p.map(wait_, self.workflows)
+    results = p.map(wait_, self.workflows)
+    flattened = []
+    for r in results:
+      flattened.extend(r)
+    return flattened
 
 def junit_parse_and_upload(artifacts_dir, output_gcs):
   """Parse all JUNIT xml files and upload to GCS.
