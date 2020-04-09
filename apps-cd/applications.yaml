@@ -97,6 +97,18 @@ applications:
       value: "gcr.io/kubeflow-images-public/tf_operator"
     # The name of the repo containing the source
     sourceRepo: tf-operator
+  - name: tensorflow-notebook-image
+    params:  
+    - name: "path_to_context"
+      value: "components/tensorflow-notebook-image/"
+    - name: "path_to_docker_file"
+      value: "components/tensorflow-notebook-image/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "jupyter/jupyter-web-app/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/tensorflow-notebook-image"
+    # The name of the repo containing the source
+    sourceRepo: kubeflow
 # The versions to build the applications at
 # Each version should consist of a list of repositories and the corresponding
 # branch and a tag
