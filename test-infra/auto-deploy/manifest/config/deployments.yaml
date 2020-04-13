@@ -17,3 +17,8 @@ versions:
     # to the manifests
     kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/v1.0-branch/kfdef/kfctl_gcp_iap.v1.0.0.yaml
     kfctlUrl: https://github.com/kubeflow/kfctl/releases/download/v1.0/kfctl_v1.0-0-g94c35cf_linux.tar.gz
+  - name: stacks
+    # TODO(jlewi): We can get rid of this autodeployment once the stacks manifest is incorporated into a versioned
+    # manifest. We may need to update the kfctl link as additional fixes to work with kfctl
+    kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/master/stacks/examples/kfctl_gcp_stacks.experimental.yaml
+    kfctlUrl: https://storage.googleapis.com/kubeflow-ci_builds/kfctl/20200413_0845/linux/kfctl
