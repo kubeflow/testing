@@ -958,8 +958,15 @@ def use_self_signed_for_ingress(ingress_namespace, ingress_name,
   ingress = extensions.read_namespaced_ingress(ingress_name, ingress_namespace)
 
   # Delete GKE managed annotations
-  for a in ["ingress.gcp.kubernetes.io/pre-shared-cert",
-            "networking.gke.io/managed-certificates"]:
+  # See https://github.com/kubeflow/testing/issues/636
+  # We need to delete these annotations using kubectl; using patch
+  # doesn't seem to work. Also the order in which we delete them matters
+  for a in ["networking.gke.io/managed-certificates",
+            "ingress.gcp.kubernetes.io/pre-shared-cert"]:
+    # We add the - at the end of the annotation to delete it
+    # Deleting a non existent annotation is a null op
+    run(["kubectl", "-n", ingress_namespace, "annotate", "ingress",
+         ingress_name, "--overwrite=true", a + "-"])
     if a in ingress.metadata.annotations:
       del ingress.metadata.annotations[a]
 
@@ -972,9 +979,10 @@ def use_self_signed_for_ingress(ingress_namespace, ingress_name,
   ]
 
   logging.info("Updating ingress \n:%s", yaml.safe_dump(ingress.to_dict()))
-  extensions.patch_namespaced_ingress(ingress_name,
-                                      ingress_namespace,
-                                      ingress)
+  result = extensions.patch_namespaced_ingress(ingress_name,
+                                               ingress_namespace,
+                                               ingress)
+  logging.info("Patched ingress \n:%s", result)
 
 def is_in_cluster():
   """Check if we are running in cluster."""
