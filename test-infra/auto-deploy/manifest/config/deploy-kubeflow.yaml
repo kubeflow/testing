@@ -22,11 +22,9 @@ spec:
       initContainers:
       - command:
         - /usr/local/bin/checkout_repos.sh
-        # TOODO(jlewi): We are only using jlewi/testing to pull in changes to create_unique_kf
-        # instance. Once that's submitted we should switch back to master.
-        # Although we should really switch to tekton and use resources.
+        # TOODO(jlewi): We should really switch to tekton and use resources.
         - --depth=all
-        - --repos=kubeflow/kfctl@HEAD,jlewi/testing@auto_update
+        - --repos=kubeflow/kfctl@HEAD,kubeflow/testing@auto_update
         - --src_dir=/src
         - --links
         env:
@@ -63,6 +61,7 @@ spec:
         - --project=kubeflow-ci-deployment
         - --zone=us-central1-a
         - --kfctl_config=https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
+        - --no-use_self-cert
         volumeMounts:
         - mountPath: /src
           name: src
