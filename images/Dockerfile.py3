@@ -89,3 +89,4 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.0/
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
+RUN go get -u github.com/jstemmer/go-junit-report
