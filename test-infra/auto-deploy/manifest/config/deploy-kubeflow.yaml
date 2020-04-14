@@ -24,7 +24,7 @@ spec:
         - /usr/local/bin/checkout_repos.sh
         # TOODO(jlewi): We should really switch to tekton and use resources.
         - --depth=all
-        - --repos=kubeflow/kfctl@HEAD,kubeflow/testing@auto_update
+        - --repos=kubeflow/kfctl@HEAD,kubeflow/testing@HEAD
         - --src_dir=/src
         - --links
         env:
