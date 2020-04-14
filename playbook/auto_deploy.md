@@ -8,6 +8,18 @@ Playbook for the auto deployed instances of Kubeflow.
 1. Check logs
 
    * [Reconciler logs](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci&folder&organizationId&minLogLevel=0&expandAll=false&interval=PT1H&resource=k8s_container%2Fcluster_name%2Fkubeflow-testing%2Fnamespace_name%2Ftest-pod&advancedFilter=resource.type%3D%22k8s_container%22%0Aresource.labels.cluster_name%3D%22kf-ci-v1%22%0Aresource.labels.namespace_name%3D%22auto-deploy%22%0Alabels.%22k8s-pod%2Fapp%22%3D%22auto-deploy%22%0Aresource.labels.container_name%3D%22reconciler%22)
+
+     * You can filter by version name to see entries for a specific version; e.g
+
+       ```
+       resource.type="k8s_container"
+       resource.labels.cluster_name="kf-ci-v1"
+       resource.labels.namespace_name="auto-deploy"
+       labels."k8s-pod/app"="auto-deploy"
+       resource.labels.container_name="reconciler"
+       jsonPayload.version_name="v1"
+       ```
+
    * [Server logs](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci&folder&organizationId&minLogLevel=0&expandAll=false&interval=PT1H&resource=k8s_container%2Fcluster_name%2Fkubeflow-testing%2Fnamespace_name%2Ftest-pod&advancedFilter=resource.type%3D%22k8s_container%22%0Aresource.labels.cluster_name%3D%22kf-ci-v1%22%0Aresource.labels.namespace_name%3D%22auto-deploy%22%0Alabels.%22k8s-pod%2Fapp%22%3D%22auto-deploy%22%0Aresource.labels.container_name%3D%22server%22)
 
 1. Connect to the **kf-ci-v1** cluster
