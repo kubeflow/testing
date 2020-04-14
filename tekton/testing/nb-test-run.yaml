@@ -38,7 +38,7 @@ spec:
       - name: url
         value: https://github.com/kubeflow/testing.git
       - name: revision
-        value: refs/pull/622/head
+        value: refs/pull/<pr-num>/head
   pipelineSpec:
     params:
     - name: test-target-name

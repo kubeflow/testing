@@ -359,12 +359,23 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     elif w.tekton_run:
+      pull_revision = None
+      if os.getenv("PULL_NUMBER"):
+        pull_revision = "refs/pull/{pull_num}/head".format(
+            pull_num=os.getenv("PULL_NUMBER"))
+      elif os.getenv("PULL_BASE_SHA"):
+        pull_revision = os.getenv("PULL_BASE_SHA")
+      else:
+        pull_revision = "master"
       pipeline_runner = tekton_client.PipelineRunner(
           workflow_name,
           w.tekton_params,
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_run,
-          args.bucket)
+          args.bucket,
+          repo_owner,
+          repo_name,
+          pull_revision)
       if w.tekton_teardown:
         teardown_w_name = "{name}-teardown-{salt}".format(
             name=w.name,
@@ -376,7 +387,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           w.tekton_teardown_params,
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_teardown,
-          args.bucket))
+          args.bucket,
+          repo_owner,
+          repo_name,
+          pull_revision))
       tekton_runner.append(pipeline_runner)
     else:
       w.kwargs["name"] = workflow_name

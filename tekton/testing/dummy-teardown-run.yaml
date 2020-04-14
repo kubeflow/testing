@@ -13,6 +13,15 @@ spec:
     value: artifacts/junit_manual-testing
   - name: utter
     value: baz
+  resources:
+  - name: testing-repo
+    resourceSpec:
+      type: git
+      params:
+      - name: url
+        value: https://github.com/kubeflow/testing.git
+      - name: revision
+        value: refs/pull/<pr-num>/head
   pipelineSpec:
     params:
     - name: test-target-name

@@ -119,7 +119,7 @@ def get_namespaced_custom_object_with_retries(namespace, name):
   return result
 
 def load_tekton_run(workflow_name, params, test_target_name, tekton_run,
-                    bucket):
+                    bucket, repo_owner, repo_under_test, pull_revision):
   """Load Tekton configs and override information from Prow.
   Args:
     params: Extra parameters to be passed into Tekton pipelines.
@@ -160,15 +160,39 @@ def load_tekton_run(workflow_name, params, test_target_name, tekton_run,
       "value": args[n],
     })
 
+  # Points to the revision under test.
+  repo_url = "https://github.com/{owner}/{name}.git".format(
+      owner=repo_owner,
+      name=repo_under_test)
+  replacing_param = [
+      {"name": "url", "value": repo_url},
+      {"name": "revision", "value": pull_revision},
+  ]
+  foundRepo = False
+  for resource in config["spec"].get("resources", []):
+    if resource.get("resourceSpec", {}).get("type", "") != "git":
+      pass
+    for param in resource.get("resourceSpec", {}).get("params", []):
+      if param.get("name", "") != "url":
+        continue
+      if param.get("value", "") == repo_url:
+        foundRepo = True
+        resource["resourceSpec"]["params"] = replacing_param
+        break
+  if not foundRepo:
+    raise ValueError("couldn't find repo under test in resources: %s", repo_url)
+
   return config
 
 class PipelineRunner(object):
   """Runs and wait for the Tekton pipeline to finish.
   """
-  def __init__(self, name, params, test_target_name, config_path, bucket):
+  def __init__(self, name, params, test_target_name, config_path, bucket,
+               repo_owner, repo_under_test, pull_revision):
     self.name = name
     self.config = load_tekton_run(name, params, test_target_name, config_path,
-                                  bucket)
+                                  bucket, repo_owner, repo_under_test,
+                                  pull_revision)
     self.namespace = self.config["metadata"].get("namespace", "tektoncd")
     self.teardown_runner = None
 
