@@ -431,13 +431,24 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   else:
     if args.kfctl_path.startswith("http"):
       temp_dir = tempfile.mkdtemp()
-      util.run(["curl", "-L", "-o", "kfctl.tar.gz", args.kfctl_path],
+
+      filename = "kfctl"
+
+      zipped = False
+      if args.kfctl_path.endswith(".tar.gz"):
+        zipped = True
+        filename = filename + ".tar.gz"
+
+      util.run(["curl", "-L", "-o", filename, args.kfctl_path],
                cwd=temp_dir)
-      util.run(["tar", "-xvf", "kfctl.tar.gz"], cwd=temp_dir)
+      if zipped:
+        util.run(["tar", "-xvf", "kfctl.tar.gz"], cwd=temp_dir)
+
       kfctl_path = os.path.join(temp_dir, "kfctl")
-      git_describe = util.run([kfctl_path, "version"])
     else:
       kfctl_path = args.kfctl_path
+
+  git_describe = util.run([kfctl_path, "version"])
 
   logging.info("kfctl path set to %s", kfctl_path)
 
