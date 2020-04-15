@@ -47,7 +47,7 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
 1. Look for recent runs of the cron job and figure out whether the are running successfully
 
    ```
-   kubectl get jobs | grep cleanup-ci
+    kubectl get jobs -l app=cleanup-ci-kubeflow-ci-deployment --sort-by=".metadata.creationTimestamp"
    ```
 
    * Jobs triggered by cron will match the regex `cleanup-ci-??????????`
@@ -60,6 +60,15 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
      kubectl logs -l job-name=${JOBNAME}
      ```
 
+   * In [stackdriver](https://console.cloud.google.com/logs/viewer?interval=PT1H&project=kubeflow-ci&minLogLevel=0&expandAll=false&advancedFilter=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22kubeflow-ci%22%0Aresource.labels.cluster_name%3D%22kubeflow-testing%22%0Alabels.%22k8s-pod%2Fjob-name%22%3D%22cleanup-ci-kubeflow-ci-deployment-1586916000%22%0A) you can use the following query (change the value of job-name)
+
+     ```
+     resource.type="k8s_container"
+     resource.labels.project_id="kubeflow-ci"
+     resource.labels.cluster_name="kubeflow-testing"
+     labels."k8s-pod/job-name"="cleanup-ci-kubeflow-ci-deployment-1586916000"
+     ```
+
 1. Do a oneoff run of the cleanup job
 
    ```
@@ -68,6 +77,14 @@ kubectl config set-context $(kubectl config current-context) --namespace=kubeflo
    ```
 
    * You can adjust the command line arguments in order to do more aggressive garbage collection then usual
+
+## GCP SSL Certificate Quota Errors
+
+This is a helpful command to list SSL certificates and their associated domain
+
+```
+gcloud beta --project=kubeflow-ci-deployment compute ssl-certificates list  --format="table(name,managed.domains,creationTimestamp:sort=1)"
+```
 
 ## GCP Stockouts
 
