@@ -445,6 +445,7 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
         util.run(["tar", "-xvf", "kfctl.tar.gz"], cwd=temp_dir)
 
       kfctl_path = os.path.join(temp_dir, "kfctl")
+      os.chmod(kfctl_path, 0o777)
     else:
       kfctl_path = args.kfctl_path
 
