@@ -22,6 +22,7 @@ from oauth2client.client import GoogleCredentials
 AUTO_DEPLOY_PATTERNS = [
   re.compile(r".*kf-master-(?!n\d\d)"),
   re.compile(r".*kf-v1-(?!n\d\d)"),
+  re.compile(r".*kf-.*-(?!n\d\d)"),
   re.compile(r".*kf-vmaster-(?!n\d\d)"), # The legacy pattern for auto-deploy v1
                                          # We can get rid of it once
                                          # all the old deployments have been
@@ -695,19 +696,26 @@ def cleanup_certificates(args):
       age = now - create_time
 
       name = d["name"]
-      domain = get_ssl_certificate_domain(d)
 
-      infra_type = name_to_infra_type(domain)
+      if not "managed" in d:
+        logging.info("%s is an unmanged certificate and will be deleted",
+                     name)
+        max_age = datetime.timedelta(days=7)
+      else:
+        domain = get_ssl_certificate_domain(d)
 
-      if not infra_type:
-        logging.info("Skipping certificate named %s for domain %s; "
-                     "it does not match any infra type.", name, domain)
-        continue
+        infra_type = name_to_infra_type(domain)
 
-      logging.info("Certificate named %s for domain %s categorized as %s",
-                   name, domain, infra_type)
+        if not infra_type:
+          logging.info("Skipping certificate named %s for domain %s; "
+                       "it does not match any infra type.", name, domain)
+          continue
 
-      if age > MAX_LIFETIME[infra_type]:
+        logging.info("Certificate named %s for domain %s categorized as %s",
+                     name, domain, infra_type)
+        max_age = MAX_LIFETIME[infra_type]
+
+      if age > max_age:
         logging.info("Deleting certifcate: %s for domain %s", d["name"], domain)
         is_expired = True
         if not args.dryrun:
