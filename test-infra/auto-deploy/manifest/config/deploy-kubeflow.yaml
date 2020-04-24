@@ -23,8 +23,10 @@ spec:
       - command:
         - /usr/local/bin/checkout_repos.sh
         # TOODO(jlewi): We should really switch to tekton and use resources.
+        # TODO(https://github.com/kubeflow/testing/pull/641): Switch to  kubeflow/testing@HEAD
+        # after 641 is merged
         - --depth=all
-        - --repos=kubeflow/kfctl@HEAD,kubeflow/testing@auto_update
+        - --repos=kubeflow/kfctl@HEAD,jlewi/testing@playbook
         - --src_dir=/src
         - --links
         env:
