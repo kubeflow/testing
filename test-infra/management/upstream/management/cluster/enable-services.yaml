@@ -1,0 +1,8 @@
+# GKE
+apiVersion: cnrm.cloud.google.com/v1alpha1
+kind: CloudService
+metadata:
+  name: gke
+  namespace: "jlewi-dev" # {"type":"string","x-kustomize":{"setBy":"kpt","setter":{"name":"gcloud.core.project","value":"jlewi-dev"}}}
+spec:
+  service: container.googleapis.com

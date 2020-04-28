@@ -1,0 +1,6 @@
+apiVersion: identity.cnrm.cloud.google.com/v1alpha2
+kind: IdentityNamespace
+metadata:
+  name: default
+  namespace: kubeflow-ci
+spec: {}

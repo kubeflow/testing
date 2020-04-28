@@ -1,0 +1,7 @@
+apiVersion: cnrm.cloud.google.com/v1alpha1
+kind: CloudService
+metadata:
+  name: gke
+  namespace: kubeflow-ci
+spec:
+  service: container.googleapis.com

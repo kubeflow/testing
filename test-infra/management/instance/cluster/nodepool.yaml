@@ -1,0 +1,5 @@
+apiVersion: container.cnrm.cloud.google.com/v1alpha2
+kind: ContainerNodePool
+metadata:
+  clusterName: "kubeflow-ci/us-central1/kf-ci-management" # {"type":"string","x-kustomize":{"partialSetters":[{"name":"gcloud.core.project","value":"kubeflow-ci"},{"name":"name","value":"kf-ci-management"},{"name":"location","value":"us-central1"}]}}
+  name: kf-ci-management-pool # {"type":"string","x-kustomize":{"partialSetters":[{"name":"gcloud.core.project","value":"project-id"},{"name":"name","value":"kf-ci-management"},{"name":"location","value":"us-central1-f"}]}}

@@ -1,0 +1,8 @@
+# cloudresourcemanager, used for creating projects
+apiVersion: cnrm.cloud.google.com/v1alpha1
+kind: CloudService
+metadata:
+  name: cloudresourcemanager.googleapis.com
+  namespace: "jlewi-dev" # {"type":"string","x-kustomize":{"setBy":"kpt","setter":{"name":"gcloud.core.project","value":"jlewi-dev"}}}
+spec:
+  service: cloudresourcemanager.googleapis.com
