@@ -1,0 +1,16 @@
+apiVersion: container.cnrm.cloud.google.com/v1alpha2
+kind: ContainerCluster
+metadata:
+  clusterName: kubeflow-ci/us-central1/kf-ci-management
+  name: kf-ci-management
+  namespace: kubeflow-ci
+spec:
+  clusterTelemetry:
+    type: enabled
+  ipAllocationPolicy:
+    useIpAliases: true
+  location: us-central1
+  releaseChannel:
+    channel: RAPID
+  workloadIdentity:
+    identityNamespace: default
