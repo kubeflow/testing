@@ -69,7 +69,7 @@ $ python <license_tool>/setup.py install
 
 1.  Crawl github license info of these libraries via the following command to produce the `license_info.csv` file. (Not all repositories have github recognizable license, needs manual help for <2% of libraries)
     ```
-    $ python <license_tool>/third_party/cli/get_github_license_info.py --github-api-token-file=<github_token_file>
+    $ python <license_tool>/get_github_license_info.py --github-api-token-file=<github_token_file>
     ......
     Fetching license for google/ml-metadata
     Fetching license for kubernetes-sigs/controller-runtime
@@ -106,11 +106,11 @@ $ python <license_tool>/setup.py install
     Finally, we can patch the additional license types in `additional_license_info.csv` on `license_info.csv` to get the final list of licenses with types.
 
     ```
-    $  python patch_additional_license_info.py
+    $  python <license_tool>/patch_additional_license_info.py
     ```
 
 
-3. Run `concatenate-license` to crawl full text license files for all dependencies and concat them into one file.
+3. Run `python <license_tool>/concatenate-license.py` to crawl full text license files for all dependencies and concat them into one file.
 
     Defaults to read license info from `license-info.csv`. Writes to `license.txt`.
     Put `license.txt` to `third_party/library/license.txt` where it is read when building docker images.
@@ -135,7 +135,7 @@ For examples, you can add the following tests into your CI pipeline.
 
 2. Check if the final `license.txt` is up-to-date. The test Shell script can be
     ```
-    python3 concatenate_license.py --output=/tmp/generated_license.txt
+    python <license_tool>/concatenate_license.py --output=/tmp/generated_license.txt
 
     if ! diff /tmp/generated_license.txt license.txt; then
         echo "Please regenerate third_party/license.txt."
