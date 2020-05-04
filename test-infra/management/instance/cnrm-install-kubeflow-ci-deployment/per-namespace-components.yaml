@@ -8,7 +8,7 @@ kind: ServiceAccount
 metadata:
   annotations:
     cnrm.cloud.google.com/version: 1.7.1
-    iam.gke.io/gcp-service-account: cnrm-kf-ci-deployment@kubeflow-ci-deployment.iam.gserviceaccount.com # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"},{"name":"managed_gsa_name","value":"cnrm-kf-ci-deployment"}]}}
+    iam.gke.io/gcp-service-account: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"},{"name":"managed_gsa_name","value":"cnrm-kf-ci-deployment"}]}}
   labels:
     cnrm.cloud.google.com/scoped-namespace: kubeflow-ci-deployment # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
     cnrm.cloud.google.com/system: "true"
@@ -24,7 +24,7 @@ metadata:
     cnrm.cloud.google.com/scoped-namespace: kubeflow-ci-deployment # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
     cnrm.cloud.google.com/system: "true"
   name: cnrm-admin-binding-kubeflow-ci-deployment # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
-  namespace: cnrm-system
+  namespace: kubeflow-ci-deployment # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -43,7 +43,7 @@ metadata:
     cnrm.cloud.google.com/scoped-namespace: kubeflow-ci-deployment # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
     cnrm.cloud.google.com/system: "true"
   name: cnrm-manager-ns-binding-kubeflow-ci-deployment # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
-  namespace: cnrm-system
+  namespace: kubeflow-ci-deployment # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -143,7 +143,7 @@ spec:
     spec:
       containers:
       - args:
-        - --scoped-namespace=kubeflow-ci # {"type":"string","x-kustomize":{"partialSetters":[{"name":"host_project","value":"kubeflow-ci"}]}}
+        - --scoped-namespace=kubeflow-ci-deployment # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
         - --stderrthreshold=INFO
         - --prometheus-scrape-endpoint=:8888
         command:
