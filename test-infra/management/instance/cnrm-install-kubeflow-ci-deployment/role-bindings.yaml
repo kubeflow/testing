@@ -1,0 +1,14 @@
+# We need to give the GCP service account that's used for autodeployments
+# the ability to create CNRM resources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:  
+  name: kf-ci-v1-cnrm-admin # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
+  namespace: kubeflow-ci-deployment # {"type":"string","x-kustomize":{"partialSetters":[{"name":"managed_project","value":"kubeflow-ci-deployment"}]}}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cnrm-admin
+subjects:
+- kind: User
+  name: kf-ci-v1-user@kubeflow-ci.iam.gserviceaccount.com

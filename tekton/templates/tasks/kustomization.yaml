@@ -1,0 +1,8 @@
+# Define a kustomize package to include all the tekton tasks.
+# The point of this kustomize package is to make it easy to hydrate
+# the tasks (e.g. configure the namespace)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- deploy-gcp-blueprint.yaml
+- notebook-test-task.yaml
