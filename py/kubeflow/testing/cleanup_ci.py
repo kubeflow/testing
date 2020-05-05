@@ -701,6 +701,7 @@ def cleanup_certificates(args):
         logging.info("%s is an unmanged certificate and will be deleted",
                      name)
         max_age = datetime.timedelta(days=7)
+        domain = "<unknown domain>"
       else:
         domain = get_ssl_certificate_domain(d)
 
