@@ -1,3 +1,12 @@
+# CI Management
+
+This directory contains blueprint for setting up a management cluster for CI.
+
+It is based on the GCP management blueprint with the following modifications.
+
+* For project kubeflow-ci-deployment@
+
+
 # Management Blueprint
 
 This directory contains the configuration needed to setup a management GKE cluster.

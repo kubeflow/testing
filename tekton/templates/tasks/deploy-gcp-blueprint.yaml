@@ -1,0 +1,73 @@
+# A Tekton task to deploy Kubeflow using the GCP blueprint.
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: deploy-gcp-blueprint
+  # TODO(jlewi): Should we use a ClusterTask
+  namespace: tektoncd
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  inputs:
+    params:
+    - name: name
+      type: string
+      description: The name for the Kubeflow deployment
+      default: "kf-vbp-{uid}"
+    - name: project
+      type: string
+      description: The project to deploy into.
+      default: "kubeflow-ci-deployment"
+    - name: management-cluster-name
+      type: string
+      description: The name of the management cluster. 
+      default: "kf-ci-management"
+    - name: management-project
+      type: string
+      description: The project containing the management cluster 
+      default: kubeflow-ci
+    - name: management-location
+      type: string
+      description: The location of the management cluster
+      default: us-central1
+    resources:
+    - name: testing-repo
+      type: git
+      description: The GitHub repo containing kubeflow testing scripts
+    - name: blueprint-repo
+      type: git
+      description: The GitHub repo containing the blueprint
+  steps:
+  - name: get-credential
+    image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+    command:
+    - /workspace/$(inputs.resources.blueprint-repo.name)/kubeflow/hack/create_context.sh
+    env:
+    - name: PROJECT
+      value: $(inputs.params.management-project) 
+    - name: REGION
+      value: $(inputs.params.management-location) 
+    - name: NAME
+      value: $(inputs.params.management-cluster-name) 
+    - name: KUBECONFIG
+      value: /workspace/kubeconfig    
+    - name: NAMESPACE
+      value: $(inputs.params.project) 
+  - name: deploy-gcp
+    image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+    command:
+    - python
+    - -m
+    - kubeflow.testing.create_kf_from_gcp_blueprint
+    - deploy
+    - --name=$(inputs.params.name)
+    - --blueprint-dir=/workspace/$(inputs.resources.blueprint-repo.name)/kubeflow
+    # The previous step should give the context for the management cluster the same name as the 
+    # management cluster.
+    - --management-context=$(inputs.params.management-cluster-name)
+    workingDir: /workspace/$(inputs.resources.blueprint-repo.name)/kubeflow
+    env:
+    - name: KUBECONFIG
+      value: /workspace/kubeconfig
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.testing-repo.name)/py

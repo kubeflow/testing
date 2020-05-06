@@ -20,20 +20,20 @@ RUN python3.8 -m pip install \
     oauth2client \
     pytest \
     retrying \
-    watchdog \
-    yq
+    watchdog
 
 # Install go
 RUN cd /tmp && \
     wget -O /tmp/go.tar.gz https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go.tar.gz
 
-
 # Install gcloud
 ENV PATH=/root/go/bin:/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
     CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
-RUN go get github.com/kelseyhightower/kube-rsa
+# Install the new version of yq which is based on go
+RUN GO111MODULE=on go get github.com/mikefarah/yq/v3
+RUN go get github.com/kelseyhightower/kube-rsa 
 
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
     tar xzf google-cloud-sdk.tar.gz -C / && \
@@ -44,6 +44,8 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
     --path-update=false \
     --usage-reporting=false && \
     gcloud components install alpha beta
+
+RUN gcloud components install anthoscli kpt
 
 # Install the hub CLI for git
 RUN cd /tmp && \
@@ -58,6 +60,14 @@ RUN export KUSTOMIZE_VERSION=3.2.0 && \
     mv kustomize_${KUSTOMIZE_VERSION}_linux_amd64 /usr/local/bin/kustomize && \
     chmod a+x /usr/local/bin/kustomize
 
+RUN export ASM_VERSION=1.4.7-asm.0 && \
+    cd /tmp && \
+    curl -LO https://storage.googleapis.com/gke-release/asm/istio-${ASM_VERSION}-linux.tar.gz && \
+    tar -xvf istio-${ASM_VERSION}-linux.tar.gz && \
+    mv istio-${ASM_VERSION} /usr/local && \
+    ln -sf /usr/local/istio-${ASM_VERSION}/bin/istioctl /usr/local/bin/istioctl
+
+    
 # Create go symlinks
 RUN ln -sf /usr/local/go/bin/go /usr/local/bin && \
     ln -sf /usr/local/go/bin/gofmt /usr/local/bin && \
