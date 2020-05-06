@@ -14,6 +14,7 @@ import time
 import yaml
 
 from kubeflow.testing import argo_client
+
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
 from googleapiclient import discovery
@@ -1247,9 +1248,10 @@ def cleanup_clusters(args):
 # https://github.com/kubernetes/ingress-gce/issues/136#issuecomment-371254595
 
 def cleanup_all(args):
-  ops = [# Deleting deploymens should be called first because hopefully that will
+  ops = [# Deleting deployments should be called first because hopefully that will
          # cleanup all the resources associated with the deployment
          cleanup_auto_deployments,
+         cleanup_auto_blueprints,
          cleanup_deployments,
          cleanup_clusters,
          cleanup_endpoints,
@@ -1293,6 +1295,12 @@ def add_deployments_args(parser):
   parser.add_argument(
     "--zones", default="us-east1-d,us-central1-a", type=str,
     help="Comma separated list of zones to check.")
+
+def add_blueprint_args(parser):
+  parser.add_argument(
+    "--management_context", default="kf-ci-deployment-management",
+      help="Kubeconfig context for the management context used with "
+           "blueprints.")
 
 def main():
   logging.basicConfig(level=logging.INFO,
@@ -1370,7 +1378,6 @@ def main():
 
   parser_firewall.set_defaults(func=cleanup_firewall_rules)
 
-
   ######################################################
   # Parser for health checks
   parser_health = subparsers.add_parser(
@@ -1432,6 +1439,13 @@ def main():
       "instance_groups", help="Cleanup instance groups")
   add_deployments_args(parser_ig)
   parser_ig.set_defaults(func=cleanup_instance_groups)
+
+  ######################################################
+  # Parser for auto_blueprints
+  parser_blueprints = subparsers.add_parser(
+      "blueprints", help="Cleanup blueprints")
+  add_blueprint_args(parser_blueprints)
+  parser_blueprints.set_defaults(func=cleanup_auto_blueprints)
 
   args = parser.parse_args()
 

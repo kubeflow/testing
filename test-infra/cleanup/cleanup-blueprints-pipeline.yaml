@@ -1,0 +1,46 @@
+# A Tekton PipelineRun to do a one off 
+# cleaning up the Kubeflow auto-deployed blueprints.
+#
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  generateName: cleanup-blueprints-
+  namespace: auto-deploy
+spec:
+  # TODO(jlewi): Override any parameters?
+  #params: {}
+  resources:  
+  - name: testing-repo
+    resourceSpec:
+      type: git
+      params:
+        # TODO(jlewi): Switch to master on kubeflow/gcp-blueprints
+        - name: revision
+          value: gcp_blueprint
+        - name: url
+          value: https://github.com/jlewi/testing.git
+  # Need to use a KSA with appropriate GSA
+  serviceAccountName: default-editor
+  pipelineSpec:
+    params:
+    - name: management-cluster-name
+      type: string
+      description: The name of the management cluster. 
+      default: "kf-ci-management"
+    resources:
+    - name: testing-repo
+      type: git
+    tasks:
+    - name: cleanup-blueprints
+      # TODO(jlewi): expose other parameters? Right now
+      # we are just relying on the defaults defined in the task
+      params:
+      - name: management-cluster-name
+        value: "$(params.management-cluster-name)"
+      resources:
+        inputs:        
+        - name: testing-repo
+          resource: testing-repo
+      taskRef:
+        name: cleanup-kubeflow-ci
+        kind: namespaced  
