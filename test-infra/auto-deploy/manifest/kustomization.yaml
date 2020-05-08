@@ -16,3 +16,4 @@ configMapGenerator:
     # key will be name of the file
     - ./config/deploy-kubeflow.yaml
     - ./config/deployments.yaml
+    - ./config/pipeline-run-deploy-blueprint-master.yaml

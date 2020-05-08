@@ -15,7 +15,9 @@ import logging
 import os
 import yaml
 
+from kubeflow.testing import gcp_util
 from kubeflow.testing import kf_logging
+from kubeflow.testing.auto_deploy import blueprint_reconciler
 from kubeflow.testing.auto_deploy import util
 import flask
 
@@ -25,18 +27,17 @@ app = flask.Flask(__name__)
 
 _deployments_dir = None
 
-app =  flask.Flask(__name__)
+app = flask.Flask(__name__)
 
-@app.route("/")
-def auto_deploy_status():
-  """Return the status of the auto deployments."""
-
-  files = glob.glob(os.path.join(_deployments_dir, "deployments.*"))
+def _get_deployments():
+  """Return dictionary describing deployment manager deployments."""
+  match = os.path.join(_deployments_dir, "deployments.*")
+  files = glob.glob(match)
 
   items = []
 
   if not files:
-    logging.info(f"No matching files in {_deployments_dir}")
+    logging.info(f"No matching files for {match}")
 
   else:
     files = sorted(files)
@@ -46,13 +47,14 @@ def auto_deploy_status():
     with open(os.path.join(latest)) as hf:
       deployments = yaml.load(hf)
 
-
     for v, deployments_list  in deployments.items():
       for d in deployments_list:
         create_time = date_parser.parse(d["create_time"])
         age = datetime.datetime.now(tz=create_time.tzinfo) - create_time
         manifests_commit = d["labels"].get(util.MANIFESTS_COMMIT_LABEL, "")
         row = {
+          "pipeline_run": "",
+          "pipeline_run_url": "",
           "version": v,
           "deployment_name": d["deployment_name"],
           "creation_time": d.get("create_time", ""),
@@ -62,9 +64,9 @@ def auto_deploy_status():
                             f"{manifests_commit}"),
           "kfctl_git": d["labels"].get("kfctl-git", ""),
           "endpoint": f"https://{d['deployment_name']}.endpoints."
-                      f"kubeflow-ci-deployment.cloud.goog",
+          f"kubeflow-ci-deployment.cloud.goog",
           # TODO(jlewi): We are hardcoding the project and zone.
-          "gcloud_command": (f"gcloud --project=kubeflow-ci-deployment "
+                      "gcloud_command": (f"gcloud --project=kubeflow-ci-deployment "
                              f"container clusters get-credentials "
                              f"--zone={d['zone']} "
                              f"{d['deployment_name']}")
@@ -75,22 +77,112 @@ def auto_deploy_status():
         row["labels"] = ", ".join(labels)
         items.append(row)
 
-  # Define a key function for the sort.
-  # We want to sort by version and age
-  def key_func(i):
-    # We want unknown version to appear last
-    # so we ad a prefix
-    if i["version"] == "unknown":
-      prefix = "z"
-    else:
-      prefix = "a"
+  return items
 
-    return f"{prefix}-{i['version']}-{i['age']}"
-  items = sorted(items, key=key_func)
+def _get_blueprints():
+  """Return dictionary describing blueprints."""
+  match = os.path.join(_deployments_dir, "clusters.*")
+  files = glob.glob(match)
 
-  # Return the HTML
-  return flask.render_template("index.html", title="Kubeflow Auto Deployments",
-                               items=items)
+  items = []
+
+  if not files:
+    logging.info(f"No files matched {match}")
+    return items
+
+  files = sorted(files)
+
+  latest = files[-1]
+  logging.info(f"Reading from {latest}")
+  with open(os.path.join(latest)) as hf:
+    deployments = yaml.load(hf)
+
+  for _, clusters  in deployments.items():
+    for c in clusters:
+      create_time = date_parser.parse(c["metadata"]["creationTimestamp"])
+      age = datetime.datetime.now(tz=create_time.tzinfo) - create_time
+      commit = c["metadata"]["labels"].get(
+        blueprint_reconciler.BLUEPRINT_COMMIT_LABEL, "")
+
+      pipeline_run = c["metadata"]["labels"].get("tekton.dev/pipelineRun", "")
+      group = c["metadata"]["labels"].get(
+        blueprint_reconciler.GROUP_LABEL, blueprint_reconciler.UNKNOWN_GROUP)
+      name = c["metadata"]["name"]
+
+      location = c["spec"]["location"]
+
+      location_flag = gcp_util.location_to_type(location)
+
+      row = {
+        "version": group,
+        "deployment_name": name,
+        "creation_time": create_time,
+        "age": f"{age}",
+        "manifests_git": commit,
+        # TODO(jlewi):We shouldn't hardcode the url we should add it
+        # as annotation.
+        "manifests_url": (f"https://github.com/kubeflow/gcp-blueprints/tree/"
+                          f"{commit}"),
+        "kfctl_git": "",
+        "pipeline_run": pipeline_run,
+        # TODO(jlewi): We shouldn't hardcode endpoint.
+        "pipline_run_url": (f"https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/"
+                            f"tekton/#/namespaces/auto-deploy/pipelineruns/"
+                            f"{pipeline_run}"),
+        # TODO(jlewi): Don't hard code the project
+        "endpoint": (f"https://{name}.endpoints."
+                     f"kubeflow-ci-deployment.cloud.goog"),
+        # TODO(jlewi): We are hardcoding the project and zone.
+                    "gcloud_command": (f"gcloud --project=kubeflow-ci-deployment "
+                           f"container clusters get-credentials "
+                           f"--{location_flag}={location} "
+                           f"{name}")
+      }
+      labels = []
+      for label_key, label_value in c["metadata"]["labels"].items():
+        labels.append(f"{label_key}={label_value}")
+      row["labels"] = ", ".join(labels)
+      items.append(row)
+
+  return items
+
+@app.route("/")
+def auto_deploy_status():
+  """Return the status of the auto deployments."""
+  logging.info("Handle auto_deploy_status")
+  try:
+    logging.info("Get deployments")
+    items = _get_deployments()
+
+    logging.info("Get blueprints")
+    blueprints = _get_blueprints()
+
+    items.extend(blueprints)
+
+    # Define a key function for the sort.
+    # We want to sort by version and age
+    def key_func(i):
+      # We want unknown version to appear last
+      # so we ad a prefix
+      if i["version"] == "unknown":
+        prefix = "z"
+      else:
+        prefix = "a"
+
+      return f"{prefix}-{i['version']}-{i['age']}"
+    items = sorted(items, key=key_func)
+
+    # Return the HTML
+    logging.info("Render template")
+    result = flask.render_template("index.html", title="Kubeflow Auto Deployments",
+                                   items=items)
+  # It looks like when flask debug mode is off the Flask provides unhelpful log
+  # messages in the logs. In debug mode the actual exception is returned in
+  # the html response.
+  except Exception as e:
+    logging.error(f"Exception occured: {e}")
+    raise
+  return result
 
 class AutoDeployServer:
 

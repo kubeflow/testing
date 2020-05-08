@@ -1,9 +1,0 @@
-# A Dockerfile for use with skaffold
-#
-# The purpose of this docker image is to just recopy the source.
-# The goal is to allow fast rebuilds for use with skaffold.
-
-FROM gcr.io/kubeflow-ci/auto_deploy:0558847-dirty@sha256:575505835a24fa4622c233577495ec86b8a2a09bc1ac7fa3e208f15973480a45
-
-COPY py /app/src/kubeflow/testing/py
-COPY test-infra/auto-deploy/templates /app/templates

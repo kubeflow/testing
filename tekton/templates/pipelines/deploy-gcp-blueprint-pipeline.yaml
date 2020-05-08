@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: deploy-gcp-blueprint
+spec:
+  params:
+  - name: name
+    type: string
+    description: The name for the Kubeflow deployment
+    default: "kf-vbp-{uid}"
+  - name: management-cluster-name
+    type: string
+    description: The name of the management cluster. 
+    default: "kf-ci-management"
+  - name: project
+    type: string
+    description: The project to deploy into 
+    default: "kubeflow-ci-deployment"
+  resources:
+  - name: testing-repo
+    type: git
+  - name: blueprint-repo
+    type: git
+  tasks:
+  - name: deploy-gcp
+    # TODO(jlewi): expose other parameters? Right now
+    # we are just relying on the defaults defined in the task
+    params:
+    - name: name
+      value: "$(params.name)"
+    - name: project
+      value: "$(params.project)"
+    - name: management-cluster-name
+      value: "$(params.management-cluster-name)"
+    resources:
+      inputs:
+      - name: blueprint-repo
+        resource: blueprint-repo
+      - name: testing-repo
+        resource: testing-repo
+    taskRef:
+      name: deploy-gcp-blueprint
+      kind: namespaced  

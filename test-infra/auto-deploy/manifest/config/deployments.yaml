@@ -2,6 +2,10 @@
 # the list of branches that we want to continusouly deploy from.
 # The project where things should be deployed
 #
+#
+# TODO(jlewi): This is deprecated. Instead you should add YAML files containing Tekton PipelineRun YAMLs
+# Each PipelineRun should deploy a different sequence of pipelines.
+#
 # TODO(jlewi): Project and zone in which to deploy.
 # Should we define this in the kustomize package because it will be different
 # for different environments and we will want to easily override it?

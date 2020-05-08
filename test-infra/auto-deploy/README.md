@@ -8,11 +8,39 @@ for auto-deploying Kubeflow instances from the latest code on a branch.
 
 The python code is located in [py/kubeflow/testing/auto_deploy](https://github.com/kubeflow/testing/tree/master/py/kubeflow/testing/auto_deploy).
 
+## Quick Links
+
+* [Auto Deployments Dashboard](https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/auto_deploy/)
+* [Tekton Dashboard for deploy-gcp-blueprint runs](https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/auto-deploy/pipelineruns?labelSelector=tekton.dev%2Fpipeline%3Ddeploy-gcp-blueprint)
+* [Stack Driver Logs For Reconciler](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci&folder&organizationId&minLogLevel=0&expandAll=false&&customFacets=&limitCustomFacetWidth=true&interval=PT1H&resource=k8s_container%2Fcluster_name%2Fkubeflow-testing%2Fnamespace_name%2Ftest-pods&advancedFilter=resource.type%3D%22k8s_container%22%0Aresource.labels.cluster_name%3D%22kf-ci-v1%22%0Aresource.labels.container_name%20%3D%20%22blueprints-reconciler%22%0Alabels.%22k8s-pod%2Fapp%22%20%3D%20%22auto-deploy%22%0A)
+* [Stack Driver Logs For Flask App](https://console.cloud.google.com/logs/viewer?project=kubeflow-ci&folder&organizationId&minLogLevel=0&expandAll=false&&customFacets=&limitCustomFacetWidth=true&interval=PT1H&resource=k8s_container%2Fcluster_name%2Fkubeflow-testing%2Fnamespace_name%2Ftest-pods&advancedFilter=resource.type%3D%22k8s_container%22%0Aresource.labels.cluster_name%3D%22kf-ci-v1%22%0Aresource.labels.container_name%20%3D%20%22server%22%0Alabels.%22k8s-pod%2Fapp%22%20%3D%20%22auto-deploy%22%0A)
+
 ## How it works
 
-There are two key pieces:
+There are three key pieces:
+
+1. [blueprint_reconciler.py](https://github.com/kubeflow/testing/blob/master/py/kubeflow/testing/auto_deploy/blueprint_reconciler.py)
+
+   * The reconciler periodically checks whether its necessary to create a new instance of Kubeflow
+
+   * The reconciler checks whether there have been changes committed since the most recent auto deployments
+       were created
+
+   * If a newer version of Kubeflow needs to be created; the reconciler will try to deploy it immediately if
+     various conditions are met
+
+     * The reconciler implements a rate limiting queue to prevent too many instances of Kubeflow being
+       created simultaneously and eating up all the quota
+
+   * The reconciler will fire off Tekton Pipelines to create a Kubeflow deployment as needed
+
+     * The PipleineRun's are defined in [kubeflow/testing/test-infra/auto-deploy/manifest/config](https://github.com/kubeflow/testing/tree/master/test-infra/auto-deploy/manifest/config)
+
+       * These are uploaded via a configmap to the reconciler.
 
 1. [reconciler.py](https://github.com/kubeflow/testing/blob/master/py/kubeflow/testing/auto_deploy/reconciler.py)
+
+   * This is deprecated its replaced by blueprint_reconciler.py
 
    * The reconciler periodically checks whether its necessary to create a new instance of Kubeflow
 

@@ -67,7 +67,8 @@ class BlueprintRunner:
   def deploy(blueprint_dir, management_context, name="kf-vbp-{uid}",
              project="kubeflow-ci-deployment",
              location="us-central1", zone="us-central1-f",
-             oauth_file=DEFAULT_OAUTH_FILE):
+             labels_file=None,
+             oauth_file=DEFAULT_OAUTH_FILE): # pylinet: disable=too-many-arguments
     """Deploy the blueprint:
 
     Args:
@@ -83,6 +84,8 @@ class BlueprintRunner:
       zone: The zone to use for disks must be in the same region as location
         when using a regional cluster and must be location when location
         is zone.
+      labels_file: (Optional): Path to a file containing additional labels
+        to add to the deployment.
       oauth_file: The file containing the OAuth client ID & secret for IAP.
     """
     # Wait for credentials to deal with workload identity issues
@@ -128,8 +131,28 @@ class BlueprintRunner:
     # or as as an annotation.
     # GCP labels can only take as input alphanumeric characters, hyphens, and
     # underscores. Replace not valid characters with hyphens.
-    labels = {"purpose": "kf-test-cluster",
-              "auto-deploy": "true",}
+    # TODO(jlewi): We are assuming all blueprints created by
+    # create_kf_from_gcp_blueprint.py are auto-deployed. How could
+    # we inject appropriate labels when creating auto-deploy jobs?
+    labels = {}
+
+    if labels_file:
+      logging.info(f"Reading labels from file: {labels_file}")
+
+      pattern = re.compile("([^=]+)=(.+)")
+      with open(labels_file) as f:
+        while True:
+          l = f.readline()
+          if not l:
+            break
+          m = pattern.match(l)
+          if not m:
+            logging.info(f"Skipping line {l} it doesn't match pattern "
+                         f"{pattern.pattern}")
+          labels[m.group(1)] = m.group(2)
+    else:
+      logging.info("No labels file provided.")
+
 
     kustomization_file = os.path.join(blueprint_dir, "instance", "gcp_config",
                                       "kustomization.yaml")

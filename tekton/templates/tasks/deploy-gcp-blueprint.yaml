@@ -37,9 +37,13 @@ spec:
     - name: blueprint-repo
       type: git
       description: The GitHub repo containing the blueprint
-  steps:
-  - name: get-credential
+  stepTemplate:
+    env: 
+    - name: KUBECONFIG
+      value: /workspace/kubeconfig
     image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+  steps:
+  - name: get-credential    
     command:
     - /workspace/$(inputs.resources.blueprint-repo.name)/kubeflow/hack/create_context.sh
     env:
@@ -49,12 +53,9 @@ spec:
       value: $(inputs.params.management-location) 
     - name: NAME
       value: $(inputs.params.management-cluster-name) 
-    - name: KUBECONFIG
-      value: /workspace/kubeconfig    
     - name: NAMESPACE
       value: $(inputs.params.project) 
   - name: deploy-gcp
-    image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
     command:
     - python
     - -m
@@ -65,9 +66,18 @@ spec:
     # The previous step should give the context for the management cluster the same name as the 
     # management cluster.
     - --management-context=$(inputs.params.management-cluster-name)
+    - --labels-file=/etc/podinfo/labels
     workingDir: /workspace/$(inputs.resources.blueprint-repo.name)/kubeflow
     env:
-    - name: KUBECONFIG
-      value: /workspace/kubeconfig
     - name: PYTHONPATH
-      value: /workspace/$(inputs.resources.testing-repo.name)/py
+      value: /workspace/$(inputs.resources.testing-repo.name)/py    
+    volumeMounts:
+      - name: podinfo
+        mountPath: /etc/podinfo
+  volumes:
+  - name: podinfo
+    downwardAPI:
+      items:
+        - path: "labels"
+          fieldRef:
+            fieldPath: metadata.labels
