@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Currently run in auto-deploy namespace to have appropriate credentials
+namespace: auto-deploy
+resources:
+- cleanup-ci-cronjob.yaml
+configMapGenerator:
+- name: cleanup-config
+  files:
+    # key will be name of the file
+    - ./cleanup-blueprints-pipeline.yaml
