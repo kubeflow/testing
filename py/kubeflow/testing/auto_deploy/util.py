@@ -27,6 +27,8 @@ class AutoDeployment:
     # The name of the GCP deployment
     self.deployment_name = deployment_name
     self.labels = labels
+
+    self.location = ""
     self.zone = ""
 
     if not self.labels:

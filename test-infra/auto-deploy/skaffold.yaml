@@ -1,73 +1,49 @@
-# Reference: https://skaffold.dev/docs/references/yaml/
-apiVersion: skaffold/v2alpha1
+apiVersion: skaffold/v2beta3
 kind: Config
 metadata:
   name: kf-apps-cd
 build:
   artifacts:
   - image: gcr.io/kubeflow-ci/auto_deploy
-    # Set the context to the root directory. 
-    # All paths in the Dockerfile should be relative to this one.
-    # 
-    # The context should be the root of the kubeflow/testing repo
     context: ../..
-    # Automatically sync python files to the container. This should avoid
-    # the need to rebuild and redeploy when the files change.
-    # TODO(https://github.com/GoogleContainerTools/skaffold/issues/3448): We use manual sync
-    # because inferred sync doesn't work
-    #
-    # This only works if we autorestart the program on changes.
-    #
-    # Important: Make sure you current context has the namespace
-    # set to the namespace where your pods are deployed otherwise
-    # the sync doesn't appear to work.
-    #
-    # TODO(jlewi): Sync mode doesn't appear to be working since we have multiple containers
-    #sync:
-       # manual:
-        # See https://skaffold.dev/docs/pipeline-stages/filesync/
-        # src is relative to context
-        # dest should be location inside the container where files should be placed
-        #- src: 'py/**/*.py'
-        #  dest: '/app/src/kubeflow/testing'
+    sync:
+      infer:
+        - "py/**"
+        - "test-infra/auto-deploy/templates/**"
     kaniko:
-      dockerfile: ./test-infra/auto-deploy/Dockerfile.skaffold
-      buildContext:
-        gcsBucket: kubeflow-releasing_skaffold
-      env: 
-        # TODO(GoogleContainerTools/skaffold#3468) skaffold doesn't
-        # appear to work with workload identity
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /secret/user-gcp-sa.json
+      dockerfile: ./test-infra/auto-deploy/Dockerfile
+      env:
+      - name: GOOGLE_APPLICATION_CREDENTIALS
+        value: /secret/user-gcp-sa.json
+        valuefrom: null
       cache: {}
-  cluster:    
+  cluster:
     pullSecretName: user-gcp-sa
     resources:
       requests:
-        cpu: 6
+        cpu: "6"
         memory: 16Gi
 profiles:
-  # Build on the kubeflow testingcluster
-  - name: kf-auto-deploy
-    activation:
-      - kubeContext: kf-auto-deploy
-    patches:
-      - op: replace
-        path: /build/artifacts/0/image
-        value: gcr.io/kubeflow-ci/auto_deploy
-      - op: replace
-        path: /build/artifacts/0/kaniko/buildContext/gcsBucket
-        value: kubeflow-ci_skaffold
-    build:      
-      cluster:
-        # Build in a namespace with ISTIO sidecar injection disabled
-        # see  GoogleContainerTools/skaffold#3442
-        namespace: auto-deploy-kaniko
-        pullSecretName: user-gcp-sa
-        resources:
-          requests:
-            cpu: 6
-            memory: 16Gi
-    deploy:
-      kustomize:
-        path: manifest
+- name: kf-auto-deploy
+  build:
+    cluster:
+      pullSecretName: user-gcp-sa
+      namespace: auto-deploy-kaniko
+      resources:
+        requests:
+          cpu: "6"
+          memory: 16Gi
+  deploy:
+    # TODO(jlewi): We should really use an overlay to set the debug flag.
+    kustomize:
+      paths:
+      - manifest
+  patches:
+  - op: replace
+    path: /build/artifacts/0/image
+    value: gcr.io/kubeflow-ci/auto_deploy
+  #- op: replace
+  #  path: /build/artifacts/0/kaniko/buildContext/gcsBucket
+  #  value: kubeflow-ci_skaffold
+  activation:
+  - kubeContext: kf-auto-deploy

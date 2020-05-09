@@ -40,7 +40,7 @@ RUN cd /tmp && \
     --bash-completion=false \
     --path-update=false \
     --usage-reporting=false && \
-    gcloud components install alpha beta
+    gcloud components install alpha beta kubectl
 
 COPY test-infra/auto-deploy/requirements.txt /tmp
 RUN python -m pip install \

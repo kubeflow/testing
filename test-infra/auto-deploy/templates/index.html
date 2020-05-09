@@ -1,9 +1,10 @@
 <html>
 <table>
 <TR>
-   <TD>Version</TD>
+   <TD>Group</TD>
    <TD>Deployment Name</TD>
    <TD>Age(HH:MM:SS)</TD>
+   <TD>PipelineRun</TD>
    <TD>Manifests Commit</TD>
    <TD>kfctl version</TD>
    <TD>gcloud command</TD>
@@ -13,6 +14,7 @@
    <TD>{{item["version"]}}</TD>
    <TD><a href="{{item['endpoint']}}">{{item["deployment_name"]}}</a></TD>
    <TD>{{item["age"]}}</TD>
+   <TD><a href="{{item['pipline_run_url']}}">{{item["pipeline_run"]}}</a></TD>
    <TD><a href="{{item['manifests_url']}}">{{item["manifests_git"]}}</a></TD>
    <TD>{{item["kfctl_git"]}}</TD>
    <TD>{{item["gcloud_command"]}}</TD>

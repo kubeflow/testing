@@ -35,6 +35,11 @@ spec:
     - description: The GitHub repo containing the blueprint
       name: blueprint-repo
       type: git
+  stepTemplate:
+    env:
+    - name: KUBECONFIG
+      value: /workspace/kubeconfig
+    image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
   steps:
   - command:
     - /workspace/$(inputs.resources.blueprint-repo.name)/kubeflow/hack/create_context.sh
@@ -45,11 +50,8 @@ spec:
       value: $(inputs.params.management-location)
     - name: NAME
       value: $(inputs.params.management-cluster-name)
-    - name: KUBECONFIG
-      value: /workspace/kubeconfig
     - name: NAMESPACE
       value: $(inputs.params.project)
-    image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
     name: get-credential
   - command:
     - python
@@ -59,11 +61,19 @@ spec:
     - --name=$(inputs.params.name)
     - --blueprint-dir=/workspace/$(inputs.resources.blueprint-repo.name)/kubeflow
     - --management-context=$(inputs.params.management-cluster-name)
+    - --labels-file=/etc/podinfo/labels
     env:
-    - name: KUBECONFIG
-      value: /workspace/kubeconfig
     - name: PYTHONPATH
       value: /workspace/$(inputs.resources.testing-repo.name)/py
-    image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
     name: deploy-gcp
+    volumeMounts:
+    - mountPath: /etc/podinfo
+      name: podinfo
     workingDir: /workspace/$(inputs.resources.blueprint-repo.name)/kubeflow
+  volumes:
+  - downwardAPI:
+      items:
+      - fieldRef:
+          fieldPath: metadata.labels
+        path: labels
+    name: podinfo

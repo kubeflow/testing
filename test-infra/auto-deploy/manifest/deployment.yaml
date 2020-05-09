@@ -13,6 +13,43 @@ spec:
       labels:
         app: auto-deploy
     spec:
+      initContainers:
+      - name: management-context
+        image: gcr.io/kubeflow-ci/auto_deploy
+        command:
+          - python
+          - -m 
+          - kubeflow.testing.create_context
+          - create
+          - --project=kubeflow-ci
+          - --cluster=kf-ci-management
+          - --location=us-central1
+          - --namespace=kubeflow-ci-management
+          - --name=kf-ci-deployment-management
+        env:
+        - name: KUBECONFIG
+          value: /cache/kubeconfig
+        volumeMounts:
+        - name: cache
+          mountPath: /cache
+      - name: tekton-context
+        image: gcr.io/kubeflow-ci/auto_deploy
+        command:
+          - python
+          - -m 
+          - kubeflow.testing.create_context
+          - create
+          - --project=kubeflow-ci
+          - --cluster=kf-ci-v1
+          - --location=us-east1-d
+          - --namespace=auto-deploy
+          - --name=kf-auto-deploy
+        env:
+        - name: KUBECONFIG
+          value: /cache/kubeconfig
+        volumeMounts:
+        - name: cache
+          mountPath: /cache
       containers:
       - name: server
         image: gcr.io/kubeflow-ci/auto_deploy
@@ -24,6 +61,11 @@ spec:
         - --template-folder=/app/templates
         - --deployments-dir=/cache/deployments
         - --port=80 
+        env:
+          # Set this to true if you want the container to auto-restart when files change
+          # e.g. when using skaffold for development.
+          - name: FLASK_DEBUG
+            value: "true"
         resources:
           requests:
             cpu: 2
@@ -50,6 +92,35 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace 
+        resources:
+          requests:
+            cpu: 2
+            memory: 8Gi
+        workingDir: /app
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+        - name: cache
+          mountPath: /cache
+      - name: blueprints-reconciler
+        image: gcr.io/kubeflow-ci/auto_deploy
+        command:
+        - python
+        - -m
+        - kubeflow.testing.auto_deploy.blueprint_reconciler
+        - run
+        - --pipelines-dir=/app/config/
+        - --local-dir=/cache/blueprints_auto_deploy_src
+        - --deployments-dir=/cache/deployments
+        - --management-context=kf-ci-deployment-management 
+        - --tekton-context=kf-auto-deploy
+        env:
+        - name: JOB_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace         
+        - name: KUBECONFIG
+          value: /cache/kubeconfig
         resources:
           requests:
             cpu: 2

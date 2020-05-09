@@ -4,3 +4,4 @@ kind: Kustomization
 namespace: auto-deploy
 resources:
 - ../../tasks
+- ../../pipelines

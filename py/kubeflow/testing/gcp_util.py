@@ -1,8 +1,28 @@
 import logging
+import re
 import retrying
 
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
+
+ZONE_PATTERN = re.compile("[^-]+-[^-]+-[^-]")
+
+ZONE_LOCATION = "zone"
+REGION_LOCATION = "region"
+
+def location_to_type(location):
+  """Returns what type of GCP location it is.
+
+  Args:
+    location: e.g. us-central1 or us-central1-f
+
+  Returns:
+    ZONE_LOCATION or REGION_LOCATION
+  """
+  if ZONE_PATTERN.match(location):
+    return ZONE_LOCATION
+
+  return REGION_LOCATION
 
 @retrying.retry(stop_max_delay=5*60*1000, wait_exponential_max=10000)
 def get_gcp_credentials():

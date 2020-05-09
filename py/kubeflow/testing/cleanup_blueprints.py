@@ -2,6 +2,14 @@
 
 Note: This is in a separate file from cleanup_ci because we wanted to start
 using Fire and python3.
+
+TODO(jlewi): The auto deployments reconciler (blueprint_reconciler) should have
+its own logic to GC auto-deployments. Should this script not GC
+auto-deployments? Should it focus on GC'ing test clusters that weren't
+torn down when the test ended? Should we also cleanup any left overs
+from blueprints? When I first wrote it it was only GC'ing auto-deployed
+blueprints because that was all we had. We will probably need to change that
+to support GC'ing left overs from tests that failed to do cleanup.
 """
 import collections
 import datetime
@@ -16,6 +24,7 @@ from kubernetes import client as k8s_client
 # The names of various labels used to encode information about the
 #
 # Which branch the blueprint was deployed from
+# TODO(jlewi): Where whould we define these so they are centrally located?
 BRANCH_LABEL = "blueprint-branch"
 NAME_LABEL = "kf-name"
 AUTO_DEPLOY_LABEL = "auto-deploy"

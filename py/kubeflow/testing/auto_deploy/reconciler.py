@@ -2,6 +2,10 @@
 
 The reconciler is responsible for launching K8s jobs to deploy
 Kubeflow as needed and garbage collecting old instances
+
+Thid is the legacy versions which:
+  1. Doesn't support blueprints (i.e. uses Deployment Manager)
+  2. Uses K8s jobs not Tekton PipelineRuns.
 """
 import collections
 import datetime
@@ -276,6 +280,11 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
         continue
 
       version_name = labels.get(auto_deploy_util.AUTO_NAME_LABEL, "unknown")
+
+      if not "manifest" in d:
+        logging.error(f"Skipping deployment {d['name']} it doesn't "
+                       "have a manifest")
+        continue
 
       dm_manifest_name = d["manifest"].split("/")[-1]
 
