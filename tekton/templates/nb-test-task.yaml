@@ -1,5 +1,7 @@
 # Running Jupyter notebook as tests.
 
+# TODO(jlewi): We need to reorganize the files and put this into templates/tasks and create a suitable
+# kustomize directory in installs to install it the appropriate namespace on the test cluster
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
@@ -40,6 +42,8 @@ spec:
       type: string
       description:
         Directory to write outputs to in local FS.
+    # TODO(jlewi): Lets not use targetPath. Instead lets rely on Tekton checking repos
+    # out to /workspace/$(resource.name)
     resources:
     - name: examples-repo
       type: git
@@ -85,6 +89,7 @@ spec:
     env:
     - name: PYTHONPATH
       value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+    # TODO(jlewi): Can we use Workload Identity?
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials/key.json
     volumeMounts:
