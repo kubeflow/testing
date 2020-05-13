@@ -48,7 +48,7 @@ def deployments_iterator(project):
   while True:
     deployments = deployments_client.list(project=project,
                                           pageToken=next_page_token,
-                                          maxResults=10).execute()
+                                          maxResults=100).execute()
 
     for d in deployments.get("deployments", []):
       yield d
@@ -57,3 +57,22 @@ def deployments_iterator(project):
       return
 
     next_page_token = deployments.get("nextPageToken")
+
+
+def url_maps_iterator(project):
+
+  credentials = GoogleCredentials.get_application_default()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  urlMaps = compute.urlMaps()
+
+  next_page_token = None
+  while True:
+    results = urlMaps.list(project=project,
+                           pageToken=next_page_token,
+                           maxResults=100).execute()
+    for u in results.get("items", []):
+      yield u
+
+    if not "nextPageToken" in results:
+      return
+    next_page_token = results["nextPageToken"]

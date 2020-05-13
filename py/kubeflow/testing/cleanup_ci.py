@@ -14,7 +14,7 @@ import time
 import yaml
 
 from kubeflow.testing import argo_client
-
+from kubeflow.testing import gcp_util
 from kubeflow.testing import util
 from kubernetes import client as k8s_client
 from googleapiclient import discovery
@@ -46,6 +46,9 @@ E2E_INFRA = "e2e"
 # In this case we can't determine whether its an E2E deployment or auto-deployed
 # resource. So we we just associae a long max age with this.
 E2E_OWNERLESS = "e2e-ownerless"
+
+DEFAULT_ZONES = ("us-east1-b,us-east1-c,us-east1-d,us-central1-a,"
+                 "us-central1-b,us-central1-c,us-central1-f")
 
 # Map the different classes of infra to max lifetimes.
 MAX_LIFETIME = {
@@ -325,11 +328,40 @@ def cleanup_firewall_rules(args):
   logging.info("Unexpired firewall rules:\n%s", "\n".join(unexpired))
   logging.info("expired firewall rules:\n%s", "\n".join(expired))
 
+def  _instance_groups_iterator(project, zones):
+  credentials = GoogleCredentials.get_application_default()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  instanceGroups = compute.instanceGroups()
+  next_page_token = None
+
+  for zone in zones.split(","): # pylint: disable=too-many-nested-blocks
+    while True:
+      results = instanceGroups.list(project=project,
+                                    zone=zone,
+                                    pageToken=next_page_token).execute()
+      for ig in results.get("items",[]):
+        yield ig
+
+
+      if not "nextPageToken" in results:
+        break
+
+      next_page_token = results["nextPageToken"]
+
+K8S_BACKEND_PATTERN = re.compile("k8s-ig--([\da-f]+)$")
+
 def cleanup_instance_groups(args):
   logging.info("Cleanup instance groups")
 
-  if not args.gc_backend_services:
-    return
+
+  url_maps = _get_k8s_url_maps(args.project)
+
+  url_map_uids = set()
+  for u in url_maps:
+    url_map_uids.add(u.uid)
+
+  logging.info("Found K8s URL maps with UIDs:\n%s", "\n".join(url_map_uids))
+
   credentials = GoogleCredentials.get_application_default()
   compute = discovery.build('compute', 'v1', credentials=credentials)
   instanceGroups = compute.instanceGroups()
@@ -338,47 +370,60 @@ def cleanup_instance_groups(args):
   unexpired = []
   in_use = []
 
-  for zone in args.zones.split(","): # pylint: disable=too-many-nested-blocks
-    while True:
-      results = instanceGroups.list(project=args.project,
-                                    zone=zone,
-                                    pageToken=next_page_token).execute()
-      if not "items" in results:
-        break
-      for s in results["items"]:
-        name = s["name"]
-        age = getAge(s["creationTimestamp"])
-        size = s["size"]
-        if size > 0:
-          logging.info("Skipping instance group %s because it is in use by %d "
-                       "instances.", name, size)
-          in_use.append(name)
-          continue
+  # TODO(jlewi): It looks like instance groups with name
+  # k8s-ig--$(UID) correspond to backends for ingress created resources.
+  # We should be able to GC those based on whether there is a URL map
+  # named k8s-um-${NAMESPACE}-${SERVICE}--${UID}
+  for s in _instance_groups_iterator(args.project, args.zones):
+    name = s["name"]
 
-        infra_type = name_to_infra_type(name)
-        logging.info("Instance group %s has been identified as %s", name, infra_type)
-        if not infra_type:
-          logging.info("Instance group %s cannot be identified", name)
-          continue
-        if age < MAX_LIFETIME[infra_type]:
-          logging.info("Instance group %s is not expired under policy for %s", name, infra_type)
-          unexpired.append(name)
-          continue
+    m = K8S_BACKEND_PATTERN.match(name)
 
-        if not args.dryrun:
-          try:
-            response = instanceGroups.delete(project=args.project,
-                                             zone=zone,
-                                            instanceGroup=name).execute()
-            logging.info("response = %r", response)
-            deleted.append(name)
-          except Exception as e: # pylint: disable=broad-except
-            logging.error(e)
-            in_use.append(name)
+    if m:
+      uid = m.groups(1)
 
-      if not "nextPageToken" in results:
-        break
-      next_page_token = results["nextPageToken"]
+      if uid in url_maps:
+        logging.info("Skipping instance group %s; it is used by a url map",
+                     name)
+        in_use.append(name)
+        continue
+      unexpired.append(name)
+      logging.info("Instance group %s will be deleted because it is not used by "
+                   "a url map", name)
+
+    else:
+      # TODO(jlewi): Do we still need this code path or is
+      # matching IGs to backend services sufficient? Do we have IGs
+      # orphaned when the cluster is deleted
+      age = getAge(s["creationTimestamp"])
+      size = s["size"]
+      if size > 0:
+        logging.info("Skipping instance group %s because it is in use by %d "
+                     "instances.", name, size)
+        in_use.append(name)
+        continue
+
+      infra_type = name_to_infra_type(name)
+      logging.info("Instance group %s has been identified as %s", name, infra_type)
+      if not infra_type:
+        logging.info("Instance group %s cannot be identified", name)
+        continue
+      if age < MAX_LIFETIME[infra_type]:
+        logging.info("Instance group %s is not expired under policy for %s", name, infra_type)
+        unexpired.append(name)
+        continue
+
+    zone = s.get("zone").rsplit("/", 1)[-1]
+    if not args.dryrun:
+      try:
+        response = instanceGroups.delete(project=args.project,
+                                         zone=zone,
+                                         instanceGroup=name).execute()
+        logging.info("response = %r", response)
+        deleted.append(name)
+      except Exception as e: # pylint: disable=broad-except
+        logging.error(e)
+        in_use.append(name)
 
   logging.info("Unexpired instance groups:\n%s", "\n".join(unexpired))
   logging.info("Deleted instance groups:\n%s", "\n".join(deleted))
@@ -562,48 +607,109 @@ def cleanup_forwarding_rules(args):
   logging.info("Deleted expired forwarding rules:\n%s", "\n".join(expired))
   logging.info("Expired but in-use forwarding rules:\n%s", "\n".join(in_use))
 
+
+K8S_URL_PATTERN = re.compile("k8s-um-(.+)--([\dabcdef]+)$")
+
+K8S_URL_MAP_NAME = collections.namedtuple("K8S_URL_MAP_NAME",
+                                          ("namespace_service", "uid"))
+
+def _parse_k8s(name):
+  m = K8S_URL_PATTERN.match(name)
+  if not m:
+    return None
+
+  return K8S_URL_MAP_NAME(m.group(1), m.group(2))
+
+def _get_k8s_url_maps(project):
+  # Look for URL maps k8s-um-${NAMESPACE}-${SERVICE}--${UID}
+
+  url_maps = []
+  for u in gcp_util.url_maps_iterator(project):
+    name = _parse_k8s(u["name"])
+    if not name:
+      continue
+
+    url_maps.append(name)
+
+  return url_maps
+
+def _backends_iterator(project):
+  credentials = GoogleCredentials.get_application_default()
+  compute = discovery.build('compute', 'v1', credentials=credentials)
+  backends = compute.backendServices()
+
+  next_page_token = None
+  while True:
+    results = backends.list(project=project,
+                            pageToken=next_page_token).execute()
+    for b in results.get("items", []):
+      yield b
+
+    if not "nextPageToken" in results:
+      return
+
+K8s_BACKEND_REGEX = re.compile("k8s-be-(\d+)--([\da-f]+$)")
+
+K8S_BACKEND_NAME = collections.namedtuple("K8S_BACKEND_NAME", ("port", "uid"))
+
+def _parse_backend_name(name):
+  m = K8s_BACKEND_REGEX.match(name)
+
+  if not m:
+    return None
+
+  return K8S_BACKEND_NAME(int(m.group(1)), m.group(2))
+
 def cleanup_backend_services(args):
-  if not args.gc_backend_services:
-    return
+  # Cleanup backend services associated with Kubernetes Ingresses that
+  # no longer exist. This happens if we delete the cluster before deleting
+  # the ingress.
+  #
+  # We start by looking for URL maps k8s-um-${NAMESPACE}-${SERVICE}--${UID}
+  # these are in USE K8s ingresses.
+  # We then look for all backend services named k8s-be-${PORT}--${UID}
+  # we then use the UID to match the backend to the URL map.
+  # if there is no such URL map we delete the backend.
+
+  url_maps = _get_k8s_url_maps(args.project)
+
+  url_map_uids = set()
+  for u in url_maps:
+    url_map_uids.add(u.uid)
+
+  logging.info("Found K8s URL maps with UIDs:\n%s", "\n".join(url_map_uids))
 
   credentials = GoogleCredentials.get_application_default()
   compute = discovery.build('compute', 'v1', credentials=credentials)
   backends = compute.backendServices()
-  next_page_token = None
+
   expired = []
   unexpired = []
-  in_use = []
+  for b in _backends_iterator(args.project):
+    name = b["name"]
+    pieces = _parse_backend_name(name)
 
-  while True:
-    results = backends.list(project=args.project,
-                            pageToken=next_page_token).execute()
-    if not "items" in results:
-      break
-    for s in results["items"]:
-      name = s["name"]
-      age = getAge(s["creationTimestamp"])
-      if age > MAX_LIFETIME[E2E_OWNERLESS]:
-        logging.info("Deleting backend services: %s, age = %r", name, age)
-        if not args.dryrun:
-          try:
-            # An error may be thrown if the backend service is used by a urlMap.
-            response = backends.delete(project=args.project,
-                                       backendService=name).execute()
-            logging.info("response = %r", response)
-            expired.append(name)
-          except Exception as e: # pylint: disable=broad-except
-            logging.error(e)
-            in_use.append(name)
+    if not pieces:
+      logging.info("Skipping backend %s; it didn't match pattern %s", name,
+                   K8s_BACKEND_REGEX.pattern)
+      continue
+
+    if pieces.uid in url_map_uids:
+      unexpired.append(name)
+    else:
+      expired.append(name)
+
+      if args.dryrun:
+        logging.info("Dryrun: Deleting backend services: %s, no matching "
+                     "URL map",  name)
       else:
-        unexpired.append(name)
+        logging.info("Deleting backend services: %s, no matching URL map",
+                     name)
+        response = backends.delete(project=args.project,
+                                   backendService=name).execute()
 
-    if not "nextPageToken" in results:
-      break
-    next_page_token = results["nextPageToken"]
-
-  logging.info("Unexpired backend services:\n%s", "\n".join(unexpired))
+  logging.info("In use backend services:\n%s", "\n".join(unexpired))
   logging.info("Deleted backend services:\n%s", "\n".join(expired))
-  logging.info("Expired but in-use backend services:\n%s", "\n".join(in_use))
 
 
 def cleanup_health_checks(args):
@@ -1292,7 +1398,7 @@ def add_deployments_args(parser):
     help=("The path to the delete_deployment.sh script which is in the "
           "Kubeflow repository."))
   parser.add_argument(
-    "--zones", default="us-east1-d,us-central1-a", type=str,
+    "--zones", default=DEFAULT_ZONES, type=str,
     help="Comma separated list of zones to check.")
 
 def main():
@@ -1421,10 +1527,16 @@ def main():
     "clusters", help="Cleanup clusters")
 
   parser_clusters.add_argument(
-    "--zones", default="us-east1-d,us-central1-a", type=str,
+    "--zones", default=DEFAULT_ZONES, type=str,
     help="Comma separated list of zones to check.")
 
   parser_clusters.set_defaults(func=cleanup_clusters)
+
+  ######################################################
+  # Parser for backend_Services
+  parser_backend = subparsers.add_parser(
+      "backend_services", help="Cleanup backend_services")
+  parser_backend.set_defaults(func=cleanup_backend_services)
 
   ######################################################
   # Parser for instance groups
