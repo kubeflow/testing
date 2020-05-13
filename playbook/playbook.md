@@ -27,7 +27,7 @@ This is a playbook for build cops to help deal with problems with the CI infrast
 1. To access to k8s resources make sure to get credentials and set the default namespace to `kubeflow-test-infra`:
 
 ```
-gcloud container clusters get-credentials kubeflow-testing --zone $ZONE --project kubelow-ci
+gcloud --project kubelow-ci container clusters get-credentials kubeflow-testing --zone $ZONE
 kubectl config set-context $(kubectl config current-context) --namespace=kubeflow-test-infra
 ```
 
