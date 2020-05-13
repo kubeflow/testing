@@ -11,7 +11,8 @@ from oauth2client.client import GoogleCredentials
 
 from kubeflow.testing import util
 
-@retrying.retry(stop_max_delay=10*60*1000)
+@retrying.retry(stop_max_delay=10*60*1000, wait_exponential_max=60*1000,
+                wait_exponential_multiplier=1000)
 def delete_deployment(dm, project, name):
   deployments_client = dm.deployments()
   try:
