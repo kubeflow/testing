@@ -282,13 +282,20 @@ class Reconciler: # pylint: disable=too-many-instance-attributes
       version_name = labels.get(auto_deploy_util.AUTO_NAME_LABEL, "unknown")
 
       if not "manifest" in d:
-        logging.error(f"Skipping deployment {d['name']} it doesn't "
-                       "have a manifest")
-        continue
+        # Since we don't know the manifest we can't get the zone.
+        # It looks like the manfiest might also be stored in the operation.
+        # However, it looks like the reason the manifest isn't there
+        # is because the deployment failed. So we can just set zone to the
+        # empty string. I think zone only matters for getting cluster
+        # credentials but since the deployment failed that shouldn't matter.
+        logging.error(f"Deployment {d['name']} doesn't "
+                       "have a manifest. This typically indicates the "
+                       "deployment failed")
+        zone = ""
+      else:
+        dm_manifest_name = d["manifest"].split("/")[-1]
 
-      dm_manifest_name = d["manifest"].split("/")[-1]
-
-      zone = self._get_deployment_zone(d["name"], dm_manifest_name)
+        zone = self._get_deployment_zone(d["name"], dm_manifest_name)
 
       context = {
         "deployment_name" : d['name'],
