@@ -886,7 +886,7 @@ class JobTimeoutError(TimeoutError):
     super(JobTimeoutError, self).__init__(message)
     self.job = job
 
-def set_pytest_junit(record_xml_attribute, test_name):
+def set_pytest_junit(record_xml_attribute, test_name, test_target_name=""):
   """Set various xml attributes in the junit produced by pytest.
 
   pytest supports setting various XML attributes in the junit file.
@@ -898,9 +898,11 @@ def set_pytest_junit(record_xml_attribute, test_name):
   The goal of this function is to set these attributes in a consistent fashion
   to allow easy grouping of tests that were run as part of the same workflow.
   """
-  # Look for an environment variable named test target name.
-  TARGET_ENV_NAME = "TEST_TARGET_NAME"
-  test_target_name = os.getenv(TARGET_ENV_NAME)
+  # Look for an environment variable named test target name if not given.
+  if not test_target_name:
+    TARGET_ENV_NAME = "TEST_TARGET_NAME"
+    test_target_name = os.getenv(TARGET_ENV_NAME)
+
   full_test_name = test_name
   if test_target_name:
     # Override the classname attribute in the junit file.

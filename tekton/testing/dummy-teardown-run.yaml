@@ -1,0 +1,57 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: dummy-teardown
+  namespace: tektoncd
+spec:
+  params:
+  - name: test-target-name
+    value: manual-testinig
+  - name: artifacts-gcs
+    value: gs://kubeflow-ci-deployment/gabrielwen-testing-2
+  - name: junit-path
+    value: artifacts/junit_manual-testing
+  - name: utter
+    value: baz
+  resources:
+  - name: testing-repo
+    resourceSpec:
+      type: git
+      params:
+      - name: url
+        value: https://github.com/kubeflow/testing.git
+      - name: revision
+        value: refs/pull/<pr-num>/head
+  pipelineSpec:
+    params:
+    - name: test-target-name
+      type: string
+      description:
+        Test targe name, used to group test results in JUNIT.
+      default: manual-testing
+    - name: artifacts-gcs
+      type: string
+      description:
+        GCS bucket and directory artifacts will be uploaded to.
+        Should be in the form of 'gs://'
+    - name: junit-path
+      type: string
+      description:
+        Relative path to the GCS artifacts will be uploaded to.
+        Base path is artifacts-gcs so the actual GCS blob will be
+        artifacts-gcs/junit-path
+    - name: utter
+      type: string
+      description:
+        Dummy utter for teardown.
+    tasks:
+    - name: teardown
+      taskRef:
+        name: dummy-teardown
+      params:
+      - name: test-target-name
+        value: $(params.test-target-name)
+      - name: artifacts-gcs
+        value: $(params.artifacts-gcs)
+      - name: utter
+        value: $(params.utter)

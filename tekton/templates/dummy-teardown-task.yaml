@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: dummy-teardown
+  namespace: tektoncd
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  inputs:
+    params:
+    - name: artifacts-gcs
+      type: string
+      description:
+        GCS bucket and directory artifacts will be uploaded to.
+        Should be in the form of 'gs://'
+    - name: test-target-name
+      type: string
+      description:
+        Test targe name, used to group test results in JUNIT.
+      default: manual-testing
+    - name: utter
+      type: string
+      description:
+        Utter for the dummy teardown.
+  steps:
+  - name: run-dummy-echo
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    command:
+    - echo
+    - $(inputs.params.utter)
