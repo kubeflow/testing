@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: issue-label-bot-dev
-  annotations:
+  #annotations:
     # TODO(jlewi): We should add a cluster selector to only select
     # the KF ci managmenet cluster.
     #configmanagement.gke.io/cluster-selector: kf-ci-tekt
