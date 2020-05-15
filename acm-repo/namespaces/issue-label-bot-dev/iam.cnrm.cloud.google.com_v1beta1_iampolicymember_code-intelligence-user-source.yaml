@@ -1,0 +1,14 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  labels:
+    kf-name: code-intelligence
+  name: code-intelligence-user-source
+  namespace: issue-label-bot-dev
+spec:
+  member: serviceAccount:code-intelligence-user@issue-label-bot-dev.iam.gserviceaccount.com
+  resourceRef:
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    external: projects/issue-label-bot-dev
+    kind: Project
+  role: roles/source.admin

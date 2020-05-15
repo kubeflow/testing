@@ -1,0 +1,13 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeAddress
+metadata:
+  labels:
+    kf-name: code-intelligence
+    label-one: value-one
+  name: code-intelligence-ip
+  namespace: issue-label-bot-dev
+spec:
+  addressType: EXTERNAL
+  description: Static IP for Kubeflow ingress.
+  ipVersion: IPV4
+  location: global
