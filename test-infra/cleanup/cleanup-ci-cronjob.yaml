@@ -52,5 +52,3 @@ spec:
   schedule: 0 */2 * * *  
   successfulJobsHistoryLimit: 3
   suspend: false
-status:
-  lastScheduleTime: "2020-05-07T14:00:00Z"
