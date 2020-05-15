@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tekton-pipelines
+  annotations:
+    # Auto-deploy namespace should only be created in CI clusters
+    # running tekton.
+    configmanagement.gke.io/cluster-selector: kf-ci-tekton
