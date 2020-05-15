@@ -139,6 +139,12 @@ def test_trim_unused_bindings():
   actual_bindings = set(policy["bindings"][0]["members"])
   assert actual_bindings == expected
 
+def test_parse_k8s_url_map():
+  expected = cleanup_ci.K8S_URL_MAP_NAME("istio-system-envoy-ingress",
+                                         "848f8392b2ce1c27")
+  assert cleanup_ci._parse_k8s(
+    "k8s-um-istio-system-envoy-ingress--848f8392b2ce1c27") == expected
+
 if __name__ == "__main__":
   logging.basicConfig(
       level=logging.INFO,
