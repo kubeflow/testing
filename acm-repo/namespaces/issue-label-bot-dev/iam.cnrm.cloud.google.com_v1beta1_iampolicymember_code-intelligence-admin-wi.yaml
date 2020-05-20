@@ -1,0 +1,14 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  labels:
+    kf-name: code-intelligence
+  name: code-intelligence-admin-wi
+  namespace: issue-label-bot-dev
+spec:
+  member: serviceAccount:issue-label-bot-dev.svc.id.goog[kubeflow/kf-admin]
+  resourceRef:
+    apiVersion: iam.cnrm.cloud.google.com/v1beta1
+    kind: IAMServiceAccount
+    name: code-intelligence-admin
+  role: roles/iam.workloadIdentityUser

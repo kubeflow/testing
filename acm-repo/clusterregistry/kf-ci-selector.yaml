@@ -1,0 +1,10 @@
+# A cluster selector for our v1 ci clusters.
+# These are clusters running CI infrasture with tekton installed.
+kind: ClusterSelector
+apiVersion: configmanagement.gke.io/v1
+metadata:
+  name: kf-ci-tekton
+spec:
+  selector:
+    matchLabels:
+      environment: kf-ci-tekton
