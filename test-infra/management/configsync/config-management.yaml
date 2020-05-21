@@ -12,7 +12,7 @@ spec:
     syncRepo: "https://github.com/jlewi/testing.git" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"source_repo","value":"https://github.com/jlewi/community-infra.git"}]}}    
     syncBranch: acm
     secretType: none
-    policyDir: "/acm-repo" # {"$ref":"#/definitions/io.k8s.cli.setters.sync-repo-dir"}  
+    policyDir: "/acm-repos/kf-ci-management" # {"$ref":"#/definitions/io.k8s.cli.setters.sync-repo-dir"}  
   # Set to true to install and enable Config Connector
   # We currently don't use ACM to install config connector because
   # 1. ACM 1.3 was installing a version of KCC which is too old
