@@ -156,3 +156,29 @@ default:
     name: sprint/2018-06-25-to-07-06
   - color: 8cd2b4
     name: sprint/2018-07-09-to-07-20
+  - color: 5319e7
+    name: area/kfserving
+  - color: 84b6eb
+    name: area/kfserving/kfserver
+  - color: 84b6eb
+    name: area/kfserving/triton
+  - color: 84b6eb
+    name: area/kfserving/onnx
+  - color: cc317c
+    name: area/kfserving/explanation
+  - color: cc317c
+    name: area/kfserving/transformer
+  - color: cc317c
+    name: area/kfserving/storage
+  - color: cc317c
+    name: area/kfserving/logger
+  - color: cc317c
+    name: area/kfserving/data-plane
+  - color: e99695
+    name: area/kfserving/performance
+  - color: cc317c
+    name: area/kfserving/sdk
+  - color: cc317c
+    name: area/kfserving/crd
+  - color: d4c5f9
+    name: area/kfserving/doc
