@@ -1,0 +1,29 @@
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerNodePool
+metadata:
+  clusterName: issue-label-bot-dev/us-central1/code-intelligence
+  labels:
+    kf-name: code-intelligence
+  name: code-intelligence-cpu-pool-v1
+  namespace: issue-label-bot-dev
+spec:
+  autoscaling:
+    maxNodeCount: 8
+    minNodeCount: 2
+  clusterRef:
+    name: code-intelligence
+  initialNodeCount: 2
+  location: us-central1
+  nodeConfig:
+    machineType: n1-standard-8
+    metadata:
+      disable-legacy-endpoints: "true"
+    minCpuPlatform: Intel Broadwell
+    oauthScopes:
+    - https://www.googleapis.com/auth/logging.write
+    - https://www.googleapis.com/auth/monitoring
+    - https://www.googleapis.com/auth/devstorage.read_only
+    serviceAccountRef:
+      name: code-intelligence-vm@issue-label-bot-dev.iam.gserviceaccount.com
+    workloadMetadataConfig:
+      nodeMetadata: GKE_METADATA_SERVER

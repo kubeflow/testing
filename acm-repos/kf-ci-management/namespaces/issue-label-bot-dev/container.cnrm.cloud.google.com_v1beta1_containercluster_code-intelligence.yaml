@@ -8,6 +8,22 @@ metadata:
   name: code-intelligence
   namespace: issue-label-bot-dev
 spec:
+  clusterAutoscaling:
+    autoProvisioningDefaults:
+      oauthScopes:
+      - https://www.googleapis.com/auth/logging.write
+      - https://www.googleapis.com/auth/monitoring
+      - https://www.googleapis.com/auth/devstorage.read_only
+      serviceAccountRef:
+        name: code-intelligence-vm
+    enabled: true
+    resourceLimits:
+    - maximum: 128
+      resourceType: cpu
+    - maximum: 2000
+      resourceType: memory
+    - maximum: 16
+      resourceType: nvidia-tesla-k80
   initialNodeCount: 2
   location: us-central1
   loggingService: logging.googleapis.com/kubernetes
@@ -17,6 +33,10 @@ spec:
     machineType: n1-standard-8
     metadata:
       disable-legacy-endpoints: "true"
+    oauthScopes:
+    - https://www.googleapis.com/auth/logging.write
+    - https://www.googleapis.com/auth/monitoring
+    - https://www.googleapis.com/auth/devstorage.read_only
     serviceAccountRef:
       name: code-intelligence-vm
     workloadMetadataConfig:
