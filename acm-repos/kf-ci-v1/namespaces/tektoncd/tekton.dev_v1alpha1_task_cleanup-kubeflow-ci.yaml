@@ -1,0 +1,67 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  annotations:
+    configmanagement.gke.io/cluster-selector: kf-ci-tekton
+    sidecar.istio.io/inject: "false"
+  name: cleanup-kubeflow-ci
+  namespace: tektoncd
+spec:
+  inputs:
+    params:
+    - default: kf-vbp-{uid}
+      description: The name for the Kubeflow deployment
+      name: name
+      type: string
+    - default: kubeflow-ci-deployment
+      description: The project to clean up.
+      name: project
+      type: string
+    - default: kf-ci-management
+      description: The name of the management cluster.
+      name: management-cluster-name
+      type: string
+    - default: kubeflow-ci
+      description: The project containing the management cluster
+      name: management-project
+      type: string
+    - default: us-central1
+      description: The location of the management cluster
+      name: management-location
+      type: string
+    resources:
+    - description: The GitHub repo containing kubeflow testing scripts
+      name: testing-repo
+      type: git
+  steps:
+  - command:
+    - python
+    - -m
+    - kubeflow.testing.create_context
+    - create
+    - --name=$(inputs.params.management-project)
+    - --project=$(inputs.params.management-project)
+    - --location=$(inputs.params.management-location)
+    - --cluster=$(inputs.params.management-cluster-name)
+    - --namespace=$(inputs.params.project)
+    env:
+    - name: KUBECONFIG
+      value: /workspace/kubeconfig
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.testing-repo.name)/py
+    image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+    name: create-context
+  - command:
+    - python
+    - -m
+    - kubeflow.testing.cleanup_blueprints
+    - auto-blueprints
+    - --project=$(inputs.params.project)
+    - --context=$(inputs.params.management-project)
+    env:
+    - name: KUBECONFIG
+      value: /workspace/kubeconfig
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.testing-repo.name)/py
+    image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+    name: cleanup-ci

@@ -1,0 +1,122 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  annotations:
+    configmanagement.gke.io/cluster-selector: kf-ci-tekton
+    sidecar.istio.io/inject: "false"
+  name: notebook-test
+  namespace: auto-deploy
+spec:
+  inputs:
+    params:
+    - description: Testing notebook location. Should be in the form of {REPO_OWNER}/{REPO}/path/to/notebook.ipynb
+      name: notebook-path
+      type: string
+    - default: kf-master-(?!n\d\d)
+      description: Cluster pattern to run the notebook test. Default to be from master
+        branch.
+      name: testing-cluster-pattern
+      type: string
+    - description: Test target name from Prow ENV. Should be provided at runtime.
+      name: test-target-name
+      type: string
+    - description: Testing repo owner from Prow ENV.
+      name: repo-owner
+      type: string
+    - description: Prow job ID from Prow ENV.
+      name: prow-job-id
+      type: string
+    - description: Job type from Prow ENV.
+      name: job-type
+      type: string
+    - description: Job name from Prow ENV.
+      name: job-name
+      type: string
+    - description: Testing repo name from Prow ENV.
+      name: repo-name
+      type: string
+    - description: Pull number from Prow ENV.
+      name: pull-number
+      type: string
+    - description: BUILD_ID from Prow ENV.
+      name: build-id
+      type: string
+    resources:
+    - name: examples-repo
+      targetPath: src/kubeflow/examples
+      type: git
+    - name: kf-testing-repo
+      targetPath: src/kubeflow/testing
+      type: git
+  steps:
+  - args:
+    - -m
+    - kubeflow.testing.get_kf_testing_cluster
+    - --base=$(inputs.params.testing-cluster-pattern)
+    - get-credentials
+    command:
+    - python3
+    env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+    - name: TEST_TARGET_NAME
+      value: $(inputs.params.test-target-name)
+    - name: REPO_OWNER
+      value: $(inputs.params.repo-owner)
+    - name: PROW_JOB_ID
+      value: $(inputs.params.prow-job-id)
+    - name: JOB_TYPE
+      value: $(inputs.params.job-type)
+    - name: JOB_NAME
+      value: $(inputs.params.job-name)
+    - name: REPO_NAME
+      value: $(inputs.params.repo-name)
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/gcp-credentials/key.json
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    name: get-credential
+    volumeMounts:
+    - mountPath: /secret/gcp-credentials
+      name: gcp-credentials
+      readOnly: true
+  - args:
+    - run_notebook_test.py
+    - --log-cli-level=info
+    - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
+    - --timeout=1800
+    - --junitxml=/workspace/outputs/junit_xgboost-synthetic-test.xml
+    - --notebook_path=$(inputs.params.notebook-path)
+    command:
+    - pytest
+    env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+    - name: TEST_TARGET_NAME
+      value: $(inputs.params.test-target-name)
+    - name: REPO_OWNER
+      value: $(inputs.params.repo-owner)
+    - name: PROW_JOB_ID
+      value: $(inputs.params.prow-job-id)
+    - name: JOB_TYPE
+      value: $(inputs.params.job-type)
+    - name: JOB_NAME
+      value: $(inputs.params.job-name)
+    - name: REPO_NAME
+      value: $(inputs.params.repo-name)
+    - name: PULL_NUMBER
+      value: $(inputs.params.pull-number)
+    - name: BUILD_ID
+      value: $(inputs.params.build-id)
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/gcp-credentials/key.json
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    name: run-notebook
+    volumeMounts:
+    - mountPath: /secret/gcp-credentials
+      name: gcp-credentials
+      readOnly: true
+    workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
+  volumes:
+  - name: gcp-credentials
+    secret:
+      secretName: gcp-credentials

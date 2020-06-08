@@ -1,0 +1,11 @@
+# Configure the tekton tasks for the auto-deploy namespace
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  # TODO(jlewi): Do we really need to add this annotation to every resource?
+  # Or is it sufficient to add it to the namespace?
+  configmanagement.gke.io/cluster-selector: kf-ci-tekton
+namespace: tektoncd
+resources:
+- ../../tasks
+- ../../pipelines
