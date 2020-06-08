@@ -1,0 +1,23 @@
+apiVersion: configmanagement.gke.io/v1
+kind: ConfigManagement
+metadata:
+  name: config-management
+  annotations:
+    gke.io/cluster: "gke://kubeflow-ci/us-central1/kf-ci-management" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"gcloud.core.project","value":"kubeflow-ci"},{"name":"name","value":"kf-ci-management"},{"name":"location","value":"us-central1"}]}}
+spec:
+  clusterName: "gke://kubeflow-ci/us-central1/kf-ci-management" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"gcloud.core.project","value":"kubeflow-ci"},{"name":"name","value":"kf-ci-management"},{"name":"location","value":"us-central1"}]}}
+  git:
+    # TODO(https://github.com/kubeflow/testing/pull/676): We should change this to branch master on kubeflow/testing
+    # once #676 is merged
+    # syncRepo: "https://github.com/kubeflow/testing.git" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"source_repo","value":"https://github.com/jlewi/community-infra.git"}]}}
+    syncRepo: "https://github.com/jlewi/testing.git" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"source_repo","value":"https://github.com/jlewi/community-infra.git"}]}}    
+    syncBranch: gcp_blueprints
+    secretType: none
+    policyDir: "/acm-repos/kf-ci-v1" # {"$ref":"#/definitions/io.k8s.cli.setters.sync-repo-dir"}  
+  # Set to true to install and enable Config Connector
+  # We currently don't use ACM to install config connector because
+  # 1. ACM 1.3 was installing a version of KCC which is too old
+  # 2. We already have KCC installed on the management cluster.
+  configConnector:
+    enabled: false
+  sourceFormat: hierarchy
