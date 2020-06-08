@@ -1,8 +1,6 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  annotations:
-    configmanagement.gke.io/cluster-selector: kf-ci-tekton
   name: deploy-gcp-blueprint
   namespace: auto-deploy
 spec:
