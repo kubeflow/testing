@@ -173,13 +173,16 @@ class BlueprintRunner:
       # Once this is fixed we should be able to remove this.
       re.compile(".*no matches for kind \"Application\" in version "
                  "\"app.k8s.io/v1beta1\""),
+      # TODO(https://github.com/kubeflow/gcp-blueprints/issues/43):
+      # Remmove this once the underlying issue is fixed.
+      re.compile(".*webhook\.cert-manager\.io.*"),
     ]
 
     # The total time to wait needs to take into account the actual time
     # it takes to run otherwise we won't retry.
     total_time = datetime.timedelta(minutes=30)
 
-    def is_retryable_esception(exception):
+    def is_retryable_exception(exception):
       """Return True if we should retry False otherwise"""
 
       if not isinstance(exception, subprocess.CalledProcessError):
@@ -194,7 +197,7 @@ class BlueprintRunner:
       return False
 
     @retrying.retry(stop_max_delay=total_time.total_seconds() * 1000,
-                    retry_on_exception=is_retryable_esception)
+                    retry_on_exception=is_retryable_exception)
     def run_apply():
       util.run(["make", "apply"], cwd=blueprint_dir, env=env)
 
