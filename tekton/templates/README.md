@@ -4,6 +4,15 @@ This directory contains a catalog of Tekton tasks related to Kubeflow.
 
 Some of these tasks are for Kubeflow CI/CD.
 
+To hydrate the manifests
+
+```
+make hydrate
+```
+
+This dumps hydrated manifests into `acm-repos/${CLUSTER}`.
+
+We currently have multiple ACM repos that are sync'd to different clusters using ACM.
 
 TODO(jlewi):
  
