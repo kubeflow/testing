@@ -2,7 +2,6 @@ apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   annotations:
-    configmanagement.gke.io/cluster-selector: kf-ci-tekton
     sidecar.istio.io/inject: "false"
   name: cleanup-kubeflow-ci
   namespace: tektoncd
