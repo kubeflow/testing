@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: deploy-gcp-blueprint
+  namespace: auto-deploy
+spec:
+  params:
+  - default: kf-vbp-{uid}
+    description: The name for the Kubeflow deployment
+    name: name
+    type: string
+  - default: kf-ci-management
+    description: The name of the management cluster.
+    name: management-cluster-name
+    type: string
+  - default: kubeflow-ci-deployment
+    description: The project to deploy into
+    name: project
+    type: string
+  resources:
+  - name: testing-repo
+    type: git
+  - name: blueprint-repo
+    type: git
+  tasks:
+  - name: deploy-gcp
+    params:
+    - name: name
+      value: $(params.name)
+    - name: project
+      value: $(params.project)
+    - name: management-cluster-name
+      value: $(params.management-cluster-name)
+    resources:
+      inputs:
+      - name: blueprint-repo
+        resource: blueprint-repo
+      - name: testing-repo
+        resource: testing-repo
+    taskRef:
+      kind: namespaced
+      name: deploy-gcp-blueprint

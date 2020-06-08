@@ -1,0 +1,10 @@
+# This namespace is used to administer the issue-label-bot-dev project
+# It should only exist on the kf-ci-management cluster
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: auto-deploy
+  #annotations:
+    # TODO(jlewi): We should add a cluster selector to only select
+    # the KF ci managmenet cluster.
+    #configmanagement.gke.io/cluster-selector: kf-ci-tekt

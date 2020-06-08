@@ -1,0 +1,59 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: notebook-test
+  namespace: tektoncd
+spec:
+  params:
+  - default: manual-testing
+    description: Test targe name, used to group test results in JUNIT.
+    name: test-target-name
+    type: string
+  - description: GCS bucket and directory artifacts will be uploaded to. Should be
+      in the form of 'gs://'
+    name: artifacts-gcs
+    type: string
+  - description: Relative path to the GCS artifacts will be uploaded to. Base path
+      is artifacts-gcs so the actual GCS blob will be artifacts-gcs/junit-path
+    name: junit-path
+    type: string
+  - description: Cluster pattern to run the notebook test. Default to be from master
+      branch.
+    name: testing-cluster-pattern
+    type: string
+  - description: Location to search for test clusters.
+    name: testing-cluster-location
+    type: string
+  - description: Directory to write outputs to in local FS.
+    name: output-workspace
+    type: string
+  resources:
+  - name: examples-repo
+    type: git
+  - name: testing-repo
+    type: git
+  tasks:
+  - name: mnist-gcp
+    params:
+    - name: notebook-path
+      value: kubeflow/examples/mnist/mnist_gcp.ipynb
+    - name: junit-path
+      value: $(params.output-workspace)/$(params.junit-path)/junit_mnist-gcp.xml
+    - name: test-target-name
+      value: $(params.test-target-name)
+    - name: output-workspace
+      value: $(params.output-workspace)
+    - name: artifacts-gcs
+      value: $(params.artifacts-gcs)
+    - name: testing-cluster-pattern
+      value: $(params.testing-cluster-pattern)
+    - name: testing-cluster-location
+      value: $(params.testing-cluster-location)
+    resources:
+      inputs:
+      - name: examples-repo
+        resource: examples-repo
+      - name: kf-testing-repo
+        resource: testing-repo
+    taskRef:
+      name: nb-tests
