@@ -3,7 +3,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
-  name: nb-test-run
+  generateName: mnist
   namespace: tektoncd
 spec:
   params:
