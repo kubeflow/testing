@@ -1,9 +1,11 @@
-# TODO(gabrielwen): Define subsequent steps to collect artifacts.
-# TODO(gabrielwen): Move prow ENVs to configmaps.
+# Running Jupyter notebook as tests.
+
+# TODO(jlewi): We need to reorganize the files and put this into templates/tasks and create a suitable
+# kustomize directory in installs to install it the appropriate namespace on the test cluster
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: notebook-test
+  name: nb-tests
   namespace: tektoncd
   annotations:
     sidecar.istio.io/inject: "false"
@@ -20,40 +22,28 @@ spec:
       description:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
-      default: 'kf-master-(?!n\d\d)'
-    # params below are for prow jobs.
+    - name: artifacts-gcs
+      type: string
+      description:
+        GCS bucket and directory artifacts will be uploaded to.
+        Should be in the form of 'gs://'
+    - name: junit-path
+      type: string
+      description:
+        Relative path to the GCS artifacts will be uploaded to.
+        Base path is artifacts-gcs so the actual GCS blob will be
+        artifacts-gcs/junit-path
     - name: test-target-name
       type: string
       description:
-        Test target name from Prow ENV. Should be provided at runtime.
-    - name: repo-owner
+        Test targe name, used to group test results in JUNIT.
+      default: manual-testing
+    - name: output-workspace
       type: string
       description:
-        Testing repo owner from Prow ENV.
-    - name: prow-job-id
-      type: string
-      description:
-        Prow job ID from Prow ENV.
-    - name: job-type
-      type: string
-      description:
-        Job type from Prow ENV.
-    - name: job-name
-      type: string
-      description:
-        Job name from Prow ENV.
-    - name: repo-name
-      type: string
-      description:
-        Testing repo name from Prow ENV.
-    - name: pull-number
-      type: string
-      description:
-        Pull number from Prow ENV.
-    - name: build-id
-      type: string
-      description:
-        BUILD_ID from Prow ENV.
+        Directory to write outputs to in local FS.
+    # TODO(jlewi): Lets not use targetPath. Instead lets rely on Tekton checking repos
+    # out to /workspace/$(resource.name)
     resources:
     - name: examples-repo
       type: git
@@ -74,18 +64,6 @@ spec:
     env:
     - name: PYTHONPATH
       value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
-    - name: TEST_TARGET_NAME
-      value: $(inputs.params.test-target-name)
-    - name: REPO_OWNER
-      value: $(inputs.params.repo-owner)
-    - name: PROW_JOB_ID
-      value: $(inputs.params.prow-job-id)
-    - name: JOB_TYPE
-      value: $(inputs.params.job-type)
-    - name: JOB_NAME
-      value: $(inputs.params.job-name)
-    - name: REPO_NAME
-      value: $(inputs.params.repo-name)
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials/key.json
     volumeMounts:
@@ -94,35 +72,45 @@ spec:
       mountPath: /secret/gcp-credentials
   - name: run-notebook
     image: gcr.io/kubeflow-ci/test-worker:latest
-    command:
-    - pytest
-    args:
-    - run_notebook_test.py
-    - --log-cli-level=info
-    - --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'
-    - --timeout=1800
-    - --junitxml=/workspace/outputs/junit_xgboost-synthetic-test.xml
-    - --notebook_path=$(inputs.params.notebook-path)
+    # Need to use script as workaround not to error out in tests.
+    # If any of the steps returns non-zero codes, subsequent steps will not be run.
+    script: |
+        #!/usr/bin/env bash
+        pytest run_notebook_test.py \
+          --log-cli-level=info \
+          --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
+          --timeout=1800 \
+          --junitxml=$(inputs.params.junit-path) \
+          --notebook_path=$(inputs.params.notebook-path) \
+          --test-target-name=$(inputs.params.test-target-name) \
+          --artifacts-gcs=$(inputs.params.artifacts-gcs) \
+        || echo test finished.
     workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
     env:
     - name: PYTHONPATH
       value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
-    - name: TEST_TARGET_NAME
-      value: $(inputs.params.test-target-name)
-    - name: REPO_OWNER
-      value: $(inputs.params.repo-owner)
-    - name: PROW_JOB_ID
-      value: $(inputs.params.prow-job-id)
-    - name: JOB_TYPE
-      value: $(inputs.params.job-type)
-    - name: JOB_NAME
-      value: $(inputs.params.job-name)
-    - name: REPO_NAME
-      value: $(inputs.params.repo-name)
-    - name: PULL_NUMBER
-      value: $(inputs.params.pull-number)
-    - name: BUILD_ID
-      value: $(inputs.params.build-id)
+    # TODO(jlewi): Can we use Workload Identity?
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/gcp-credentials/key.json
+    volumeMounts:
+    - name: gcp-credentials
+      readOnly: true
+      mountPath: /secret/gcp-credentials
+  # This step is designed to be generic: given the output directory, it will try to
+  # parse all the XML files with prefix of junit and error out if failures been found.
+  - name: copy-artifacts
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    command:
+    - python
+    args:
+    - -m
+    - kubeflow.testing.tekton_client
+    - junit_parse_and_upload
+    - --artifacts_dir=$(inputs.params.output-workspace)
+    - --output_gcs=$(inputs.params.artifacts-gcs)
+    env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials/key.json
     volumeMounts:
