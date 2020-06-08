@@ -59,6 +59,7 @@ applications:
       value: "jupyter/jupyter-web-app/base"
     - name: "src_image_url"
       value: "gcr.io/kubeflow-images-public/jupyter-web-app"
+    sourceRepo: kubeflow
   - name: notebook-webapp-v3
     params:
     - name: "path_to_context"
