@@ -3,8 +3,10 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
-  generateName: mnist
+  generateName: mnist-
   namespace: tektoncd
+  labels:
+    pipeline: mnist-notebook
 spec:
   params:
   # test-target-name, artifacts-gcs, and junit-path are required for
@@ -17,7 +19,7 @@ spec:
   - name: junit-path
     value: artifacts/junit_manual-testing
   - name: testing-cluster-pattern
-    value: 'kf-master-(?!n\d\d)'
+    value: 'kf-vbp-.*'
   - name: output-workspace
     value: /workspace/outputs
   resources:
@@ -38,7 +40,7 @@ spec:
       - name: url
         value: https://github.com/kubeflow/testing.git
       - name: revision
-        value: refs/pull/<pr-num>/head
+        value: master
   pipelineSpec:
     params:
     - name: test-target-name

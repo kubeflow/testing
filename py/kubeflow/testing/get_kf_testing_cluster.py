@@ -131,6 +131,26 @@ def list_deployments(project, name_pattern, testing_label, http=None,
                 reverse=desc_ordered)
 
 
+ZONE_PATTERN = re.compile("([^-]+)-([^-]+)-([^-]+)")
+
+def _iter_cluster(project, location):
+  """Iterate over all clusters in the given location"""
+  credentials = GoogleCredentials.get_application_default()
+
+  next_page_token = None
+
+  gke = discovery.build("container", "v1", credentials=credentials)
+
+  clusters_client = gke.projects().locations().clusters()
+
+  parent = "projects/{0}/locations/{1}".format(project, location)
+  # N.b list doesn't appear to take pagination tokens so hopefully
+  # it is handled automatically
+  clusters = clusters_client.list(parent=parent).execute()
+
+  for c in clusters.get("clusters", []):
+    yield c
+
 def get_deployment(project, name_prefix, testing_label, http=None, desc_ordered=True,
                    field="endpoint"):
   """Retrieve either the latest or the oldest deployed testing cluster.
@@ -192,25 +212,94 @@ def get_latest(project="kubeflow-ci-deployment", testing_label=None,
   """
   return get_deployment(project, base_name, testing_label, http=http, field=field)
 
+def _get_latest_cluster(project, location, pattern,
+                        min_age=datetime.timedelta(minutes=30)):
+  """Get the latest cluster matching pattern.
+
+  Args:
+   project: The project to search
+   location: The location to search (zone or region)
+   pattern: The regex to match.
+   min_age: Minimum age for a deployment to be eligible for inclusion.
+      This is a bit of a hack to ensure a Kubeflow deployment is fully
+      deployed before we start running samples on it.
+  """
+
+  name_re = re.compile(pattern)
+
+  clusters = []
+  for c in _iter_cluster(project, location):
+    if not name_re.match(c["name"]):
+      continue
+
+    full_insert_time = c.get("createTime")
+
+    if not full_insert_time:
+      logging.info("Skipping deployment %s; insertion time is unknown",
+                   full_insert_time)
+      continue
+    create_time = date_parser.parse(full_insert_time)
+    now = datetime.datetime.now(create_time.tzinfo)
+
+    age = now - create_time
+
+    if age < min_age:
+      logging.info("Skipping cluster %s with age %s; it is too new",
+                   c["name"], age)
+      continue
+
+    clusters.append(c)
+
+  if not clusters:
+    return None
+
+  clusters = sorted(clusters,
+                    key=lambda entry: date_parser.parse(entry["createTime"]))
+
+  # most recent cluster will be last
+  return clusters[-1]
+
 def get_latest_credential(project="kubeflow-ci-deployment",
                           base_name=DEFAULT_PATTERN,
+                          location=None,
                           testing_label=None):
   """Convenient function to get the latest deployment information and use it to get
   credentials from GCP.
 
   Args:
     project: string, Name of deployed GCP project. Optional.
+    location: zone or region to search for clusters.
     testing_label: string, annotation used to identify testing clusters. Optional.
   """
   util.maybe_activate_service_account()
-  dm = get_latest(project=project, testing_label=testing_label,
-                  base_name=base_name, field="all")
+
+  command = ["gcloud", "container", "clusters", "get-credentials",
+              "--project="+project]
+  if location:
+    c = _get_latest_cluster(project, location, base_name)
+
+    if not c:
+      message = ("No clusters found matching: project: {0}, location: {1}, "
+                 "pattern: {2}").format(project, location, base_name)
+      raise ValueError(message)
+
+    if ZONE_PATTERN.match(location):
+      command.append("--zone=" + location)
+    else:
+      command.append("--region=" + location)
+    command.append(c["name"])
+  else :
+    # This is the pre blueprint which is using deployment manager
+    logging.warning("Invoking deprecated path because location not set")
+    dm = get_latest(project=project, testing_label=testing_label,
+                    base_name=base_name, field="all")
+    cluster_name = dm["name"]
+    command.append("--zone="+dm["zone"], dm["name"])
 
   # This call may be flaky due to timeout.
   @retry(stop_max_attempt_number=10, wait_fixed=5000)
   def run_get_credentials():
-    util.run(["gcloud", "container", "clusters", "get-credentials", dm["name"],
-              "--project="+project, "--zone="+dm["zone"]])
+    util.run(command)
   run_get_credentials()
 
 def list_dms(args):
@@ -228,9 +317,12 @@ def get_dm(args):
                             field=args.field,
                             desc_ordered=args.find_latest_deployed)))
 
+# TODO(jlewi): It looks like this is just a wrapper intended to parse args.
+# Might be simpler just to switch to using Fire and get rid of this indirection.
 def get_credential(args):
   logging.info("Calling get_credential - this call needs gcloud client CLI.")
-  get_latest_credential(project=args.project, base_name=args.base_name)
+  get_latest_credential(project=args.project, base_name=args.base_name,
+                        location=args.location)
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
@@ -255,6 +347,10 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
       "--field", default="endpoint", type=str,
       choices=["all", "endpoint", "zone", "name"],
       help=("Field of deployment to have."))
+
+  parser.add_argument(
+      "--location", default="us-central1", type=str,
+      help=("The location to look for clusters."))
 
   parser.add_argument(
       "--find_latest_deployed", dest="find_latest_deployed",
