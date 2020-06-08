@@ -59,6 +59,16 @@ applications:
       value: "jupyter/jupyter-web-app/base"
     - name: "src_image_url"
       value: "gcr.io/kubeflow-images-public/jupyter-web-app"
+  - name: notebook-webapp-v3
+    params:
+    - name: "path_to_context"
+      value: "components/jupyter-web-app"
+    - name: "path_to_docker_file"
+      value: "components/jupyter-web-app/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "jupyter/jupyter-web-app/base_v3"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/jupyter-web-app"
     # The name of the repo containing the source
     sourceRepo: kubeflow
   - name: profile-controller
