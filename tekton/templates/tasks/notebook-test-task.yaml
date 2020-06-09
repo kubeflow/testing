@@ -22,6 +22,10 @@ spec:
       description:
         Cluster pattern to run the notebook test.
         Default to be from master branch.
+    - name: testing-cluster-location
+      type: string
+      description:
+        Location to search for test clusters e.g. us-central1 or us-central1-f
     - name: artifacts-gcs
       type: string
       description:
@@ -60,6 +64,7 @@ spec:
     - -m
     - kubeflow.testing.get_kf_testing_cluster
     - --base=$(inputs.params.testing-cluster-pattern)
+    - --location=$(inputs.params.testing-cluster-location)
     - get-credentials
     env:
     - name: PYTHONPATH
