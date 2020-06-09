@@ -115,11 +115,16 @@ class BlueprintRunner:
     name = name.format(uid=uid)
     logging.info("Using name %s", name)
 
+    email = util.run(["gcloud", "config", "get-value", "account"])
+
+    logging.info(f"Using email {email}")
+
     values = {
       "name": name,
       "gcloud.core.project": project,
       "gcloud.compute.zone": zone,
       "location": location,
+      "email": email,
     }
 
     for subdir in ["./upstream/manifests/gcp", "./instance"]:
