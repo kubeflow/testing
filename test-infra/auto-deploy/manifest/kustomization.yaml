@@ -5,7 +5,8 @@ namespace: auto-deploy
 commonLabels:
   service: auto-deploy
 images:
-- name: gcr.io/kubeflow-ci/auto_deploy  
+- name: gcr.io/kubeflow-ci/auto_deploy
+  digest: sha256:7b30a7ad4aabcfede8dc9130b99265e213481037ab6a408178319328ba5d37a2
 resources:
 - deployment.yaml
 - service.yaml
