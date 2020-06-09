@@ -286,23 +286,31 @@ class BlueprintReconciler: # pylint: disable=too-many-instance-attributes
       **kwargs: Additional constructor arguments see __init__.
     """
 
+    logging.info(f"Reading pipelines from directory {pipelines_dir}")
     pipeline_runs = []
-    for root, _, files in os.walk(pipelines_dir, topdown=False):
-      for f in files:
-        full_path = os.path.join(root, f)
-        if not f.endswith(".yaml"):
-          logging.info(f"Skipping file {full_path}")
-          continue
+    loaded = []
+    # We don't recursively walk the directory because if we do
+    # we end counting files twice when mounting the config map because
+    # of sym-links. If we need to support recursively finding all files
+    # then we will need to find a better solution. os.walk seemed to be
+    # following links even when follow_links wasn't explicitly set.
+    for f in os.listdir(pipelines_dir):
+      full_path = os.path.join(root, f)
+      if not f.endswith(".yaml"):
+        logging.info(f"Skipping file {full_path}")
+        continue
 
-        try:
-          pipeline_runs.append(PipelineRunWrapper.from_file(full_path))
-        except NotAPipeline:
-          logging.info(f"Skipping file {full_path}; does not contain a "
-                       f"PipelineRun")
+      try:
+        pipeline_runs.append(PipelineRunWrapper.from_file(full_path))
+        loaded.append(full_path)
+      except NotAPipeline:
+        logging.info(f"Skipping file {full_path}; does not contain a "
+                     f"PipelineRun")
 
     if not pipeline_runs:
       raise ValueError(f"No pipelineruns loaded from directory {pipelines_dir}")
 
+    logging.info("Loaded pipelineruns:\n%s", "\n".join(loaded))
     reconciler = BlueprintReconciler(pipeline_runs=pipeline_runs,
                                      management_context=management_context,
                                      tekton_context=tekton_context,
@@ -600,11 +608,11 @@ class BlueprintReconciler: # pylint: disable=too-many-instance-attributes
       active_deployments += len(i)
 
 
-    for run in self._pipeline_runs:
+    for i, run in enumerate(self._pipeline_runs):
       self._log_context = {
         GROUP_LABEL: run.group,
       }
-      logging.info(f"Reconciling pipeline group: {run.group}",
+      logging.info(f"Reconciling pipeline {i} group: {run.group}",
                    extra=self._log_context)
 
       branch = run.get_resource_param(BLUEPRINTS_REPO, "revision")

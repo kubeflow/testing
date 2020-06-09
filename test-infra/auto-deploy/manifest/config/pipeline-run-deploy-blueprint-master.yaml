@@ -8,7 +8,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:      
-  generateName: deploy-kf-master
+  generateName: deploy-kf-master-
   namespace: auto-deploy
   labels:
     auto-deploy-group: gcp-blueprint-master
@@ -19,7 +19,6 @@ spec:
     resourceSpec:
       type: git
       params:
-        # TODO(jlewi): Switch to master on kubeflow/gcp-blueprints
         - name: revision
           value: master
         - name: url
@@ -28,9 +27,10 @@ spec:
     resourceSpec:
       type: git
       params:
-        # TODO(jlewi): Switch to master on kubeflow/gcp-blueprints
+        # TODO(jlewi): Switch to master once 
+        # https://github.com/kubeflow/testing/pull/676 is submitted
         - name: revision
-          value: gcp_blueprint
+          value: gcp_blueprints
         - name: url
           value: https://github.com/jlewi/testing.git
   # Need to use a KSA with appropriate GSA

@@ -84,10 +84,27 @@ The reconciler is currently running in
 * **cluster**: kf-ci-v1
 * **namespace**: auto-deploy
 
-The auto-deployer can be updated using skaffold
+To update it
 
-```
-skaffold run -v info 
-```
+1. Build a new image with skaffold
 
-* You must select the appropriate skaffold profile; e.g. by setting your context to match the context listed in skaffold.yaml
+   ```
+   skaffold build
+   ```
+
+1. Update the kustomization to use the new image
+
+1. Hydrate the ACM repo with the hypdated manifests
+
+   ```
+   make hydrate
+   ```
+
+   * The Makefile is at the root of the repository
+
+1. Push the changes
+
+
+TODO(jlewi): We don't have a good story for testing a development version. Right now the solution would be
+
+1. Update the ACM config to point to a branch which you can push to deploy your changes

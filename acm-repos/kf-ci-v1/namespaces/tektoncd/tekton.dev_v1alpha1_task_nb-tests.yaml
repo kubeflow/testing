@@ -33,6 +33,10 @@ spec:
     - description: Directory to write outputs to in local FS.
       name: output-workspace
       type: string
+    - default: default-profile
+      description: The namespace to run the notebook in
+      name: nb-namespace
+      type: string
     resources:
     - name: examples-repo
       targetPath: src/kubeflow/examples
@@ -77,6 +81,7 @@ spec:
         --notebook_path=$(inputs.params.notebook-path) \
         --test-target-name=$(inputs.params.test-target-name) \
         --artifacts-gcs=$(inputs.params.artifacts-gcs) \
+        --namespace=$(inputs.params.nb-namespace)
       || echo test finished.
     volumeMounts:
     - mountPath: /secret/gcp-credentials
