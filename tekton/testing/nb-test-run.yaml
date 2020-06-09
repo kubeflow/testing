@@ -20,6 +20,8 @@ spec:
     value: artifacts/junit_manual-testing
   - name: testing-cluster-pattern
     value: 'kf-vbp-.*'
+  - name: testing-cluster-location
+    value: 'us-central1'
   - name: output-workspace
     value: /workspace/outputs
   resources:
@@ -42,58 +44,5 @@ spec:
       - name: revision
         #value: master
         value: refs/pull/676/head
-  pipelineSpec:
-    params:
-    - name: test-target-name
-      type: string
-      description:
-        Test targe name, used to group test results in JUNIT.
-      default: manual-testing
-    - name: artifacts-gcs
-      type: string
-      description:
-        GCS bucket and directory artifacts will be uploaded to.
-        Should be in the form of 'gs://'
-    - name: junit-path
-      type: string
-      description:
-        Relative path to the GCS artifacts will be uploaded to.
-        Base path is artifacts-gcs so the actual GCS blob will be
-        artifacts-gcs/junit-path
-    - name: testing-cluster-pattern
-      type: string
-      description:
-        Cluster pattern to run the notebook test.
-        Default to be from master branch.
-    - name: output-workspace
-      type: string
-      description:
-        Directory to write outputs to in local FS.
-    resources:
-    - name: examples-repo
-      type: git
-    - name: testing-repo
-      type: git
-    tasks:
-    - name: mnist-gcp
-      resources:
-        inputs:
-        - name: examples-repo
-          resource: examples-repo
-        - name: kf-testing-repo
-          resource: testing-repo
-      taskRef:
-        name: nb-tests
-      params:
-      - name: notebook-path
-        value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
-      - name: junit-path
-        value: $(params.output-workspace)/$(params.junit-path)/junit_mnist-gcp.xml
-      - name: test-target-name
-        value: $(params.test-target-name)
-      - name: output-workspace
-        value: $(params.output-workspace)
-      - name: artifacts-gcs
-        value: $(params.artifacts-gcs)
-      - name: testing-cluster-pattern
-        value: $(params.testing-cluster-pattern)
+  pipeline-ref:
+    name: notebook-test
