@@ -34,7 +34,7 @@ spec:
       - name: url
         value: https://github.com/kubeflow/examples.git
       - name: revision
-        value: refs/pull/764/head
+        value: refs/pull/803/head
   - name: testing-repo
     resourceSpec:
       type: git
@@ -44,5 +44,5 @@ spec:
       - name: revision
         #value: master
         value: refs/pull/676/head
-  pipeline-ref:
+  pipelineRef:
     name: notebook-test
