@@ -6,7 +6,7 @@ commonLabels:
   service: auto-deploy
 images:
 - name: gcr.io/kubeflow-ci/auto_deploy
-  digest: sha256:fff34e3cfd2d4ae03e20d2ae649c90160c906991d0d0ca32128f7843596943f4
+  digest: sha256:7b30a7ad4aabcfede8dc9130b99265e213481037ab6a408178319328ba5d37a2
 resources:
 - deployment.yaml
 - service.yaml

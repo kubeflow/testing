@@ -19,7 +19,6 @@ import uuid
 import yaml
 
 from kubeflow.testing import cnrm_clients
-from kubeflow.testing.auto_deploy import util as auto_deploy_util
 from kubeflow.testing import cleanup_blueprints
 from kubeflow.testing import delete_kf_instance
 from kubeflow.testing import gcp_util
@@ -188,7 +187,7 @@ class PipelineRunWrapper:
 
 def labels_to_selector(labels):
   pairs = []
-  for k,v in labels.items():
+  for k, v in labels.items():
     pairs.append(f"{k}=v")
   return ",".join(pairs)
 
@@ -295,7 +294,7 @@ class BlueprintReconciler: # pylint: disable=too-many-instance-attributes
     # then we will need to find a better solution. os.walk seemed to be
     # following links even when follow_links wasn't explicitly set.
     for f in os.listdir(pipelines_dir):
-      full_path = os.path.join(root, f)
+      full_path = os.path.join(pipelines_dir, f)
       if not f.endswith(".yaml"):
         logging.info(f"Skipping file {full_path}")
         continue
