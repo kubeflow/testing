@@ -46,6 +46,12 @@ spec:
       type: string
       description:
         Directory to write outputs to in local FS.
+    - name: nb-namespace
+      type: string
+      description:
+        The namespace to run the notebook in
+      # The default corresponds to the name of the default profile created by blueprints
+      default: default-profile
     # TODO(jlewi): Lets not use targetPath. Instead lets rely on Tekton checking repos
     # out to /workspace/$(resource.name)
     resources:
@@ -89,6 +95,7 @@ spec:
           --notebook_path=$(inputs.params.notebook-path) \
           --test-target-name=$(inputs.params.test-target-name) \
           --artifacts-gcs=$(inputs.params.artifacts-gcs) \
+          --namespace=$(inputs.params.nb-namespace)
         || echo test finished.
     workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
     env:

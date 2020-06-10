@@ -1,0 +1,319 @@
+apiVersion: v1
+data:
+  deploy-kubeflow.yaml: |
+    # This version of the script has been updated to use unique names
+    # See https://github.com/kubeflow/testing/issues/444
+    # Its also using an init container to check out the code.
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      generateName: deploy-master-
+      labels:
+        job: deploy-master-oneoff
+        version: master
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          annotations:
+            # side cars can cause jobs to get stuck.
+            sidecar.istio.io/inject: "false"
+          labels:
+            job: deploy-master-oneoff
+            version: master
+        spec:
+          initContainers:
+          - command:
+            - /usr/local/bin/checkout_repos.sh
+            # TOODO(jlewi): We should really switch to tekton and use resources.
+            # TODO(https://github.com/kubeflow/testing/pull/641): Switch to  kubeflow/testing@HEAD
+            # after 641 is merged
+            - --depth=all
+            - --repos=kubeflow/kfctl@HEAD,jlewi/testing@playbook
+            - --src_dir=/src
+            - --links
+            env:
+            - name: PYTHONPATH
+              value: /src/kubeflow/testing/py
+            image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
+            imagePullPolicy: IfNotPresent
+            name: checkout
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+            - mountPath: /src
+              name: src
+          containers:
+          - name: deploy
+            image: gcr.io/kubeflow-ci/test-worker@sha256:dd559f89b3cbd926ec563559995f25025eecc6290b3146f17f82d2f084d07ee2
+            env:
+            # TODO(jlewi): Get rid of /src/jlewi once we change repos to checkout kubeflow/testing
+            - name: PYTHONPATH
+              value: /src/kubeflow/testing/py:/src/jlewi/testing/py
+            # We need to explicitly set the KUBECONFIG variable because that's what our python client uses to determine
+            # whether its an in cluster config or not.
+            - name: KUBECONFIG
+              value: /etc/.kube
+            # Note command is completely overwritten by reconciler
+            command:
+            - python
+            - -m
+            - kubeflow.testing.create_unique_kf_instance
+            - --apps_dir=/src/apps
+            - --kubeflow_repo=/src/kubeflow/kfctl
+            - --name=kf-vmaster-{uid}
+            - --project=kubeflow-ci-deployment
+            - --zone=us-central1-a
+            - --kfctl_config=https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
+            - --no-use_self-cert
+            volumeMounts:
+            - mountPath: /src
+              name: src
+          # Rely on workload identity.
+          serviceAccount: default-editor
+          restartPolicy: Never
+          volumes:
+          - name: src
+            emptyDir: {}
+  deployments.yaml: |
+    # This is a configuration file that configures
+    # the list of branches that we want to continusouly deploy from.
+    # The project where things should be deployed
+    #
+    #
+    # TODO(jlewi): This is deprecated. Instead you should add YAML files containing Tekton PipelineRun YAMLs
+    # Each PipelineRun should deploy a different sequence of pipelines.
+    #
+    # TODO(jlewi): Project and zone in which to deploy.
+    # Should we define this in the kustomize package because it will be different
+    # for different environments and we will want to easily override it?
+    project: kubeflow-ci-deployment
+    zone: us-east1-c
+    # Each version specifies a different combination of versions of KF to deploy.
+    versions:
+      - name: master
+        kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
+        kfctlUrl: https://github.com/kubeflow/kfctl/releases/download/v1.0/kfctl_v1.0-0-g94c35cf_linux.tar.gz
+      - name: v1
+        # TODO(jlewi): Change to the version on the v1.0 branch once it exists; otherwise we won't redeploy on changes
+        # to the manifests
+        kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/v1.0-branch/kfdef/kfctl_gcp_iap.v1.0.0.yaml
+        kfctlUrl: https://github.com/kubeflow/kfctl/releases/download/v1.0/kfctl_v1.0-0-g94c35cf_linux.tar.gz
+      - name: stacks
+        # TODO(jlewi): We can get rid of this autodeployment once the stacks manifest is incorporated into a versioned
+        # manifest. We may need to update the kfctl link as additional fixes to work with kfctl
+        kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/master/stacks/examples/kfctl_gcp_stacks.experimental.yaml
+        kfctlUrl: https://storage.googleapis.com/kubeflow-ci_builds/kfctl/20200413_0845/linux/kfctl
+  pipeline-run-deploy-blueprint-master.yaml: "# A Tekton PipelineRune to deploy Kubeflow
+    using a blueprint.\n#\n# Several pieces of information in the spec are used to
+    configure autodeployments.\n# 1. labels:\n#    auto-deploy-group - Used to group
+    auto deployments. Only so many instances will be kept\n#        each pipeline
+    run should use a unique value \n#    auto-deploy-base-name: This will be changed
+    to name-{uid} to generate a unique name for the deployment\napiVersion: tekton.dev/v1alpha1\nkind:
+    PipelineRun\nmetadata:      \n  generateName: deploy-kf-master-\n  namespace:
+    auto-deploy\n  labels:\n    auto-deploy-group: gcp-blueprint-master\n    auto-deploy-base-name:
+    kf-vbp\nspec:    \n  resources:  \n  - name: blueprint-repo\n    resourceSpec:\n
+    \     type: git\n      params:\n        - name: revision\n          value: master\n
+    \       - name: url\n          value: https://github.com/kubeflow/gcp-blueprints.git\n
+    \ - name: testing-repo\n    resourceSpec:\n      type: git\n      params:\n        #
+    TODO(jlewi): Switch to master once \n        # https://github.com/kubeflow/testing/pull/676
+    is submitted\n        - name: revision\n          value: gcp_blueprints\n        -
+    name: url\n          value: https://github.com/jlewi/testing.git\n  # Need to
+    use a KSA with appropriate GSA\n  serviceAccountName: default-editor\n  pipelineRef:\n
+    \   name: deploy-gcp-blueprint"
+kind: ConfigMap
+metadata:
+  labels:
+    service: auto-deploy
+  name: auto-deploy-config-2bffg2b5h5
+  namespace: auto-deploy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: auto-deploy
+  name: auto-deploy-server
+  namespace: auto-deploy
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: auto-deploy
+    service: auto-deploy
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: auto-deploy
+  name: auto-deploy-server
+  namespace: auto-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auto-deploy
+      service: auto-deploy
+  template:
+    metadata:
+      labels:
+        app: auto-deploy
+        service: auto-deploy
+    spec:
+      containers:
+      - command:
+        - python
+        - -m
+        - kubeflow.testing.auto_deploy.server
+        - serve
+        - --template-folder=/app/templates
+        - --deployments-dir=/cache/deployments
+        - --port=80
+        env:
+        - name: FLASK_DEBUG
+          value: "true"
+        image: gcr.io/kubeflow-ci/auto_deploy@sha256:7b30a7ad4aabcfede8dc9130b99265e213481037ab6a408178319328ba5d37a2
+        name: server
+        resources:
+          requests:
+            cpu: 2
+            memory: 8Gi
+        volumeMounts:
+        - mountPath: /app/config
+          name: config
+        - mountPath: /cache
+          name: cache
+        workingDir: /app
+      - command:
+        - python
+        - -m
+        - kubeflow.testing.auto_deploy.reconciler
+        - run
+        - --config-path=/app/config/deployments.yaml
+        - --job-template-path=/app/config/deploy-kubeflow.yaml
+        - --local-dir=/cache/auto_deploy_src
+        - --deployments-dir=/cache/deployments
+        env:
+        - name: JOB_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: gcr.io/kubeflow-ci/auto_deploy@sha256:7b30a7ad4aabcfede8dc9130b99265e213481037ab6a408178319328ba5d37a2
+        name: reconciler
+        resources:
+          requests:
+            cpu: 2
+            memory: 8Gi
+        volumeMounts:
+        - mountPath: /app/config
+          name: config
+        - mountPath: /cache
+          name: cache
+        workingDir: /app
+      - command:
+        - python
+        - -m
+        - kubeflow.testing.auto_deploy.blueprint_reconciler
+        - run
+        - --pipelines-dir=/app/config/
+        - --local-dir=/cache/blueprints_auto_deploy_src
+        - --deployments-dir=/cache/deployments
+        - --management-context=kf-ci-deployment-management
+        - --tekton-context=kf-auto-deploy
+        env:
+        - name: JOB_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: KUBECONFIG
+          value: /cache/kubeconfig
+        image: gcr.io/kubeflow-ci/auto_deploy@sha256:7b30a7ad4aabcfede8dc9130b99265e213481037ab6a408178319328ba5d37a2
+        name: blueprints-reconciler
+        resources:
+          requests:
+            cpu: 2
+            memory: 8Gi
+        volumeMounts:
+        - mountPath: /app/config
+          name: config
+        - mountPath: /cache
+          name: cache
+        workingDir: /app
+      initContainers:
+      - command:
+        - python
+        - -m
+        - kubeflow.testing.create_context
+        - create
+        - --project=kubeflow-ci
+        - --cluster=kf-ci-management
+        - --location=us-central1
+        - --namespace=kubeflow-ci-management
+        - --name=kf-ci-deployment-management
+        env:
+        - name: KUBECONFIG
+          value: /cache/kubeconfig
+        image: gcr.io/kubeflow-ci/auto_deploy@sha256:7b30a7ad4aabcfede8dc9130b99265e213481037ab6a408178319328ba5d37a2
+        name: management-context
+        volumeMounts:
+        - mountPath: /cache
+          name: cache
+      - command:
+        - python
+        - -m
+        - kubeflow.testing.create_context
+        - create
+        - --project=kubeflow-ci
+        - --cluster=kf-ci-v1
+        - --location=us-east1-d
+        - --namespace=auto-deploy
+        - --name=kf-auto-deploy
+        env:
+        - name: KUBECONFIG
+          value: /cache/kubeconfig
+        image: gcr.io/kubeflow-ci/auto_deploy@sha256:7b30a7ad4aabcfede8dc9130b99265e213481037ab6a408178319328ba5d37a2
+        name: tekton-context
+        volumeMounts:
+        - mountPath: /cache
+          name: cache
+      serviceAccount: default-editor
+      volumes:
+      - configMap:
+          name: auto-deploy-config-2bffg2b5h5
+        name: config
+      - emptyDir: {}
+        name: cache
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  labels:
+    service: auto-deploy
+  name: auto-deploy-server
+  namespace: auto-deploy
+spec:
+  gateways:
+  - kubeflow/kubeflow-gateway
+  hosts:
+  - '*'
+  http:
+  - headers:
+      request:
+        add:
+          x-forwarded-prefix: /auto_deploy
+    match:
+    - uri:
+        prefix: /auto_deploy/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: auto-deploy-server.auto-deploy.svc.cluster.local
+        port:
+          number: 80
