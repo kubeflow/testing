@@ -22,7 +22,7 @@ spec:
         be in the form of 'gs://'
       name: artifacts-gcs
       type: string
-    - default: gcr.io/kubeflow-ci/test-worker-py3@sha256:37c053077724d05cc25fb7dab78dd32c99bee61222af01d6ea617a3076ff2c3b
+    - default: gcr.io/kubeflow-ci/test-worker-py3@sha256:2213a6469f83b0a9d3c6a2175b7b64d7c7a16b89dd409b66eef8120f92d00b7e
       description: The docker image to run the tests in
       name: test-image
       type: string

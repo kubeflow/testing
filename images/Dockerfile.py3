@@ -103,4 +103,4 @@ RUN go get -u github.com/jstemmer/go-junit-report
 # Create a cached copy of the python test scripts so that we don't
 # need to clone the repo just to get access to them
 RUN mkdir -p /srcCache/kubeflow/testing
-COPY py /srcCache/kubeflow/testing/
+COPY py /srcCache/kubeflow/testing/py
