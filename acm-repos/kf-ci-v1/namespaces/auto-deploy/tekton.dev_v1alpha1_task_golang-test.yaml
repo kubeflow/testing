@@ -42,6 +42,7 @@ spec:
       #!/usr/bin/env bash
       set -x
       mkdir -p /workspace/artifacts
+      pwd
       go test $(inputs.params.packages) $(inputs.params.flags) 2>&1 | go-junit-report > /workspace/artifacts/junit_$(inputs.params.test-name).xml
       echo Test results:
       cat /workspace/artifacts/junit_$(inputs.params.test-name).xml
