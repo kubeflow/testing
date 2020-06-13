@@ -6,11 +6,11 @@ metadata:
 build:
   artifacts:
   - image: gcr.io/kubeflow-ci/test-worker-py3
-    # Set the context to the root directory. 
+    # Set the context to the root directory of the repository.
     # All paths in the Dockerfile should be relative to this one.
-    context: .    
+    context: ..
     kaniko:
-      dockerfile: ./Dockerfile.py3
+      dockerfile: ./images/Dockerfile.py3
       buildContext:
         gcsBucket: kubeflow-ci_skaffold
       env: 
