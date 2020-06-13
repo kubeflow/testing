@@ -47,7 +47,7 @@ spec:
       echo Test results:
       cat /workspace/artifacts/junit_$(inputs.params.test-name).xml
       echo test finished.
-    workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
+    workingDir: /workspace/$(inputs.resources.source-repo.name)
   - args:
     - -m
     - kubeflow.testing.tekton_client
