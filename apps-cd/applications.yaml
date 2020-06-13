@@ -108,6 +108,18 @@ applications:
       value: "gcr.io/kubeflow-images-public/tf_operator"
     # The name of the repo containing the source
     sourceRepo: tf-operator
+  - name: xgboost-operator
+    params:  
+    - name: "path_to_context"
+      value: ""
+    - name: "path_to_docker_file"
+      value: "Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "xgboost-job/xgboost-operator/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/xgboost-operator"
+    # The name of the repo containing the source
+    sourceRepo: xgboost-operator
 # The versions to build the applications at
 # Each version should consist of a list of repositories and the corresponding
 # branch and a tag
@@ -149,6 +161,14 @@ versions:
               value: master
             - name: url
               value: git@github.com:kubeflow/tf-operator.git
+      - name: xgboost-operator
+        resourceSpec:    
+          type: git
+          params:
+            - name: revision
+              value: master
+            - name: url
+              value: git@github.com:kubeflow/xgboost-operator.git
   # Define a v1-0 release
   - name: v1-0
     # A tag to prefix image names with
