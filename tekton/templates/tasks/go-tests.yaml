@@ -39,10 +39,6 @@ spec:
     - name: source-repo
       type: git
       description: The GitHub repo containing code to test
-
-    - name: test-repo
-      type: git
-      description: The kubeflow/testing repo
   steps:
   - name: unit-test
     image: $(inputs.params.test-image)

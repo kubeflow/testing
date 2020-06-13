@@ -30,9 +30,6 @@ spec:
     - description: The GitHub repo containing code to test
       name: source-repo
       type: git
-    - description: The kubeflow/testing repo
-      name: test-repo
-      type: git
   steps:
   - env:
     - name: GO111MODULE
