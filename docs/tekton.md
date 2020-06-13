@@ -31,13 +31,13 @@ specifying the Git repo to be tested. In presubmits and postsubmits [run_e2e_wor
 To trigger the tests add an entry to your prow_config.yaml to trigger the test
 
 ```
-  - tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
-	tekton_params:
-	- name: testing-cluster-pattern
-	  value: 'kf-v1-(?!n\d\d)'   
-   	name: tekton-v1
-   	include_dirs:
-   	- py/*
+      tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
+      tekton_params:
+        name: testing-cluster-pattern
+        value: 'kf-v1-(?!n\d\d)'   
+      name: tekton-v1
+      include_dirs:
+        - py/*
 ```
 
 | Name | Description |
@@ -51,14 +51,17 @@ To trigger the tests add an entry to your prow_config.yaml to trigger the test
 Optionally you can specify a second PipelineRun to be run to teardown any resource you might have setup.
 
 ```
-  - tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
-	tekton_params:
-	- name: testing-cluster-pattern
-	  value: 'kf-v1-(?!n\d\d)'     
-   	tekton_teardown: kubeflow/testing/tekton/testing/dummy-teardown-run.yaml
-   	tekton_teardown_params:
-   	- name: utter
-      value: bar
+      tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
+      tekton_params:
+        - name: testing-cluster-pattern
+          value: 'kf-v1-(?!n\d\d)'   
+      name: tekton-v1
+      include_dirs:
+        - py/*     
+      tekton_teardown: kubeflow/testing/tekton/testing/dummy-teardown-run.yaml
+      tekton_teardown_params:
+        - name: utter
+          value: bar
 ```
 
 
@@ -68,16 +71,19 @@ even if the earlier tasks fail (see [tektoncd/pipeline#1684](https://github.com/
 Optionally you can specify a list of job types ("presubmit", "postsubmit", or "periodic") on which to trigger.
 
 ```
-  - tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
-	tekton_params:
-	- name: testing-cluster-pattern
-	  value: 'kf-v1-(?!n\d\d)'     
-   	tekton_teardown: kubeflow/testing/tekton/testing/dummy-teardown-run.yaml
-   	tekton_teardown_params:
-   	- name: utter
-      value: bar
-    job_types:
-    - postsubmit
+      tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
+      tekton_params:
+        - name: testing-cluster-pattern
+          value: 'kf-v1-(?!n\d\d)'   
+      name: tekton-v1
+      include_dirs:
+        - py/*     
+      tekton_teardown: kubeflow/testing/tekton/testing/dummy-teardown-run.yaml
+      tekton_teardown_params:
+        - name: utter
+          value: bar
+      job_types:
+        - postsubmit
 ```
 
 ## Reporting test results to Prow
@@ -128,3 +134,7 @@ Tekton is currently installed in the following cluster.
   * The namespace where Tekton jos run.
 
 The Tekton dashboard is accessbile at [https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/](https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/)
+
+## What's Next
+
+* [tekton/README.md](../tekton/README.md) for more info on writing pipelines
