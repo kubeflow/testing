@@ -15,14 +15,12 @@ spec:
     value: "gs://kubeflow-ci-deployment/gabrielwen-testing-2"
   serviceAccountName: kf-ci
   resources:
-  # This pull number has changes blocked on:
-  # https://github.com/kubeflow/testing/pull/622
   - name: source-repo
     resourceSpec:
       type: git
       params:
       - name: url
-        value: https://github.com/jlewi/testing.git
+        value: https://github.com/kubeflow/testing.git
       - name: revision
         value: gcp_blueprints
   pipelineRef:
