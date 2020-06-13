@@ -32,7 +32,7 @@ spec:
 
     - name: test-image
       type: string
-      default: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+      default: gcr.io/kubeflow-ci/test-worker-py3@sha256:37c053077724d05cc25fb7dab78dd32c99bee61222af01d6ea617a3076ff2c3b
       description: The docker image to run the tests in
 
     resources:
@@ -77,4 +77,4 @@ spec:
     - --output_gcs=$(inputs.params.artifacts-gcs)
     env:
     - name: PYTHONPATH
-      value: /workspace/$(inputs.resources.test-repo.name)/py
+      value: /srcCache/kubeflow/testing/py

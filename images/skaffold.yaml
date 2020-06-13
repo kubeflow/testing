@@ -34,9 +34,10 @@ profiles:
       - op: replace
         path: /build/artifacts/0/image
         value: gcr.io/kubeflow-ci/test-worker-py3
-      - op: replace
-        path: /build/artifacts/0/kaniko/buildContext/gcsBucket
-        value: kubeflow-ci_skaffold
+      # TODO(jlewi): This no longer seems to work after upgrading skaffold.
+      #- op: replace
+      #  path: /build/artifacts/0/kaniko/buildContext/gcsBucket
+      #  value: kubeflow-ci_skaffold
       - op: replace
         path: /build/artifacts/0/kaniko/env/0/value
         value: /secret/key.json
