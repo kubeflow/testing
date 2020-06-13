@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
   name: go-tests
-  namespace: tektoncd
+  namespace: kf-ci
 spec:
   params:
   - default: ./...

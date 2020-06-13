@@ -13,6 +13,7 @@ spec:
     value: "jlewi-go-test"
   - name: artifacts-gcs
     value: "gs://kubeflow-ci-deployment/gabrielwen-testing-2"
+  serviceAccountName: kf-ci
   resources:
   # This pull number has changes blocked on:
   # https://github.com/kubeflow/testing/pull/622

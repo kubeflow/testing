@@ -4,7 +4,7 @@ metadata:
   annotations:
     sidecar.istio.io/inject: "false"
   name: deploy-gcp-blueprint
-  namespace: tektoncd
+  namespace: kf-ci
 spec:
   inputs:
     params:
