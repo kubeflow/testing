@@ -1,0 +1,80 @@
+# Task to run go tests
+# 
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: golang-test
+spec:
+  inputs:
+    params:
+    - name: packages
+      description: "packages to test (default: ./...)"
+      default: "./..."  
+    - name: flags
+      description: flags to use for the test command
+      default: -race -cover -v  
+    - name: GO111MODULE
+      description: "value of module support"
+      default: auto
+
+    #**********************************************************
+    # Kubeflow test parameters
+    #**********************************************************
+    - name: test-name
+      type: string
+      description:
+        Name to give the test results file.
+    - name: artifacts-gcs
+      type: string
+      description:
+        GCS bucket and directory artifacts will be uploaded to.
+        Should be in the form of 'gs://'
+
+    - name: test-image
+      type: string
+      default: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+      description: The docker image to run the tests in
+
+    resources:
+    - name: source-repo
+      type: git
+      description: The GitHub repo containing code to test
+
+    - name: test-repo
+      type: git
+      description: The kubeflow/testing repo
+  steps:
+  - name: unit-test
+    image: $(inputs.params.test-image)
+    workingDir: /workspace/$(inputs.resources.source-repo.name)
+    env:
+    - name: GO111MODULE
+      value: "$(inputs.params.GO111MODULE)"
+    - name: PACKAGES
+      value: "$(inputs.params.packages)"    
+    # Need to use script as workaround not to error out in tests.
+    # If any of the steps returns non-zero codes, subsequent steps will not be run.
+    script: |
+        #!/usr/bin/env bash
+        set -x
+        mkdir -p /workspace/artifacts
+        go test $(inputs.params.packages) $(inputs.params.flags) 2>&1 | go-junit-report > /workspace/artifacts/junit_$(inputs.params.test-name).xml
+        echo Test results:
+        cat /workspace/artifacts/junit_$(inputs.params.test-name).xml
+        echo test finished.
+    workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
+  # This step is designed to be generic: given the output directory, it will try to
+  # parse all the XML files with prefix of junit and error out if failures been found.
+  - name: copy-artifacts
+    image: $(inputs.params.test-image)
+    command:
+    - python
+    args:
+    - -m
+    - kubeflow.testing.tekton_client
+    - junit_parse_and_upload
+    - --artifacts_dir=/workspace/artifacts
+    - --output_gcs=$(inputs.params.artifacts-gcs)
+    env:
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.test-repo.name)/py

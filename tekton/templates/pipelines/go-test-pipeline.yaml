@@ -1,0 +1,52 @@
+# This is intended to be a reusable pipeline for running go tests.
+# Ideally this will eventually run unittests as well as lint.
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: go-tests
+spec:
+  params:
+  - name: packages
+    description: "packages to test (default: ./...)"
+    default: "./..."  
+  - name: flags
+    description: flags to use for the test command
+    default: -race -cover -v  
+  - name: GO111MODULE
+    description: "value of module support"
+    default: auto
+
+  #**********************************************************
+  # Kubeflow test parameters
+  #**********************************************************
+  - name: test-name
+    type: string
+    description:
+      Name to give the test results file.
+  - name: artifacts-gcs
+    type: string
+    description:
+      GCS bucket and directory artifacts will be uploaded to.
+      Should be in the form of 'gs://'
+  resources:
+  - name: source-repo
+    type: git
+  tasks:
+  - name: golang-test
+    resources:
+      inputs:
+      - name: source-repo
+        resource: source-repo
+    taskRef:
+      name: golang-test
+    params:
+    - name: packages
+      value: $(params.packages)
+    - name: flags
+      value: $(params.flags)
+    - name: GO111MODULE
+      value: $(params.GO111MODULE)
+    - name: test-name
+      value: $(params.test-name)
+    - name: artifacts-gcs
+      value: $(params.artifacts-gcs)

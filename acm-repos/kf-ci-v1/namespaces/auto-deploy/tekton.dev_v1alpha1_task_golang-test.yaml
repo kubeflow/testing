@@ -1,0 +1,60 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: golang-test
+  namespace: auto-deploy
+spec:
+  inputs:
+    params:
+    - default: ./...
+      description: 'packages to test (default: ./...)'
+      name: packages
+    - default: -race -cover -v
+      description: flags to use for the test command
+      name: flags
+    - default: auto
+      description: value of module support
+      name: GO111MODULE
+    - description: Name to give the test results file.
+      name: test-name
+      type: string
+    - description: GCS bucket and directory artifacts will be uploaded to. Should
+        be in the form of 'gs://'
+      name: artifacts-gcs
+      type: string
+    - default: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+      description: The docker image to run the tests in
+      name: test-image
+      type: string
+    resources:
+    - description: The GitHub repo containing code to test
+      name: source-repo
+      type: git
+  steps:
+  - env:
+    - name: GO111MODULE
+      value: $(inputs.params.GO111MODULE)
+    - name: PACKAGES
+      value: $(inputs.params.packages)
+    image: $(inputs.params.test-image)
+    name: unit-test
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      mkdir -p /workspace/artifacts
+      go test $(inputs.params.packages) $(inputs.params.flags) 2>&1 | go-junit-report > /workspace/artifacts/junit_$(inputs.params.test-name).xml
+      echo test finished.
+    workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
+  - args:
+    - -m
+    - kubeflow.testing.tekton_client
+    - junit_parse_and_upload
+    - --artifacts_dir=/workspace/artifacts
+    - --output_gcs=$(inputs.params.artifacts-gcs)
+    command:
+    - python
+    env:
+    - name: PYTHONPATH
+      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
+    image: gcr.io/kubeflow-ci/test-worker:latest
+    name: copy-artifacts
