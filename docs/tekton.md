@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Tekton for Kubeflow](#tekton-for-kubeflow)
+  - [Adding Tekton Tests To Your Repo](#adding-tekton-tests-to-your-repo)
+  - [Reporting test results to Prow](#reporting-test-results-to-prow)
+  - [Kubeflow's Catalog of Reusable Tasks and Pipelines](#kubeflows-catalog-of-reusable-tasks-and-pipelines)
+  - [Running on your own Tekton cluster](#running-on-your-own-tekton-cluster)
+  - [Tekton Cluster](#tekton-cluster)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Tekton for Kubeflow
 
 We have started using Tekton to for CI/CD with Kubeflow. 
