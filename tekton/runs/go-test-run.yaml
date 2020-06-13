@@ -4,7 +4,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
   generateName: go-test-
-  namespace: tektoncd
+  namespace: kf-ci
   labels:
     pipeline: go-test
 spec:
