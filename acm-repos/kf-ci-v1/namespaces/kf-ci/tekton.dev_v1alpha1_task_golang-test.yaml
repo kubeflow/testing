@@ -15,7 +15,8 @@ spec:
     - default: auto
       description: value of module support
       name: GO111MODULE
-    - description: Name to give the test results file.
+    - default: go-unit
+      description: Name to give the test results file.
       name: test-name
       type: string
     - description: GCS bucket and directory artifacts will be uploaded to. Should

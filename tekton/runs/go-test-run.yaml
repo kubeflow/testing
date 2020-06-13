@@ -9,8 +9,6 @@ metadata:
     pipeline: go-test
 spec:
   params:
-  - name: test-name
-    value: "jlewi-go-test"
   - name: artifacts-gcs
     value: "gs://kubeflow-ci-deployment/gabrielwen-testing-2"
   serviceAccountName: kf-ci

@@ -19,10 +19,6 @@ spec:
   #**********************************************************
   # Kubeflow test parameters
   #**********************************************************
-  - name: test-name
-    type: string
-    description:
-      Name to give the test results file.
   - name: artifacts-gcs
     type: string
     description:
@@ -46,7 +42,5 @@ spec:
       value: $(params.flags)
     - name: GO111MODULE
       value: $(params.GO111MODULE)
-    - name: test-name
-      value: $(params.test-name)
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: $(params.artifacts-gcs)/artifacts/junit_go-tests

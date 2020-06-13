@@ -14,9 +14,6 @@ spec:
   - default: auto
     description: value of module support
     name: GO111MODULE
-  - description: Name to give the test results file.
-    name: test-name
-    type: string
   - description: GCS bucket and directory artifacts will be uploaded to. Should be
       in the form of 'gs://'
     name: artifacts-gcs
@@ -33,10 +30,8 @@ spec:
       value: $(params.flags)
     - name: GO111MODULE
       value: $(params.GO111MODULE)
-    - name: test-name
-      value: $(params.test-name)
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: $(params.artifacts-gcs)/artifacts/junit_go-tests
     resources:
       inputs:
       - name: source-repo
