@@ -1,5 +1,5 @@
 # Task to run go tests
-# 
+#
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
@@ -9,10 +9,10 @@ spec:
     params:
     - name: packages
       description: "packages to test (default: ./...)"
-      default: "./..."  
+      default: "./..."
     - name: flags
       description: flags to use for the test command
-      default: -race -cover -v  
+      default: -race -cover -v
     - name: GO111MODULE
       description: "value of module support"
       default: auto
@@ -48,7 +48,7 @@ spec:
     - name: GO111MODULE
       value: "$(inputs.params.GO111MODULE)"
     - name: PACKAGES
-      value: "$(inputs.params.packages)"    
+      value: "$(inputs.params.packages)"
     # Need to use script as workaround not to error out in tests.
     # If any of the steps returns non-zero codes, subsequent steps will not be run.
     script: |
@@ -69,9 +69,9 @@ spec:
     args:
     - -m
     - kubeflow.testing.tekton_client
-    - junit_parse_and_upload
-    - --artifacts_dir=/workspace/artifacts
-    - --output_gcs=$(inputs.params.artifacts-gcs)
+    - junit-parse-and-upload
+    - --artifacts-dir=/workspace/artifacts
+    - --output-gcs=$(inputs.params.artifacts-gcs)
     env:
     - name: PYTHONPATH
       value: /srcCache/kubeflow/testing/py

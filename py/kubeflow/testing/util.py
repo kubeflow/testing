@@ -775,7 +775,7 @@ def load_kube_config(config_file=None,
                      client_configuration=None,
                      persist_config=True,
                      get_google_credentials=_refresh_credentials,
-                     print_config=True,
+                     print_config=False,
                      **kwargs):
   """Loads authentication and cluster information from kube-config file
   and stores them in kubernetes.client.configuration.
@@ -817,6 +817,7 @@ def load_kube_config(config_file=None,
     loader.load_and_set(client_configuration) # pylint: disable=too-many-function-args
   # Dump the loaded config.
 
+  # Warning this will print out any access tokens stored in your kubeconfig
   if print_config:
     run(["kubectl", "config", "view"])
 
