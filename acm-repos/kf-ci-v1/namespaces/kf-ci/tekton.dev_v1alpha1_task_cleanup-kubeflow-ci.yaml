@@ -4,7 +4,7 @@ metadata:
   annotations:
     sidecar.istio.io/inject: "false"
   name: cleanup-kubeflow-ci
-  namespace: tektoncd
+  namespace: kf-ci
 spec:
   inputs:
     params:

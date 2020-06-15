@@ -1,7 +1,7 @@
 # Configure the tekton tasks for the auto-deploy namespace
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: tektoncd
+namespace: kf-ci
 resources:
 - ../../tasks
 - ../../pipelines

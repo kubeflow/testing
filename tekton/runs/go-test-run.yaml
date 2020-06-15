@@ -1,0 +1,25 @@
+# Example of pipelinerun to run the go tests
+
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  generateName: go-test-
+  namespace: kf-ci
+  labels:
+    pipeline: go-test
+spec:
+  params:
+  - name: artifacts-gcs
+    value: "gs://kubeflow-ci-deployment/gabrielwen-testing-2"
+  serviceAccountName: kf-ci
+  resources:
+  - name: source-repo
+    resourceSpec:
+      type: git
+      params:
+      - name: url
+        value: https://github.com/kubeflow/testing.git
+      - name: revision
+        value: gcp_blueprints
+  pipelineRef:
+    name: go-tests

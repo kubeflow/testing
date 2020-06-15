@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
   name: notebook-test
-  namespace: tektoncd
+  namespace: kf-ci
 spec:
   params:
   - default: manual-testing

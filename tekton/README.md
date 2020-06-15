@@ -73,3 +73,7 @@ We introduce the following fields for users to define new Tekton pipeline to run
 **tekton_params**: Optionally you could assign values to the PipelineRuns parameters. This is helpful when you reuse a PipelineRun.
 **tekton_teardown**: Points to the PipelineRun file the teardown process runs.
 **tekton_teardown_params**: Parameters assigned to teardown process.
+
+## What's Next
+
+* [docs/tektons.md](../docs/tekton.md) for more info on creating reusable tasks and pipelines for Kubeflow

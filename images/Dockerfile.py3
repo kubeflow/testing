@@ -75,15 +75,14 @@ RUN ln -sf /usr/local/go/bin/go /usr/local/bin && \
 
 RUN go get github.com/kelseyhightower/kube-rsa
 
-COPY checkout.sh /usr/local/bin
-COPY checkout_repos.sh /usr/local/bin
-COPY setup_ssh.sh /usr/local/bin
+COPY ./images/checkout_repos.sh /usr/local/bin
+COPY ./images/setup_ssh.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout* /usr/local/bin/setup_ssh.sh
 
-COPY run_workflows.sh /usr/local/bin
+COPY ./images/run_workflows.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/run_workflows.sh
 
-COPY run_release.sh /usr/local/bin
+COPY ./images/run_release.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/run_release.sh
 
 # Install the hub CLI for git
@@ -100,3 +99,8 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.0/
     chmod a+x /usr/local/bin/kubectl
 
 RUN go get -u github.com/jstemmer/go-junit-report
+
+# Create a cached copy of the python test scripts so that we don't
+# need to clone the repo just to get access to them
+RUN mkdir -p /srcCache/kubeflow/testing
+COPY py /srcCache/kubeflow/testing/py

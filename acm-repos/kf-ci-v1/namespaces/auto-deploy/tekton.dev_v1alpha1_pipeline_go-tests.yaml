@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: go-tests
+  namespace: auto-deploy
+spec:
+  params:
+  - default: ./...
+    description: 'packages to test (default: ./...)'
+    name: packages
+  - default: -race -cover -v
+    description: flags to use for the test command
+    name: flags
+  - default: auto
+    description: value of module support
+    name: GO111MODULE
+  - description: GCS bucket and directory artifacts will be uploaded to. Should be
+      in the form of 'gs://'
+    name: artifacts-gcs
+    type: string
+  resources:
+  - name: source-repo
+    type: git
+  tasks:
+  - name: golang-test
+    params:
+    - name: packages
+      value: $(params.packages)
+    - name: flags
+      value: $(params.flags)
+    - name: GO111MODULE
+      value: $(params.GO111MODULE)
+    - name: artifacts-gcs
+      value: $(params.artifacts-gcs)/artifacts/junit_go-tests
+    resources:
+      inputs:
+      - name: source-repo
+        resource: source-repo
+    taskRef:
+      name: golang-test

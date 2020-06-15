@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
   name: deploy-gcp-blueprint
-  namespace: tektoncd
+  namespace: kf-ci
 spec:
   params:
   - default: kf-vbp-{uid}

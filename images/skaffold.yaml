@@ -6,11 +6,11 @@ metadata:
 build:
   artifacts:
   - image: gcr.io/kubeflow-ci/test-worker-py3
-    # Set the context to the root directory. 
+    # Set the context to the root directory of the repository.
     # All paths in the Dockerfile should be relative to this one.
-    context: .    
+    context: ..
     kaniko:
-      dockerfile: ./Dockerfile.py3
+      dockerfile: ./images/Dockerfile.py3
       buildContext:
         gcsBucket: kubeflow-ci_skaffold
       env: 
@@ -34,9 +34,10 @@ profiles:
       - op: replace
         path: /build/artifacts/0/image
         value: gcr.io/kubeflow-ci/test-worker-py3
-      - op: replace
-        path: /build/artifacts/0/kaniko/buildContext/gcsBucket
-        value: kubeflow-ci_skaffold
+      # TODO(jlewi): This no longer seems to work after upgrading skaffold.
+      #- op: replace
+      #  path: /build/artifacts/0/kaniko/buildContext/gcsBucket
+      #  value: kubeflow-ci_skaffold
       - op: replace
         path: /build/artifacts/0/kaniko/env/0/value
         value: /secret/key.json

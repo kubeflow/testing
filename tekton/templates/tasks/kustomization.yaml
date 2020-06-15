@@ -7,3 +7,4 @@ resources:
 - cleanup-kubeflow-ci.yaml
 - deploy-gcp-blueprint.yaml
 - notebook-test-task.yaml
+- go-tests.yaml

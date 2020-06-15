@@ -29,6 +29,9 @@ GROUP = "tekton.dev"
 VERSION = "v1alpha1"
 PLURAL = "pipelineruns"
 
+# Default namespace for running Tekton jobs.
+DEFAULT_TEKTON_NAMESPACE = "kf-ci"
+
 def log_status(workflow):
   """A callback to use with wait_for_workflow."""
   try:
@@ -193,7 +196,8 @@ class PipelineRunner(object):
     self.config = load_tekton_run(name, params, test_target_name, config_path,
                                   bucket, repo_owner, repo_under_test,
                                   pull_revision)
-    self.namespace = self.config["metadata"].get("namespace", "tektoncd")
+    self.namespace = self.config["metadata"].get("namespace",
+                                                 DEFAULT_TEKTON_NAMESPACE)
     self.teardown_runner = None
 
   def run(self):
@@ -218,7 +222,7 @@ class PipelineRunner(object):
   @property
   def ui_url(self):
     return ("https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/tekton/#/namespaces/"
-            "tektoncd/pipelineruns/{0}".format(self.name))
+            "{0}/pipelineruns/{1}".format(self.namespace, self.name))
 
   def wait(self):
     """Wait for the workflow to finish.
