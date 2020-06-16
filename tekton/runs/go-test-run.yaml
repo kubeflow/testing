@@ -7,8 +7,12 @@ metadata:
   namespace: kf-ci
   labels:
     pipeline: go-test
+    repo: testing
 spec:
   params:
+  # When running under prow this value will automatically be replaced 
+  # by the appropriate GCS location for the test.
+  # So the value here only matters for manual runs.
   - name: artifacts-gcs
     value: "gs://kubeflow-ci-deployment/gabrielwen-testing-2"
   serviceAccountName: kf-ci
@@ -17,9 +21,14 @@ spec:
     resourceSpec:
       type: git
       params:
+      # The URL must match the repo under test in prow otherwise you well get the
+      # error "Couldn't find repo under test"
       - name: url
         value: https://github.com/kubeflow/testing.git
+      # When running under prow revision automatically be replaced 
+      # by the appropriate GCS location for the test.
+      # So the value here only matters for manual runs.
       - name: revision
-        value: gcp_blueprints
+        value: master
   pipelineRef:
     name: go-tests

@@ -99,7 +99,7 @@ def py_func_import(py_func, kwargs):
   met = getattr(mod, create_function)
   return met(**kwargs)
 
-class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
+class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes,disable=useless-object-inheritance
   """Datastructure to represent a component to submit a workflow."""
   def __init__(self, root_dir, data):
     self.name = data.get("name")
@@ -249,7 +249,11 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # We truncate sha numbers to prevent the workflow name from being too large.
     # Workflow name should not be more than 63 characters because its used
     # as a label on the pods.
-    workflow_name = os.getenv("JOB_NAME") + "-" + w.name
+    #
+    # TODO(jlewi):This should no longer be used with Tekton. For tekton
+    # name should be based on generateName; we should use labels to
+    # provide additional metadata info like PR number.
+    workflow_name = os.getenv("JOB_NAME", "") + "-" + w.name
 
     # Skip this workflow if it is scoped to a different job type.
     if w.job_types and not job_type in w.job_types:
@@ -367,8 +371,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         pull_revision = os.getenv("PULL_BASE_SHA")
       else:
         pull_revision = "master"
+      logging.info("Adding Tekton pipeline %s", w.name)
       pipeline_runner = tekton_client.PipelineRunner(
-          workflow_name,
           w.tekton_params,
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_run,
@@ -377,13 +381,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
           repo_name,
           pull_revision)
       if w.tekton_teardown:
-        teardown_w_name = "{name}-teardown-{salt}".format(
-            name=w.name,
-            salt=uuid.uuid4().hex[0:9])
-        logging.info("Appending teardown process %s for %s", teardown_w_name,
-                     workflow_name)
+        logging.info("Appending teardown process for Tekton pipeline %s",
+                     w.name)
         pipeline_runner.append_teardown(tekton_client.PipelineRunner(
-          teardown_w_name,
           w.tekton_teardown_params,
           w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
           w.tekton_teardown,

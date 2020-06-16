@@ -7,6 +7,7 @@ import argparse
 import logging
 import json
 import os
+import six
 import time
 from google.cloud import storage  # pylint: disable=no-name-in-module
 from kubeflow.testing import test_util
@@ -53,7 +54,12 @@ def create_started(ui_urls):
   if PULL_REFS:
     started["pull"] = PULL_REFS
 
-  for n, v in ui_urls.iteritems():
+  if six.PY3:
+    items = ui_urls.items()
+  else:
+    items = ui_urls.iteritems()
+
+  for n, v in items:
     started["metadata"][n + "-ui"] = v
   return json.dumps(started)
 
