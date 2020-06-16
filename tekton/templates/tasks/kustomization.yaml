@@ -6,5 +6,7 @@ kind: Kustomization
 resources:
 - cleanup-kubeflow-ci.yaml
 - deploy-gcp-blueprint.yaml
-- notebook-test-task.yaml
+- gcp-iap-endpoint-ready-task.yaml
 - go-tests.yaml
+- kf-ready-task.yaml
+- notebook-test-task.yaml

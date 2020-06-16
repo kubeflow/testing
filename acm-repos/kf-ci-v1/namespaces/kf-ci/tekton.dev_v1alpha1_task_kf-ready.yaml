@@ -1,0 +1,80 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  annotations:
+    sidecar.istio.io/inject: "false"
+  name: kf-ready
+  namespace: kf-ci
+spec:
+  inputs:
+    params:
+    - description: Cluster pattern to select the KF cluster to run on Default to be
+        from master branch.
+      name: testing-cluster-pattern
+      type: string
+    - description: Location to search for test clusters e.g. us-central1 or us-central1-f
+      name: testing-cluster-location
+      type: string
+    - default: kf-ready
+      description: Name to give the test results file.
+      name: test-name
+      type: string
+    - description: GCS bucket and directory artifacts will be uploaded to. Should
+        be in the form of 'gs://'
+      name: artifacts-gcs
+      type: string
+    - default: gcr.io/kubeflow-ci/test-worker-py3:4b85d9b-dirty@sha256:8d71b7db1830f6578af90c7c9b409e3248f8d3a4a8d938017ebe2ae5e5e2747b
+      description: The docker image to run the tests in. Should contain a version
+        of kubeflow/testing/py in /srcCache that we want to use.
+      name: test-image
+      type: string
+    resources:
+    - name: kfctl-repo
+      type: git
+  steps:
+  - args:
+    - -m
+    - kubeflow.testing.get_kf_testing_cluster
+    - --base=$(inputs.params.testing-cluster-pattern)
+    - --location=$(inputs.params.testing-cluster-location)
+    - get-credentials
+    command:
+    - python
+    env:
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.kfctl-repo.name)/py:/srcCache/kubeflow/testing/py
+    image: $(inputs.params.test-image)
+    name: get-credential
+  - env:
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.kfctl-repo.name)/py:/srcCache/kubeflow/testing/py
+    image: $(inputs.params.test-image)
+    name: kf-ready
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      # I think -s mean stdout/stderr will print out to aid in debugging.
+      # Failures still appear to be captured and stored in the junit file.
+      # Test suite name needs to be unique based on parameters
+      pytest kf_is_ready_test.py \
+        -s \
+        --log-cli-level=info \
+        --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
+        --junitxml=/workspace/artifacts/junit_kf-ready.xml \
+        --timeout=180 \
+        -o junit_suite_name=test_kf_ready_blueprint
+      echo test finished.
+    workingDir: /workspace/$(inputs.resources.kfctl-repo.name)/py/kubeflow/kfctl/testing/pytests
+  - args:
+    - -m
+    - kubeflow.testing.tekton_client
+    - junit-parse-and-upload
+    - --artifacts_dir=/workspace/artifacts
+    - --output_gcs=$(inputs.params.artifacts-gcs)
+    command:
+    - python
+    env:
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.kfctl-repo.name)/py:/srcCache/kubeflow/testing/py
+    image: $(inputs.params.test-image)
+    name: copy-artifacts

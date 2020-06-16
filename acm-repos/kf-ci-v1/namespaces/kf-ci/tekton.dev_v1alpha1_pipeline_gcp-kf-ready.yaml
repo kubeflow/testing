@@ -1,0 +1,50 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: gcp-kf-ready
+  namespace: kf-ci
+spec:
+  params:
+  - description: Cluster pattern to select the KF cluster to run on Default to be
+      from master branch.
+    name: testing-cluster-pattern
+    type: string
+  - description: Location to search for test clusters e.g. us-central1 or us-central1-f
+    name: testing-cluster-location
+    type: string
+  - description: GCS bucket and directory artifacts will be uploaded to. Should be
+      in the form of 'gs://'
+    name: artifacts-gcs
+    type: string
+  resources:
+  - name: kfctl-repo
+    type: git
+  tasks:
+  - name: kf-ready
+    params:
+    - name: testing-cluster-location
+      value: $(params.testing-cluster-location)
+    - name: testing-cluster-pattern
+      value: $(params.testing-cluster-pattern)
+    - name: artifacts-gcs
+      value: $(params.artifacts-gcs)/artifacts/junit_kf-ready
+    resources:
+      inputs:
+      - name: kfctl-repo
+        resource: kfctl-repo
+    taskRef:
+      name: kf-ready
+  - name: iap-ready
+    params:
+    - name: testing-cluster-location
+      value: $(params.testing-cluster-location)
+    - name: testing-cluster-pattern
+      value: $(params.testing-cluster-pattern)
+    - name: artifacts-gcs
+      value: $(params.artifacts-gcs)/artifacts/junit_iap-ready
+    resources:
+      inputs:
+      - name: kfctl-repo
+        resource: kfctl-repo
+    taskRef:
+      name: iap-ready
