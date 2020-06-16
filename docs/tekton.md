@@ -33,8 +33,8 @@ To trigger the tests add an entry to your prow_config.yaml to trigger the test
 ```
       tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
       tekton_params:
-        name: testing-cluster-pattern
-        value: 'kf-v1-(?!n\d\d)'   
+        - name: testing-cluster-pattern
+          value: kf-v1-(?!n\d\d)   
       name: tekton-v1
       include_dirs:
         - py/*
