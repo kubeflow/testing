@@ -31,7 +31,7 @@ specifying the Git repo to be tested. In presubmits and postsubmits [run_e2e_wor
 To trigger the tests add an entry to your prow_config.yaml to trigger the test
 
 ```
-      tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
+      tekton_run: kubeflow/testing/tekton/runs/nb-test-run.yaml
       tekton_params:
         - name: testing-cluster-pattern
           value: kf-v1-(?!n\d\d)   
