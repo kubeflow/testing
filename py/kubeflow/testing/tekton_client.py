@@ -343,58 +343,58 @@ class TektonRunner(object): # pylint: disable=useless-object-inheritance
       flattened.extend(r)
     return flattened
 
-def junit_parse_and_upload(artifacts_dir, output_gcs):
-  """Parse all JUNIT xml files and upload to GCS.
-  Args:
-    artifacts_dir: The directory having JUNIT files.
-    output_gcs: GCS location to upload artifacts to.
-  """
-  logging.info("Walking through directory: %s", artifacts_dir)
-  junit_pattern = re.compile(r"junit.*\.xml")
-  failed_num = 0
-  found_xml = False
-  for root, _, files in os.walk(artifacts_dir):
-    for filename in files:
-      if not junit_pattern.match(filename):
-        continue
-      found_xml = True
-      logging.info("Parsing JUNIT: %s", filename)
-      tree = ET.parse(os.path.join(root, filename))
-      root = tree.getroot()
-      failed_num = int(root.attrib.get(
-          "errors", "0")) + int(root.attrib.get("failures", "0"))
-
-      for testcase in root:
-        testname = testcase.attrib.get("name", "unknown-test")
-        has_failure = False
-        for failure in testcase:
-          has_failure = True
-          logging.error("%s has failure: %s",
-                        testname,
-                        failure.attrib.get("message", "message not found"))
-        if not has_failure:
-          logging.info("%s has passed all the tests.", testname)
-
-  logging.info("Uploading %s to GCS %s", artifacts_dir, output_gcs)
-  util.maybe_activate_service_account()
-  util.run(["gsutil", "-m", "rsync", "-r", artifacts_dir, output_gcs])
-
-  if not found_xml:
-    raise ValueError("No JUNIT artifats found in " + artifacts_dir)
-  if failed_num:
-    raise ValueError(
-        "This task is failed with {0} errors/failures.".format(failed_num))
-
 class CLI(object): # pylint: disable=useless-object-inheritance
   @staticmethod
   def junit_parse_and_upload(artifacts_dir, output_gcs):
     """Parse the junit file and upload it to GCS.
+
+    The code parses all junit files and if there is any test failures
+    raises an exception. The purpose of this is to convert test failures
+    into task and thus pipeline failures. run_e2e_workflow.py will
+    then report the GitHub status check as failed because the pipeline
+    didn't run successfully.
 
     Args:
       artifacts_dir: Directory containing artifacts
       outputs_gcs: GCS path to upload to. If empty no artifacts will
         be uploaded.
     """
+
+    logging.info("Walking through directory: %s", artifacts_dir)
+    junit_pattern = re.compile(r"junit.*\.xml")
+    failed_num = 0
+    found_xml = False
+    for root, _, files in os.walk(artifacts_dir):
+      for filename in files:
+        if not junit_pattern.match(filename):
+          continue
+        found_xml = True
+        logging.info("Parsing JUNIT: %s", filename)
+        tree = ET.parse(os.path.join(root, filename))
+        root = tree.getroot()
+        failed_num = int(root.attrib.get(
+            "errors", "0")) + int(root.attrib.get("failures", "0"))
+
+        for testcase in root:
+          testname = testcase.attrib.get("name", "unknown-test")
+          has_failure = False
+          for failure in testcase:
+            has_failure = True
+            logging.error("%s has failure: %s",
+                          testname,
+                          failure.attrib.get("message", "message not found"))
+          if not has_failure:
+            logging.info("%s has passed all the tests.", testname)
+
+    logging.info("Uploading %s to GCS %s", artifacts_dir, output_gcs)
+    util.maybe_activate_service_account()
+    util.run(["gsutil", "-m", "rsync", "-r", artifacts_dir, output_gcs])
+
+    if not found_xml:
+      raise ValueError("No JUNIT artifats found in " + artifacts_dir)
+    if failed_num:
+      raise ValueError(
+          "This task is failed with {0} errors/failures.".format(failed_num))
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
