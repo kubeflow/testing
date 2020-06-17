@@ -1,0 +1,1 @@
+{"builds":[{"imageName":"gcr.io/kubeflow-releasing/update_kf_apps","tag":"gcr.io/kubeflow-releasing/update_kf_apps:060b1ab@sha256:677d38b9931547e434fb1951ec2b378672747a4a0af28726d8ddd4160d6d175a"}]}

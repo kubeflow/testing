@@ -1,9 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
-- digest: sha256:3c9360314639724f4b5e1b675673186b9bad726852b2bc1d5bd14951b6ffd26c
+- digest: sha256:677d38b9931547e434fb1951ec2b378672747a4a0af28726d8ddd4160d6d175a
   name: gcr.io/kubeflow-releasing/update_kf_apps
-  newName: gcr.io/kubeflow-releasing/update_kf_apps:043da55-dirty
+  newName: gcr.io/kubeflow-releasing/update_kf_apps:060b1ab
 resources:
 - service-account.yaml
 - deployment.yaml
@@ -13,7 +13,6 @@ resources:
 namespace: kf-releasing
 # Create a configMap containing the template for the pipeline run
 configMapGenerator:
-- name: pipelinerun-template
-  files:
-    # key will be name of the file
-    - ./config/app-pipeline.template.yaml
+- files:
+  - ./config/app-pipeline.template.yaml
+  name: pipelinerun-template

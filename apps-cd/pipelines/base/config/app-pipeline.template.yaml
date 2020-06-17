@@ -18,7 +18,7 @@ spec:
   - name: "src_image_url"
     value: "gcr.io/kubeflow-images-public/profile-controller"
   - name: "container_image"
-    value: "gcr.io/kubeflow-releasing/update_kf_apps:d4b8243@sha256:656a4ad689b17715a287f09772cc48444a2190c353c5b84828db4fbf4ede4acc"
+    value: "gcr.io/kubeflow-releasing/update_kf_apps:060b1ab@sha256:677d38b9931547e434fb1951ec2b378672747a4a0af28726d8ddd4160d6d175a"
   resources:
   # The git resources that will be used
   - name: app-repo

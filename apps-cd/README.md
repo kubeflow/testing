@@ -10,6 +10,13 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+
+## Quick Links
+
+* [Tekton Dashboard for CD runs](https://kf-releasing-0-6-2.endpoints.kubeflow-releasing.cloud.goog/tekton/#/pipelineruns)
+* [Stack Driver Logs For Reconciler](https://console.cloud.google.com/logs/viewer?project=kubeflow-releasing&folder&organizationId&minLogLevel=0&expandAll=false&&customFacets=&limitCustomFacetWidth=true&interval=PT1H&resource=k8s_container%2Fnamespace_name%2Fkf-releasing&advancedFilter=resource.type%3D%22k8s_container%22%0Alabels.%22k8s-pod%2Fapp%22%20%3D%20%22update-kfapps%22%0A)
+
+
 ## Kubeflow CD with tektoncd pipelines
 
 This directory contains Tekton pipelines intended to rebuild Kubeflow docker images 
@@ -142,6 +149,28 @@ This is a Kubeflow cluster (v0.6.2) and we rely on that to configure certain thi
    kustomize build pipelines/base/ | kubectl apply -f -
    ```
 
+## Pushing Production
+
+1. Build a new image
+
+   ```
+   skaffold build -p prod --kube-context=kf-releasing -v info --file-output=latest_image.json
+   ```
+
+1. Set the image to the newly built image which will be in latest_image.json
+
+   ```
+   cd pipelines/base
+   kustomize edit set image gcr.io/kubeflow-releasing/update_kf_apps=<NEW IMAGE>
+
+   ```
+
+1. Deploy it
+
+   ```
+   kustomize build pipelines/overlays/prod | kubectl --context=kf-releasing apply -f -
+
+   ```
 ## Developer Guide
 
 You can use skaffold to build a docker image and auto update the deployment running `update_kf_apps.py`
@@ -154,6 +183,9 @@ You can use skaffold to build a docker image and auto update the deployment runn
     * You can change this to point to your fork of kubeflow/testing to test your changes
 * You can also deploy any changes to tekton resources to that namespace before trying out
   in prod. 
+
+* **Warning** If you don't delete the dev instance the PRs might end up being created by the dev instance and not
+  the prod instance
 
 1. Run skaffold
 
