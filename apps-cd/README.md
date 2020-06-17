@@ -10,6 +10,13 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+
+## Quick Links
+
+* [Tekton Dashboard for CD runs](https://kf-releasing-0-6-2.endpoints.kubeflow-releasing.cloud.goog/tekton/#/pipelineruns)
+* [Stack Driver Logs For Reconciler](https://console.cloud.google.com/logs/viewer?project=kubeflow-releasing&folder&organizationId&minLogLevel=0&expandAll=false&&customFacets=&limitCustomFacetWidth=true&interval=PT1H&resource=k8s_container%2Fnamespace_name%2Fkf-releasing&advancedFilter=resource.type%3D%22k8s_container%22%0Alabels.%22k8s-pod%2Fapp%22%20%3D%20%22update-kfapps%22%0A)
+
+
 ## Kubeflow CD with tektoncd pipelines
 
 This directory contains Tekton pipelines intended to rebuild Kubeflow docker images 
