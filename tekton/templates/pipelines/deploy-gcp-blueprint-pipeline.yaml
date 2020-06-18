@@ -10,11 +10,11 @@ spec:
     default: "kf-vbp-{uid}"
   - name: management-cluster-name
     type: string
-    description: The name of the management cluster. 
+    description: The name of the management cluster.
     default: "kf-ci-management"
   - name: project
     type: string
-    description: The project to deploy into 
+    description: The project to deploy into
     default: "kubeflow-ci-deployment"
   resources:
   - name: testing-repo
@@ -40,4 +40,4 @@ spec:
         resource: testing-repo
     taskRef:
       name: deploy-gcp-blueprint
-      kind: namespaced  
+      kind: namespaced
