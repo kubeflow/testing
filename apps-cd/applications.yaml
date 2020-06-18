@@ -228,3 +228,40 @@ versions:
               value: v1.1-branch
             - name: url
               value: git@github.com:kubeflow/tf-operator.git
+  # Define a v1-1 release
+  - name: v1-1
+    # A tag to prefix image names with
+    tag: "v1.1.0"
+    repos:
+      - name: kubeflow
+        resourceSpec:
+          type: git
+          params:
+            - name: revision
+              value: v1.1-branch
+            - name: url
+              value: git@github.com:kubeflow/kubeflow.git
+      - name: manifests
+        resourceSpec:
+          type: git
+          params:
+            - name: revision
+              value: v1.1-branch
+            - name: url
+              value: git@github.com:kubeflow/manifests.git
+      - name: pytorch-operator
+        resourceSpec:
+          type: git
+          params:
+            - name: revision
+              value: v1.1-branch
+            - name: url
+              value: git@github.com:kubeflow/pytorch-operator.git
+      - name: tf-operator
+        resourceSpec:
+          type: git
+          params:
+            - name: revision
+              value: v1.1-branch
+            - name: url
+              value: git@github.com:kubeflow/tf-operator.git
