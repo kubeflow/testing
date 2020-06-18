@@ -26,6 +26,17 @@ applications:
     - name: "src_image_url"
       value: "gcr.io/kubeflow-images-public/centraldashboard"
     sourceRepo: kubeflow
+  - name: centraldashboard-v3
+    params:  
+    - name: "path_to_context"
+      value: "components/centraldashboard"
+    - name: "path_to_docker_file"
+      value: "components/centraldashboard/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "common/centraldashboard/base_v3"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/centraldashboard"
+    sourceRepo: kubeflow
   - name: kfam
     params:  
     - name: "path_to_context"
@@ -34,6 +45,17 @@ applications:
       value: "components/access-management/Dockerfile"
     - name: "path_to_manifests_dir"
       value: "profiles/base"
+    - name: "src_image_url"
+      value: "gcr.io/kubeflow-images-public/kfam"
+    sourceRepo: kubeflow
+  - name: kfam-v3
+    params:  
+    - name: "path_to_context"
+      value: "components/access-management"
+    - name: "path_to_docker_file"
+      value: "components/access-management/Dockerfile"
+    - name: "path_to_manifests_dir"
+      value: "profiles/base_v3"
     - name: "src_image_url"
       value: "gcr.io/kubeflow-images-public/kfam"
     sourceRepo: kubeflow
