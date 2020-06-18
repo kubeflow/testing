@@ -169,7 +169,6 @@ This is a Kubeflow cluster (v0.6.2) and we rely on that to configure certain thi
 
    ```
    kustomize build pipelines/overlays/prod | kubectl --context=kf-releasing apply -f -
-
    ```
 ## Developer Guide
 
