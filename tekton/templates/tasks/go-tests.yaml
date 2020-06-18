@@ -33,7 +33,7 @@ spec:
 
     - name: test-image
       type: string
-      default: gcr.io/kubeflow-ci/test-worker-py3@sha256:83c6a930354c05261f75aff12cdc3ddadd452a5eaa4727ea065ae6737877be1d
+      default: gcr.io/kubeflow-ci/test-worker-py3:4b85d9b-dirty@sha256:8d71b7db1830f6578af90c7c9b409e3248f8d3a4a8d938017ebe2ae5e5e2747b
       description: The docker image to run the tests in
 
     resources:
