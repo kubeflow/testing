@@ -451,7 +451,7 @@ class UpdateKfApps:
           all_pipelines.append(run_file)
           if needs_update:
             pipelines_to_run.append(run_file)
-        except (ValueError, LookupError) as e:
+        except (FileNotFoundError, LookupError, ValueError) as e:
           failures.append(pair)
           extra = {
             "app": app['name'],
