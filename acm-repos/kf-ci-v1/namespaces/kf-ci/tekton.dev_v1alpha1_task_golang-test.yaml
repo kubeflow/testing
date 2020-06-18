@@ -23,7 +23,7 @@ spec:
         be in the form of 'gs://'
       name: artifacts-gcs
       type: string
-    - default: gcr.io/kubeflow-ci/test-worker-py3@sha256:2213a6469f83b0a9d3c6a2175b7b64d7c7a16b89dd409b66eef8120f92d00b7e
+    - default: gcr.io/kubeflow-ci/test-worker-py3@sha256:83c6a930354c05261f75aff12cdc3ddadd452a5eaa4727ea065ae6737877be1d
       description: The docker image to run the tests in
       name: test-image
       type: string
@@ -52,9 +52,9 @@ spec:
   - args:
     - -m
     - kubeflow.testing.tekton_client
-    - junit_parse_and_upload
-    - --artifacts_dir=/workspace/artifacts
-    - --output_gcs=$(inputs.params.artifacts-gcs)
+    - junit-parse-and-upload
+    - --artifacts-dir=/workspace/artifacts
+    - --output-gcs=$(inputs.params.artifacts-gcs)
     command:
     - python
     env:

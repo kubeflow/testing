@@ -1,0 +1,99 @@
+# Verify that the IAP endpoint is accessible.
+
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: iap-ready  
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  inputs:
+    params:    
+    - name: testing-cluster-pattern
+      type: string
+      description:
+        Cluster pattern to select the KF cluster to run on
+        Default to be from master branch.
+    - name: testing-cluster-location
+      type: string
+      description:
+        Location to search for test clusters e.g. us-central1 or us-central1-f
+
+    #**********************************************************
+    # Kubeflow test parameters
+    #**********************************************************
+    - name: test-name
+      type: string
+      default: gcp-iap-ready
+      description:
+        Name to give the test results file.
+    - name: artifacts-gcs
+      type: string
+      description:
+        GCS bucket and directory artifacts will be uploaded to.
+        Should be in the form of 'gs://'
+
+    - name: test-image
+      type: string
+      default: gcr.io/kubeflow-ci/test-worker-py3:4b85d9b-dirty@sha256:8d71b7db1830f6578af90c7c9b409e3248f8d3a4a8d938017ebe2ae5e5e2747b
+      description: The docker image to run the tests in
+    
+    # TODO(jlewi): Lets not use targetPath. Instead lets rely on Tekton checking repos
+    # out to /workspace/$(resource.name)
+    resources:     
+    - name: kfctl-repo  
+      type: git
+  steps:
+  - name: get-credential
+    image: $(inputs.params.test-image)
+    command:
+    - python
+    args:
+    - -m
+    - kubeflow.testing.get_kf_testing_cluster
+    - --base=$(inputs.params.testing-cluster-pattern)
+    - --location=$(inputs.params.testing-cluster-location)
+    - get-credentials
+    env:
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.kfctl-repo.name)/py:/srcCache/kubeflow/testing/py
+  - name: endpoint-ready
+    image: $(inputs.params.test-image)
+    # Need to use script as workaround not to error out in tests.
+    # If any of the steps returns non-zero codes, subsequent steps will not be run.
+    #
+    # N.B: beware trailing whitespace after "\" it will mess up pytest
+    # N.B: Timeout is based on assumption that we are running against auto-deployments
+    # and things should already be ready
+    script: |
+        #!/usr/bin/env bash
+        set -x
+        # Test suite name needs to be unique based on parameters
+        pytest endpoint_ready_test.py \
+          -s \
+          --log-cli-level=info \
+          --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
+          --junitxml=/workspace/artifacts/junit_endpoint-is-ready.xml \
+          --timeout=180 \
+          -o junit_suite_name=test_endpoint_is_ready_blueprint
+        echo test finished.
+    workingDir: /workspace/$(inputs.resources.kfctl-repo.name)/py/kubeflow/kfctl/testing/pytests
+    env:
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.kfctl-repo.name)/py:/srcCache/kubeflow/testing/py
+  # This step is designed to be generic: given the output directory, it will try to
+  # parse all the XML files with prefix of junit and error out if failures been found.
+  - name: copy-artifacts
+    image: $(inputs.params.test-image)
+    command:
+    - python
+    args:
+    - -m
+    - kubeflow.testing.tekton_client
+    - junit-parse-and-upload
+    - --artifacts_dir=/workspace/artifacts
+    - --output_gcs=$(inputs.params.artifacts-gcs)
+    env:
+    # N.B. This uses the version of kubeflow/testing cached in the docker image.
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.kfctl-repo.name)/py:/srcCache/kubeflow/testing/py

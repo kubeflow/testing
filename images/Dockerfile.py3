@@ -15,10 +15,14 @@ RUN python3.8 -m pip install \
     google-cloud \
     google-cloud-storage \
     junit-xml \
-    kubernetes \
+    # See https://github.com/kubeflow/gcp-blueprints/issues/52#issuecomment-645446088
+    # our libs seem to break with 11.0.0
+    kubernetes==9.0.0 \
     lint \
     oauth2client \
-    pytest \
+    pytest==5.4 \
+    pytest-timeout==1.4 \
+    python-dateutil \
     retrying \
     watchdog
 
