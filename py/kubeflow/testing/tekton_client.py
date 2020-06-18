@@ -126,7 +126,7 @@ def get_namespaced_custom_object_with_retries(namespace, name):
 # and GCS path when running multiple workflows from the same prow test.
 # Can this be done in the Pipeline and Task resources by appending
 # unique subdirectories to the paths?
-def load_tekton_run(params, test_target_name, tekton_run,
+def load_tekton_run(params, test_target_name, tekton_run, # pylint: disable=too-many-branches
                     bucket, repo_owner, repo_under_test, pull_revision):
   """Load Tekton configs and override information from Prow.
   Args:
@@ -179,22 +179,29 @@ def load_tekton_run(params, test_target_name, tekton_run,
       {"name": "url", "value": repo_url},
       {"name": "revision", "value": pull_revision},
   ]
-  foundRepo = False
-  for resource in config["spec"].get("resources", []):
-    if resource.get("resourceSpec", {}).get("type", "") != "git":
-      pass
-    for param in resource.get("resourceSpec", {}).get("params", []):
-      if param.get("name", "") != "url":
-        continue
-      if param.get("value", "") == repo_url:
-        foundRepo = True
-        resource["resourceSpec"]["params"] = replacing_param
-        break
-  if not foundRepo:
-    raise ValueError(("The TektonPipelineRun is missing a pipeline git "
-                      "resource that matches the repo being tested by "
-                      "prow. The pipeline parameters must include "
-                      "a git resource whose URL is {0}".format(repo_url)))
+
+  job_type = os.getenv("JOB_TYPE", "").lower()
+
+  if job_type in ["presubmit", "postsubmit"]:
+    logging.info("Job is type %s; looking for url %s", job_type, repo_url)
+    foundRepo = False
+    for resource in config["spec"].get("resources", []):
+      if resource.get("resourceSpec", {}).get("type", "") != "git":
+        pass
+      for param in resource.get("resourceSpec", {}).get("params", []):
+        if param.get("name", "") != "url":
+          continue
+        if param.get("value", "") == repo_url:
+          foundRepo = True
+          resource["resourceSpec"]["params"] = replacing_param
+          break
+    if not foundRepo:
+      raise ValueError(("The TektonPipelineRun is missing a pipeline git "
+                        "resource that matches the repo being tested by "
+                        "prow. The pipeline parameters must include "
+                        "a git resource whose URL is {0}".format(repo_url)))
+  else:
+    logging.info("Job is type %s; not looking for repo", job_type)
 
   return config
 

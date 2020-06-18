@@ -68,6 +68,7 @@ from kubeflow.testing import util
 import uuid
 import subprocess
 import sys
+import traceback
 import yaml
 
 # The name of the command line argument for workflows for the var
@@ -372,14 +373,20 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       else:
         pull_revision = "master"
       logging.info("Adding Tekton pipeline %s", w.name)
-      pipeline_runner = tekton_client.PipelineRunner(
-          w.tekton_params,
-          w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
-          w.tekton_run,
-          args.bucket,
-          repo_owner,
-          repo_name,
-          pull_revision)
+      try:
+        pipeline_runner = tekton_client.PipelineRunner(
+            w.tekton_params,
+            w.kwargs.get(TEST_TARGET_ARG_NAME, w.name),
+            w.tekton_run,
+            args.bucket,
+            repo_owner,
+            repo_name,
+            pull_revision)
+      except (FileNotFoundError, ValueError) as e:
+        logging.error("Error when starting Tekton workflow:%s\n Exception %s;\n"
+                      "stacktrace:\n%s",
+                      w.tekton_run, e, traceback.format_exc())
+        continue
       if w.tekton_teardown:
         logging.info("Appending teardown process for Tekton pipeline %s",
                      w.name)
