@@ -23,7 +23,7 @@ spec:
         be in the form of 'gs://'
       name: artifacts-gcs
       type: string
-    - default: gcr.io/kubeflow-ci/test-worker-py3:6f0d932-dirty@sha256:06ebe5412d638e3e51bdd792aecbafdc4ee1e7146ff367a7be346cd726738cbb
+    - default: gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea
       description: The docker image to run the tests in. Should contain a version
         of kubeflow/testing/py in /srcCache that we want to use.
       name: test-image

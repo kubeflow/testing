@@ -5,17 +5,10 @@ that we use to run a bunch of our test and release scripts.
 
 ## To update the test worker images used in the Tekton tasks
 
-1. Build a new image.
-
-   ```
-   skaffold build -p testing --kube-context=kubeflow-testing -v info --file-output=latest_image.json
-   ```
-1. Set the `kpt setter`
-
-   ```
-   kpt cfg set ./tekton test-image ${IMAGE}
-
-   ```
+```
+cd ..
+make update-worker-image
+```
 
 ## To build a release image
 

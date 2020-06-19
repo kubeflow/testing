@@ -1,0 +1,18 @@
+# Dockerfile for building docker images to run notebooks
+# in.
+ARG BASE_IMAGE=gcr.io/kubeflow-images-public/tensorflow-1.15.2-notebook-cpu:1.0.0
+
+FROM $BASE_IMAGE
+
+USER root
+
+RUN pip3 install -Iv papermill==2.0.0 
+RUN pip3 install -U nbconvert 
+RUN pip3 install -U nbformat
+RUN pip3 install -U retrying
+
+USER jovyan
+
+# Copy any source code into /src
+COPY . /src
+

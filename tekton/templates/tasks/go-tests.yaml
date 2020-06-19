@@ -29,7 +29,7 @@ spec:
         be in the form of 'gs://'
     - name: test-image
       type: string
-      default: gcr.io/kubeflow-ci/test-worker-py3:6f0d932-dirty@sha256:06ebe5412d638e3e51bdd792aecbafdc4ee1e7146ff367a7be346cd726738cbb # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:6f0d932-dirty@sha256:06ebe5412d638e3e51bdd792aecbafdc4ee1e7146ff367a7be346cd726738cbb"}]}}
+      default: gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea"}]}}
       description: The docker image to run the tests in
     resources:
     - name: source-repo

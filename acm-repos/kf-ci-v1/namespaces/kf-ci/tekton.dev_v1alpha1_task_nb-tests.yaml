@@ -8,7 +8,8 @@ metadata:
 spec:
   inputs:
     params:
-    - description: Testing notebook location. Should be in the form of {REPO_OWNER}/{REPO}/path/to/notebook.ipynb
+    - description: Path to the notebook to run. This should be the relative path relative
+        to the root of the repository where the notebook lives.
       name: notebook-path
       type: string
     - description: Cluster pattern to run the notebook test. Default to be from master
@@ -18,32 +19,27 @@ spec:
     - description: Location to search for test clusters e.g. us-central1 or us-central1-f
       name: testing-cluster-location
       type: string
+    - description: This should be the bucket that the rendered notebook will be written
+        to. This should be a GCS path that is accessible from the KF cluster where
+        the notebook runs. It will be copied to artifacts-gcs
+      name: notebook-output
+      type: string
     - description: GCS bucket and directory artifacts will be uploaded to. Should
         be in the form of 'gs://'
       name: artifacts-gcs
-      type: string
-    - description: Relative path to the GCS artifacts will be uploaded to. Base path
-        is artifacts-gcs so the actual GCS blob will be artifacts-gcs/junit-path
-      name: junit-path
       type: string
     - default: manual-testing
       description: Test targe name, used to group test results in JUNIT.
       name: test-target-name
       type: string
-    - description: Directory to write outputs to in local FS.
-      name: output-workspace
-      type: string
     - default: default-profile
       description: The namespace to run the notebook in
       name: nb-namespace
       type: string
-    resources:
-    - name: examples-repo
-      targetPath: src/kubeflow/examples
-      type: git
-    - name: kf-testing-repo
-      targetPath: src/kubeflow/testing
-      type: git
+    - default: gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea
+      description: The docker image to run the tests in
+      name: test-image
+      type: string
   steps:
   - args:
     - -m
@@ -52,62 +48,49 @@ spec:
     - --location=$(inputs.params.testing-cluster-location)
     - get-credentials
     command:
-    - python3
+    - python
     env:
     - name: PYTHONPATH
-      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
-    - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/gcp-credentials/key.json
-    image: gcr.io/kubeflow-ci/test-worker:latest
+      value: /srcCache/kubeflow/testing/py
+    image: $(inputs.params.test-image)
     name: get-credential
-    volumeMounts:
-    - mountPath: /secret/gcp-credentials
-      name: gcp-credentials
-      readOnly: true
   - env:
     - name: PYTHONPATH
-      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
-    - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/gcp-credentials/key.json
-    image: gcr.io/kubeflow-ci/test-worker:latest
+      value: /srcCache/kubeflow/testing/py
+    image: $(inputs.params.test-image)
     name: run-notebook
     script: |
       #!/usr/bin/env bash
+      set -x
+      mkdir -p /workspace/artifacts
       pytest run_notebook_test.py \
         --log-cli-level=info \
         --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
         --timeout=1800 \
-        --junitxml=$(inputs.params.junit-path) \
-        --notebook_path=$(inputs.params.notebook-path) \
+        --junitxml=/workspace/artifacts/junit_notebook.xml \
+        --notebook_path=/src/notebook-repo/$(inputs.params.notebook-path) \
         --test-target-name=$(inputs.params.test-target-name) \
-        --artifacts-gcs=$(inputs.params.artifacts-gcs) \
+        --artifacts-gcs=$(inputs.params.notebook-output) \
+        --image_file=$(inputs.params.artifacts-gcs)/image.yaml
         --namespace=$(inputs.params.nb-namespace)
-      || echo test finished.
-    volumeMounts:
-    - mountPath: /secret/gcp-credentials
-      name: gcp-credentials
-      readOnly: true
-    workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
+      echo test finished
+    workingDir: /srcCache/kubeflow/testing/py/kubeflow/testing/notebook_tests
+  - image: $(inputs.params.test-image)
+    name: copy-buckets
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      gsutil cp -r $(inputs.params.output)/ $(inputs.params.artifacts-gcs)
   - args:
     - -m
     - kubeflow.testing.tekton_client
     - junit_parse_and_upload
-    - --artifacts_dir=$(inputs.params.output-workspace)
+    - --artifacts_dir=/workspace/artifacts
     - --output_gcs=$(inputs.params.artifacts-gcs)
     command:
     - python
     env:
     - name: PYTHONPATH
-      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
-    - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/gcp-credentials/key.json
-    image: gcr.io/kubeflow-ci/test-worker:latest
+      value: /src/kubeflow/testing/py
+    image: $(inputs.params.test-image)
     name: copy-artifacts
-    volumeMounts:
-    - mountPath: /secret/gcp-credentials
-      name: gcp-credentials
-      readOnly: true
-  volumes:
-  - name: gcp-credentials
-    secret:
-      secretName: gcp-credentials

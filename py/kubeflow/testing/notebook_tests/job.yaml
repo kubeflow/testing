@@ -1,0 +1,37 @@
+# A batch job to run a notebook using papermill.
+# The YAML is modified by nb_test_util.py to generate a Job specific
+# to a notebook.
+#
+# TODO(jlewi): We should switch to using Tekton
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nb-test
+  labels:
+    app: nb-test
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      annotations:
+        # TODO(jlewi): Do we really want to disable sidecar injection
+        # in the test? Would it be better to use istio to mimic what happens
+        # in notebooks?
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: nb-test
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 0
+      containers:
+      - env:
+        - name: PYTHONPATH
+          value: /src/kubeflow/testing/py/
+        name: executing-notebooks
+        image: execute-image
+        # Command will get overwritten by nb_test_util.py
+        command: ["python3", "-m",
+                  "kubeflow.testing.notebook_tests.execute_notebook",
+                  "test", "/src/kubeflow/examples/mnist/mnist_gcp.ipynb"]
+      serviceAccount: default-editor

@@ -21,12 +21,9 @@ spec:
     resourceSpec:
       type: git
       params:
-      - # error "Couldn't find repo under test"
-        name: url # The URL must match the repo under test in prow otherwise you well get the
+      - name: url # The URL must match the repo under test in prow otherwise you well get the
         value: https://github.com/kubeflow/testing.git
-      - # by the appropriate GCS location for the test.
-        # So the value here only matters for manual runs.
-        name: revision # When running under prow revision automatically be replaced 
+      - name: revision # When running under prow revision automatically be replaced 
         value: master
   pipelineRef:
     name: go-tests

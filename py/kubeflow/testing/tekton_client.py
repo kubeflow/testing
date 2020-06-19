@@ -7,6 +7,7 @@ import fire
 import os
 from multiprocessing import Pool
 import re
+import tempfile
 import traceback
 from xml.etree import ElementTree as ET
 import yaml
@@ -352,6 +353,25 @@ class TektonRunner(object): # pylint: disable=useless-object-inheritance
 
 class CLI(object): # pylint: disable=useless-object-inheritance
   @staticmethod
+  def upload(artifacts_dir, output_gcs):
+    """Upload directory to GCS.
+
+    The code parses all junit files and if there is any test failures
+    raises an exception. The purpose of this is to convert test failures
+    into task and thus pipeline failures. run_e2e_workflow.py will
+    then report the GitHub status check as failed because the pipeline
+    didn't run successfully.
+
+    Args:
+      artifacts_dir: Directory containing artifacts
+      outputs_gcs: GCS path to upload to. If empty no artifacts will
+        be uploaded.
+    """
+    logging.info("Uploading %s to GCS %s", artifacts_dir, output_gcs)
+    util.maybe_activate_service_account()
+    util.run(["gsutil", "-m", "rsync", "-r", artifacts_dir, output_gcs])
+
+  @staticmethod
   def junit_parse_and_upload(artifacts_dir, output_gcs):
     """Parse the junit file and upload it to GCS.
 
@@ -366,6 +386,7 @@ class CLI(object): # pylint: disable=useless-object-inheritance
       outputs_gcs: GCS path to upload to. If empty no artifacts will
         be uploaded.
     """
+    CLI.upload(artifacts_dir, output_gcs)
 
     logging.info("Walking through directory: %s", artifacts_dir)
     junit_pattern = re.compile(r"junit.*\.xml")
@@ -393,15 +414,47 @@ class CLI(object): # pylint: disable=useless-object-inheritance
           if not has_failure:
             logging.info("%s has passed all the tests.", testname)
 
-    logging.info("Uploading %s to GCS %s", artifacts_dir, output_gcs)
-    util.maybe_activate_service_account()
-    util.run(["gsutil", "-m", "rsync", "-r", artifacts_dir, output_gcs])
-
     if not found_xml:
       raise ValueError("No JUNIT artifats found in " + artifacts_dir)
     if failed_num:
       raise ValueError(
           "This task is failed with {0} errors/failures.".format(failed_num))
+
+  @staticmethod
+  def create_image_file(image_name, digest_file, output):
+    """Create a YAML file containing the URL of the built image.
+
+    Args:
+      image_name: Url of the image; e.g. gcr.io/myimage/someimage
+      digest_file: A file containing the digest of the image.
+        This is the file outputted by Kaniko's to --digest-file"
+      output: The path to write to. Can be GCS.
+    """
+    with open(digest_file) as hf:
+      digest = hf.read()
+    digest = digest.strip()
+
+    full_image = f"{image_name}@{digest}"
+    logging.info(f"Full digest: {full_image}")
+
+    contents = {
+      "image": full_image
+    }
+
+    is_gcs = output.lower().startswith("gs://")
+
+    if is_gcs:
+      with tempfile.NamedTemporaryFile() as hf:
+        local_file = hf.name
+    else:
+      local_file = output
+
+    logging.info(f"Writing to {local_file}")
+    with open(local_file, "w") as hf:
+      yaml.dump(contents, hf)
+
+    if is_gcs:
+      util.upload_file_to_gcs(local_file, output)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
