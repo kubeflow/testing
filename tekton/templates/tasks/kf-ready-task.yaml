@@ -3,43 +3,37 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: kf-ready  
+  name: kf-ready
   annotations:
     sidecar.istio.io/inject: "false"
 spec:
   inputs:
-    params:    
+    params:
     - name: testing-cluster-pattern
       type: string
-      description:
-        Cluster pattern to select the KF cluster to run on
-        Default to be from master branch.
+      description: Cluster pattern to select the KF cluster to run on Default to be
+        from master branch.
     - name: testing-cluster-location
       type: string
-      description:
-        Location to search for test clusters e.g. us-central1 or us-central1-f
-
+      description: Location to search for test clusters e.g. us-central1 or us-central1-f
     #**********************************************************
     # Kubeflow test parameters
     #**********************************************************
     - name: test-name
       type: string
       default: kf-ready
-      description:
-        Name to give the test results file.
+      description: Name to give the test results file.
     - name: artifacts-gcs
       type: string
-      description:
-        GCS bucket and directory artifacts will be uploaded to.
-        Should be in the form of 'gs://'
-
+      description: GCS bucket and directory artifacts will be uploaded to. Should
+        be in the form of 'gs://'
     - name: test-image
       type: string
-      default: gcr.io/kubeflow-ci/test-worker-py3:4b85d9b-dirty@sha256:8d71b7db1830f6578af90c7c9b409e3248f8d3a4a8d938017ebe2ae5e5e2747b
-      description: The docker image to run the tests in. Should contain a version of kubeflow/testing/py in /srcCache
-         that we want to use.
+      default: gcr.io/kubeflow-ci/test-worker-py3:6f0d932-dirty@sha256:06ebe5412d638e3e51bdd792aecbafdc4ee1e7146ff367a7be346cd726738cbb # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:6f0d932-dirty@sha256:06ebe5412d638e3e51bdd792aecbafdc4ee1e7146ff367a7be346cd726738cbb"}]}}
+      description: The docker image to run the tests in. Should contain a version
+        of kubeflow/testing/py in /srcCache that we want to use.
     resources:
-    - name: kfctl-repo  
+    - name: kfctl-repo
       type: git
   steps:
   - name: get-credential
@@ -65,19 +59,19 @@ spec:
     # N.B: Timeout is based on assumption that we are running against auto-deployments
     # and things should already be ready
     script: |
-        #!/usr/bin/env bash
-        set -x
-        # I think -s mean stdout/stderr will print out to aid in debugging.
-        # Failures still appear to be captured and stored in the junit file.
-        # Test suite name needs to be unique based on parameters
-        pytest kf_is_ready_test.py \
-          -s \
-          --log-cli-level=info \
-          --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
-          --junitxml=/workspace/artifacts/junit_kf-ready.xml \
-          --timeout=180 \
-          -o junit_suite_name=test_kf_ready_blueprint
-        echo test finished.
+      #!/usr/bin/env bash
+      set -x
+      # I think -s mean stdout/stderr will print out to aid in debugging.
+      # Failures still appear to be captured and stored in the junit file.
+      # Test suite name needs to be unique based on parameters
+      pytest kf_is_ready_test.py \
+        -s \
+        --log-cli-level=info \
+        --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
+        --junitxml=/workspace/artifacts/junit_kf-ready.xml \
+        --timeout=180 \
+        -o junit_suite_name=test_kf_ready_blueprint
+      echo test finished.
     workingDir: /workspace/$(inputs.resources.kfctl-repo.name)/py/kubeflow/kfctl/testing/pytests
     env:
     - name: PYTHONPATH

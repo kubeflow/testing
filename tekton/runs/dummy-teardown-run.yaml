@@ -26,24 +26,19 @@ spec:
     params:
     - name: test-target-name
       type: string
-      description:
-        Test targe name, used to group test results in JUNIT.
+      description: Test targe name, used to group test results in JUNIT.
       default: manual-testing
     - name: artifacts-gcs
       type: string
-      description:
-        GCS bucket and directory artifacts will be uploaded to.
-        Should be in the form of 'gs://'
+      description: GCS bucket and directory artifacts will be uploaded to. Should
+        be in the form of 'gs://'
     - name: junit-path
       type: string
-      description:
-        Relative path to the GCS artifacts will be uploaded to.
-        Base path is artifacts-gcs so the actual GCS blob will be
-        artifacts-gcs/junit-path
+      description: Relative path to the GCS artifacts will be uploaded to. Base path
+        is artifacts-gcs so the actual GCS blob will be artifacts-gcs/junit-path
     - name: utter
       type: string
-      description:
-        Dummy utter for teardown.
+      description: Dummy utter for teardown.
     tasks:
     - name: teardown
       taskRef:
