@@ -435,7 +435,7 @@ class CLI(object): # pylint: disable=useless-object-inheritance
     digest = digest.strip()
 
     full_image = "{0}@{1}".format(image_name, digest)
-    logging.info(f"Full digest: {full_image}")
+    logging.info("Full digest: %s", full_image})
 
     contents = {
       "image": full_image
@@ -449,7 +449,7 @@ class CLI(object): # pylint: disable=useless-object-inheritance
     else:
       local_file = output
 
-    logging.info(f"Writing to {local_file}")
+    logging.info("Writing to %s", local_file)
     with open(local_file, "w") as hf:
       yaml.dump(contents, hf)
 
