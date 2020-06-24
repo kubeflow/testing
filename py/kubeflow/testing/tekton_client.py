@@ -434,7 +434,7 @@ class CLI(object): # pylint: disable=useless-object-inheritance
       digest = hf.read()
     digest = digest.strip()
 
-    full_image = f"{image_name}@{digest}"
+    full_image = "{0}@{1}".format(image_name, digest)
     logging.info(f"Full digest: {full_image}")
 
     contents = {
