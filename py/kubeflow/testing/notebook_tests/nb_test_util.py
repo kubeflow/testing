@@ -21,7 +21,7 @@ PROJECT = "kubeflow-ci-deployment"
 def logs_for_job(project, job_name):
   """Get a stack driver link for the job with the specified name."""
   logs_filter = f"""resource.type="k8s_container"
-   labels."k8s-pod/job-name" = "{job_name}"
+labels."k8s-pod/job-name" = "{job_name}"
 """
 
   new_params = {"project": project,

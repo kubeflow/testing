@@ -37,8 +37,6 @@ spec:
   resources:
   - name: notebook-repo
     type: git
-  - name: testing-repo
-    type: git
   - name: image
     type: image
   tasks:
