@@ -44,9 +44,10 @@ spec:
     args:
     - -m
     - kubeflow.testing.get_kf_testing_cluster
+    - get-credentials
     - --base=$(inputs.params.testing-cluster-pattern)
     - --location=$(inputs.params.testing-cluster-location)
-    - get-credentials
+    - --output=/workspace/cluster.info.yaml
     env:
     - name: PYTHONPATH
       value: /workspace/$(inputs.resources.kfctl-repo.name)/py:/srcCache/kubeflow/testing/py
@@ -61,6 +62,8 @@ spec:
     script: |
       #!/usr/bin/env bash
       set -x
+      # Get the name of the cluster
+      export KFNAME=$(yq r /workspace/cluster.info.yaml cluster.name)
       # Test suite name needs to be unique based on parameters
       pytest endpoint_ready_test.py \
         -s \
@@ -68,6 +71,7 @@ spec:
         --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
         --junitxml=/workspace/artifacts/junit_endpoint-is-ready.xml \
         --timeout=180 \
+        --app_name=${KFNAME} \
         -o junit_suite_name=test_endpoint_is_ready_blueprint
       echo test finished.
     workingDir: /workspace/$(inputs.resources.kfctl-repo.name)/py/kubeflow/kfctl/testing/pytests
