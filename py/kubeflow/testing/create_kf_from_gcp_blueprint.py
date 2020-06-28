@@ -127,7 +127,7 @@ class BlueprintRunner:
       "email": email,
     }
 
-    for subdir in ["./upstream/manifests/gcp", "./instance"]:
+    for subdir in ["./upstream/manifests/gcp", "./upstream/manifests/stacks/gcp", "./instance"]:
       for k, v in values.items():
         util.run(["kpt", "cfg", "set", subdir, k, v],
                  cwd=blueprint_dir)
