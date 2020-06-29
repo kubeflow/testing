@@ -9,6 +9,16 @@ spec:
     type: string
     description: Test targe name, used to group test results in JUNIT.
     default: manual-testing
+  - name: notebook-output
+    type: string
+    description: This should be the bucket that the rendered notebook will be written
+      to. This should be a GCS path that is accessible from the KF cluster where the
+      notebook runs. It will be copied to artifacts-gcs
+  - name: notebook-path
+    type: string
+    description: Path to the notebook to run. This should be the relative path relative
+      to the root of the repository where the notebook lives. Do not include a leading
+      "/"
   - name: artifacts-gcs
     type: string
     description: GCS bucket and directory artifacts will be uploaded to. Should be
@@ -24,33 +34,37 @@ spec:
   - name: testing-cluster-location
     type: string
     description: Location to search for test clusters.
-  - name: output-workspace
-    type: string
-    description: Directory to write outputs to in local FS.
   resources:
-  - name: examples-repo
+  - name: notebook-repo
     type: git
-  - name: testing-repo
-    type: git
+  - name: image
+    type: image
   tasks:
-  - name: mnist-gcp
+  # Build the docker image containing the source
+  - name: build-image
     resources:
       inputs:
-      - name: examples-repo
-        resource: examples-repo
-      - name: kf-testing-repo
-        resource: testing-repo
+      - name: notebook-repo
+        resource: notebook-repo
+      - name: image
+        resource: image
+    params:
+    - name: artifacts-gcs
+      value: $(params.artifacts-gcs)
+    taskRef:
+      name: notebook-test-builder
+  - name: run-notebook
+    runAfter:
+    - build-image
     taskRef:
       name: nb-tests
     params:
     - name: notebook-path
-      value: 'kubeflow/examples/mnist/mnist_gcp.ipynb'
-    - name: junit-path
-      value: $(params.output-workspace)/$(params.junit-path)/junit_mnist-gcp.xml
-    - name: test-target-name
+      value: $(params.notebook-path)
+    - name: test-target-name #- name: junit-path
       value: $(params.test-target-name)
-    - name: output-workspace
-      value: $(params.output-workspace)
+    - name: notebook-output
+      value: $(params.notebook-output)
     - name: artifacts-gcs
       value: $(params.artifacts-gcs)
     - name: testing-cluster-pattern

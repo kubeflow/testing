@@ -865,6 +865,29 @@ def upload_file_to_gcs(source, target):
   blob.upload_from_filename(source)
 
 
+def read_file(path):
+  """Read a file.
+
+  Args:
+    path: A local or GCS path.
+
+  Returns:
+    contents: Contents of the file
+  """
+
+  if not path.lower().startswith("gs://"):
+    with open(path) as hf:
+      hf.read()
+
+  bucket_name, path = split_gcs_uri(path)
+
+  gcs_client = storage.Client()
+
+  bucket = gcs_client.get_bucket(bucket_name)
+
+  blob = bucket.blob(path)
+  return blob.download_as_string()
+
 def makedirs(path):
   """
   makedirs creates a directory if it doesn't already exist

@@ -4,7 +4,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
   generateName: mnist-
-  namespace: tektoncd
+  namespace: kf-ci
   labels:
     pipeline: mnist-notebook
 spec:
@@ -15,34 +15,34 @@ spec:
   - name: test-target-name
     value: manual-testinig
   - name: artifacts-gcs
-    value: gs://kubeflow-ci-deployment/gabrielwen-testing-2
+    value: gs://kubeflow-ci_temp/jlewi_mnist_testing/2020-0619
   - name: junit-path
     value: artifacts/junit_manual-testing
   - name: testing-cluster-pattern
     value: 'kf-vbp-.*'
   - name: testing-cluster-location
     value: 'us-central1'
-  - name: output-workspace
-    value: /workspace/outputs
+  - name: notebook-output
+    value: gs://kubeflow-ci-deployment_ci-temp/mnist_test
+  - name: notebook-path
+    value: mnist/mnist_gcp.ipynb
   resources:
-  # This pull number has changes blocked on:
-  # https://github.com/kubeflow/testing/pull/622
-  - name: examples-repo
+  # The repository containing the notebook to test.
+  - name: notebook-repo
     resourceSpec:
       type: git
       params:
       - name: url
         value: https://github.com/kubeflow/examples.git
       - name: revision
-        value: refs/pull/803/head
-  - name: testing-repo
+        value: master  
+  # The image we want to build
+  - name: image
     resourceSpec:
-      type: git
+      type: image
       params:
       - name: url
-        value: https://github.com/kubeflow/testing.git
-      - name: revision
-        #value: master
-        value: refs/pull/676/head
+        value: gcr.io/kubeflow-ci-deployment/mnist-test
   pipelineRef:
     name: notebook-test
+  serviceAccountName: kf-ci

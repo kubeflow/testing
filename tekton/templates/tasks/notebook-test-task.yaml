@@ -14,7 +14,8 @@ spec:
     params:
     - name: notebook-path
       type: string
-      description: Testing notebook location. Should be in the form of {REPO_OWNER}/{REPO}/path/to/notebook.ipynb
+      description: Path to the notebook to run. This should be the relative path relative
+        to the root of the repository where the notebook lives.
     - name: testing-cluster-pattern
       type: string
       description: Cluster pattern to run the notebook test. Default to be from master
@@ -22,40 +23,33 @@ spec:
     - name: testing-cluster-location
       type: string
       description: Location to search for test clusters e.g. us-central1 or us-central1-f
+    - name: notebook-output
+      type: string
+      description: This should be the bucket that the rendered notebook will be written
+        to. This should be a GCS path that is accessible from the KF cluster where
+        the notebook runs. It will be copied to artifacts-gcs
     - name: artifacts-gcs
       type: string
       description: GCS bucket and directory artifacts will be uploaded to. Should
         be in the form of 'gs://'
-    - name: junit-path
-      type: string
-      description: Relative path to the GCS artifacts will be uploaded to. Base path
-        is artifacts-gcs so the actual GCS blob will be artifacts-gcs/junit-path
     - name: test-target-name
       type: string
       description: Test targe name, used to group test results in JUNIT.
       default: manual-testing
-    - name: output-workspace
-      type: string
-      description: Directory to write outputs to in local FS.
     - name: nb-namespace
       type: string
       description: The namespace to run the notebook in
       # The default corresponds to the name of the default profile created by blueprints
       default: default-profile
-    # TODO(jlewi): Lets not use targetPath. Instead lets rely on Tekton checking repos
-    # out to /workspace/$(resource.name)
-    resources:
-    - name: examples-repo
-      type: git
-      targetPath: src/kubeflow/examples
-    - name: kf-testing-repo
-      type: git
-      targetPath: src/kubeflow/testing
+    - name: test-image
+      type: string
+      default: gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea"}]}}
+      description: The docker image to run the tests in
   steps:
   - name: get-credential
-    image: gcr.io/kubeflow-ci/test-worker:latest
+    image: $(inputs.params.test-image)
     command:
-    - python3
+    - python
     args:
     - -m
     - kubeflow.testing.get_kf_testing_cluster
@@ -64,61 +58,128 @@ spec:
     - get-credentials
     env:
     - name: PYTHONPATH
-      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
-    - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/gcp-credentials/key.json
-    volumeMounts:
-    - name: gcp-credentials
-      readOnly: true
-      mountPath: /secret/gcp-credentials
+      value: /srcCache/kubeflow/testing/py
   - name: run-notebook
-    image: gcr.io/kubeflow-ci/test-worker:latest
+    image: $(inputs.params.test-image)
     # Need to use script as workaround not to error out in tests.
     # If any of the steps returns non-zero codes, subsequent steps will not be run.
     script: |
       #!/usr/bin/env bash
+      set -x
+      mkdir -p /workspace/artifacts
       pytest run_notebook_test.py \
         --log-cli-level=info \
         --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
         --timeout=1800 \
-        --junitxml=$(inputs.params.junit-path) \
-        --notebook_path=$(inputs.params.notebook-path) \
+        --junitxml=/workspace/artifacts/junit_notebook.xml \
+        --notebook_path=/src/notebook-repo/$(inputs.params.notebook-path) \
         --test-target-name=$(inputs.params.test-target-name) \
-        --artifacts-gcs=$(inputs.params.artifacts-gcs) \
+        --artifacts-gcs=$(inputs.params.notebook-output) \
+        --image_file=$(inputs.params.artifacts-gcs)/image.yaml
         --namespace=$(inputs.params.nb-namespace)
-      || echo test finished.
-    workingDir: /workspace/src/kubeflow/examples/py/kubeflow/examples/notebook_tests
+      echo test finished
+    workingDir: /srcCache/kubeflow/testing/py/kubeflow/testing/notebook_tests
     env:
     - name: PYTHONPATH
-      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
-    - name: GOOGLE_APPLICATION_CREDENTIALS # TODO(jlewi): Can we use Workload Identity?
-      value: /secret/gcp-credentials/key.json
-    volumeMounts:
-    - name: gcp-credentials
-      readOnly: true
-      mountPath: /secret/gcp-credentials
+      value: /srcCache/kubeflow/testing/py
+  # TODO(jlewi): We need to copy the GCS artifacts from the bucket that the notebook wrote to 
+  # to the bucket uset for test artifacts.
+  - name: copy-buckets
+    image: $(inputs.params.test-image)
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      gsutil cp -r $(inputs.params.output)/ $(inputs.params.artifacts-gcs)
+      # Need the echo command to prevent a gsutil error from causing the task to fail
+      # which would prevent the copy-artifacts step from running
+      echo copy-buckets finished
   # This step is designed to be generic: given the output directory, it will try to
   # parse all the XML files with prefix of junit and error out if failures been found.
   - name: copy-artifacts
-    image: gcr.io/kubeflow-ci/test-worker:latest
+    image: $(inputs.params.test-image)
     command:
     - python
     args:
     - -m
     - kubeflow.testing.tekton_client
     - junit_parse_and_upload
-    - --artifacts_dir=$(inputs.params.output-workspace)
+    - --artifacts_dir=/workspace/artifacts
     - --output_gcs=$(inputs.params.artifacts-gcs)
     env:
     - name: PYTHONPATH
-      value: /workspace/src/kubeflow/examples/py:/workspace/src/kubeflow/testing/py
-    - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/gcp-credentials/key.json
-    volumeMounts:
-    - name: gcp-credentials
-      readOnly: true
-      mountPath: /secret/gcp-credentials
-  volumes:
-  - name: gcp-credentials
-    secret:
-      secretName: gcp-credentials
+      value: /src/kubeflow/testing/py
+---
+# This task builds a docker image to run notebooks in.
+# It takes as a base image a notebook image and adds
+# the source code for the notebook to it.
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: notebook-test-builder
+  annotations:
+    # This gets passed down to the individual pods
+    sidecar.istio.io/inject: "false"
+spec:
+  inputs:
+    params:
+    - name: test-image
+      type: string
+      default: gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea"}]}}
+      description: The docker image to run the tests in
+    - name: artifacts-gcs
+      type: string
+      description: GCS bucket and directory artifacts will be uploaded to. Should
+        be in the form of 'gs://'
+    resources:
+    # Repo containing the notebook code 
+    - name: notebook-repo
+      type: git
+    - name: image
+      type: image
+  steps:
+  # We need to setup the directory where we will build the docker image
+  - name: setup
+    image: $(inputs.params.test-image)
+    # Need to use script as workaround not to error out in tests.
+    # If any of the steps returns non-zero codes, subsequent steps will not be run.
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      mkdir -p /workspace/build
+      cd /workspace/build
+      # Copy the source code
+      cp -r /workspace/$(inputs.resources.notebook-repo.name) .
+      cp -r /srcCache/kubeflow/testing/notebook_testing/Dockerfile.notebook_runner ./Dockerfile.notebook_runner
+      mkdir -p kubeflow/
+      # Copy over the kubeflow/testing directory because we need it to run the
+      # notebooks; note that the copy is coming from the worker test image.
+      cp -r /srcCache/kubeflow/testing ./kubeflow/testing
+      # Create the artifacts directory
+      mkdir -p /workspace/artifacts
+  - name: build-push
+    image: gcr.io/kaniko-project/executor:v0.23.0
+    command:
+    - /kaniko/executor
+    - --dockerfile=/workspace/build/Dockerfile.notebook_runner
+    #- --target=$(inputs.params.docker_target)
+    - --destination=$(inputs.resources.image.url)
+    - --context=/workspace/build
+    - --digest-file=/workspace/artifacts/image-digest
+    resources:
+      requests:
+        cpu: 7
+        memory: 16Gi
+  - name: create-image-file
+    image: $(inputs.params.test-image)
+    command:
+    - python
+    args:
+    - -m
+    - kubeflow.testing.tekton_client
+    - create-image-file
+    - --image-name=$(inputs.resources.image.url)
+    - --digest-file=/workspace/artifacts/image-digest
+    - --output=$(inputs.params.artifacts-gcs)/image.yaml
+    env:
+    - name: PYTHONPATH # N.B. This uses the version cached in the docker image.
+      value: /srcCache/kubeflow/testing/py

@@ -108,3 +108,4 @@ RUN go get -u github.com/jstemmer/go-junit-report
 # need to clone the repo just to get access to them
 RUN mkdir -p /srcCache/kubeflow/testing
 COPY py /srcCache/kubeflow/testing/py
+COPY notebook_testing /srcCache/kubeflow/testing/notebook_testing

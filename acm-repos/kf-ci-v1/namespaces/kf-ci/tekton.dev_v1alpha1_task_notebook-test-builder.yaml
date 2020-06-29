@@ -1,0 +1,66 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  annotations:
+    sidecar.istio.io/inject: "false"
+  name: notebook-test-builder
+  namespace: kf-ci
+spec:
+  inputs:
+    params:
+    - default: gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea
+      description: The docker image to run the tests in
+      name: test-image
+      type: string
+    - description: GCS bucket and directory artifacts will be uploaded to. Should
+        be in the form of 'gs://'
+      name: artifacts-gcs
+      type: string
+    resources:
+    - name: notebook-repo
+      type: git
+    - name: image
+      type: image
+  steps:
+  - image: $(inputs.params.test-image)
+    name: setup
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      mkdir -p /workspace/build
+      cd /workspace/build
+      # Copy the source code
+      cp -r /workspace/$(inputs.resources.notebook-repo.name) .
+      cp -r /srcCache/kubeflow/testing/notebook_testing/Dockerfile.notebook_runner ./Dockerfile.notebook_runner
+      mkdir -p kubeflow/
+      # Copy over the kubeflow/testing directory because we need it to run the
+      # notebooks; note that the copy is coming from the worker test image.
+      cp -r /srcCache/kubeflow/testing ./kubeflow/testing
+      # Create the artifacts directory
+      mkdir -p /workspace/artifacts
+  - command:
+    - /kaniko/executor
+    - --dockerfile=/workspace/build/Dockerfile.notebook_runner
+    - --destination=$(inputs.resources.image.url)
+    - --context=/workspace/build
+    - --digest-file=/workspace/artifacts/image-digest
+    image: gcr.io/kaniko-project/executor:v0.23.0
+    name: build-push
+    resources:
+      requests:
+        cpu: 7
+        memory: 16Gi
+  - args:
+    - -m
+    - kubeflow.testing.tekton_client
+    - create-image-file
+    - --image-name=$(inputs.resources.image.url)
+    - --digest-file=/workspace/artifacts/image-digest
+    - --output=$(inputs.params.artifacts-gcs)/image.yaml
+    command:
+    - python
+    env:
+    - name: PYTHONPATH
+      value: /srcCache/kubeflow/testing/py
+    image: $(inputs.params.test-image)
+    name: create-image-file
