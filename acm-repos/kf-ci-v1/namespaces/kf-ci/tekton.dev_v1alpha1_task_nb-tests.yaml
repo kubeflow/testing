@@ -81,6 +81,9 @@ spec:
       #!/usr/bin/env bash
       set -x
       gsutil cp -r $(inputs.params.output)/ $(inputs.params.artifacts-gcs)
+      # Need the echo command to prevent a gsutil error from causing the task to fail
+      # which would prevent the copy-artifacts step from running
+      echo copy-buckets finished
   - args:
     - -m
     - kubeflow.testing.tekton_client
