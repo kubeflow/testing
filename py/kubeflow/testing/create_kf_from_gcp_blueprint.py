@@ -66,7 +66,7 @@ class BlueprintRunner:
   @staticmethod
   def deploy(blueprint_dir, management_context, name="kf-vbp-{uid}",
              project="kubeflow-ci-deployment",
-             location="us-central1", zone="us-central1-f",
+             location="us-central1-c", zone="us-central1-c",
              labels_file=None,
              oauth_file=DEFAULT_OAUTH_FILE): # pylinet: disable=too-many-arguments
     """Deploy the blueprint:
