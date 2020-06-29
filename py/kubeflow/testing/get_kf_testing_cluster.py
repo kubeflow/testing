@@ -143,8 +143,6 @@ def _iter_cluster(project, location):
   """Iterate over all clusters in the given location"""
   credentials = GoogleCredentials.get_application_default()
 
-  next_page_token = None
-
   gke = discovery.build("container", "v1", credentials=credentials)
 
   clusters_client = gke.projects().locations().clusters()
@@ -398,8 +396,7 @@ class CredentialHelper:
       logging.warning("Invoking deprecated path because location not set")
       dm = get_latest(project=project, testing_label=testing_label,
                       base_name=pattern, field="all")
-      cluster_name = dm["name"]
-      command.append("--zone="+dm["zone"], dm["name"])
+      command.append("--zone=" + dm["zone"], dm["name"])
 
       info["cluster"] = dm
 
