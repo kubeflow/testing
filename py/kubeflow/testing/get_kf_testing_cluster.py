@@ -6,6 +6,10 @@ Running it with bash:
   - python -c "from kubeflow.testing import get_kf_testing_cluster; \
     print(get_kf_testing_cluster.get_deployment(\"kubeflow-ci-deployment\", \
     \"kf-vmaster\", \"kf-test-cluster\"))"
+
+TODO(jlewi): Now that we are using GCP blueprints and CNRM we should support
+  fetching clusters using label selectors in addition to or as a replacemnt
+  for regexes
 """
 
 import argparse
@@ -14,8 +18,10 @@ from dateutil import parser as date_parser
 import logging
 import pprint
 import re
+import sys
 import yaml
 
+import fire
 from googleapiclient import discovery
 from kubeflow.testing import util
 from oauth2client.client import GoogleCredentials
@@ -137,8 +143,6 @@ def _iter_cluster(project, location):
   """Iterate over all clusters in the given location"""
   credentials = GoogleCredentials.get_application_default()
 
-  next_page_token = None
-
   gke = discovery.build("container", "v1", credentials=credentials)
 
   clusters_client = gke.projects().locations().clusters()
@@ -259,49 +263,6 @@ def _get_latest_cluster(project, location, pattern,
   # most recent cluster will be last
   return clusters[-1]
 
-def get_latest_credential(project="kubeflow-ci-deployment",
-                          base_name=DEFAULT_PATTERN,
-                          location=None,
-                          testing_label=None):
-  """Convenient function to get the latest deployment information and use it to get
-  credentials from GCP.
-
-  Args:
-    project: string, Name of deployed GCP project. Optional.
-    location: zone or region to search for clusters.
-    testing_label: string, annotation used to identify testing clusters. Optional.
-  """
-  util.maybe_activate_service_account()
-
-  command = ["gcloud", "container", "clusters", "get-credentials",
-              "--project="+project]
-  if location:
-    c = _get_latest_cluster(project, location, base_name)
-
-    if not c:
-      message = ("No clusters found matching: project: {0}, location: {1}, "
-                 "pattern: {2}").format(project, location, base_name)
-      raise ValueError(message)
-
-    if ZONE_PATTERN.match(location):
-      command.append("--zone=" + location)
-    else:
-      command.append("--region=" + location)
-    command.append(c["name"])
-  else :
-    # This is the pre blueprint which is using deployment manager
-    logging.warning("Invoking deprecated path because location not set")
-    dm = get_latest(project=project, testing_label=testing_label,
-                    base_name=base_name, field="all")
-    cluster_name = dm["name"]
-    command.append("--zone="+dm["zone"], dm["name"])
-
-  # This call may be flaky due to timeout.
-  @retry(stop_max_attempt_number=10, wait_fixed=5000)
-  def run_get_credentials():
-    util.run(command)
-  run_get_credentials()
-
 def list_dms(args):
   logging.info("Calling list deployments.")
   name_prefix = args.base_name
@@ -317,12 +278,12 @@ def get_dm(args):
                             field=args.field,
                             desc_ordered=args.find_latest_deployed)))
 
-# TODO(jlewi): It looks like this is just a wrapper intended to parse args.
-# Might be simpler just to switch to using Fire and get rid of this indirection.
+# TODO(jlewi): This method is now deprecated. It was a wrapper to allow
+# us to use argparse. Latest code should just use the fire module.
 def get_credential(args):
   logging.info("Calling get_credential - this call needs gcloud client CLI.")
-  get_latest_credential(project=args.project, base_name=args.base_name,
-                        location=args.location)
+  CredentialHelper.get_credentials(
+    project=args.project, pattern=args.base_name, location=args.location)
 
 def main(): # pylint: disable=too-many-locals,too-many-statements
   logging.basicConfig(level=logging.INFO,
@@ -362,6 +323,11 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
       help=("Looking for the oldest deployed testing cluster."))
   parser.set_defaults(find_latest_deployed=True)
 
+  parser.add_argument(
+      "--output", default="", type=str,
+      help=("(Optional) if supplied write the cluster information to this "
+            "YAML file."))
+
   subparsers = parser.add_subparsers()
 
   _list = subparsers.add_parser(
@@ -379,5 +345,85 @@ def main(): # pylint: disable=too-many-locals,too-many-statements
   args = parser.parse_args()
   args.func(args)
 
+class CredentialHelper:
+  """Collection of methods to get credentials to kubeflow clusters."""
+
+  @staticmethod
+  def get_credentials(project="kubeflow-ci-deployment",
+                      pattern=DEFAULT_PATTERN,
+                      location=None,
+                      output="",
+                      testing_label=None):
+    """Get the latest deployment information and use it to get credentials.
+
+    Args:
+      project: string, Name of deployed GCP project.
+      pattern:  Regex pattern to look for
+      location: zone or region to search for clusters.
+      output: (Optional) if supplied write information about matching
+        cluster to this YAML file.
+      testing_label: string, annotation used to identify testing clusters. Optional.
+    """
+    logging.info("Calling get_credential - this call needs gcloud client CLI.")
+    util.maybe_activate_service_account()
+
+    command = ["gcloud", "container", "clusters", "get-credentials",
+                "--project="+project]
+
+    info = {
+      "project": project,
+      "location": location,
+    }
+
+    if location:
+      c = _get_latest_cluster(project, location, pattern)
+
+      if not c:
+        message = ("No clusters found matching: project: {0}, location: {1}, "
+                   "pattern: {2}").format(project, location, pattern)
+        raise ValueError(message)
+
+      if ZONE_PATTERN.match(location):
+        command.append("--zone=" + location)
+      else:
+        command.append("--region=" + location)
+      command.append(c["name"])
+
+      info["cluster"] = c
+
+    else:
+      # This is the pre blueprint which is using deployment manager
+      logging.warning("Invoking deprecated path because location not set")
+      dm = get_latest(project=project, testing_label=testing_label,
+                      base_name=pattern, field="all")
+      command.append("--zone=" + dm["zone"], dm["name"])
+
+      info["cluster"] = dm
+
+    if output:
+      logging.info(f"Writing cluster information to {output}")
+      with open(output, "w") as hf:
+        yaml.dump(info, hf)
+
+    # This call may be flaky due to timeout.
+    @retry(stop_max_attempt_number=10, wait_fixed=5000)
+    def run_get_credentials():
+      util.run(command)
+    run_get_credentials()
+
 if __name__ == "__main__":
-  main()
+  logging.basicConfig(level=logging.INFO,
+                      format=('%(levelname)s|%(asctime)s'
+                              '|%(pathname)s|%(lineno)d| %(message)s'),
+                      datefmt='%Y-%m-%dT%H:%M:%S',
+                      )
+  logging.getLogger().setLevel(logging.INFO)
+  # If the first argument starts with "--" then we are in the legacy
+  # non fire mode
+  if sys.argv[1].startswith("--"):
+    # TODO(jlewi): This code path is deprecated
+    logging.warning("Running in non fire mode; invoking main()")
+    main()
+  else:
+    logging.info("Running in fire mode; invoking CLI")
+    fire.Fire(CredentialHelper)

@@ -5,7 +5,7 @@ import os
 import unittest
 
 from googleapiclient.http import HttpMockSequence
-from kubeflow.testing import get_kf_testing_cluster
+from kubeflow.testing import get_kf_testing_cluster # pylint: disable=no-name-in-module
 
 TEST_PROJECT = "kubeflow-ci-foo"
 TEST_LABEL = "kf-foo-label"
