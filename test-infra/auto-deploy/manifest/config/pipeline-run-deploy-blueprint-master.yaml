@@ -27,12 +27,10 @@ spec:
     resourceSpec:
       type: git
       params:
-        # TODO(jlewi): Switch to master once 
-        # https://github.com/kubeflow/testing/pull/676 is submitted
         - name: revision
-          value: gcp_blueprints
+          value: master
         - name: url
-          value: https://github.com/jlewi/testing.git
+          value: https://github.com/kubeflow/testing.git
   # Need to use a KSA with appropriate GSA
   serviceAccountName: default-editor
   pipelineRef:

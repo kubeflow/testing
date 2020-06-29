@@ -89,12 +89,12 @@ To update it
 1. Build a new image with skaffold
 
    ```
-   skaffold build
+   skaffold build -v info --file-output=latest_image.json
    ```
 
 1. Update the kustomization to use the new image
 
-1. Hydrate the ACM repo with the hypdated manifests
+1. Hydrate the ACM repo with the hydrated manifests
 
    ```
    make hydrate
