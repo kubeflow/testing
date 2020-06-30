@@ -94,6 +94,6 @@ spec:
     - python
     env:
     - name: PYTHONPATH
-      value: /src/kubeflow/testing/py
+      value: /srcCache/kubeflow/testing/py
     image: $(inputs.params.test-image)
     name: copy-artifacts

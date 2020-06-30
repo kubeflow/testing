@@ -107,7 +107,7 @@ spec:
     - --output_gcs=$(inputs.params.artifacts-gcs)
     env:
     - name: PYTHONPATH
-      value: /src/kubeflow/testing/py
+      value: /srcCache/kubeflow/testing/py
 ---
 # This task builds a docker image to run notebooks in.
 # It takes as a base image a notebook image and adds
