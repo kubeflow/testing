@@ -118,6 +118,19 @@ To update the hydrated manifests
 make hydrate
 ```
 
+## Debugging 
+
+### TaskRun Logs
+
+If the logs aren't available in the Tekton UI you can fetch them with a query like the one below.
+
+```
+resource.type="k8s_container"
+resource.labels.cluster_name="kf-ci-v1"
+labels."k8s-pod/tekton_dev/taskRun" = "mnist-wc6fq-run-notebook-d9q7w"
+resource.labels.container_name = "step-copy-artifacts"
+```
+
 ## Running on your own Tekton cluster
 
 You should be able to run the KF Tekton pipelines on your own Tekton cluster provided you install
