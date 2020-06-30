@@ -35,7 +35,7 @@ spec:
       - name: url
         value: https://github.com/kubeflow/examples.git
       - name: revision
-        value: master  
+        value: master
   # The image we want to build
   - name: image
     resourceSpec:
