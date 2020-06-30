@@ -7,11 +7,8 @@ metadata:
 spec:
   clusterName: "gke://kubeflow-ci/us-central1/kf-ci-management" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"gcloud.core.project","value":"kubeflow-ci"},{"name":"name","value":"kf-ci-management"},{"name":"location","value":"us-central1"}]}}
   git:
-    # TODO(https://github.com/kubeflow/testing/pull/676): We should change this to branch master on kubeflow/testing
-    # once #676 is merged
-    # syncRepo: "https://github.com/kubeflow/testing.git" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"source_repo","value":"https://github.com/jlewi/community-infra.git"}]}}
-    syncRepo: "https://github.com/jlewi/testing.git" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"source_repo","value":"https://github.com/jlewi/community-infra.git"}]}}    
-    syncBranch: gcp_blueprints
+    syncRepo: "https://github.com/kubeflow/testing.git" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"source_repo","value":"https://github.com/jlewi/community-infra.git"}]}}    
+    syncBranch: master
     secretType: none
     policyDir: "/acm-repos/kf-ci-v1" # {"$ref":"#/definitions/io.k8s.cli.setters.sync-repo-dir"}  
   # Set to true to install and enable Config Connector
