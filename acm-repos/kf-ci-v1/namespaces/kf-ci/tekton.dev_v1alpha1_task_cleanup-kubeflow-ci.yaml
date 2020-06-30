@@ -48,7 +48,7 @@ spec:
       value: /workspace/kubeconfig
     - name: PYTHONPATH
       value: /workspace/$(inputs.resources.testing-repo.name)/py
-    image: gcr.io/kubeflow-ci/test-worker-py3:3780b5d-dirty@sha256:4a766d6f5cc6cbcb00dbc96205f7a5b2816bc5f2b6d516fd67124d4a3e6508ea
+    image: gcr.io/kubeflow-ci/test-worker-py3:fb970ef@sha256:804c6cc8a73face69d79c60bcd85b93fa04218db9ee31127fb529b41fcab43ac
     name: create-context
   - command:
     - python
