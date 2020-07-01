@@ -45,7 +45,7 @@ spec:
     - -m
     - kubeflow.testing.get_kf_testing_cluster
     - get-credentials
-    - --base=$(inputs.params.testing-cluster-pattern)
+    - --pattern=$(inputs.params.testing-cluster-pattern)
     - --location=$(inputs.params.testing-cluster-location)
     - --output=/workspace/cluster.info.yaml
     env:

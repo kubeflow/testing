@@ -44,7 +44,8 @@ spec:
   - args:
     - -m
     - kubeflow.testing.get_kf_testing_cluster
-    - --base=$(inputs.params.testing-cluster-pattern)
+    - get-credentials
+    - --pattern=$(inputs.params.testing-cluster-pattern)
     - --location=$(inputs.params.testing-cluster-location)
     - get-credentials
     command:
@@ -80,7 +81,7 @@ spec:
     script: |
       #!/usr/bin/env bash
       set -x
-      gsutil cp -r $(inputs.params.output)/ $(inputs.params.artifacts-gcs)
+      gsutil cp -r $(inputs.params.notebook-output)/ $(inputs.params.artifacts-gcs)
       # Need the echo command to prevent a gsutil error from causing the task to fail
       # which would prevent the copy-artifacts step from running
       echo copy-buckets finished
