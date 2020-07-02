@@ -1,0 +1,65 @@
+# Build the manager binary
+#
+# The Docker context is expected to be:
+#
+# ${PATH_TO_KUBEFLOW/KUBEFLOW repo}/components
+#
+# This is necessary because the Jupyter controller now depends on
+# components/common
+ARG GOLANG_VERSION=1.14
+FROM golang:${GOLANG_VERSION} as builder
+
+WORKDIR /workspace
+
+COPY . /workspace
+
+# Build
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o prctl cmd/prctl/main.go
+
+# TODO(jlewi): We would really like to use a distroless images but we need to shell out to
+# git. I tried running git on a base-debian10 distrolless but that was missing some of the
+# libraries. Ideally if prctl uses go libraries instead of shelling out to git 
+# we could replace this with a distroless image
+#
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM ubuntu:18.04 as hub_builder
+
+RUN apt-get update -y && \
+    apt-get install -y curl
+
+# Install the hub CLI for git
+RUN cd /tmp && \
+    curl -LO  https://github.com/github/hub/releases/download/v2.11.2/hub-linux-amd64-2.11.2.tgz && \
+    tar -xvf hub-linux-amd64-2.11.2.tgz && \
+    cp hub-linux-amd64-2.11.2/bin/hub /usr/local/hub 
+
+# TODO(jlewi): We would really like to use a distroless images but we need to shell out to
+# git. I tried running git on a base-debian10 distrolless but that was missing some of the
+# libraries. Ideally if prctl uses go libraries instead of shelling out to git 
+# we could replace this with a distroless image
+#
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM ubuntu:18.04
+
+WORKDIR /
+
+RUN set -ex \
+    && apt-get update -yqq \
+    && apt-get install -yqq --no-install-recommends \
+    git \    
+    && apt-get clean \
+    && rm -rf \
+    /var/lib/apt/lists/* \
+    /tmp/* \
+    /var/tmp/* \
+    /usr/share/man \
+    /usr/share/doc \
+    /usr/share/doc-base
+
+# Install the hub CLI for git
+COPY --from=hub_builder /usr/local/hub /usr/local/bin/
+COPY --from=builder /workspace/prctl /usr/local/bin/
+
+ENTRYPOINT ["/usr/local/bin/prctl"]
