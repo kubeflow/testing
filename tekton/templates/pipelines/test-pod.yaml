@@ -1,0 +1,45 @@
+# This is a bit of a hack
+# This is a stateful set that starts a pod using the worker image.
+# It is primarily useful for inspecting what's in the image
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-pod
+  labels:
+    app: test-pod
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: test-pod
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: test-pod
+spec:
+  selector:
+    matchLabels:
+      app: test-pod # has to match .spec.template.metadata.labels
+  serviceName: "test-pod"
+  replicas: 1 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: test-pod # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: worker
+        image: gcr.io/kubeflow-ci/test-worker-py3:fb970ef@sha256:804c6cc8a73face69d79c60bcd85b93fa04218db9ee31127fb529b41fcab43ac # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:fb970ef@sha256:804c6cc8a73face69d79c60bcd85b93fa04218db9ee31127fb529b41fcab43ac"}]}}
+        command:
+        - tail
+        - -f
+        - /dev/null
+        ports:
+        - containerPort: 80
+          name: web
+      # Bind to a service account with workload identity
+      serviceAccount: kf-ci

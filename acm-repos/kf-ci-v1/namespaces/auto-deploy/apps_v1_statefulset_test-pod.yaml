@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: test-pod
+  namespace: auto-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-pod
+  serviceName: test-pod
+  template:
+    metadata:
+      labels:
+        app: test-pod
+    spec:
+      containers:
+      - command:
+        - tail
+        - -f
+        - /dev/null
+        image: gcr.io/kubeflow-ci/test-worker-py3:fb970ef@sha256:804c6cc8a73face69d79c60bcd85b93fa04218db9ee31127fb529b41fcab43ac
+        name: worker
+        ports:
+        - containerPort: 80
+          name: web
+      serviceAccount: kf-ci
+      terminationGracePeriodSeconds: 10

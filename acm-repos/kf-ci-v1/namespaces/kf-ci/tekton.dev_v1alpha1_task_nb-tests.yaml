@@ -47,7 +47,7 @@ spec:
     - get-credentials
     - --pattern=$(inputs.params.testing-cluster-pattern)
     - --location=$(inputs.params.testing-cluster-location)
-    - get-credentials
+    - --output=/workspace/cluster.info.yaml
     command:
     - python
     env:

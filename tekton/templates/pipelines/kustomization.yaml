@@ -5,3 +5,4 @@ resources:
 - gcp-kf-ready.yaml
 - go-test-pipeline.yaml
 - notebook-test-pipeline.yaml
+- test-pod.yaml
