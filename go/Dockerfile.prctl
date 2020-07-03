@@ -41,14 +41,16 @@ RUN cd /tmp && \
 #
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM ubuntu:18.04
+FROM alpine:3.11
 
 WORKDIR /
 
+# Without ca-certificates we will get SSL errors with git
 RUN set -ex \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
-    git \    
+    git \
+    ca-certificates \
     && apt-get clean \
     && rm -rf \
     /var/lib/apt/lists/* \
