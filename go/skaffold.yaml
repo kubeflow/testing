@@ -1,0 +1,83 @@
+# Reference: https://skaffold.dev/docs/references/yaml/
+apiVersion: skaffold/v2alpha1
+kind: Config
+metadata:
+  name: kf-apps-cd
+build:
+  artifacts:
+  - image: gcr.io/kubeflow-images-public/prctl
+    # Set the context to the root directory of the repository.
+    # All paths in the Dockerfile should be relative to this one.
+    context: .
+    kaniko:
+      dockerfile: ./Dockerfile.prctl
+      buildContext:
+        gcsBucket: kubeflow-releasing_skaffold
+      env: 
+        # TODO(GoogleContainerTools/skaffold#3468) skaffold doesn't
+        # appear to work with workload identity
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/user-gcp-sa.json
+      cache: {}
+  cluster:    
+    pullSecretName: user-gcp-sa
+    resources:
+      requests:
+        cpu: 6
+        memory: 16Gi
+profiles:
+  # Build on the kubeflow releasing cluster  
+  - name: releasing
+    activation:
+      - kubeContext: kubeflow-releasing
+    patches:
+      - op: replace
+        path: /build/artifacts/0/image
+        value: gcr.io/kubeflow-images-public/prctl
+      # TODO(jlewi): This no longer seems to work after upgrading skaffold.
+      #- op: replace
+      #  path: /build/artifacts/0/kaniko/buildContext/gcsBucket
+      #  value: kubeflow-ci_skaffold
+      - op: replace
+        path: /build/artifacts/0/kaniko/env/0/value
+        value: /secret/user-gcp-sa.json
+    build:      
+      cluster:    
+        # Build in a namespace with ISTIO sidecar injection disabled
+        # see  GoogleContainerTools/skaffold#3442
+        namespace: kf-releasing
+        pullSecretName: user-gcp-sa
+        resources:
+          requests:
+            cpu: 6
+            memory: 16Gi
+    deploy:
+      kustomize:
+        path: manifest
+  - name: testing
+    activation:
+      - kubeContext: kubeflow-testing
+    patches:
+      - op: replace
+        path: /build/artifacts/0/image
+        value: gcr.io/kubeflow-ci/prctl
+      # TODO(jlewi): This no longer seems to work after upgrading skaffold.
+      #- op: replace
+      #  path: /build/artifacts/0/kaniko/buildContext/gcsBucket
+      #  value: kubeflow-ci_skaffold
+      - op: replace
+        path: /build/artifacts/0/kaniko/env/0/value
+        value: /secret/key.json
+    build:      
+      cluster:    
+        # Build in a namespace with ISTIO sidecar injection disabled
+        # see  GoogleContainerTools/skaffold#3442
+        namespace: kubeflow-test-infra
+        pullSecretName: gcp-credentials
+        resources:
+          requests:
+            cpu: 6
+            memory: 16Gi
+    deploy:
+      kustomize:
+        path: manifest
