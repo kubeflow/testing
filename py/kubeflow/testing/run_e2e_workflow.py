@@ -82,7 +82,7 @@ TEST_TARGET_ARG_NAME = "test_target_name"
 TEKTON_CLUSTER_NAME = "kf-ci-v1"
 TEKTON_CLUSTER_ZONE = "us-east1-d"
 
-if sys.version_info < (3):
+if sys.version_info < (3,0):
   FileNotFoundError = IOError
 
 
