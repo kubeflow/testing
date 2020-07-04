@@ -82,6 +82,10 @@ TEST_TARGET_ARG_NAME = "test_target_name"
 TEKTON_CLUSTER_NAME = "kf-ci-v1"
 TEKTON_CLUSTER_ZONE = "us-east1-d"
 
+if sys.version_info < (3):
+  FileNotFoundError = IOError
+
+
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
   if args.namespace:
