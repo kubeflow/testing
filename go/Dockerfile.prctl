@@ -32,7 +32,16 @@ RUN apt-get update -y && \
 RUN cd /tmp && \
     curl -LO  https://github.com/github/hub/releases/download/v2.11.2/hub-linux-amd64-2.11.2.tgz && \
     tar -xvf hub-linux-amd64-2.11.2.tgz && \
-    cp hub-linux-amd64-2.11.2/bin/hub /usr/local/hub 
+    cp hub-linux-amd64-2.11.2/bin/hub /usr/local/hub
+
+# Add Kustomize so we can hydrate manifests
+#
+# TODO(jlewi): Should we create a separate image for Kustomize?
+RUN cd /tmp && \
+    curl -LO  https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.6.1/kustomize_v3.6.1_linux_amd64.tar.gz && \
+    tar -xvf kustomize_v3.6.1_linux_amd64.tar.gz && \
+    cp kustomize /usr/local/bin/kustomize && \
+    chmod a+x /usr/local/bin/kustomize
 
 # TODO(jlewi): We would really like to use a distroless images but we need to shell out to
 # git. I tried running git on a base-debian10 distrolless but that was missing some of the
@@ -45,23 +54,19 @@ FROM alpine:3.11
 
 WORKDIR /
 
-# Without ca-certificates we will get SSL errors with git
+# Without openssh we will get SSL errors with git.
+# Include make because we often wrap commands in make.
+# bash is needed so we can run tekton scripts
 RUN set -ex \
-    && apt-get update -yqq \
-    && apt-get install -yqq --no-install-recommends \
-    git \
-    ca-certificates \
-    && apt-get clean \
-    && rm -rf \
-    /var/lib/apt/lists/* \
-    /tmp/* \
-    /var/tmp/* \
-    /usr/share/man \
-    /usr/share/doc \
-    /usr/share/doc-base
+    && apk update \
+    && apk upgrade \
+    && apk add --no-cache git bash openssh make \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm /var/cache/apk/* 
 
 # Install the hub CLI for git
 COPY --from=hub_builder /usr/local/hub /usr/local/bin/
+COPY --from=hub_builder /usr/local/bin/kustomize /usr/local/bin/
 COPY --from=builder /workspace/prctl /usr/local/bin/
 
 ENTRYPOINT ["/usr/local/bin/prctl"]

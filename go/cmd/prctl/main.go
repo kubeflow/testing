@@ -5,31 +5,42 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"os"
 	"os/exec"
 	"regexp"
 )
 
+type cliOptions struct {
+	upstreamName string
+	repoDir      string
+	forkName     string
+	fork         string
+	branchName   string
+	messagePath  string
+	baseBranch   string
+	refSpec string
+	jsonLogFormat bool
+}
+
 var (
+	options = cliOptions{}
+
 	rootCmd = &cobra.Command{
 		Use:   "prctl",
 		Short: "A CLI to help with creating PRs",
 		Long:  `prctl is a CLI to help create PRs as part of GitOps workflows`,
 	}
 
-	upstreamName string
-	repoDir string
-	forkName string
-	fork string
-	branchName string
-	messagePath string
-	baseBranch string
-
 	branchCmd = &cobra.Command{
 		Use:   "branch",
 		Short: "Create a branch to be used for creating PRs.",
 		Long:  `prctl branch creates a branch on a remote repo to contain any changes`,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := branch(repoDir, upstreamName, forkName, fork, branchName)
+			if err := setup(); err != nil {
+				log.Fatalf("Failed to setup the app; error: %+v", err)
+				return
+			}
+			err := branch(options.repoDir, options.upstreamName, options.forkName, options.fork, options.branchName)
 
 			if err != nil {
 				log.Fatalf("branch failed; error: %+v", err)
@@ -42,7 +53,11 @@ var (
 		Short: "Commit changes and push them.",
 		Long:  `prctl push commit changes and push them`,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := push(repoDir, forkName, branchName, messagePath)
+			if err := setup(); err != nil {
+				log.Fatalf("Failed to setup the app; error: %+v", err)
+				return
+			}
+			err := push(options.repoDir, options.forkName, options.refSpec, options.messagePath)
 
 			if err != nil {
 				log.Fatalf("push failed; error: %+v", err)
@@ -55,34 +70,75 @@ var (
 		Short: "Create a PR in GitHub.",
 		Long:  `prctl pull-request creates a PR`,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := pr(repoDir, baseBranch, messagePath)
+			if err := setup(); err != nil {
+				log.Fatalf("Failed to setup the app; error: %+v", err)
+				return
+			}
+			err := pr(options.repoDir, options.baseBranch, options.messagePath)
 
 			if err != nil {
 				log.Fatalf("push failed; error: %+v", err)
 			}
 		},
 	}
+
+	// Create a map of ids for various git errors to regexes matching the output
+	gitErrorRegexes = map[string][]string{
+		NothingToCommit:     {".*nothing to commit.*"},
+		UnshallowOnComplete: {".*unshallow on a complete repository.*"},
+		BranchExists:        {".*branch.*already.*exists.*"},
+		RemoteExists:        {".*remote.*already.*exists.*"},
+	}
 )
+
+const (
+	// Define constants for the various known errors
+	NothingToCommit     = "nothingToCommit"
+	UnshallowOnComplete = "unshallowOnComplete"
+	BranchExists        = "branchExists"
+	RemoteExists        = "remoteExists"
+)
+
+// setup performs common app setup
+func setup() error {
+	if options.jsonLogFormat {
+		log.SetFormatter(&log.JSONFormatter{})
+	}
+	return nil
+}
 
 func init() {
 	rootCmd.AddCommand(branchCmd)
 	rootCmd.AddCommand(pushCmd)
 	rootCmd.AddCommand(prCmd)
 
-	branchCmd.Flags().StringVarP(&upstreamName, "upstreamName", "", "origin", "The name of the remote repository corresponding to the upstream URL")
-	branchCmd.Flags().StringVarP(&repoDir, "repoDir", "", "", "Directory where the code is checked out")
-	branchCmd.Flags().StringVarP(&forkName, "forkName", "", "", "Name to assign the remote repo for the fork")
-	branchCmd.Flags().StringVarP(&fork, "fork", "", "", "Name to assign the remote repo for the fork")
-	branchCmd.Flags().StringVarP(&branchName, "branchName", "", "", "Name to the branch to create")
+	rootCmd.PersistentFlags().BoolVar(&options.jsonLogFormat, "json-logs", false, "Use json formatted log enteries")
 
-	pushCmd.Flags().StringVarP(&repoDir, "repoDir", "", "", "Directory where the code is checked out")
-	pushCmd.Flags().StringVarP(&forkName, "forkName", "", "", "Name to assign the remote repo for the fork")
-	pushCmd.Flags().StringVarP(&branchName, "branchName", "", "", "Name to the branch to create")
-	pushCmd.Flags().StringVarP(&messagePath, "messagePath", "", "", "Path to a file containing the message to use for the commit")
+	branchCmd.Flags().StringVarP(&options.upstreamName, "upstreamName", "", "origin", "The name of the remote repository corresponding to the upstream URL")
+	branchCmd.Flags().StringVarP(&options.repoDir, "repoDir", "", "", "Directory where the code is checked out")
+	branchCmd.Flags().StringVarP(&options.forkName, "forkName", "", "", "Name to assign the remote repo for the fork")
+	branchCmd.Flags().StringVarP(&options.fork, "fork", "", "", "Name to assign the remote repo for the fork")
+	branchCmd.Flags().StringVarP(&options.branchName, "branchName", "", "", "Name to the branch to create")
 
-	prCmd.Flags().StringVarP(&repoDir, "repoDir", "", "", "Directory where the code is checked out")
-	prCmd.Flags().StringVarP(&baseBranch, "baseBranch", "", "kubeflow:master", "Name of the branch to use as the base")
-	prCmd.Flags().StringVarP(&messagePath, "messagePath", "", "", "Path to a file containing the message to use for the commit")
+	branchCmd.MarkFlagRequired("forkName")
+	branchCmd.MarkFlagRequired("fork")
+	branchCmd.MarkFlagRequired("branchName")
+
+	pushCmd.Flags().StringVarP(&options.repoDir, "repoDir", "", "", "Directory where the code is checked out")
+	pushCmd.Flags().StringVarP(&options.forkName, "forkName", "", "", "Name to assign the remote repo for the fork")
+	pushCmd.Flags().StringVarP(&options.refSpec, "refSpec", "", "", "The refSpec to use for the push")
+	pushCmd.Flags().StringVarP(&options.messagePath, "messagePath", "", "", "Path to a file containing the message to use for the commit")
+
+	pushCmd.MarkFlagRequired("refSpec")
+	pushCmd.MarkFlagRequired("forkName")
+	pushCmd.MarkFlagRequired("messagePath")
+
+	prCmd.Flags().StringVarP(&options.repoDir, "repoDir", "", "", "Directory where the code is checked out")
+	prCmd.Flags().StringVarP(&options.baseBranch, "baseBranch", "", "kubeflow:master", "Name of the branch to use as the base")
+	prCmd.Flags().StringVarP(&options.messagePath, "messagePath", "", "", "Path to a file containing the message to use for the commit")
+
+	prCmd.MarkFlagRequired("baseBranch")
+	prCmd.MarkFlagRequired("messagePath")
 
 	// Add filename as one of the fields of the structured log message.
 	filenameHook := filename.NewHook()
@@ -99,49 +155,65 @@ type execHelper struct {
 	errorRes map[string][]string
 }
 
-// Run the specified command.
+// matchRePatterns checks if the string matches one of the supplied patterns
+// Returns the id of the error that matched if any; the empty string otherwise.
+// error non nil if an unmatched exception occur.
+func matchRePatterns(patterns map[string][]string, s string) (string, error) {
+	for eid, p := range patterns {
+		for _, re := range p {
+			match, err := regexp.MatchString(re, s)
+
+			if err != nil {
+				return "", errors.WithStack(err)
+			}
+
+			if match {
+				return eid, nil
+			}
+		}
+	}
+	return "", nil
+}
+
+// Run executes the command stored in the execHelper
 // Returns the id of the error that matched if any; the empty string otherwise.
 // error non nil if an unmatched exception occur.
 func (e *execHelper) Run() (string, error) {
-	out, err := e.cmd.Output()
+	log.Infof("Executing command: %v", e.cmd.String())
+	out, err := e.cmd.CombinedOutput()
 
+	// It looks like out is sometimes set even if there is an error.
+	log.Infof("Output of %v;\n%v", e.cmd.String(), string(out))
 	if err != nil {
+		m, err := matchRePatterns(e.errorRes, string(out))
 
-		exitError, ok := err.(*exec.ExitError)
-
-		if !ok{
-			return "", errors.WithStack(err)
+		if err != nil {
+			log.Errorf("Error trying to match output against known regexes; Error %v", err)
+			return "", err
 		}
-
-		log.Infof("Output of %v; %v", e.cmd.String(), string(exitError.Stderr))
-		for eid, patterns := range e.errorRes {
-			for _, re := range patterns {
-				match, err := regexp.MatchString(re, string(exitError.Stderr))
-
-				if err != nil {
-					return "", errors.WithStack(err)
-				}
-
-				if match {
-					return eid, nil
-				}
-			}
+		if m != "" {
+			return m, nil
+		} else {
+			return "", err
 		}
-
-		return "", err
 	}
-	log.Infof("Output of %v; %v", e.cmd.String(), string(out))
 
 	return "", nil
 }
 
 // branch creates a branch for all the changes
-func branch( repoDir string, upstreamName string, forkName string, forkUrl string, branchName string) error {
+func branch(repoDir string, upstreamName string, forkName string, forkUrl string, branchName string) error {
+	if repoDir == "" {
+		repoDir, err := os.Getwd()
+		if err != nil {
+			return errors.WithStack(errors.Errorf("repoDir not provided and couldn't get current directory; Error: %v", err))
+		}
+		log.Infof("Using current directory; %v", repoDir)
+	}
+
 	e := &execHelper{
-		cmd: exec.Command("git", "fetch", "--unshallow"),
-		errorRes: map[string][]string {
-			"unshallow": []string{".*unshallow on a complete repository.*"},
-		},
+		cmd:      exec.Command("git", "fetch", "--unshallow"),
+		errorRes: gitErrorRegexes,
 	}
 
 	e.cmd.Dir = repoDir
@@ -154,10 +226,8 @@ func branch( repoDir string, upstreamName string, forkName string, forkUrl strin
 
 	// Create a new branch for the pull request.
 	e = &execHelper{
-		cmd: exec.Command("git", "checkout", "-b", branchName, upstreamName + "/master"),
-		errorRes: map[string][]string {
-			"exists": []string{".*branch.*already.*exists.*"},
-		},
+		cmd:      exec.Command("git", "checkout", "-b", branchName, upstreamName+"/master"),
+		errorRes: gitErrorRegexes,
 	}
 
 	e.cmd.Dir = repoDir
@@ -165,13 +235,13 @@ func branch( repoDir string, upstreamName string, forkName string, forkUrl strin
 	result, err := e.Run()
 
 	if err != nil {
-		return errors.Wrapf(err, "There was a checking out a branch.")
+		return errors.Wrapf(err, "There was a problem checking out the branch.")
 	}
 
-	if result == "exists" {
+	if result == BranchExists {
 		e := &execHelper{
-			cmd: exec.Command("git", "checkout", branchName),
-			errorRes: map[string][]string {},
+			cmd:      exec.Command("git", "checkout", branchName),
+			errorRes: gitErrorRegexes,
 		}
 
 		e.cmd.Dir = repoDir
@@ -185,10 +255,8 @@ func branch( repoDir string, upstreamName string, forkName string, forkUrl strin
 
 	// Add the remote repo where things will be pushed
 	e = &execHelper{
-		cmd: exec.Command("git", "remote", "add", forkName, fork),
-		errorRes: map[string][]string {
-			"exists": {".*remote.*already.*exists.*"},
-		},
+		cmd:      exec.Command("git", "remote", "add", forkName, forkUrl),
+		errorRes: gitErrorRegexes,
 	}
 
 	e.cmd.Dir = repoDir
@@ -202,12 +270,30 @@ func branch( repoDir string, upstreamName string, forkName string, forkUrl strin
 }
 
 // push commits and pushes all changes
-func push( repoDir string, forkName string, branchName string, messagePath string) error {
+func push(repoDir string, forkName string, refSpec string, messagePath string) error {
+	if refSpec == "" {
+		return errors.WithStack(errors.Errorf("refSpec can't be empty"))
+	}
+
+	if forkName == "" {
+		return errors.WithStack(errors.Errorf("forkName can't be empty"))
+	}
+
+	if messagePath == "" {
+		return errors.WithStack(errors.Errorf("messagePath can't be empty"))
+	}
+
+	if repoDir == "" {
+		repoDir, err := os.Getwd()
+		if err != nil {
+			return errors.WithStack(errors.Errorf("repoDir not provided and couldn't get current directory; Error: %v", err))
+		}
+		log.Infof("Using current directory; %v", repoDir)
+	}
+
 	e := &execHelper{
-		cmd: exec.Command("git", "commit", "-a", "-F", messagePath),
-		errorRes: map[string][]string {
-			"empty": {".*nothing to commit.*"},
-		},
+		cmd:      exec.Command("git", "add", "--all"),
+		errorRes: gitErrorRegexes,
 	}
 
 	e.cmd.Dir = repoDir
@@ -215,12 +301,29 @@ func push( repoDir string, forkName string, branchName string, messagePath strin
 	_, err := e.Run()
 
 	if err != nil {
+		return errors.Wrapf(err, "There was an error staging allchanges.")
+	}
+
+
+	e = &execHelper{
+		cmd:      exec.Command("git", "commit", "-a", "-F", messagePath),
+		errorRes: gitErrorRegexes,
+	}
+
+	e.cmd.Dir = repoDir
+
+	_, err = e.Run()
+
+	if err != nil {
 		return errors.Wrapf(err, "There was an error commiting the changes.")
 	}
 
 	e = &execHelper{
-		cmd: exec.Command("git", "push", forkName, branchName),
-		errorRes: map[string][]string {},
+		// -f is needed because its possible the branch already exists; e.g. because we previously
+		// attempted to create PR but then closed it say because the PR became outdated.
+		// Furthermore, we can reuse the same branch for multiple updates.
+		cmd:      exec.Command("git", "push", "-f", forkName, refSpec),
+		errorRes: map[string][]string{},
 	}
 
 	e.cmd.Dir = repoDir
@@ -234,7 +337,15 @@ func push( repoDir string, forkName string, branchName string, messagePath strin
 }
 
 // pr creates a pull request
-func pr( repoDir string, baseBranch, messagePath string) error {
+func pr(repoDir string, baseBranch, messagePath string) error {
+	if repoDir == "" {
+		repoDir, err := os.Getwd()
+		if err != nil {
+			return errors.WithStack(errors.Errorf("repoDir not provided and couldn't get current directory; Error: %v", err))
+		}
+		log.Infof("Using current directory; %v", repoDir)
+	}
+
 	// TODO(jlewi): We might want to use gh here. gh is the new official CLI
 	// https://github.com/cli/cli/blob/trunk/docs/gh-vs-hub.md. According to the FAQ
 	// https://github.com/cli/cli/blob/trunk/docs/gh-vs-hub.md#should-i-use-gh-or-hub
@@ -242,7 +353,7 @@ func pr( repoDir string, baseBranch, messagePath string) error {
 	// both are go so we could potentially link them in.
 	e := &execHelper{
 		cmd: exec.Command("hub", "pull-request", "-f", "-b", baseBranch, "-F", messagePath),
-		errorRes: map[string][]string {
+		errorRes: map[string][]string{
 			"exists": {".*already exists.*"},
 		},
 	}
@@ -254,7 +365,7 @@ func pr( repoDir string, baseBranch, messagePath string) error {
 	if err != nil {
 		return errors.Wrapf(err, "There was an error creating the pull request.")
 	}
-	
+
 	return nil
 }
 
