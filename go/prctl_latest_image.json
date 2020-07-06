@@ -1,1 +1,1 @@
-{"builds":[{"imageName":"gcr.io/kubeflow-images-public/prctl","tag":"gcr.io/kubeflow-images-public/prctl:7939a1d-dirty@sha256:50ddf9dc0871f12037bb787abce6a2c43ee62793daae0f8e8622cad2675f9ec2"}]}
+{"builds":[{"imageName":"gcr.io/kubeflow-images-public/prctl","tag":"gcr.io/kubeflow-images-public/prctl:f386858-dirty@sha256:afe3fe6ca81c2c78116df6e0a1860d86a4d4e878d95f5ca55cc1acbe5cd1bac5"}]}
