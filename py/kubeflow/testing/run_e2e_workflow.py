@@ -59,6 +59,7 @@ import importlib
 import logging
 import os
 import tempfile
+import six
 from kubernetes import client as k8s_client
 from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
@@ -81,6 +82,10 @@ TEST_TARGET_ARG_NAME = "test_target_name"
 # Tekton pipelines run on different cluster.
 TEKTON_CLUSTER_NAME = "kf-ci-v1"
 TEKTON_CLUSTER_ZONE = "us-east1-d"
+
+if six.PY2:
+  FileNotFoundError = IOError
+
 
 # The namespace to launch the Argo workflow in.
 def get_namespace(args):
