@@ -147,7 +147,7 @@ func init() {
 	pushCmd.MarkFlagRequired("forkName")
 	pushCmd.MarkFlagRequired("messagePath")
 
-	prCmd.Flags().StringVarP(&options.repo, "repo", "", "", "The repo to create the PR in in the form OWNER/REPO")
+	prCmd.Flags().StringVarP(&options.repo, "repo", "", "", "The repo to create the PR can be in the form OWNER/REPO, git@github.com:OWNER/REPO.git or https://github.com/OWNER/REPO.git")
 	prCmd.Flags().StringVarP(&options.baseBranch, "baseBranch", "", "master", "Name of the branch to merge your changes into")
 	prCmd.Flags().StringVarP(&options.forkRef, "forkRef", "", "", "Reference to the branch to create the PR from; typically ${user}:${branch}")
 	prCmd.Flags().StringVarP(&options.messagePath, "messagePath", "", "", "Path to a file containing the message to use for the commit")
@@ -414,7 +414,7 @@ func pr(repo string, baseBranch, forkRef, messagePath string) error {
 		return errors.WithStack(errors.Errorf("Could not convert appId %v to integer; error: %v", options.appId, err))
 	}
 
-	baseRepo, err := ghrepo.FromFullName(repo)
+	baseRepo, err := ghrepo.FromUrlOrName(repo)
 
 	if err != nil {
 		return errors.WithStack(errors.Wrapf(err, "There was a problem getting the base repo."))

@@ -5,6 +5,7 @@ package ghrepo
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"net/url"
 	"strings"
 )
@@ -29,6 +30,29 @@ func New(owner, repo string) Interface {
 // FullName serializes a GitHub repository into an "OWNER/REPO" string
 func FullName(r Interface) string {
 	return fmt.Sprintf("%s/%s", r.RepoOwner(), r.RepoName())
+}
+
+// FromUrlOrName accepts 3 different formats:
+// OWNER/REPO
+// git@github.com:OWNER/REPO.git
+// https://github.com/OWNER/REPO.git
+//
+func FromUrlOrName(v string)(Interface, error) {
+	if strings.HasPrefix(v,"git@github.com:") {
+		v = strings.TrimPrefix(v, "git@github.com:")
+		v = strings.TrimSuffix(v, ".git")
+		return FromFullName(v)
+	}
+
+	if strings.HasPrefix(v, "https://") || strings.HasPrefix(v, "http://") {
+		u, err := url.Parse(v)
+		if err != nil {
+			return nil, errors.WithStack(errors.Wrapf(err, "Could not parse repo owner and name from: %v", v))
+		}
+		return FromURL(u)
+	}
+
+	return FromFullName(v)
 }
 
 // FromFullName extracts the GitHub repository information from an "OWNER/REPO" string
