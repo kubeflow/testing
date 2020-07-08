@@ -50,7 +50,7 @@ spec:
         resource: image
     params:
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: $(params.artifacts-gcs)/artifacts/junit_$(params.test-target-name)
     taskRef:
       name: notebook-test-builder
   - name: run-notebook
