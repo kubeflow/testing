@@ -43,7 +43,7 @@ spec:
   - name: build-image
     params:
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: $(params.artifacts-gcs)/artifacts/junit_$(params.test-target-name)
     resources:
       inputs:
       - name: notebook-repo
