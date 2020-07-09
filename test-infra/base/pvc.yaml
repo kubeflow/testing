@@ -9,7 +9,7 @@ spec:
     storage: "5Gi"
   nfs:
     path: "/kubeflow"
-    server: "10.86.7.242"  
+    server: "10.194.190.82"
   persistentVolumeReclaimPolicy: "Retain"
   storageClassName: gcfs-storage
 
