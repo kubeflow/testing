@@ -136,7 +136,7 @@ spec:
       serviceAccount: default-editor
       volumes:
       - configMap:
-          name: auto-deploy-config-h45bmmttmt
+          name: auto-deploy-config-2778d8c6c8
         name: config
       - emptyDir: {}
         name: cache
