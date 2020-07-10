@@ -72,7 +72,7 @@ spec:
         --notebook_path=/src/notebook-repo/$(inputs.params.notebook-path) \
         --test-target-name=$(inputs.params.test-target-name) \
         --artifacts-gcs=$(inputs.params.notebook-output) \
-        --image_file=$(inputs.params.artifacts-gcs)/image.yaml
+        --image_file=$(inputs.params.artifacts-gcs)/image.yaml \
         --namespace=$(inputs.params.nb-namespace)
       echo test finished
     workingDir: /srcCache/kubeflow/testing/py/kubeflow/testing/notebook_tests
