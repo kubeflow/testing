@@ -18,3 +18,4 @@ configMapGenerator:
     - ./config/deploy-kubeflow.yaml
     - ./config/deployments.yaml
     - ./config/pipeline-run-deploy-blueprint-master.yaml
+    - ./config/pipeline-run-deploy-blueprint-v1.1.yaml
