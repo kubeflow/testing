@@ -595,7 +595,7 @@ def wait_for_statefulset(api_client, namespace, name):
   # Wait for tiller to be ready
   end_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
 
-  apps_client = k8s_client.AppsV1beta1Api(api_client)
+  apps_client = k8s_client.AppsV1Api(api_client)
 
   while datetime.datetime.now() < end_time:
     stateful = apps_client.read_namespaced_stateful_set(name, namespace)
