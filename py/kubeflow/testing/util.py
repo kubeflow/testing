@@ -429,14 +429,10 @@ def wait_for_deployment(api_client,
   end_time = datetime.datetime.now() + datetime.timedelta(
     minutes=timeout_minutes)
 
-  ext_client = k8s_client.ExtensionsV1beta1Api(api_client)
-  ext_client_apps = k8s_client.AppsV1beta1Api(api_client)
+  ext_client_apps = k8s_client.AppsV1Api(api_client)
 
   while datetime.datetime.now() < end_time:
-    try:
-      deploy = ext_client.read_namespaced_deployment(name, namespace)
-    except rest.ApiException:
-      deploy = ext_client_apps.read_namespaced_deployment(name, namespace)
+    deploy = ext_client_apps.read_namespaced_deployment(name, namespace)
     # ready_replicas could be None
     if (deploy.status.ready_replicas and
         deploy.status.ready_replicas >= replicas):
@@ -599,7 +595,7 @@ def wait_for_statefulset(api_client, namespace, name):
   # Wait for tiller to be ready
   end_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
 
-  apps_client = k8s_client.AppsV1beta1Api(api_client)
+  apps_client = k8s_client.AppsV1Api(api_client)
 
   while datetime.datetime.now() < end_time:
     stateful = apps_client.read_namespaced_stateful_set(name, namespace)
