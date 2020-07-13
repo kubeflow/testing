@@ -1,7 +1,3 @@
-# Build the docker image used to run the scripts
-# to continuously update our docker files.
-#
-# The context for this docker file should be the root of the kubeflow/testing repository.
 FROM ubuntu:18.04
 
 RUN apt-get update -y && \
@@ -31,13 +27,21 @@ RUN cd /tmp && \
     wget -O /tmp/go.tar.gz https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go.tar.gz
 
-# Install gcloud
-ENV PATH=/root/go/bin:/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
-    CLOUDSDK_CORE_DISABLE_PROMPTS=1
+# Create go symlinks
+RUN ln -sf /usr/local/go/bin/go /usr/local/bin && \
+    ln -sf /usr/local/go/bin/gofmt /usr/local/bin && \
+    ln -sf /usr/local/go/bin/godoc /usr/local/bin
 
 # Install the new version of yq which is based on go
 RUN GO111MODULE=on go get github.com/mikefarah/yq/v3
-RUN go get github.com/kelseyhightower/kube-rsa 
+
+RUN go get github.com/kelseyhightower/kube-rsa
+
+RUN go get -u github.com/jstemmer/go-junit-report
+
+# Install gcloud
+ENV PATH=/root/go/bin:/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
+    CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
     tar xzf google-cloud-sdk.tar.gz -C / && \
@@ -71,23 +75,10 @@ RUN export ASM_VERSION=1.4.7-asm.0 && \
     mv istio-${ASM_VERSION} /usr/local && \
     ln -sf /usr/local/istio-${ASM_VERSION}/bin/istioctl /usr/local/bin/istioctl
 
-    
-# Create go symlinks
-RUN ln -sf /usr/local/go/bin/go /usr/local/bin && \
-    ln -sf /usr/local/go/bin/gofmt /usr/local/bin && \
-    ln -sf /usr/local/go/bin/godoc /usr/local/bin
-
-RUN go get github.com/kelseyhightower/kube-rsa
-
-COPY ./images/checkout_repos.sh /usr/local/bin
-COPY ./images/setup_ssh.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/checkout* /usr/local/bin/setup_ssh.sh
-
-COPY ./images/run_workflows.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/run_workflows.sh
-
-COPY ./images/run_release.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/run_release.sh
+COPY checkout_*.sh /usr/local/bin
+COPY setup_ssh.sh /usr/local/bin
+COPY run_*.sh /usr/local/bin
+RUN chmod a+x /usr/local/bin/checkout* /usr/local/bin/setup_ssh.sh /usr/local/bin/run_*.sh
 
 # Install the hub CLI for git
 RUN cd /tmp && \
@@ -102,10 +93,10 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.0/
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
-RUN go get -u github.com/jstemmer/go-junit-report
-
 # Create a cached copy of the python test scripts so that we don't
 # need to clone the repo just to get access to them
 RUN mkdir -p /srcCache/kubeflow/testing
 COPY py /srcCache/kubeflow/testing/py
 COPY notebook_testing /srcCache/kubeflow/testing/notebook_testing
+
+ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]
