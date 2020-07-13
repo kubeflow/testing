@@ -43,7 +43,7 @@ spec:
       default: default-profile
     - name: test-image
       type: string
-      default: gcr.io/kubeflow-ci/test-worker-py3:a965408-dirty@sha256:8f5fae73704538306c81cceb5e563307f0cf9e228ac2d6e3e3ed7f5af7f6394a # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:a965408-dirty@sha256:8f5fae73704538306c81cceb5e563307f0cf9e228ac2d6e3e3ed7f5af7f6394a"}]}}
+      default: gcr.io/kubeflow-ci/test-worker-py3:59b3b5d-dirty@sha256:58701d52b9fba37e7082c8e530b05fd533fb9a5ada5055c5f1443c0c4b9c8c43 # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:59b3b5d-dirty@sha256:58701d52b9fba37e7082c8e530b05fd533fb9a5ada5055c5f1443c0c4b9c8c43"}]}}
       description: The docker image to run the tests in
   steps:
   - name: get-credential
@@ -125,7 +125,7 @@ spec:
     params:
     - name: test-image
       type: string
-      default: gcr.io/kubeflow-ci/test-worker-py3:a965408-dirty@sha256:8f5fae73704538306c81cceb5e563307f0cf9e228ac2d6e3e3ed7f5af7f6394a # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:a965408-dirty@sha256:8f5fae73704538306c81cceb5e563307f0cf9e228ac2d6e3e3ed7f5af7f6394a"}]}}
+      default: gcr.io/kubeflow-ci/test-worker-py3:59b3b5d-dirty@sha256:58701d52b9fba37e7082c8e530b05fd533fb9a5ada5055c5f1443c0c4b9c8c43 # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:59b3b5d-dirty@sha256:58701d52b9fba37e7082c8e530b05fd533fb9a5ada5055c5f1443c0c4b9c8c43"}]}}
       description: The docker image to run the tests in
     - name: artifacts-gcs
       type: string
