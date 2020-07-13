@@ -38,6 +38,7 @@ spec:
     - get-credentials
     - --pattern=$(inputs.params.testing-cluster-pattern)
     - --location=$(inputs.params.testing-cluster-location)
+    - --output=/workspace/cluster.info.yaml
     command:
     - python
     env:
@@ -53,6 +54,8 @@ spec:
     script: |
       #!/usr/bin/env bash
       set -x
+      # Get the name of the cluster
+      export KFNAME=$(yq r /workspace/cluster.info.yaml cluster.name)
       # I think -s mean stdout/stderr will print out to aid in debugging.
       # Failures still appear to be captured and stored in the junit file.
       # Test suite name needs to be unique based on parameters
@@ -61,6 +64,7 @@ spec:
         --log-cli-level=info \
         --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
         --junitxml=/workspace/artifacts/junit_kf-ready.xml \
+        --app_name=$(KFNAME) \
         --timeout=180 \
         -o junit_suite_name=test_kf_ready_blueprint
       echo test finished.
