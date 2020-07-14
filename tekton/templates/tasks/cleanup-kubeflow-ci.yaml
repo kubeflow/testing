@@ -36,7 +36,7 @@ spec:
       description: The GitHub repo containing kubeflow testing scripts
   steps:
   - name: create-context
-    image: gcr.io/kubeflow-ci/test-worker-py3:d67009b@sha256:e96d069db00159c03b95ed1064569bcd0a78acdc691f42b5025050370949007a # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:d67009b@sha256:e96d069db00159c03b95ed1064569bcd0a78acdc691f42b5025050370949007a"}]}}
+    image: gcr.io/kubeflow-ci/test-worker-py3:b23b63b-dirty@sha256:a749d7fa4d77466c892a206d3adf0909e86717da898dbd12378e6cbed59ffbd3 # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:b23b63b-dirty@sha256:a749d7fa4d77466c892a206d3adf0909e86717da898dbd12378e6cbed59ffbd3"}]}}
     command:
     - python
     - -m

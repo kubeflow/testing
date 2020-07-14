@@ -80,6 +80,7 @@ RUN ln -sf /usr/local/go/bin/go /usr/local/bin && \
 RUN go get github.com/kelseyhightower/kube-rsa
 
 COPY ./images/checkout_repos.sh /usr/local/bin
+COPY ./images/checkout.sh /usr/local/bin
 COPY ./images/setup_ssh.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/checkout* /usr/local/bin/setup_ssh.sh
 
