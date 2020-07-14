@@ -39,7 +39,7 @@ spec:
     env:
     - name: KUBECONFIG
       value: /workspace/kubeconfig
-    image: gcr.io/kubeflow-ci/test-worker-py3:fb970ef@sha256:804c6cc8a73face69d79c60bcd85b93fa04218db9ee31127fb529b41fcab43ac
+    image: gcr.io/kubeflow-ci/test-worker-py3:d67009b@sha256:e96d069db00159c03b95ed1064569bcd0a78acdc691f42b5025050370949007a
   steps:
   - command:
     - /workspace/$(inputs.resources.blueprint-repo.name)/kubeflow/hack/create_context.sh
