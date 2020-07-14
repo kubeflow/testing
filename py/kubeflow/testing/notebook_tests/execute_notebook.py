@@ -1,9 +1,11 @@
 import argparse
+import datetime
 import tempfile
 import logging
 import nbformat
 import nbconvert
 import os
+import uuid
 import papermill
 from papermill import exceptions as papermill_exceptions
 
@@ -62,6 +64,15 @@ def run_notebook_test(notebook_path, parameters=None):
   html_exporter = nbconvert.HTMLExporter()
   (html_output, _) = html_exporter.from_notebook_node(nb)
   gcs_path = os.getenv("OUTPUT_GCS")
+
+  # Per https://github.com/kubeflow/testing/issues/715
+  # we need to add some uniquness to the name since different test runs
+  # will use the same OUTPUT_GCS directory
+  subdir = datetime.datetime.now().strftime("%Y%m%d-%H%M")
+  subdir = subdir + "-" + uuid.uuid4().hex[0:4]
+
+  gcs_path = os.path.join(gcs_path, subdir, "notebook.html")
+
   logging.info(f"Uploading notebook to {gcs_path}")
   _upload_notebook_html(html_output, gcs_path)
 
