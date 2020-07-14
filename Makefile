@@ -1,9 +1,11 @@
 REPO_DIRS=./acm-repos
 AUTO_DEPLOY_CONTEXT=kf-ci-v1
+KFCI_CONTEXT=kf-ci-v1
 
 #***************************************************************************************************
 
 TEKTON_INSTALLS=./tekton/templates/installs
+
 # Hydrate ACM repos
 .PHONY: hydrate
 hydrate:
@@ -13,6 +15,12 @@ hydrate:
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy $(TEKTON_INSTALLS)/auto-deploy
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy test-infra/auto-deploy/manifest
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/kf-ci $(TEKTON_INSTALLS)/kf-ci
+
+
+# This applies your local changes to tekton components to the kf-ci-dev namespace.
+# This allows you to test changes manually before your pipelines are submitted.
+apply-kf-ci-dev:
+	kustomize build $(TEKTON_INSTALLS)/kf-ci-dev | kubectl --context=$(KFCI_CONTEXT) apply -f -
 
 build-worker-image:
 	cd images && skaffold build -p testing --kube-context=kubeflow-testing -v info --file-output=latest_image.json

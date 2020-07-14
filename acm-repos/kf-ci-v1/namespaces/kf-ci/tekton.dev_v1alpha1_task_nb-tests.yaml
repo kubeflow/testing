@@ -21,7 +21,7 @@ spec:
       type: string
     - description: This should be the bucket that the rendered notebook will be written
         to. This should be a GCS path that is accessible from the KF cluster where
-        the notebook runs. It will be copied to artifacts-gcs
+        the notebook runs. It will be copied to artifacts-gcs. This should be a directory.
       name: notebook-output
       type: string
     - description: GCS bucket and directory artifacts will be uploaded to. Should
@@ -36,7 +36,7 @@ spec:
       description: The namespace to run the notebook in
       name: nb-namespace
       type: string
-    - default: gcr.io/kubeflow-ci/test-worker-py3:fb970ef@sha256:804c6cc8a73face69d79c60bcd85b93fa04218db9ee31127fb529b41fcab43ac
+    - default: gcr.io/kubeflow-ci/test-worker-py3:d67009b@sha256:e96d069db00159c03b95ed1064569bcd0a78acdc691f42b5025050370949007a
       description: The docker image to run the tests in
       name: test-image
       type: string
