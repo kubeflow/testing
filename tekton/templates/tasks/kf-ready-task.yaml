@@ -76,7 +76,7 @@ spec:
         --log-cli-level=info \
         --log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s' \
         --junitxml=/workspace/artifacts/junit_kf-ready.xml \
-        --app_name=$(KFNAME) \
+        --app_name=${KFNAME} \
         --timeout=180 \
         -o junit_suite_name=test_kf_ready_blueprint
       echo test finished.
