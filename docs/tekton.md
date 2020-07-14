@@ -118,6 +118,20 @@ To update the hydrated manifests
 make hydrate
 ```
 
+## Developing/Testing your tasks
+
+The namespace `kf-ci-dev` in the `kf-ci-v1` cluster is intended for manually applying any testing any changes to tasks or pipelines
+you made. This allows you to test changes to test without having to first merge your changes and have them get sync'd via acm-repos.
+
+To apply your local changes
+
+```
+KFCI_CONTEXT=<Context for kf-ci-v1 cluster> make apply-kf-ci-dev
+```
+
+TODO(jlewi): This isn't a very scalable solution since if multiple developers are working simultaneously they will likely be overridding each other's changes.
+
+
 ## Debugging 
 
 ### TaskRun Logs

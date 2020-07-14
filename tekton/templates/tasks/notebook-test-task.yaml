@@ -43,7 +43,11 @@ spec:
       default: default-profile
     - name: test-image
       type: string
+<<<<<<< HEAD
       default: gcr.io/kubeflow-ci/test-worker-py3:59b3b5d-dirty@sha256:58701d52b9fba37e7082c8e530b05fd533fb9a5ada5055c5f1443c0c4b9c8c43 # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:59b3b5d-dirty@sha256:58701d52b9fba37e7082c8e530b05fd533fb9a5ada5055c5f1443c0c4b9c8c43"}]}}
+=======
+      default: gcr.io/kubeflow-ci/test-worker-py3:4a56d44-dirty@sha256:cf45693453e331e89d0540ed8c2436528eec4db63f9ce4967591bb023b166417 # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:4a56d44-dirty@sha256:cf45693453e331e89d0540ed8c2436528eec4db63f9ce4967591bb023b166417"}]}}
+>>>>>>> 11a620e... Setup a kf-ci-dev namespace for manual sync'ing of Tekton pipelines.
       description: The docker image to run the tests in
   steps:
   - name: get-credential
@@ -125,7 +129,11 @@ spec:
     params:
     - name: test-image
       type: string
+<<<<<<< HEAD
       default: gcr.io/kubeflow-ci/test-worker-py3:59b3b5d-dirty@sha256:58701d52b9fba37e7082c8e530b05fd533fb9a5ada5055c5f1443c0c4b9c8c43 # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:59b3b5d-dirty@sha256:58701d52b9fba37e7082c8e530b05fd533fb9a5ada5055c5f1443c0c4b9c8c43"}]}}
+=======
+      default: gcr.io/kubeflow-ci/test-worker-py3:4a56d44-dirty@sha256:cf45693453e331e89d0540ed8c2436528eec4db63f9ce4967591bb023b166417 # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"test-image","value":"gcr.io/kubeflow-ci/test-worker-py3:4a56d44-dirty@sha256:cf45693453e331e89d0540ed8c2436528eec4db63f9ce4967591bb023b166417"}]}}
+>>>>>>> 11a620e... Setup a kf-ci-dev namespace for manual sync'ing of Tekton pipelines.
       description: The docker image to run the tests in
     - name: artifacts-gcs
       type: string
