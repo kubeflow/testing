@@ -102,4 +102,8 @@ RUN git init && \
     git pull --depth=1 origin master && \
     mv py/ notebook_testing/ /srcCache/kubeflow/testing/
 
+# Add the directory where we will checkout kubeflow/testing
+# which contains shared scripts.
+ENV PYTHONPATH /src/kubeflow/testing/py
+
 ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]
