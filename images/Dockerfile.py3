@@ -106,4 +106,6 @@ RUN git init && \
 # which contains shared scripts.
 ENV PYTHONPATH /src/kubeflow/testing/py
 
+ENV PATH=root/bin:${PATH}
+
 ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]
