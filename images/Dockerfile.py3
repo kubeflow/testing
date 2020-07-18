@@ -91,21 +91,4 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.14.0/
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
-# Create a cached copy of the python test scripts so that we don't
-# need to clone the repo just to get access to them
-RUN mkdir -p /srcCache/kubeflow/testing
-RUN git init && \
-    git remote add origin -f https://github.com/kubeflow/testing && \
-    git config core.sparseCheckout true && \
-    echo 'py/*' >> .git/info/sparse-checkout && \
-    echo 'notebook_testing/*' >> .git/info/sparse-checkout && \
-    git pull --depth=1 origin master && \
-    mv py/ notebook_testing/ /srcCache/kubeflow/testing/
-
-# Add the directory where we will checkout kubeflow/testing
-# which contains shared scripts.
-ENV PYTHONPATH /src/kubeflow/testing/py
-
-ENV PATH=root/bin:${PATH}
-
 ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]

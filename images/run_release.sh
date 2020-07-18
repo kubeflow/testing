@@ -7,7 +7,8 @@ set -ex
 
 # Checkout the code.
 /usr/local/bin/checkout.sh /src
-eval
+
+echo "${PWD}"
 
 # Trigger a workflow
 python -m kubeflow.testing.run_e2e_workflow \
