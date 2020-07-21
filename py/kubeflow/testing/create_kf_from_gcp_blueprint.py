@@ -124,13 +124,30 @@ class BlueprintRunner:
       "gcloud.core.project": project,
       "gcloud.compute.zone": zone,
       "location": location,
+    }
+
+    def set_values(pairs, subdir):
+      for k, v in pairs.items():
+        util.run(["kpt", "cfg", "set", subdir, k, v],
+                 cwd=blueprint_dir)
+
+    set_values(values, "./upstream/manifests/gcp")
+
+    values = {
+      "name": name,
+      "gcloud.core.project": project,
+    }
+
+    set_values(values, "./upstream/manifests/stacks/gcp")
+
+    values = {
+      "name": name,
+      "gcloud.core.project": project,
+      "location": location,
       "email": email,
     }
 
-    for subdir in ["./upstream/manifests/gcp", "./upstream/manifests/stacks/gcp", "./instance"]:
-      for k, v in values.items():
-        util.run(["kpt", "cfg", "set", subdir, k, v],
-                 cwd=blueprint_dir)
+    set_values(values, "./instance")
 
     # TODO(jlewi): We should add an expiration time; either as a label
     # or as as an annotation.
