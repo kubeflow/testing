@@ -182,3 +182,7 @@ default:
     name: area/kfserving/crd
   - color: d4c5f9
     name: area/kfserving/doc
+  - color: aefcc0
+    name: 'cla: yes'
+  - color: f42e4c
+    name: 'cla: no'
