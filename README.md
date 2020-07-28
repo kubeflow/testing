@@ -424,7 +424,7 @@ kubernetes events associated with that deployment.
 
 ## Testing Changes to the ProwJobs
 
-Changes to our ProwJob configs in [config.yaml](https://github.com/kubernetes/test-infra/blob/master/prow/config.yaml)
+Changes to our ProwJob configs in [config.yaml](https://github.com/kubernetes/test-infra/blob/master/config/prow/config.yaml)
 should be relatively infrequent since most of the code invoked
 as part of our tests lives in the repository.
 
