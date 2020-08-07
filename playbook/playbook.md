@@ -136,9 +136,9 @@ gcloud beta --project=kubeflow-ci-deployment compute ssl-certificates list  --fo
 1. Delete the PV and pvc
 
    ```
-   kubectl delete pvc nfs-external
-   kubectl delete pv gcfs   
-   kubectl delete pods --all=true
+   kubectl -n kubeflow-test-infra delete pvc nfs-external
+   kubectl -n kubeflow-test-infra delete pv gcfs
+   kubectl -n kubeflow-test-infra delete pods --all=true
    ```
 
    * We delete the pods since the pods will be mounting the volume which will prevent deletion of the PV and PVC
@@ -151,7 +151,7 @@ gcloud beta --project=kubeflow-ci-deployment compute ssl-certificates list  --fo
    * Dump the yaml
     
      ```
-     kubectl  get pvc nfs-external -o yaml > /tmp/nfs-external.yaml
+     kubectl -n kubeflow-test-infra get pvc nfs-external -o yaml > /tmp/nfs-external.yaml
      ```
 
    * Delete the finalizer `kubernetes.io/pvc-protection` in nfs-external.yaml
@@ -168,7 +168,7 @@ gcloud beta --project=kubeflow-ci-deployment compute ssl-certificates list  --fo
    * Update the object
 
      ```
-     kubectl apply -f /tmp/nfs-external.yaml
+     kubectl -n kubeflow-test-infra apply -f /tmp/nfs-external.yaml
      ```
      * Alternatively you can use `kubectl edit` to remove finalizers.	
    
@@ -177,7 +177,7 @@ gcloud beta --project=kubeflow-ci-deployment compute ssl-certificates list  --fo
 1. If pv/pvc deleteion still stalls, delete all pods in `kubeflow-test-infra`  manually
    
  	```
-	kubectl delete pods --all
+	kubectl -n kubeflow-test-infra delete pods --all
   	```
 
 
