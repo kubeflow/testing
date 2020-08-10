@@ -432,7 +432,7 @@ However, in the event we need to make changes here are some instructions
 for testing them.
 
 Follow Prow's
-[getting started guide](https://github.com/kubernetes/test-infra/blob/master/prow/getting_started.md)
+[getting started guide](https://github.com/kubernetes/test-infra/tree/master/prow#getting-started)
 to create your own prow cluster.
 
   * **Note** The only part you really need is the ProwJob CRD and controller.
