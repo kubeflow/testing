@@ -1,1 +1,1 @@
-{"builds":[{"imageName":"gcr.io/kubeflow-ci/test-worker-py3","tag":"gcr.io/kubeflow-ci/test-worker-py3:b23b63b-dirty@sha256:a749d7fa4d77466c892a206d3adf0909e86717da898dbd12378e6cbed59ffbd3"}]}
+{"builds":null}

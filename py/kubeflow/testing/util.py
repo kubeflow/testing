@@ -24,6 +24,8 @@ from kubernetes.config import kube_config
 from kubernetes.client import configuration as kubernetes_configuration
 from kubernetes.client import rest
 
+import boto3
+
 # Default name for the repo organization and name.
 # This should match the values used in Go imports.
 MASTER_REPO_OWNER = "tensorflow"
@@ -31,6 +33,22 @@ MASTER_REPO_NAME = "k8s"
 
 # How long to wait in seconds for requests to the ApiServer
 TIMEOUT = 120
+
+
+def save_process_output(command,
+                        cwd=None,
+                        output=None):
+
+  content = subprocess.check_output(command, cwd=cwd).decode("utf-8")
+
+  try:
+    with open(output, 'w') as f:
+      f.write(content)
+      print("Succeed in saving contents in {}".format(output))
+  except FileNotFoundError:
+    print("Failed in saving contents in {}".format(output))
+
+
 
 def run(command,
         cwd=None,
@@ -703,11 +721,21 @@ class ExceptionWithWorkflowResults(Exception):
 
 
 GCS_REGEX = re.compile("gs://([^/]*)(/.*)?")
-
+S3_REGEX = re.compile("s3://([^/]*)(/.*)?")
 
 def split_gcs_uri(gcs_uri):
   """Split a GCS URI into bucket and path."""
   m = GCS_REGEX.match(gcs_uri)
+  bucket = m.group(1)
+  path = ""
+  if m.group(2):
+    path = m.group(2).lstrip("/")
+  return bucket, path
+
+
+def split_s3_uri(s3_uri):
+  """Split a S3 URI into bucket and path."""
+  m = S3_REGEX.match(s3_uri)
   bucket = m.group(1)
   path = ""
   if m.group(2):
@@ -831,6 +859,16 @@ def maybe_activate_service_account():
     logging.info("GOOGLE_APPLICATION_CREDENTIALS is not set.")
 
 
+def aws_configure_credential():
+  if "Unable to locate credentials" not in run(["aws", "eks", "list-clusters"]):
+    logging.info("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set;")
+    run([
+      "aws", "eks", "update-kubeconfig", "--name=" + "kubeflow-prow-dev-test"
+    ])
+  else:
+    logging.info("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not set.")
+
+
 def filter_spartakus(spec):
   """Remove spartakus from the list of applications in KfDef."""
   for i, app in enumerate(spec["applications"]):
@@ -838,6 +876,31 @@ def filter_spartakus(spec):
       spec["applications"].pop(i)
       break
   return spec
+
+
+def upload_to_s3(contents, target, file_name):
+  # logic for uploading contents to s3
+  s3 = boto3.resource('s3')
+
+  bucket_name, path = split_s3_uri(target)
+
+  with open(file_name, "w+") as data:
+    data.write(contents)
+
+  logging.info("Uploading file %s to %s.", file_name, target)
+
+  s3.meta.client.upload_file(file_name, bucket_name, path)
+
+
+def upload_file_to_s3(source, target):
+  s3 = boto3.resource('s3')
+
+  bucket_name, path = split_s3_uri(target)
+
+  logging.info("Uploading file %s to %s.", source, target)
+
+  s3.meta.client.upload_file(source, bucket_name, path)
+
 
 def upload_to_gcs(contents, target):
   gcs_client = storage.Client()

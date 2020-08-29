@@ -113,6 +113,51 @@ def create_finished_file(bucket, success, workflow_phase, ui_urls):
   target = os.path.join(get_gcs_dir(bucket), "finished.json")
   util.upload_to_gcs(contents, target)
 
+
+def get_s3_dir(bucket):
+  """Return the s3 directory for this job."""
+  pull_number = os.getenv("PULL_NUMBER")
+  repo_owner = os.getenv("REPO_OWNER")
+  repo_name = os.getenv("REPO_NAME")
+  job_name = os.getenv("JOB_NAME")
+  job_type = os.getenv("JOB_TYPE")
+
+  # Based on the prow docs the variable is BUILD_ID
+  # https://github.com/kubernetes/test-infra/blob/45246b09ed105698aa8fb928b7736d14480def29/prow/jobs.md#job-environment-variables
+  # But it looks like the original version of this code was using BUILD_NUMBER.
+  # BUILD_NUMBER is now deprecated.
+  # https://github.com/kubernetes/test-infra/blob/master/prow/ANNOUNCEMENTS.md
+  # In effort to be defensive we try BUILD_ID and fall back to BUILD_NUMBER
+  build = os.getenv("BUILD_ID")
+  if not build:
+    logging.warning("BUILD_ID not set; trying BUILD_NUMBER; BUILD_NUMBER is deprecated")
+    build = os.getenv("BUILD_NUMBER")
+
+  if job_type == "presubmit":
+    output = ("s3://{bucket}/pr-logs/pull/{owner}_{repo}/"
+              "{pull_number}/{job}/{build}").format(
+              bucket=bucket,
+              owner=repo_owner, repo=repo_name,
+              pull_number=pull_number,
+              job=os.getenv("JOB_NAME"),
+              build=build)
+  elif job_type == "postsubmit":
+    # It is a postsubmit job
+    output = ("s3://{bucket}/logs/{owner}_{repo}/"
+              "{job}/{build}").format(
+                  bucket=bucket, owner=repo_owner,
+                  repo=repo_name, job=job_name,
+                  build=build)
+  else:
+    # Its a periodic job
+    output = ("s3://{bucket}/logs/{job}/{build}").format(
+        bucket=bucket,
+        job=job_name,
+        build=build)
+
+  return output
+
+
 def get_gcs_dir(bucket):
   """Return the GCS directory for this job."""
   # GCS layout is defined here:
@@ -179,6 +224,33 @@ def copy_artifacts(args):
   util.maybe_activate_service_account()
   util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
 
+
+def copy_artifacts_to_s3(args):
+  """Sync artifacts to GCS."""
+  # AI: need to define S3 layout
+  # S3 layout is defined here:
+  # Example GCS layout:
+  # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
+
+  # output = get_gcs_dir(args.bucket)
+  #
+  # if args.suffix:
+  #   logging.info("Renaming all artifact files to include %s", args.suffix)
+  #   for dirpath, _, files in os.walk(args.artifacts_dir):
+  #     for filename in files:
+  #       full_path = os.path.join(dirpath, filename)
+  #
+  #       name, ext = os.path.splitext(filename)
+  #       new_name = "{0}-{1}{2}".format(name, args.suffix, ext)
+  #       new_path = os.path.join(dirpath, new_name)
+  #       logging.info("Rename %s to %s", full_path, new_path)
+  #       os.rename(full_path, new_path)
+  # util.maybe_activate_service_account()
+  # util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
+
+  pass
+
+
 def create_pr_symlink(args):
   """Create a 'symlink' in GCS pointing at the results for a PR.
 
@@ -230,6 +302,28 @@ def check_no_errors(gcs_client, artifacts_dir):
       no_errors = False
 
   return no_errors
+
+
+def finalize_prow_job_to_s3(bucket, workflow_success, workflow_phase, ui_urls):
+  """Finalize a prow job.
+
+  Finalizing a PROW job consists of determining the status of the
+  prow job by looking at the junit files and then creating finished.json.
+
+  Args
+    bucket: The S3 bucket where results are stored.
+    workflow_success: Bool indicating whether the job should be considered succeeded or failed.
+    workflow_phase: Dictionary of workflow name to phase the workflow is in.
+    ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI
+      for the workflows launched.
+  Returns:
+    test_success: Bool indicating whether all tests succeeded.
+  """
+  # logic for finalizing prow jon to S3
+  pass
+
+  return True
+
 
 def finalize_prow_job(bucket, workflow_success, workflow_phase, ui_urls):
   """Finalize a prow job.

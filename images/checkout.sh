@@ -102,6 +102,17 @@ done
 # since it contains common utilities.
 # TODO(jlewi): We should get rid of this and just treat kubeflow/testing as
 # an EXTRA_REPOS.
+#if [ ! -d ${SRC_DIR}/kubeflow/testing ]; then
+#	git clone --depth=1 https://github.com/kubeflow/testing.git ${SRC_DIR}/kubeflow/testing
+#fi
+
+###### Temporary work-around for testing
+
 if [ ! -d ${SRC_DIR}/kubeflow/testing ]; then
-	git clone --depth=1 https://github.com/kubeflow/testing.git ${SRC_DIR}/kubeflow/testing
-fi	
+	git clone --depth=1 --no-single-branch https://github.com/PatrickXYS/testing.git ${SRC_DIR}/kubeflow/testing
+	cd ${SRC_DIR}/kubeflow/testing
+  git fetch origin yao_aws_account
+  git checkout -b yao_aws_account origin/yao_aws_account
+fi
+
+##########
