@@ -881,24 +881,17 @@ def filter_spartakus(spec):
 def upload_to_s3(contents, target, file_name):
   # logic for uploading contents to s3
   s3 = boto3.resource('s3')
-
   bucket_name, path = split_s3_uri(target)
-
   with open(file_name, "w+") as data:
     data.write(contents)
-
   logging.info("Uploading file %s to %s.", file_name, target)
-
   s3.meta.client.upload_file(file_name, bucket_name, path)
 
 
 def upload_file_to_s3(source, target):
   s3 = boto3.resource('s3')
-
   bucket_name, path = split_s3_uri(target)
-
   logging.info("Uploading file %s to %s.", source, target)
-
   s3.meta.client.upload_file(source, bucket_name, path)
 
 
