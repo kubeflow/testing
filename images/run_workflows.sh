@@ -9,12 +9,27 @@ set -ex
 /usr/local/bin/checkout.sh /src
 
 # Trigger a workflow
-python -m kubeflow.testing.run_e2e_workflow \
-  --project=kubeflow-ci \
-  --zone=us-east1-d \
-  --cluster=CLUSTERNAME \
-  --bucket=aws-kubernetes-jenkins \
-  --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
-  --repos_dir=/src \
-  --cloud_provider=aws \
-  --aws_region=us-west-2
+if [ -z "$CLOUD_PROVIDER" ]
+then
+  python -m kubeflow.testing.run_e2e_workflow \
+    --project=kubeflow-ci \
+    --zone=us-east1-d \
+    --cluster=CLUSTERNAME |  \
+    --bucket=aws-kubernetes-jenkins \
+    --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
+    --repos_dir=/src \
+    --cloud_provider=aws \
+    --aws_region=us-west-2
+else
+  if [[ "$CLOUD_PROVIDER" == "aws" ]]
+  then
+    echo "Triggering AWS Argo Workflows"
+    python -m kubeflow.testing.run_e2e_workflow \
+      --cluster=${AWS_EKS_CLUSTER} \
+      --bucket=aws-kubernetes-jenkins \
+      --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
+      --repos_dir=/src \
+      --cloud_provider=aws \
+      --aws_region=${AWS_DEFAULT_REGION}
+  fi
+fi

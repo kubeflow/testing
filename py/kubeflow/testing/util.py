@@ -860,10 +860,10 @@ def maybe_activate_service_account():
 
 
 def aws_configure_credential():
-  if "Unable to locate credentials" not in run(["aws", "eks", "list-clusters"]):
+  if os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY"):
     logging.info("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set;")
     run([
-      "aws", "eks", "update-kubeconfig", "--name=" + "kubeflow-prow-dev-test"
+      "aws", "eks", "update-kubeconfig", "--name=" + os.getenv("AWS_EKS_CLUSTER")
     ])
   else:
     logging.info("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not set.")

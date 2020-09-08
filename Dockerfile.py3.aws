@@ -44,14 +44,6 @@ RUN export KUSTOMIZE_VERSION=3.2.0 && \
     mv kustomize_${KUSTOMIZE_VERSION}_linux_amd64 /usr/local/bin/kustomize && \
     chmod a+x /usr/local/bin/kustomize
 
-RUN export ASM_VERSION=1.4.7-asm.0 && \
-    cd /tmp && \
-    curl -LO https://storage.googleapis.com/gke-release/asm/istio-${ASM_VERSION}-linux.tar.gz && \
-    tar -xvf istio-${ASM_VERSION}-linux.tar.gz && \
-    mv istio-${ASM_VERSION} /usr/local && \
-    ln -sf /usr/local/istio-${ASM_VERSION}/bin/istioctl /usr/local/bin/istioctl
-
-    
 # Create go symlinks
 RUN ln -sf /usr/local/go/bin/go /usr/local/bin && \
     ln -sf /usr/local/go/bin/gofmt /usr/local/bin && \
@@ -72,14 +64,8 @@ RUN chmod a+x /usr/local/bin/run_release.sh
 
 ##########################
 
-COPY ./images/aws-scripts/create-eks-cluster.sh /usr/local/bin
-COPY ./images/aws-scripts/deploy-kubeflow.sh /usr/local/bin
-COPY ./images/aws-scripts/check-deployment-status.sh /usr/local/bin
-COPY ./images/aws-scripts/delete-eks-cluster.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/create-eks-cluster.sh
-RUN chmod a+x /usr/local/bin/deploy-kubeflow.sh
-RUN chmod a+x /usr/local/bin/check-deployment-status.sh
-RUN chmod a+x /usr/local/bin/delete-eks-cluster.sh
+COPY ./images/aws-scripts/*.sh /usr/local/bin/
+RUN chmod a+x /usr/local/bin/*.sh
 
 ##############################
 
@@ -110,11 +96,6 @@ RUN curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/
 RUN curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp && \
     mv /tmp/eksctl /usr/local/bin && \
     chmod a+x /usr/local/bin/eksctl
-
-# AWS Configuration
-RUN aws configure set region us-west-2 && \
-    aws configure set aws_access_key_id XXXXXXXXXXXX && \
-    aws configure set aws_secret_access_key XXXXXXXXXXXXXX
 
 # Install ks
 RUN curl --silent --location https://github.com/ksonnet/ksonnet/releases/download/v0.13.1/ks_0.13.1_linux_amd64.tar.gz | tar xz -C /tmp && \
