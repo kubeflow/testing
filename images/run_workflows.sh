@@ -14,12 +14,10 @@ then
   python -m kubeflow.testing.run_e2e_workflow \
     --project=kubeflow-ci \
     --zone=us-east1-d \
-    --cluster=CLUSTERNAME |  \
-    --bucket=aws-kubernetes-jenkins \
+    --cluster=kubeflow-testing \
+    --bucket=kubernetes-jenkins \
     --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
-    --repos_dir=/src \
-    --cloud_provider=aws \
-    --aws_region=us-west-2
+    --repos_dir=/src
 else
   if [[ "$CLOUD_PROVIDER" == "aws" ]]
   then
