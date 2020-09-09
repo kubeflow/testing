@@ -24,10 +24,13 @@ else
     echo "Triggering AWS Argo Workflows"
     python -m kubeflow.testing.run_e2e_workflow \
       --cluster=${AWS_EKS_CLUSTER} \
-      --bucket=aws-kubernetes-jenkins \
+      --bucket=${ARTIFACTS_S3_BUCKET} \
       --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
       --repos_dir=/src \
       --cloud_provider=aws \
-      --aws_region=${AWS_DEFAULT_REGION}
+      --aws_region=${AWS_DEFAULT_REGION} \
+      --desired_node=${DESIRED_NODE} \
+      --min_node=${MIN_NODE} \
+      --max_node=${MAX_NODE}
   fi
 fi

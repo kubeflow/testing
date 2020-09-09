@@ -30,6 +30,6 @@ eksctl create cluster \
 --region us-west-2 \
 --nodegroup-name linux-nodes \
 --node-type m5.xlarge \
---nodes 1 \
---nodes-min 1 \
---nodes-max 4
+--nodes ${DESIRED_NODE} \
+--nodes-min ${MIN_NODE} \
+--nodes-max ${MAX_NODE}

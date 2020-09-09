@@ -167,6 +167,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   base_branch_name = os.getenv("PULL_BASE_REF")
   pull_base_sha = os.getenv("PULL_BASE_SHA")
 
+  if args.cloud_provider == "aws":
+    args.bucket = "aws-kubernetes-jenkins" if not args.bucket else args.bucket
+    args.desired_node = "2" if not args.desired_node else args.desired_node
+    args.min_node = "1" if not args.min_node else args.min_node
+    args.max_node = "4" if not args.max_node else args.max_node
+
   # For presubmit/postsubmit jobs, find the list of files changed by the PR.
   diff_command = []
   if job_type == "presubmit":
@@ -357,6 +363,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                args.bucket], cwd=w.app_dir)
       util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "cluster_name",
                 "eks-cluster-{}".format(salt)], cwd=w.app_dir)
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "desired_node",
+               args.desired_node], cwd=w.app_dir)
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "min_node",
+               args.min_node], cwd=w.app_dir)
+      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "max_node",
+               args.max_node], cwd=w.app_dir)
       if args.release:
         util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
                   os.getenv("VERSION_TAG")], cwd=w.app_dir)
@@ -650,8 +662,29 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   parser.add_argument(
     "--aws_region",
     type=str,
-    default="",
+    default="us-west-2",
     help="region containing the EKS cluster to use to run the workflow."
+  )
+
+  parser.add_argument(
+    "--desired_node",
+    type=str,
+    default="2",
+    help="desired number of nodes lives in new EKS cluster"
+  )
+
+  parser.add_argument(
+    "--min_node",
+    type=str,
+    default="1",
+    help="minimum number of nodes lives in new EKS cluster"
+  )
+
+  parser.add_argument(
+    "--max_node",
+    type=str,
+    default="4",
+    help="maximum number of nodes lives in new EKS cluster"
   )
 
 
@@ -660,7 +693,6 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
   # Parse the args
   args = parser.parse_args(args=unparsed_args)
-
   # Setup a logging file handler. This way we can upload the log outputs
   # to gubernator.
   root_logger = logging.getLogger()
