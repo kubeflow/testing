@@ -34,6 +34,7 @@ RUN set -ex \
     openjdk-8-jdk \
     ssh \
     mercurial \
+    boto3 \
     python-dev \
     python-setuptools \
     python-pip \
