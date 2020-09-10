@@ -14,13 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This shell script is used to delete an EKS cluste from our argo workflow
+# This shell script is used to delete an EKS cluster from our argo workflow
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
-EKS_CLUSTER_NAME="${EKS_CLUSTER}"
+EKS_CLUSTER_NAME="${CLUSTER_NAME}"
 
 # Delete EKS Cluster
 eksctl delete cluster $EKS_CLUSTER_NAME

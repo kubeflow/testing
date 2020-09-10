@@ -20,15 +20,30 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-EKS_CLUSTER_NAME="${EKS_CLUSTER}"
-
-# Allow 5 minutes to wait for kubeflow deployment to be ready
-sleep 5m
+EKS_CLUSTER_NAME="${CLUSTER_NAME}"
 
 aws eks update-kubeconfig --name=$EKS_CLUSTER_NAME
 
-ingress_ip=$(kubectl get ingress istio-ingress -n istio-system  -o json | jq '.status.loadBalancer.ingress' | grep aws)
+echo "Start Fetching Ingress IP Address"
 
-if [ ${#ingress_ip} -eq 0 ] ;then echo "ERROR" >&2 & exit 64; fi
+# Retry 10 times w/ 30 seconds interval
+retry_times=0
+retry_limit=10
+while [ "$retry_times" -lt "$retry_limit" ]
+do
+  echo "See if we can fetch ingress"
+  ingress_ip=$(kubectl get ingress istio-ingress -n istio-system  -o json | jq -r '.status.loadBalancer.ingress[0].hostname')
+  if [ ${#ingress_ip} -eq 0 ] ;
+  then
+    sleep 30
+    echo "Retrying Fetching Ingress IP Address"
+  else
+    echo "The Kubeflow Deployment succeeded"
+    exit 0
+  fi
 
-echo "The Kubeflow Deployment succeeded"
+  retry_times=$((retry_times+1))
+done
+
+echo "Kubeflow Deployment Status: ERROR"
+exit 64

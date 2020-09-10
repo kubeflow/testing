@@ -20,16 +20,16 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-EKS_CLUSTER_NAME="${EKS_CLUSTER}"
+EKS_CLUSTER_NAME="${CLUSTER_NAME}"
 
 # Create EKS Cluster
-# AI: Need to determine which NG template we need????
+# TODO (PatrickXYS): Need to determine which NG template we need
 eksctl create cluster \
 --name $EKS_CLUSTER_NAME \
---version 1.17 \
---region us-west-2 \
+--version ${EKS_CLUSTER_VERSION:-"1.17"} \
+--region ${AWS_REGION:-"us-west-2"} \
 --nodegroup-name linux-nodes \
---node-type m5.xlarge \
---nodes ${DESIRED_NODE} \
---nodes-min ${MIN_NODE} \
---nodes-max ${MAX_NODE}
+--node-type ${EKS_NODE_TYPE:-"m5.xlarge"} \
+--nodes ${DESIRED_NODE:-"2"} \
+--nodes-min ${MIN_NODE:-"1"} \
+--nodes-max ${MAX_NODE:-"4"}

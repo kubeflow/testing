@@ -60,6 +60,7 @@ import logging
 import os
 import tempfile
 import six
+import sys
 from kubernetes import client as k8s_client
 from kubeflow.testing import argo_client
 from kubeflow.testing import ks_util
@@ -166,12 +167,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
   repo_name = os.getenv("REPO_NAME")
   base_branch_name = os.getenv("PULL_BASE_REF")
   pull_base_sha = os.getenv("PULL_BASE_SHA")
-
-  if args.cloud_provider == "aws":
-    args.bucket = "aws-kubernetes-jenkins" if not args.bucket else args.bucket
-    args.desired_node = "2" if not args.desired_node else args.desired_node
-    args.min_node = "1" if not args.min_node else args.min_node
-    args.max_node = "4" if not args.max_node else args.max_node
 
   # For presubmit/postsubmit jobs, find the list of files changed by the PR.
   diff_command = []
@@ -361,12 +356,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                args.bucket], cwd=w.app_dir)
       util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "cluster_name",
                 "eks-cluster-{}".format(salt)], cwd=w.app_dir)
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "desired_node",
-               args.desired_node], cwd=w.app_dir)
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "min_node",
-               args.min_node], cwd=w.app_dir)
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "max_node",
-               args.max_node], cwd=w.app_dir)
       if args.release:
         util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
                   os.getenv("VERSION_TAG")], cwd=w.app_dir)
@@ -374,24 +363,19 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       # Set any extra params. We do this in alphabetical order to make it easier to verify in
       # the unittest.
       param_names = w.params.keys()
-      # In python3, dict_keys.sort() not work given
-      # https://docs.python.org/3/whatsnew/3.0.html#views-and-iterators-instead-of-lists
-      param_names = sorted(param_names)
+      if sys.version_info >= (3, 0):
+        # In python3, dict_keys.sort() not work given
+        # https://docs.python.org/3/whatsnew/3.0.html#views-and-iterators-instead-of-lists
+        param_names = sorted(param_names)
+      else:
+        param_names.sort()
       for k in param_names:
         util.run([ks_cmd, "param", "set", "--env=" + env, w.component, k,
                  "{0}".format(w.params[k])], cwd=w.app_dir)
 
       # For debugging print out the manifest
       util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
-
-      if not args.cloud_provider:
-        util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
-      elif args.cloud_provider == "aws":
-        generated_workflow_name = "generated_workflow.yaml"
-        util.save_process_output([ks_cmd, "show", env, "-c", w.component],
-                                 cwd=w.app_dir,
-                                 output=w.app_dir + '/' + generated_workflow_name)
-        util.run(["kubectl", "apply", "-f", generated_workflow_name], cwd=w.app_dir)
+      util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
 
       ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
               "?tab=workflow".format(workflow_name))
@@ -508,7 +492,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
       util.load_kube_config()
       tekton_results = tekton_runner.join()
-    else:
+    elif args.cloud_provider == "aws":
       util.load_kube_config()
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
@@ -525,7 +509,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       util.configure_kubectl(args.project, args.zone, args.cluster)
       util.load_kube_config()
       prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
-    else:
+    elif args.cloud_provider == "aws":
       prow_artifacts_dir = prow_artifacts.get_s3_dir(args.bucket)
 
     # Upload workflow status to GCS/S3.
@@ -656,28 +640,6 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     default="us-west-2",
     help="region containing the EKS cluster to use to run the workflow."
   )
-
-  parser.add_argument(
-    "--desired_node",
-    type=str,
-    default="2",
-    help="desired number of nodes lives in new EKS cluster"
-  )
-
-  parser.add_argument(
-    "--min_node",
-    type=str,
-    default="1",
-    help="minimum number of nodes lives in new EKS cluster"
-  )
-
-  parser.add_argument(
-    "--max_node",
-    type=str,
-    default="4",
-    help="maximum number of nodes lives in new EKS cluster"
-  )
-
 
   #############################################################################
   # Process the command line arguments.

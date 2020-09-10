@@ -20,7 +20,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-EKS_CLUSTER_NAME="${EKS_CLUSTER}"
+EKS_CLUSTER_NAME="${CLUSTER_NAME}"
 EKS_NAMESPACE_NAME="${EKS_NAMESPACE}"
 
 # Load kubeconfig
