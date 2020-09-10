@@ -230,7 +230,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         and not p.startswith("kubeflow/testing")):
       logging.info("Need to clone %s/%s", segments[0], segments[1])
       util.clone_repo(os.path.join(args.repos_dir, segments[0], segments[1]),
-                      segments[0], segments[1], branches="yao_aws_account")
+                      segments[0], segments[1])
 
     path = os.path.join(args.repos_dir, p)
     extra_py_paths.append(path)
@@ -250,12 +250,10 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
-  else:
-    # logic compatible with AWS/IBM ..
-    if args.cloud_provider == "aws":
-      util.aws_configure_credential()
-      util.load_kube_config()
-      # no need to create_started_file and configure kubectl
+  elif args.cloud_provider == "aws":
+    util.aws_configure_credential()
+    util.load_kube_config()
+    # TODO (PatrickXYS): add create_started_file
 
   tekton_runner = tekton_client.TektonRunner()
   workflow_names = []
@@ -384,16 +382,15 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                  "{0}".format(w.params[k])], cwd=w.app_dir)
 
       # For debugging print out the manifest
-      generated_workflow_name = "generated_workflow.yaml"
       util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
-
-      util.save_process_output([ks_cmd, "show", env, "-c", w.component],
-                               cwd=w.app_dir,
-                               output=w.app_dir+'/'+generated_workflow_name)
 
       if not args.cloud_provider:
         util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
       elif args.cloud_provider == "aws":
+        generated_workflow_name = "generated_workflow.yaml"
+        util.save_process_output([ks_cmd, "show", env, "-c", w.component],
+                                 cwd=w.app_dir,
+                                 output=w.app_dir + '/' + generated_workflow_name)
         util.run(["kubectl", "apply", "-f", generated_workflow_name], cwd=w.app_dir)
 
       ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
@@ -495,9 +492,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
     # We delay creating started.json until we know the Argo workflow URLs
     create_started_file(args.bucket, ui_urls)
-  else:
-    # not necessary for cloud providers
-    pass
 
   workflow_success = False
   workflow_phase = {}
@@ -515,9 +509,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       util.load_kube_config()
       tekton_results = tekton_runner.join()
     else:
-      # not necessary for cloud-providers
       util.load_kube_config()
-      pass
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
     # We explicitly log any exceptions so that they will be captured in the
@@ -534,7 +526,6 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       util.load_kube_config()
       prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
     else:
-      # not sure if we need or not
       prow_artifacts_dir = prow_artifacts.get_s3_dir(args.bucket)
 
     # Upload workflow status to GCS/S3.

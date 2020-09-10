@@ -49,7 +49,6 @@ def save_process_output(command,
     print("Failed in saving contents in {}".format(output))
 
 
-
 def run(command,
         cwd=None,
         env=None,

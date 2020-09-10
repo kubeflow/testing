@@ -24,7 +24,8 @@ RUN python3.8 -m pip install \
     pytest-timeout==1.4 \
     python-dateutil \
     retrying \
-    watchdog
+    watchdog \
+    boto3
 
 # Install go
 RUN cd /tmp && \
