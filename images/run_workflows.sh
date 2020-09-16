@@ -9,7 +9,7 @@ set -ex
 /usr/local/bin/checkout.sh /src
 
 # Trigger a workflow
-if [ -z "$CLOUD_PROVIDER" ]
+if [ -z "$CLOUD_PROVIDER" ] ||  [ "$CLOUD_PROVIDER" = "gcp" ]
 then
   python -m kubeflow.testing.run_e2e_workflow \
     --project=kubeflow-ci \
@@ -28,6 +28,6 @@ else
       --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
       --repos_dir=/src \
       --cloud_provider=aws \
-      --aws_region=${AWS_DEFAULT_REGION:-"us-west-2"} \
+      --aws_region=${AWS_DEFAULT_REGION:-"us-west-2"}
   fi
 fi

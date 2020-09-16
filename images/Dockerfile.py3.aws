@@ -87,4 +87,6 @@ ENV PYTHONPATH /src/kubeflow/testing/py
 
 ENV CLOUD_PROVIDER aws
 
+ENV PATH=/root/go/bin:${PATH}
+
 ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]

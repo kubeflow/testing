@@ -207,4 +207,6 @@ RUN export JAVA_HOME
 # which contains shared scripts.
 ENV PYTHONPATH /src/kubeflow/testing/py
 
+ENV CLOUD_PROVIDER gcp
+
 ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]

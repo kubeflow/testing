@@ -199,6 +199,9 @@ def to_gcs_uri(bucket, path):
   """Convert bucket and path to a GCS URI."""
   return "gs://" + os.path.join(bucket, path)
 
+def to_s3_uri(bucket, path):
+  """Convert bucket and path to a S3 URI."""
+  return "s3://" + os.path.join(bucket, path)
 
 def create_cluster(gke, project, zone, cluster_request):
   """Create the cluster.

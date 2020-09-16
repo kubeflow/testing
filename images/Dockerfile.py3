@@ -112,4 +112,6 @@ RUN mkdir -p /srcCache/kubeflow/testing
 COPY py /srcCache/kubeflow/testing/py
 COPY notebook_testing /srcCache/kubeflow/testing/notebook_testing
 
+ENV CLOUD_PROVIDER gcp
+
 ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]

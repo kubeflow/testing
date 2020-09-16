@@ -12,12 +12,14 @@ import time
 from google.cloud import storage  # pylint: disable=no-name-in-module
 from kubeflow.testing import test_util
 from kubeflow.testing import util
+import boto3
 
 
 # The default bucket where we should upload artifacts to in
 # prow. Currently test-grid and spyglass are looking at the kubernetes-jenkins
 # bucket and not a bucket in project kubelfow-ci
 PROW_RESULTS_BUCKET = "kubernetes-jenkins"
+AWS_PROW_RESULTS_BUCKET = "aws-kubernetes-jenkins"
 
 # TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
 # version. We should do that when we switch tensorflow/k8s to use Argo instead
@@ -112,6 +114,14 @@ def create_finished_file(bucket, success, workflow_phase, ui_urls):
 
   target = os.path.join(get_gcs_dir(bucket), "finished.json")
   util.upload_to_gcs(contents, target)
+
+
+def create_finished_file_s3(bucket, success, workflow_phase, ui_urls):
+  """Create the started file in S3 for gubernator."""
+  contents = create_finished(success, workflow_phase, ui_urls)
+
+  target = os.path.join(get_s3_dir(bucket), "finished.json")
+  util.upload_to_s3(contents, target, "finished.json")
 
 
 def get_s3_dir(bucket):
@@ -226,29 +236,54 @@ def copy_artifacts(args):
 
 
 def copy_artifacts_to_s3(args):
-  """Sync artifacts to GCS."""
-  # AI: need to define S3 layout
+  """Sync artifacts to S3."""
   # S3 layout is defined here:
-  # Example GCS layout:
+  # Example S3 layout:
   # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
 
-  # output = get_gcs_dir(args.bucket)
-  #
-  # if args.suffix:
-  #   logging.info("Renaming all artifact files to include %s", args.suffix)
-  #   for dirpath, _, files in os.walk(args.artifacts_dir):
-  #     for filename in files:
-  #       full_path = os.path.join(dirpath, filename)
-  #
-  #       name, ext = os.path.splitext(filename)
-  #       new_name = "{0}-{1}{2}".format(name, args.suffix, ext)
-  #       new_path = os.path.join(dirpath, new_name)
-  #       logging.info("Rename %s to %s", full_path, new_path)
-  #       os.rename(full_path, new_path)
-  # util.maybe_activate_service_account()
-  # util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
+  output = get_s3_dir(args.bucket)
 
-  pass
+  if args.suffix:
+    logging.info("Renaming all artifact files to include %s", args.suffix)
+    for dirpath, _, files in os.walk(args.artifacts_dir):
+      for filename in files:
+        full_path = os.path.join(dirpath, filename)
+
+        name, ext = os.path.splitext(filename)
+        new_name = "{0}-{1}{2}".format(name, args.suffix, ext)
+        new_path = os.path.join(dirpath, new_name)
+        logging.info("Rename %s to %s", full_path, new_path)
+        os.rename(full_path, new_path)
+  util.run(["aws", "s3", "sync", args.artifacts_dir, output])
+
+
+def create_pr_symlink_s3(args):
+  """Create a 'symlink' in S3 pointing at the results for a PR.
+
+  This is a null op if PROW environment variables indicate this is not a PR
+  job.
+  """
+  s3 = boto3.resource('s3')
+  # S3 layout is defined here:
+  # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
+  pull_number = os.getenv("PULL_NUMBER")
+  if not pull_number:
+    # Symlinks are only created for pull requests.
+    return
+
+  path = "pr-logs/directory/{job}/{build}.txt".format(
+      job=os.getenv("JOB_NAME"), build=os.getenv("BUILD_NUMBER"))
+
+  pull_number = os.getenv("PULL_NUMBER")
+
+  source = util.to_s3_uri(args.bucket, path)
+  target = get_s3_dir(args.bucket)
+  logging.info("Creating symlink %s pointing to %s", source, target)
+
+  file_name = "{build}.txt".format(build=os.getenv("BUILD_NUMBER"))
+  with open(file_name, "w+") as data:
+    data.write(target)
+  s3.meta.client.upload_file(file_name, args.bucket, path)
 
 
 def create_pr_symlink(args):
@@ -304,6 +339,39 @@ def check_no_errors(gcs_client, artifacts_dir):
   return no_errors
 
 
+def check_no_errors_s3(s3_client, artifacts_dir):
+  """Check that all the XML files exist and there were no errors.
+  Args:
+    s3_client: The S3 client.
+    artifacts_dir: The directory where artifacts should be stored.
+  Returns:
+    True if there were no errors and false otherwise.
+  """
+  bucket, prefix = util.split_s3_uri(artifacts_dir)
+  no_errors = True
+
+  junit_objects = s3_client.list_objects(Bucket=bucket, Prefix=os.path.join(prefix, "junit"))
+
+  if "Contents" not in junit_objects.keys():
+    return no_errors
+
+  for b in junit_objects["Contents"]:
+    full_path = util.to_s3_uri(bucket, b["Key"])
+    if not os.path.splitext(b["Key"])[-1] == ".xml":
+      logging.info("Skipping %s; not an xml file", full_path)
+      continue
+    logging.info("Checking %s", full_path)
+    tmp_file = "/tmp/junit.xml"
+    s3_client.download_file(bucket, b["Key"], tmp_file)
+    with open(tmp_file) as f:
+      xml_contents = f.read()
+
+    if test_util.get_num_failures(xml_contents) > 0:
+      logging.info("Test failures in %s", full_path)
+      no_errors = False
+
+  return no_errors
+
 def finalize_prow_job_to_s3(bucket, workflow_success, workflow_phase, ui_urls):
   """Finalize a prow job.
 
@@ -320,7 +388,22 @@ def finalize_prow_job_to_s3(bucket, workflow_success, workflow_phase, ui_urls):
     test_success: Bool indicating whether all tests succeeded.
   """
   # logic for finalizing prow jon to S3
-  pass
+  s3_client = boto3.client("s3")
+
+  output_dir = get_s3_dir(bucket)
+  artifacts_dir = os.path.join(output_dir, "artifacts")
+
+  # If the workflow failed then we will mark the prow job as failed.
+  # We don't need to check the junit files for test failures because we
+  # already know it failed; furthermore we can't rely on the junit files
+  # if the workflow didn't succeed because not all junit files might be there.
+  test_success = True
+  if workflow_success:
+    test_success = check_no_errors_s3(s3_client, artifacts_dir)
+  else:
+    test_success = False
+
+  create_finished_file_s3(bucket, test_success, workflow_phase, ui_urls)
 
   return True
 
@@ -392,6 +475,25 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
   parser_copy.set_defaults(func=copy_artifacts)
 
+  # Copy artifacts to S3.
+  parser_copy = subparsers.add_parser(
+    "copy_artifacts_to_s3", help="Copy the artifacts.")
+
+  parser_copy.add_argument(
+    "--bucket",
+    default=AWS_PROW_RESULTS_BUCKET,
+    type=str,
+    help="S3 Bucket to copy the artifacts to.")
+
+  parser_copy.add_argument(
+    "--suffix",
+    default="",
+    type=str,
+    help=("Optional if supplied add this suffix to the names of all artifact "
+          "files before copying them to the S3 bucket."))
+
+  parser_copy.set_defaults(func=copy_artifacts_to_s3)
+
   #############################################################################
   # Create the pr symlink.
   parser_link = subparsers.add_parser(
@@ -405,6 +507,19 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     help="Bucket to copy the artifacts to")
 
   parser_link.set_defaults(func=create_pr_symlink)
+
+  # Create the pr symlink S3.
+  parser_link = subparsers.add_parser(
+    "create_pr_symlink_s3", help="Create a symlink pointing at PR output dir in S3; null "
+                           "op if prow job is not a presubmit job.")
+
+  parser_link.add_argument(
+    "--bucket",
+    default=AWS_PROW_RESULTS_BUCKET,
+    type=str,
+    help="S3 Bucket to copy the artifacts to")
+
+  parser_link.set_defaults(func=create_pr_symlink_s3)
 
   #############################################################################
   # Process the command line arguments.

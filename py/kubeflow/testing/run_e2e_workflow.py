@@ -132,6 +132,15 @@ def create_started_file(bucket, ui_urls):
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "started.json")
   util.upload_to_gcs(contents, target)
 
+
+def create_started_file_s3(bucket, ui_urls):
+  """Create the started file in S3 for gubernator."""
+  contents = prow_artifacts.create_started(ui_urls)
+
+  target = os.path.join(prow_artifacts.get_s3_dir(bucket), "started.json")
+  util.upload_to_s3(contents, target, "started.json")
+
+
 def parse_config_file(config_file, root_dir):
   with open(config_file) as hf:
     config = yaml.load(hf)
@@ -237,7 +246,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   logging.info("Extra python paths: %s", ":".join(extra_py_paths))
 
-  if not args.cloud_provider:
+  if not args.cloud_provider or args.cloud_provider == "gcp":
     # Create an initial version of the file with no urls
     create_started_file(args.bucket, {})
 
@@ -246,9 +255,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     util.configure_kubectl(args.project, args.zone, args.cluster)
     util.load_kube_config()
   elif args.cloud_provider == "aws":
+    create_started_file_s3(args.bucket, {})
     util.aws_configure_credential()
     util.load_kube_config()
-    # TODO (PatrickXYS): add create_started_file
 
   tekton_runner = tekton_client.TektonRunner()
   workflow_names = []
@@ -377,8 +386,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
       util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
 
-      ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
-              "?tab=workflow".format(workflow_name))
+      if not args.cloud_provider or args.cloud_provider == "gcp":
+        ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
+                "?tab=workflow".format(workflow_name))
+      elif args.cloud_provider == "aws":
+        ui_url = ("http://testing-argo.kubeflow.aws.org/workflows/kubeflow-test-infra/{0}"
+                "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     elif w.tekton_run:
@@ -467,7 +480,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
 
-  if not args.cloud_provider:
+  if not args.cloud_provider or args.cloud_provider == "gcp":
     ui_urls.update(tekton_runner.run(
         tekton_client.ClusterInfo(args.project,
                                   TEKTON_CLUSTER_ZONE,
@@ -476,6 +489,9 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
     # We delay creating started.json until we know the Argo workflow URLs
     create_started_file(args.bucket, ui_urls)
+  elif args.cloud_provider == "aws":
+    # We delay creating started.json until we know the Argo workflow URLs
+    create_started_file_s3(args.bucket, ui_urls)
 
   workflow_success = False
   workflow_phase = {}
@@ -488,7 +504,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       timeout=datetime.timedelta(minutes=180),
       status_callback=argo_client.log_status
     )
-    if not args.cloud_provider:
+    if not args.cloud_provider or args.cloud_provider == "gcp":
       util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
       util.load_kube_config()
       tekton_results = tekton_runner.join()
@@ -505,7 +521,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     logging.exception("Other exception: %s", e)
     raise
   finally:
-    if not args.cloud_provider:
+    if not args.cloud_provider or args.cloud_provider == "gcp":
       util.configure_kubectl(args.project, args.zone, args.cluster)
       util.load_kube_config()
       prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
@@ -522,7 +538,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         workflow_success = False
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
 
-      if not args.cloud_provider:
+      if not args.cloud_provider or args.cloud_provider == "gcp":
         for wf_name, wf_status in workflow_status_yamls.items():
           util.upload_to_gcs(
             wf_status,
@@ -550,7 +566,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # file in gcs
     file_handler.flush()
 
-    if not args.cloud_provider:
+    if not args.cloud_provider or args.cloud_provider == "gcp":
       util.upload_file_to_gcs(
         file_handler.baseFilename,
         os.path.join(prow_artifacts_dir, "build-log.txt"))
