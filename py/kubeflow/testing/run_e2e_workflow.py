@@ -73,6 +73,10 @@ import sys
 import traceback
 import yaml
 
+if os.getenv("CLOUD_PROVIDER") == "aws":
+  from kubeflow.testing.cloudprovider.aws import prow_artifacts as aws_prow_artifacts
+  from kubeflow.testing.cloudprovider.aws import util as aws_util
+
 # The name of the command line argument for workflows for the var
 # to contain the test target name.
 # The goal is to be able to use target name grouping in test grid
@@ -135,10 +139,10 @@ def create_started_file(bucket, ui_urls):
 
 def create_started_file_s3(bucket, ui_urls):
   """Create the started file in S3 for gubernator."""
-  contents = prow_artifacts.create_started(ui_urls)
+  contents = aws_prow_artifacts.create_started(ui_urls)
 
-  target = os.path.join(prow_artifacts.get_s3_dir(bucket), "started.json")
-  util.upload_to_s3(contents, target, "started.json")
+  target = os.path.join(aws_prow_artifacts.get_s3_dir(bucket), "started.json")
+  aws_util.upload_to_s3(contents, target, "started.json")
 
 
 def parse_config_file(config_file, root_dir):
@@ -246,7 +250,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
 
   logging.info("Extra python paths: %s", ":".join(extra_py_paths))
 
-  if not args.cloud_provider or args.cloud_provider == "gcp":
+  if not args.cloud_provider:
     # Create an initial version of the file with no urls
     create_started_file(args.bucket, {})
 
@@ -256,8 +260,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     util.load_kube_config()
   elif args.cloud_provider == "aws":
     create_started_file_s3(args.bucket, {})
-    util.aws_configure_credential()
-    util.load_kube_config()
+    aws_util.aws_configure_credential()
+    aws_util.load_kube_config()
 
   tekton_runner = tekton_client.TektonRunner()
   workflow_names = []
@@ -364,7 +368,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "bucket",
                args.bucket], cwd=w.app_dir)
       util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "cluster_name",
-                "eks-cluster-{}".format(salt)], cwd=w.app_dir)
+                "eks-cluster-{}".format(uuid.uuid4().hex[0:8])], cwd=w.app_dir)
       if args.release:
         util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
                   os.getenv("VERSION_TAG")], cwd=w.app_dir)
@@ -386,12 +390,8 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
       util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
 
-      if not args.cloud_provider or args.cloud_provider == "gcp":
-        ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
-                "?tab=workflow".format(workflow_name))
-      elif args.cloud_provider == "aws":
-        ui_url = ("http://testing-argo.kubeflow.aws.org/workflows/kubeflow-test-infra/{0}"
-                "?tab=workflow".format(workflow_name))
+      ui_url = ("http://testing-argo.kubeflow.aws.org/workflows/kubeflow-test-infra/{0}"
+              "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
     elif w.tekton_run:
@@ -475,12 +475,16 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         body=wf_result)
       logging.info("Created workflow:\n%s", yaml.safe_dump(py_func_result))
 
-      ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
-              "?tab=workflow".format(workflow_name))
+      if not args.cloud_provider or args.cloud_provider == "gcp":
+        ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
+                "?tab=workflow".format(workflow_name))
+      elif args.cloud_provider == "aws":
+        ui_url = ("http://testing-argo.kubeflow.aws.org/workflows/kubeflow-test-infra/{0}"
+                "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
 
-  if not args.cloud_provider or args.cloud_provider == "gcp":
+  if not args.cloud_provider:
     ui_urls.update(tekton_runner.run(
         tekton_client.ClusterInfo(args.project,
                                   TEKTON_CLUSTER_ZONE,
@@ -504,12 +508,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       timeout=datetime.timedelta(minutes=180),
       status_callback=argo_client.log_status
     )
-    if not args.cloud_provider or args.cloud_provider == "gcp":
+    if not args.cloud_provider:
       util.configure_kubectl(args.project, "us-east1-d", "kf-ci-v1")
       util.load_kube_config()
       tekton_results = tekton_runner.join()
     elif args.cloud_provider == "aws":
-      util.load_kube_config()
+      aws_util.load_kube_config()
     workflow_success = True
   except util.ExceptionWithWorkflowResults as e:
     # We explicitly log any exceptions so that they will be captured in the
@@ -521,12 +525,12 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     logging.exception("Other exception: %s", e)
     raise
   finally:
-    if not args.cloud_provider or args.cloud_provider == "gcp":
+    if not args.cloud_provider:
       util.configure_kubectl(args.project, args.zone, args.cluster)
       util.load_kube_config()
       prow_artifacts_dir = prow_artifacts.get_gcs_dir(args.bucket)
     elif args.cloud_provider == "aws":
-      prow_artifacts_dir = prow_artifacts.get_s3_dir(args.bucket)
+      prow_artifacts_dir = aws_prow_artifacts.get_s3_dir(args.bucket)
 
     # Upload workflow status to GCS/S3.
     for r in results:
@@ -538,14 +542,14 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         workflow_success = False
       logging.info("Workflow %s/%s finished phase: %s", get_namespace(args), name, phase)
 
-      if not args.cloud_provider or args.cloud_provider == "gcp":
+      if not args.cloud_provider:
         for wf_name, wf_status in workflow_status_yamls.items():
           util.upload_to_gcs(
             wf_status,
             os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)))
       elif args.cloud_provider == "aws":
         for wf_name, wf_status in workflow_status_yamls.items():
-          util.upload_to_s3(
+          aws_util.upload_to_s3(
             wf_status,
             os.path.join(prow_artifacts_dir, '{}.yaml'.format(wf_name)),
             '{}.yaml'.format(wf_name))
@@ -566,17 +570,17 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     # file in gcs
     file_handler.flush()
 
-    if not args.cloud_provider or args.cloud_provider == "gcp":
+    if not args.cloud_provider:
       util.upload_file_to_gcs(
         file_handler.baseFilename,
         os.path.join(prow_artifacts_dir, "build-log.txt"))
       all_tests_success = prow_artifacts.finalize_prow_job(
         args.bucket, workflow_success, workflow_phase, ui_urls)
     elif args.cloud_provider == "aws":
-      util.upload_file_to_s3(
+      aws_util.upload_file_to_s3(
         file_handler.baseFilename,
         os.path.join(prow_artifacts_dir, "build-log.txt"))
-      all_tests_success = prow_artifacts.finalize_prow_job_to_s3(
+      all_tests_success = aws_prow_artifacts.finalize_prow_job_to_s3(
         args.bucket, workflow_success, workflow_phase, ui_urls
       )
 

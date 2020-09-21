@@ -26,8 +26,6 @@ EKS_NAMESPACE_NAME="${EKS_NAMESPACE}"
 # Load kubeconfig
 aws eks update-kubeconfig --name=$EKS_CLUSTER_NAME
 
-cd /tmp
-
 # Fetch v1.1-branch kfctl
 wget https://github.com/PatrickXYS/kfctl/releases/download/test1/kfctl_v1.1.0-2-g08ee6e4_linux.tar.gz -O kfctl.tar.gz
 tar -xvf kfctl.tar.gz

@@ -34,7 +34,6 @@ RUN set -ex \
     openjdk-8-jdk \
     ssh \
     mercurial \
-    boto3 \
     python-dev \
     python-setuptools \
     python-pip \
@@ -206,7 +205,5 @@ RUN export JAVA_HOME
 # Add the directory where we will checkout kubeflow/testing
 # which contains shared scripts.
 ENV PYTHONPATH /src/kubeflow/testing/py
-
-ENV CLOUD_PROVIDER gcp
 
 ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]

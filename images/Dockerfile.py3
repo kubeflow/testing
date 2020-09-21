@@ -24,8 +24,7 @@ RUN python3.8 -m pip install \
     pytest-timeout==1.4 \
     python-dateutil \
     retrying \
-    watchdog \
-    boto3
+    watchdog
 
 # Install go
 RUN cd /tmp && \
@@ -111,7 +110,5 @@ RUN go get -u github.com/jstemmer/go-junit-report
 RUN mkdir -p /srcCache/kubeflow/testing
 COPY py /srcCache/kubeflow/testing/py
 COPY notebook_testing /srcCache/kubeflow/testing/notebook_testing
-
-ENV CLOUD_PROVIDER gcp
 
 ENTRYPOINT ["/usr/local/bin/run_workflows.sh"]

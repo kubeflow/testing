@@ -4,25 +4,17 @@ import logging
 import multiprocessing
 import os
 import re
-import shutil
 import six
 import subprocess
-import tempfile
 import time
-import urllib
 import yaml
 
-import google.auth
-import google.auth.transport
-import google.auth.transport.requests
-from google.cloud import storage  # pylint: disable=no-name-in-module
-
-from googleapiclient import errors
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from kubernetes.config import kube_config
 from kubernetes.client import configuration as kubernetes_configuration
-from kubernetes.client import rest
+
+import boto3
 
 # Default name for the repo organization and name.
 # This should match the values used in Go imports.
@@ -31,6 +23,22 @@ MASTER_REPO_NAME = "k8s"
 
 # How long to wait in seconds for requests to the ApiServer
 TIMEOUT = 120
+
+
+def save_process_output(command,
+                        cwd=None,
+                        output=None):
+
+  content = subprocess.check_output(command, cwd=cwd).decode("utf-8")
+
+  try:
+    with open(output, 'w') as f:
+      f.write(content)
+      print("Succeed in saving contents in {}".format(output))
+  except FileNotFoundError:
+    print("Failed in saving contents in {}".format(output))
+
+
 
 def run(command,
         cwd=None,
@@ -93,6 +101,7 @@ def run(command,
 # TODO(jlewi): We should update callers to use run and just delete this function.
 def run_and_output(*args, **argv):
   return run(*args, **argv)
+
 
 def combine_repos(list_of_repos):
   """Builds a dictionary of repo owner/names to commit hashes.
@@ -178,63 +187,10 @@ def install_go_deps(src_dir):
   run(["glide", "install", "--strip-vendor"], cwd=src_dir)
 
 
-def to_gcs_uri(bucket, path):
-  """Convert bucket and path to a GCS URI."""
-  return "gs://" + os.path.join(bucket, path)
+def to_s3_uri(bucket, path):
+  """Convert bucket and path to a S3 URI."""
+  return "s3://" + os.path.join(bucket, path)
 
-
-def create_cluster(gke, project, zone, cluster_request):
-  """Create the cluster.
-
-  Args:
-    gke: Client for GKE.
-    project: The project to create the cluster in
-    zone: The zone to create the cluster in.
-    cluster_rquest: The request for the cluster.
-  """
-  request = gke.projects().zones().clusters().create(
-    body=cluster_request, projectId=project, zone=zone)
-
-  try:
-    logging.info("Creating cluster; project=%s, zone=%s, name=%s", project,
-                 zone, cluster_request["cluster"]["name"])
-    response = request.execute()
-    logging.info("Response %s", response)
-    create_op = wait_for_operation(gke, project, zone, response["name"])
-    logging.info("Cluster creation done.\n %s", create_op)
-
-  except errors.HttpError as e:
-    logging.exception("Exception occured creating cluster: %s, status: %s", e,
-                      e.resp["status"])
-    # Status appears to be a string.
-    if e.resp["status"] == '409':
-      pass
-    else:
-      raise
-
-
-def delete_cluster(gke, name, project, zone):
-  """Delete the cluster.
-
-  Args:
-    gke: Client for GKE.
-    name: Name of the cluster.
-    project: Project that owns the cluster.
-    zone: Zone where the cluster is running.
-  """
-
-  request = gke.projects().zones().clusters().delete(
-    clusterId=name, projectId=project, zone=zone)
-
-  try:
-    response = request.execute()
-    logging.info("Response %s", response)
-    delete_op = wait_for_operation(gke, project, zone, response["name"])
-    logging.info("Cluster deletion done.\n %s", delete_op)
-
-  except errors.HttpError as e:
-    logging.exception("Exception occured deleting cluster: %s, status: %s", e,
-                      e.resp["status"])
 
 # pylint: disable=too-many-arguments
 def wait_for_cr_condition(client,
@@ -306,6 +262,7 @@ def wait_for_cr_condition(client,
   # this code is unreachable.
   return None
 
+
 def wait_for_operation(client,
                        project,
                        zone,
@@ -351,59 +308,6 @@ def wait_for_operation(client,
   # Linter complains if we don't have a return here even though its unreachable.
   return None
 
-def wait_for_gcp_operation(client,
-                           project,
-                           zone,
-                           op_id,
-                           timeout=datetime.timedelta(hours=1),
-                           polling_interval=datetime.timedelta(seconds=5)):
-  """Wait for the specified operation to complete.
-
-  Args:
-    client: Operations client for the API that owns the operation; should
-      have get
-    project: project
-    zone: Zone. Set to none if its a global operation
-    op_id: Operation id.
-    timeout: A datetime.timedelta expressing the amount of time to wait before
-      giving up.
-    polling_interval: A datetime.timedelta to represent the amount of time to
-      wait between requests polling for the operation status.
-
-  Returns:
-    op: The final operation.
-
-  Raises:
-    TimeoutError: if we timeout waiting for the operation to complete.
-  """
-  endtime = datetime.datetime.now() + timeout
-  while True:
-    if zone:
-      op = client.get(
-        projectId=project, zone=zone, operationId=op_id).execute()
-    else:
-      op = client.get(
-        project=project, operation=op_id).execute()
-
-    status = op.get("status", "")
-    # Need to handle other status's
-    if status == "DONE":
-      return op
-    if datetime.datetime.now() > endtime:
-      raise TimeoutError(
-        "Timed out waiting for op: {0} to complete.".format(op_id))
-    time.sleep(polling_interval.total_seconds())
-
-  # Linter complains if we don't have a return here even though its unreachable.
-  return None
-
-def configure_kubectl(project, zone, cluster_name):
-  logging.info("Configuring kubectl")
-  run([
-    "gcloud", "--project=" + project, "container", "clusters", "--zone=" + zone,
-    "get-credentials", cluster_name
-  ])
-
 
 def wait_for_deployment(api_client,
                         namespace,
@@ -447,6 +351,7 @@ def wait_for_deployment(api_client,
   raise TimeoutError(
     "Timeout waiting for deployment {0} in namespace {1}".format(
       name, namespace))
+
 
 def wait_for_job(api_client,
                  namespace,
@@ -551,6 +456,7 @@ def wait_for_jobs_with_label(api_client,
   logging.error(message)
   raise TimeoutError(message)
 
+
 def check_secret(api_client, namespace, name):
   """Check for secret existance.
 
@@ -613,33 +519,6 @@ def wait_for_statefulset(api_client, namespace, name):
       name, namespace))
 
 
-def install_gpu_drivers(api_client):
-  """Install GPU drivers on the cluster.
-
-  Note: GPU support in K8s is very much Alpha and this code will
-  likely change quite frequently.
-
-  Return:
-     ds: Daemonset for the GPU installer
-  """
-  logging.info("Install GPU Drivers.")
-  # Fetch the daemonset to install the drivers.
-  link = "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"  # pylint: disable=line-too-long
-  logging.info("Using daemonset file: %s", link)
-  f = urllib.urlopen(link)
-  daemonset_spec = yaml.load(f)
-  appv1_client = k8s_client.AppsV1Api(api_client)
-  try:
-    namespace = daemonset_spec["metadata"]["namespace"]
-    appv1_client.create_namespaced_daemon_set(namespace, daemonset_spec)
-  except rest.ApiException as e:
-    # Status appears to be a string.
-    if e.status == 409:
-      logging.info("GPU driver daemon set has already been installed")
-    else:
-      raise
-
-
 def wait_for_gpu_driver_install(api_client,
                                 timeout=datetime.timedelta(minutes=10)):
   """Wait until some nodes are available with GPUs."""
@@ -658,38 +537,6 @@ def wait_for_gpu_driver_install(api_client,
   raise TimeoutError("Timeout waiting for GPU nodes to be ready.")
 
 
-def cluster_has_gpu_nodes(api_client):
-  """Return true if the cluster has nodes with GPUs."""
-  api = k8s_client.CoreV1Api(api_client)
-  nodes = api.list_node()
-
-  for n in nodes.items:
-    if "cloud.google.com/gke-accelerator" in n.metadata.labels:
-      return True
-  return False
-
-# TODO(jlewi): Is this function obsolete? Can we delete it?
-def setup_cluster(api_client):
-  """Setup a cluster.
-
-  This function assumes kubectl has already been configured to talk to your
-  cluster.
-
-  Args:
-    use_gpus
-  """
-  use_gpus = cluster_has_gpu_nodes(api_client)
-  if use_gpus:
-    logging.info("GPUs detected in cluster.")
-  else:
-    logging.info("No GPUs detected in cluster.")
-
-  if use_gpus:
-    install_gpu_drivers(api_client)
-  if use_gpus:
-    wait_for_gpu_driver_install(api_client)
-
-
 # TODO(jlewi): TimeoutError should be built in in python3 so once
 # we migrate to Python3 we should be able to get rid of this.
 class TimeoutError(Exception):  # pylint: disable=redefined-builtin
@@ -702,30 +549,18 @@ class ExceptionWithWorkflowResults(Exception):
     self.workflow_results = workflow_results
 
 
-GCS_REGEX = re.compile("gs://([^/]*)(/.*)?")
+S3_REGEX = re.compile("s3://([^/]*)(/.*)?")
 
 
-def split_gcs_uri(gcs_uri):
-  """Split a GCS URI into bucket and path."""
-  m = GCS_REGEX.match(gcs_uri)
+def split_s3_uri(s3_uri):
+  """Split a S3 URI into bucket and path."""
+  m = S3_REGEX.match(s3_uri)
   bucket = m.group(1)
   path = ""
   if m.group(2):
     path = m.group(2).lstrip("/")
   return bucket, path
 
-
-def _refresh_credentials():
-  # userinfo.email scope was insufficient for authorizing requests to K8s.
-  # We need userinfo.email because role bindings can be expressed in terms
-  # of email and these won't work without email scope.
-  credentials, _ = google.auth.default(scopes=[
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/userinfo.email"
-  ])
-  request = google.auth.transport.requests.Request()
-  credentials.refresh(request)
-  return credentials
 
 def load_kube_credentials():
   """Load credentials to talk to the K8s APIServer.
@@ -770,7 +605,7 @@ def load_kube_config(config_file=None,
                      context=None,
                      client_configuration=None,
                      persist_config=True,
-                     get_google_credentials=_refresh_credentials,
+                     get_google_credentials=None,
                      print_config=False,
                      **kwargs):
   """Loads authentication and cluster information from kube-config file
@@ -818,17 +653,14 @@ def load_kube_config(config_file=None,
     run(["kubectl", "config", "view"])
 
 
-def maybe_activate_service_account():
-  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-    logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
-                 "to use service account.")
+def aws_configure_credential():
+  if os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY"):
+    logging.info("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set;")
     run([
-      "gcloud", "auth", "activate-service-account",
-      "--key-file=" + os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+      "aws", "eks", "update-kubeconfig", "--name=" + os.getenv("AWS_EKS_CLUSTER")
     ])
-
   else:
-    logging.info("GOOGLE_APPLICATION_CREDENTIALS is not set.")
+    logging.info("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not set.")
 
 
 def filter_spartakus(spec):
@@ -839,50 +671,23 @@ def filter_spartakus(spec):
       break
   return spec
 
-def upload_to_gcs(contents, target):
-  gcs_client = storage.Client()
 
-  bucket_name, path = split_gcs_uri(target)
+def upload_to_s3(contents, target, file_name):
+  # logic for uploading contents to s3
+  s3 = boto3.resource('s3')
+  bucket_name, path = split_s3_uri(target)
+  with open(file_name, "w+") as data:
+    data.write(contents)
+  logging.info("Uploading file %s to %s.", file_name, target)
+  s3.meta.client.upload_file(file_name, bucket_name, path)
 
-  bucket = gcs_client.get_bucket(bucket_name)
-  logging.info("Writing %s", target)
-  blob = bucket.blob(path)
-  blob.upload_from_string(contents)
 
-
-def upload_file_to_gcs(source, target):
-  gcs_client = storage.Client()
-  bucket_name, path = split_gcs_uri(target)
-
-  bucket = gcs_client.get_bucket(bucket_name)
-
+def upload_file_to_s3(source, target):
+  s3 = boto3.resource('s3')
+  bucket_name, path = split_s3_uri(target)
   logging.info("Uploading file %s to %s.", source, target)
-  blob = bucket.blob(path)
-  blob.upload_from_filename(source)
+  s3.meta.client.upload_file(source, bucket_name, path)
 
-
-def read_file(path):
-  """Read a file.
-
-  Args:
-    path: A local or GCS path.
-
-  Returns:
-    contents: Contents of the file
-  """
-
-  if not path.lower().startswith("gs://"):
-    with open(path) as hf:
-      hf.read()
-
-  bucket_name, path = split_gcs_uri(path)
-
-  gcs_client = storage.Client()
-
-  bucket = gcs_client.get_bucket(bucket_name)
-
-  blob = bucket.blob(path)
-  return blob.download_as_string()
 
 def makedirs(path):
   """
@@ -905,6 +710,7 @@ class JobTimeoutError(TimeoutError):
   def __init__(self, message, job):
     super(JobTimeoutError, self).__init__(message)
     self.job = job
+
 
 def set_pytest_junit(record_xml_attribute, test_name, test_target_name=""):
   """Set various xml attributes in the junit produced by pytest.
@@ -942,61 +748,6 @@ def set_pytest_junit(record_xml_attribute, test_name, test_target_name=""):
 
   record_xml_attribute("name", full_test_name)
 
-
-def use_self_signed_for_ingress(ingress_namespace, ingress_name,
-                                tls_endpoint, api_client):
-  """Creates a self-signed certificate to be used with the specified name.
-
-  This is a work around for Lets encrypt rate limiting.
-
-  Args:
-    ingress_namespace: Namespace of the ingress
-    ingress_name: Name of the ingress.
-    tls_endpoint: The domain to be used.
-    api_client: Kubernetes client.
-  """
-  v1 = k8s_client.CoreV1Api(api_client)
-  secret_name = ingress_name + "-tls"
-
-  secret = None
-  try:
-    secret = v1.read_namespaced_secret(secret_name, ingress_namespace)
-  except rest.ApiException as e:
-    if e.status != 404:
-      raise
-
-  if secret:
-    logging.info("TLS secret %s.%s exists", ingress_namespace, secret_name)
-  else:
-    logging.info("Creating TLS secret %s.%s", ingress_namespace, secret_name)
-    cert_dir = tempfile.mkdtemp()
-    run(["kube-rsa", tls_endpoint], cwd=cert_dir)
-    run(["kubectl", "-n", ingress_namespace, "create", "secret", "tls",
-              secret_name, "--cert=ca.pem", "--key=ca-key.pem"],
-              cwd=cert_dir)
-    shutil.rmtree(cert_dir)
-
-  extensions = k8s_client.ExtensionsV1beta1Api(api_client)
-  ingress = extensions.read_namespaced_ingress(ingress_name, ingress_namespace)
-
-  # Delete GKE managed annotations
-  for a in ["ingress.gcp.kubernetes.io/pre-shared-cert",
-            "networking.gke.io/managed-certificates"]:
-    if a in ingress.metadata.annotations:
-      del ingress.metadata.annotations[a]
-
-  # Set the tls
-  logging.info("Setting TLS")
-  ingress.spec.tls = [{
-    "hosts": [tls_endpoint],
-    'secretName': secret_name,
-   },
-  ]
-
-  logging.info("Updating ingress \n:%s", yaml.safe_dump(ingress.to_dict()))
-  extensions.patch_namespaced_ingress(ingress_name,
-                                      ingress_namespace,
-                                      ingress)
 
 def is_in_cluster():
   """Check if we are running in cluster."""
