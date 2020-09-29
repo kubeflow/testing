@@ -276,7 +276,7 @@ def finalize_prow_job_to_s3(bucket, workflow_success, workflow_phase, ui_urls):
 
   create_finished_file_s3(bucket, test_success, workflow_phase, ui_urls)
 
-  return True
+  return test_success
 
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
@@ -294,10 +294,6 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   subparsers = parser.add_subparsers()
 
   #############################################################################
-  # Copy artifacts.
-  parser_copy = subparsers.add_parser(
-    "copy_artifacts", help="Copy the artifacts.")
-
   # Copy artifacts to S3.
   parser_copy = subparsers.add_parser(
     "copy_artifacts_to_s3", help="Copy the artifacts.")

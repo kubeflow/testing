@@ -656,11 +656,11 @@ def load_kube_config(config_file=None,
 def aws_configure_credential():
   if os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY"):
     logging.info("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set;")
-    run([
-      "aws", "eks", "update-kubeconfig", "--name=" + os.getenv("AWS_EKS_CLUSTER")
-    ])
   else:
     logging.info("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not set.")
+  run([
+    "aws", "eks", "update-kubeconfig", "--name=" + os.getenv("AWS_EKS_CLUSTER")
+  ])
 
 
 def filter_spartakus(spec):
@@ -673,7 +673,7 @@ def filter_spartakus(spec):
 
 
 def upload_to_s3(contents, target, file_name):
-  # logic for uploading contents to s3
+  """Uploading contents to s3"""
   s3 = boto3.resource('s3')
   bucket_name, path = split_s3_uri(target)
   with open(file_name, "w+") as data:

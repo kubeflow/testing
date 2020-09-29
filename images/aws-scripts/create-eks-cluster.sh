@@ -32,4 +32,5 @@ eksctl create cluster \
 --node-type ${EKS_NODE_TYPE:-"m5.xlarge"} \
 --nodes ${DESIRED_NODE:-"2"} \
 --nodes-min ${MIN_NODE:-"1"} \
---nodes-max ${MAX_NODE:-"4"}
+--nodes-max ${MAX_NODE:-"4"} \
+--managed
