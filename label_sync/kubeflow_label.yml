@@ -186,3 +186,5 @@ default:
     name: 'cla: yes'
   - color: f42e4c
     name: 'cla: no'
+  - color: cc317c
+    name: area/kfp/aws-sagemaker-components
