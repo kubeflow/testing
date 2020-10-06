@@ -32,6 +32,6 @@ spec:
             secret:
               secretName: bot-token-github
           - configMap:
-              name: label-sync-v2-89b54b7724
+              name: label-sync-v2-g8d5bm2m78
             name: config
   schedule: 0 */6 * * *

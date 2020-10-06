@@ -42,7 +42,17 @@ data:
     \ - color: 00daff\n    name: area/testing\n    previously:\n    - name: testing\n
     \ - color: 00daff\n    name: wontfix\n  - color: 8cd2b4\n    name: sprint/2018-05-29-to-06-08\n
     \ - color: 8cd2b4\n    name: sprint/2018-06-11-to-06-22\n  - color: 8cd2b4\n    name:
-    sprint/2018-06-25-to-07-06\n  - color: 8cd2b4\n    name: sprint/2018-07-09-to-07-20\n"
+    sprint/2018-06-25-to-07-06\n  - color: 8cd2b4\n    name: sprint/2018-07-09-to-07-20\n
+    \ - color: 5319e7\n    name: area/kfserving\n  - color: 84b6eb\n    name: area/kfserving/kfserver\n
+    \ - color: 84b6eb\n    name: area/kfserving/triton\n  - color: 84b6eb\n    name:
+    area/kfserving/onnx\n  - color: cc317c\n    name: area/kfserving/explanation\n
+    \ - color: cc317c\n    name: area/kfserving/transformer\n  - color: cc317c\n    name:
+    area/kfserving/storage\n  - color: cc317c\n    name: area/kfserving/logger\n  -
+    color: cc317c\n    name: area/kfserving/data-plane\n  - color: e99695\n    name:
+    area/kfserving/performance\n  - color: cc317c\n    name: area/kfserving/sdk\n
+    \ - color: cc317c\n    name: area/kfserving/crd\n  - color: d4c5f9\n    name:
+    area/kfserving/doc\n  - color: aefcc0\n    name: 'cla: yes'\n  - color: f42e4c\n
+    \   name: 'cla: no'\n  - color: cc317c\n    name: area/kfp/aws-sagemaker-components\n"
 kind: ConfigMap
 metadata:
-  name: label-sync-v2-89b54b7724
+  name: label-sync-v2-g8d5bm2m78
