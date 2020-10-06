@@ -32,11 +32,8 @@ export PATH=$PATH:"$PWD:kfctl"
 echo "kfctl version: "
 kfctl version
 
-# Set an environment variable for your AWS cluster name.
-export AWS_CLUSTER_NAME=$EKS_CLUSTER_NAME
-
-# Cd directory ${AWS_CLUSTER_NAME}
-cd ${AWS_CLUSTER_NAME}
+# Cd directory ${EKS_CLUSTER_NAME}
+cd ${EKS_CLUSTER_NAME}
 
 # Print YAML file
 cat kfctl_aws.yaml
