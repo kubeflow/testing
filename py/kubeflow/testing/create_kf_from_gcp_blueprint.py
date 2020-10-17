@@ -105,9 +105,6 @@ class BlueprintRunner:
         logging.error(f"Command exited with error: {e.output}")
         raise
 
-    util.run(["kpt", "cfg", "set", "instance", "mgmt-ctxt", management_context],
-             cwd=blueprint_dir)
-
     # We need to keep the name short to avoid hitting limits with certificates.
     uid = datetime.datetime.now().strftime("%m%d") + "-"
     uid = uid + uuid.uuid4().hex[0:3]
@@ -120,32 +117,18 @@ class BlueprintRunner:
     logging.info(f"Using email {email}")
 
     values = {
+      "mgmt-ctxt": management_context,
       "name": name,
-      "gcloud.core.project": project,
-      "gcloud.compute.zone": zone,
       "location": location,
+      "gcloud.compute.zone": zone,
+      "gcloud.core.project": project,
+      "email": email,
     }
 
     def set_values(pairs, subdir):
       for k, v in pairs.items():
         util.run(["kpt", "cfg", "set", subdir, k, v],
                  cwd=blueprint_dir)
-
-    set_values(values, "./upstream/manifests/gcp")
-
-    values = {
-      "name": name,
-      "gcloud.core.project": project,
-    }
-
-    set_values(values, "./upstream/manifests/stacks/gcp")
-
-    values = {
-      "name": name,
-      "gcloud.core.project": project,
-      "location": location,
-      "email": email,
-    }
 
     set_values(values, "./instance")
 
