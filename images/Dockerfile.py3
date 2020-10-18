@@ -5,8 +5,11 @@
 FROM ubuntu:18.04
 
 RUN apt-get update -y && \
-    apt-get install -y curl git python3.8 python3-pip wget && \
-    ln -sf /usr/bin/python3.8 /usr/bin/python
+    apt-get install -y curl git python3.8 python3-distutils wget && \
+    ln -sf /usr/bin/python3.8 /usr/bin/python && \
+    ln -sf /usr/bin/python3.8 /usr/bin/python3
+
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python get-pip.py
 
 RUN python3.8 -m pip install \
     filelock \
