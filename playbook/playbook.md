@@ -232,3 +232,13 @@ gcloud beta --project=kubeflow-ci-deployment compute ssl-certificates list  --fo
 	kubectl exec -it debug-worker-0 /bin/bash
 	ls /secret
 	```
+
+### Garbage Collecting Old K8s Resources
+
+[./go/cmd/cleanup/main.go](../go/cmd/cleanup/main.go) provides
+a simple go program that can delete all kinds of a given resource e.g. (Tekton PipelineRuns)
+in a given namespace
+
+* The program allows setting a minimum age for resources to be eligible for deletion
+* This program appears to work when `kubectl delete all` fails; probably because it handles
+  pagination better
