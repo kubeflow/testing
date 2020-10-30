@@ -121,7 +121,7 @@ class Builder: # pylint: disable=too-many-instance-attributes
       'resources': {'limits': {'cpu': '4', 'memory': '4Gi'},
        'requests': {'cpu': '1', 'memory': '1536Mi'}},
       'volumeMounts': [{'mountPath': '/mnt/test-data-volume',
-        'name': 'kubeflow-test-volume'},
+        'name': DATA_VOLUME},
        {'mountPath': '/secret/gcp-credentials', 'name': 'gcp-credentials'}]},
      'metadata': {'labels': {
        'workflow_template': TEMPLATE_LABEL}},
