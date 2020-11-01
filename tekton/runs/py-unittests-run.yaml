@@ -9,7 +9,7 @@ metadata:
 spec:
   params:
   - name: artifacts-gcs
-    value: "gs://subodh101-experiments/testing-123"
+    value: "gs://kubeflow-ci-deployment/py-unittests"
   serviceAccountName: kf-ci
   resources:
   - name: testing-repo
