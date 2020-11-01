@@ -15,10 +15,10 @@ spec:
         be in the form of 'gs://'
     - name: test-image
       type: string
-      default: gcr.io/kubeflow-ci/test-worker-py3:b23b63b-dirty@sha256:a749d7fa4d77466c892a206d3adf0909e86717da898dbd12378e6cbed59ffbd3
+      default: gcr.io/kubeflow-ci/test-worker:latest
       description: The docker image to run the tests in
     resources:
-    - name: source-repo
+    - name: testing-repo
       type: git
       description: The GitHub repo containing code to test
   steps:
@@ -29,7 +29,7 @@ spec:
       set -x
       mkdir -p /workspace/artifacts
       echo Current Directory: $(pwd)
-      cd kubeflow/testing
+      cd /workspace/$(inputs.resources.testing-repo.name)/py/kubeflow/testing/
       pytest py_lint_test.py -s \
        --rcfile=../../../.pylintrc \
        --timeout=500 \
@@ -39,7 +39,7 @@ spec:
       echo Test finished.
     env:
     - name: PYTHONPATH
-      value: /workspace/$(inputs.resources.source-repo.name)/py
+      value: /workspace/$(inputs.resources.testing-repo.name)/py
   # This step is designed to be generic: given the output directory, it will try to
   # parse all the XML files with prefix of junit and error out if failures been found.
   - name: copy-artifacts
@@ -54,4 +54,4 @@ spec:
     - --output-gcs=$(inputs.params.artifacts-gcs)
     env:
     - name: PYTHONPATH
-      value: /workspace/$(inputs.resources.source-repo.name)/py
+      value: /workspace/$(inputs.resources.testing-repo.name)/py

@@ -1,18 +1,18 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
-  generateName: kf-lint-test-
+  generateName: py-unittests-
   namespace: kf-ci
   labels:
-    pipeline: kf-lint-test
+    pipeline: py-unittests
     repo: testing
 spec:
   params:
   - name: artifacts-gcs
-    value: "gs://kubeflow-ci-deployment/testing-123"
+    value: "gs://subodh101-experiments/testing-123"
   serviceAccountName: kf-ci
   resources:
-  - name: source-repo
+  - name: testing-repo
     resourceSpec:
       type: git
       params:
@@ -27,22 +27,28 @@ spec:
       description: GCS bucket and directory artifacts will be uploaded to. Should be
         in the form of 'gs://'
     resources:
-    - name: source-repo
+    - name: testing-repo
       type: git
     tasks:
-    - name: kf-lint
+    - name: py-lint
+      params:
+      - name: artifacts-gcs
+        value: "$(params.artifacts-gcs)"
       resources:
         inputs:
-        - name: source-repo
-          resource: source-repo
+        - name: testing-repo
+          resource: testing-repo
       taskRef:
         name: py-lint
-    - name: kf-test
+    - name: py-test
+      params:
+      - name: artifacts-gcs
+        value: "$(params.artifacts-gcs)"
       resources:
         inputs:
-        - name: source-repo
-          resource: source-repo
+        - name: testing-repo
+          resource: testing-repo
       taskRef:
         name: py-test
       runAfter:
-        - kf-lint
+        - py-lint

@@ -15,9 +15,9 @@ workflows:
   
   - tekton_run: kubeflow/testing/tekton/runs/go-test-run.yaml  
     name: go-unittests
-  
-  - tekton_run: kubeflow/testing/tekton/runs/kf-lint-test-run.yaml
-    name: kf-unittests
+
+  # - tekton_run: kubeflow/testing/tekton/runs/py-unittests-run.yaml
+  #   name: py-unittests
 
   # Leave the following commented out
 

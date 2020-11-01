@@ -1,21 +1,12 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: golang-test
+  name: py-test
   namespace: kf-ci
 spec:
   inputs:
     params:
-    - default: ./...
-      description: 'packages to test (default: ./...)'
-      name: packages
-    - default: -race -cover -v
-      description: flags to use for the test command
-      name: flags
-    - default: auto
-      description: value of module support
-      name: GO111MODULE
-    - default: go-unit
+    - default: py-unit
       description: Name to give the test results file.
       name: test-name
       type: string
@@ -23,20 +14,18 @@ spec:
         be in the form of 'gs://'
       name: artifacts-gcs
       type: string
-    - default: gcr.io/kubeflow-ci/test-worker-py3:b23b63b-dirty@sha256:a749d7fa4d77466c892a206d3adf0909e86717da898dbd12378e6cbed59ffbd3
+    - default: gcr.io/kubeflow-ci/test-worker:latest
       description: The docker image to run the tests in
       name: test-image
       type: string
     resources:
     - description: The GitHub repo containing code to test
-      name: source-repo
+      name: testing-repo
       type: git
   steps:
   - env:
-    - name: GO111MODULE
-      value: $(inputs.params.GO111MODULE)
-    - name: PACKAGES
-      value: $(inputs.params.packages)
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.testing-repo.name)/py
     image: $(inputs.params.test-image)
     name: unit-test
     script: |
@@ -44,11 +33,12 @@ spec:
       set -x
       mkdir -p /workspace/artifacts
       echo Current Directory: $(pwd)
-      go test $(inputs.params.packages) $(inputs.params.flags) 2>&1 | go-junit-report > /workspace/artifacts/junit_$(inputs.params.test-name).xml
+      python -m kubeflow.testing.test_py_checks \
+       --artifacts_dir=/workspace/artifacts/junit_$(inputs.params.test-name).xml \
+       --src_dir=/workspace/$(inputs.resources.testing-repo.name)/py/kubeflow/tests
       echo Test results:
       cat /workspace/artifacts/junit_$(inputs.params.test-name).xml
-      echo test finished.
-    workingDir: /workspace/$(inputs.resources.source-repo.name)
+      echo Test finished.
   - args:
     - -m
     - kubeflow.testing.tekton_client
@@ -59,6 +49,6 @@ spec:
     - python
     env:
     - name: PYTHONPATH
-      value: /srcCache/kubeflow/testing/py
+      value: /workspace/$(inputs.resources.testing-repo.name)/py
     image: $(inputs.params.test-image)
     name: copy-artifacts
