@@ -448,6 +448,49 @@ def wait_for_deployment(api_client,
     "Timeout waiting for deployment {0} in namespace {1}".format(
       name, namespace))
 
+
+def wait_for_ingress(api_client,
+                    namespace,
+                    name,
+                    timeout_minutes=2):
+  """Wait for ingress to be ready.
+
+  Args:
+    api_client: K8s api client to use.
+    namespace: The name space for the ingress.
+    name: The name of the ingress.
+    timeout_minutes: Timeout interval in minutes.
+
+  Returns:
+    ingress: The ingress object describing the ingress.
+
+  Raises:
+    TimeoutError: If timeout waiting for ingress to be ready.
+  """
+  # Wait for tiller to be ready
+  end_time = datetime.datetime.now() + datetime.timedelta(
+    minutes=timeout_minutes)
+
+  net_client_apps = k8s_client.NetworkingV1beta1Api(api_client)
+
+  while datetime.datetime.now() < end_time:
+    ingress = net_client_apps.read_namespaced_ingress(name, namespace)
+    try:
+      if len(ingress.status.load_balancer.ingress[0].hostname) == 0:
+        logging.info("Ingress %s in namespace %s is ready", name, namespace)
+        return ingress
+    except Exception:
+      logging.info("Waiting for ingress %s in namespace %s", name, namespace)
+      time.sleep(10)
+
+  logging.error("Timeout waiting for ingress %s in namespace %s to be "
+                "ready", name, namespace)
+  run(["kubectl", "describe", "ingress", "-n", namespace, name])
+  raise TimeoutError(
+    "Timeout waiting for ingress {0} in namespace {1}".format(
+      name, namespace))
+
+
 def wait_for_job(api_client,
                  namespace,
                  name,

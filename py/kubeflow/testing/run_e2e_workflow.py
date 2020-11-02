@@ -445,7 +445,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                      w.kwargs[TEST_TARGET_ARG_NAME])
 
       # TODO(https://github.com/kubeflow/testing/issues/467): We shell out
-      # to e2e_tool in order to dumpy the Argo workflow to a file which then
+      # to e2e_tool in order to dump the Argo workflow to a file which then
       # reimport. We do this because importing the py_func module appears
       # to break when we have to dynamically adjust sys.path to insert
       # new paths. Setting PYTHONPATH before launching python however appears

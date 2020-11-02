@@ -1,0 +1,55 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: py-test
+spec:
+  inputs:
+    params:
+    - name: test-name
+      type: string
+      default: py-unit
+      description: Name to give the test results file.
+    - name: artifacts-gcs
+      type: string
+      description: GCS bucket and directory artifacts will be uploaded to. Should
+        be in the form of 'gs://'
+    - name: test-image
+      type: string
+      default: gcr.io/kubeflow-ci/test-worker:latest
+      description: The docker image to run the tests in
+    resources:
+    - name: testing-repo
+      type: git
+      description: The GitHub repo containing code to test
+  steps:
+  - name: unit-test
+    image: $(inputs.params.test-image)
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      mkdir -p /workspace/artifacts
+      echo Current Directory: $(pwd)
+      python -m kubeflow.testing.test_py_checks \
+       --artifacts_dir=/workspace/artifacts/junit_$(inputs.params.test-name).xml \
+       --src_dir=/workspace/$(inputs.resources.testing-repo.name)/py/kubeflow/tests
+      echo Test results:
+      cat /workspace/artifacts/junit_$(inputs.params.test-name).xml
+      echo Test finished.
+    env:
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.testing-repo.name)/py
+  # This step is designed to be generic: given the output directory, it will try to
+  # parse all the XML files with prefix of junit and error out if failures been found.
+  - name: copy-artifacts
+    image: $(inputs.params.test-image)
+    command:
+    - python
+    args:
+    - -m
+    - kubeflow.testing.tekton_client
+    - junit-parse-and-upload
+    - --artifacts-dir=/workspace/artifacts
+    - --output-gcs=$(inputs.params.artifacts-gcs)
+    env:
+    - name: PYTHONPATH
+      value: /workspace/$(inputs.resources.testing-repo.name)/py
