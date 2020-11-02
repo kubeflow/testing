@@ -12,16 +12,22 @@ workflows:
     - xyz/*
     params:
       workflowName: skipmeplease
-
-  # Run unittests
-  - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
-    name: py-unittests
-    kwargs: {}
   
   - tekton_run: kubeflow/testing/tekton/runs/go-test-run.yaml  
     name: go-unittests
-  
-  # Leave this commented out as an example of the different parameters for tekton
+
+  # - tekton_run: kubeflow/testing/tekton/runs/py-unittests-run.yaml
+  #   name: py-unittests
+
+  # Leave the following commented out
+
+  # An example of running Argo workflow
+  # Run unittests
+  # - py_func: kubeflow.testing.ci.kf_unittests.create_workflow
+  #   name: py-unittests
+  #   kwargs: {}
+
+  # An example of running tekton run with different parameters
   # runs
   #- tekton_run: kubeflow/testing/tekton/testing/nb-test-run.yaml
   #  tekton_params:

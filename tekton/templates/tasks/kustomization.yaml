@@ -10,3 +10,5 @@ resources:
 - go-tests.yaml
 - kf-ready-task.yaml
 - notebook-test-task.yaml
+- py-lint.yaml
+- py-test.yaml
