@@ -31,7 +31,7 @@ spec:
       echo Current Directory: $(pwd)
       cd /workspace/$(inputs.resources.testing-repo.name)/py/kubeflow/testing/
       pytest py_lint_test.py -s \
-       --rcfile=../../../.pylintrc \
+       --rcfile=/workspace/$(inputs.resources.testing-repo.name)/.pylintrc \
        --timeout=500 \
        --junitxml=/workspace/artifacts/junit_$(inputs.params.test-name).xml
       echo Test results:
