@@ -61,7 +61,7 @@ confidence=
 # modules when running locally vs in our test infrastructure. It looks like what counts 
 # as third party might vary.
 #
-disable=import-star-module-level,old-octal-literal,oct-method,print-statement,unpacking-in-except,parameter-unpacking,backtick,old-raise-syntax,old-ne-operator,long-suffix,dict-view-method,dict-iter-method,metaclass-assignment,next-method-called,raising-string,indexing-exception,raw_input-builtin,long-builtin,file-builtin,execfile-builtin,coerce-builtin,cmp-builtin,buffer-builtin,basestring-builtin,apply-builtin,filter-builtin-not-iterating,using-cmp-argument,useless-suppression,range-builtin-not-iterating,suppressed-message,missing-docstring,no-absolute-import,old-division,cmp-method,reload-builtin,zip-builtin-not-iterating,intern-builtin,unichr-builtin,reduce-builtin,standarderror-builtin,unicode-builtin,xrange-builtin,coerce-method,delslice-method,getslice-method,setslice-method,input-builtin,round-builtin,hex-method,nonzero-method,map-builtin-not-iterating,relative-import,invalid-name,bad-continuation,no-member,locally-disabled,fixme,import-error,too-many-locals,wrong-import-order,no-self-use,too-many-statements,logging-fstring-interpolation,unused-variable,anomalous-backslash-in-string,super-with-arguments,unused-argument,unnecessary-comprehension,ungrouped-imports,trailing-newlines,useless-object-inheritance,no-else-return,raise-missing-from,protected-access,no-else-continue,f-string-without-interpolation,too-many-arguments,unused-import,superfluous-parens,redefined-builtin,missing-final-newline
+disable=import-star-module-level,old-octal-literal,oct-method,print-statement,unpacking-in-except,parameter-unpacking,backtick,old-raise-syntax,old-ne-operator,long-suffix,dict-view-method,dict-iter-method,metaclass-assignment,next-method-called,raising-string,indexing-exception,raw_input-builtin,long-builtin,file-builtin,execfile-builtin,coerce-builtin,cmp-builtin,buffer-builtin,basestring-builtin,apply-builtin,filter-builtin-not-iterating,using-cmp-argument,useless-suppression,range-builtin-not-iterating,suppressed-message,missing-docstring,no-absolute-import,old-division,cmp-method,reload-builtin,zip-builtin-not-iterating,intern-builtin,unichr-builtin,reduce-builtin,standarderror-builtin,unicode-builtin,xrange-builtin,coerce-method,delslice-method,getslice-method,setslice-method,input-builtin,round-builtin,hex-method,nonzero-method,map-builtin-not-iterating,relative-import,invalid-name,bad-continuation,no-member,locally-disabled,fixme,import-error,too-many-locals,wrong-import-order,no-self-use,too-many-statements,logging-fstring-interpolation
 
 
 [REPORTS]
@@ -217,7 +217,7 @@ contextmanager-decorators=contextlib.contextmanager
 [FORMAT]
 
 # Maximum number of characters on a single line.
-max-line-length=130
+max-line-length=100
 
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$
@@ -233,7 +233,7 @@ single-line-if-stmt=no
 no-space-check=trailing-comma,dict-separator
 
 # Maximum number of lines in a module
-max-module-lines=1100
+max-module-lines=1000
 
 # String used as indentation unit. This is usually "    " (4 spaces) or "\t" (1
 # tab).
@@ -360,7 +360,7 @@ max-locals=15
 max-returns=6
 
 # Maximum number of branch for function / method body
-max-branches=17
+max-branches=12
 
 # Maximum number of statements in function / method body
 max-statements=50
