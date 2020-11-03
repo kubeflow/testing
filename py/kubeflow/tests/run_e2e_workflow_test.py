@@ -6,6 +6,8 @@ import six
 import tempfile
 import yaml
 
+import pytest
+
 
 class TestRunE2eWorkflow(unittest.TestCase):
 
@@ -23,6 +25,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
       pattern = "^" + e + "$"
       six.assertRegex(self, actual[index], pattern)
 
+  @pytest.mark.skip(reason="Remove e2e worflows and use tekton for testing purpose.")
   @mock.patch("kubeflow.testing.run_e2e_workflow.prow_artifacts"
               ".finalize_prow_job")
   @mock.patch("kubeflow.testing.run_e2e_workflow.util"
