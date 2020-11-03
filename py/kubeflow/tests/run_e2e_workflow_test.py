@@ -6,8 +6,6 @@ import six
 import tempfile
 import yaml
 
-import pytest
-
 
 class TestRunE2eWorkflow(unittest.TestCase):
 
