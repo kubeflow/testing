@@ -206,7 +206,7 @@ def load_tekton_run(params, test_target_name, tekton_run, # pylint: disable=too-
 
   return config
 
-class PipelineRunner(object): # pylint: disable=useless-object-inheritance
+class PipelineRunner(object):
   """Runs and wait for the Tekton pipeline to finish.
 
   The name for the pipeline will be generated using generateName
@@ -285,7 +285,7 @@ class PipelineRunner(object): # pylint: disable=useless-object-inheritance
 def wait_(runner):
   return runner.wait()
 
-class ClusterInfo(object): # pylint: disable=useless-object-inheritance
+class ClusterInfo(object):
   """Simple data carrier to provide access to the cluster running test.
   """
   def __init__(self, project, zone, cluster_name):
@@ -293,7 +293,7 @@ class ClusterInfo(object): # pylint: disable=useless-object-inheritance
     self.zone = zone
     self.cluster_name = cluster_name
 
-class TektonRunner(object): # pylint: disable=useless-object-inheritance
+class TektonRunner(object):
   """Runs Tekton pipelines and wait for all the workflows to finish.
   """
   def __init__(self):
@@ -351,7 +351,7 @@ class TektonRunner(object): # pylint: disable=useless-object-inheritance
       flattened.extend(r)
     return flattened
 
-class CLI(object): # pylint: disable=useless-object-inheritance
+class CLI(object):
   @staticmethod
   def upload(artifacts_dir, output_gcs):
     """Upload directory to GCS.

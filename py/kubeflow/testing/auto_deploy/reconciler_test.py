@@ -7,9 +7,9 @@ import pytest
 from unittest import mock
 import yaml
 
-from kubeflow.testing import assertions
-from kubeflow.testing.auto_deploy import reconciler
-from kubeflow.testing.auto_deploy import util as auto_deploy_util
+from kubeflow.testing import assertions # pylint: disable=no-name-in-module
+from kubeflow.testing.auto_deploy import reconciler # pylint: disable=no-name-in-module
+from kubeflow.testing.auto_deploy import util as auto_deploy_util # pylint: disable=no-name-in-module
 from kubernetes import client as k8s_client
 
 class Response(object):

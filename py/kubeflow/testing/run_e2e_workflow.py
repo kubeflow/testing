@@ -109,16 +109,16 @@ def py_func_import(py_func, kwargs):
   met = getattr(mod, create_function)
   return met(**kwargs)
 
-class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes,disable=useless-object-inheritance
+class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes,useless-object-inheritance
   """Datastructure to represent a component to submit a workflow."""
   def __init__(self, root_dir, data):
     self.name = data.get("name")
     self.job_types = data.get("job_types", [])
     self.include_dirs = data.get("include_dirs", [])
     self.app_dir = os.path.join(root_dir, data.get("app_dir")) if data.get("app_dir") else ""
-    self.tekton_run = os.path.join(root_dir, data.get("tekton_run")) if data.get("tekton_run") else ""
+    self.tekton_run = os.path.join(root_dir, data.get("tekton_run")) if data.get("tekton_run") else "" # pylint: disable=line-too-long
     self.tekton_params = data.get("tekton_params", [])
-    self.tekton_teardown = os.path.join(root_dir, data.get("tekton_teardown")) if data.get("tekton_teardown") else ""
+    self.tekton_teardown = os.path.join(root_dir, data.get("tekton_teardown")) if data.get("tekton_teardown") else "" # pylint: disable=line-too-long
     self.tekton_teardown_params = data.get("tekton_teardown_params", [])
     self.component = data.get("component")
     self.params = data.get("params", {})
@@ -341,7 +341,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
       # Create a new environment for this run
       env = workflow_name
 
-      util.run([ks_cmd, "env", "add", env, "--namespace=" + get_namespace(args), "--api-spec=version:v1.8.0"],
+      util.run([ks_cmd, "env", "add", env, "--namespace=" + get_namespace(args), "--api-spec=version:v1.8.0"], # pylint: disable=line-too-long
                 cwd=w.app_dir)
 
       util.run([ks_cmd, "param", "set", "--env=" + env, w.component,
@@ -394,7 +394,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
                 "?tab=workflow".format(workflow_name))
       elif args.cloud_provider == "aws":
-        ui_url = ("http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com/workflows/kubeflow-test-infra/{0}"
+        ui_url = ("http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com/workflows/kubeflow-test-infra/{0}" # pylint: disable=line-too-long
                 "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
@@ -483,7 +483,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
                 "?tab=workflow".format(workflow_name))
       elif args.cloud_provider == "aws":
-        ui_url = ("http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com/workflows/kubeflow-test-infra/{0}"
+        ui_url = ("http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com/workflows/kubeflow-test-infra/{0}" # pylint: disable=line-too-long
                 "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
