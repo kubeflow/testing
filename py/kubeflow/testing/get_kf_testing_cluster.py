@@ -401,7 +401,7 @@ class CredentialHelper:
       info["cluster"] = dm
 
     if output:
-      logging.info("Writing cluster information to {}.".format(output))
+      logging.info("Writing cluster information to %s." % output) # pylint: disable=logging-not-lazy
       with open(output, "w") as hf:
         yaml.dump(info, hf)
 
