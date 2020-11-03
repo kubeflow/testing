@@ -58,7 +58,8 @@ def add_common_labels(kustomization_file, labels):
   for k, v in labels.items():
     # We shell out to kustomize edit because we want to preserve
     # comments and kpt annotations in the file.
-    util.run(["kustomize", "edit", "add", "label", "-f", f"{k}:{v}"], cwd=kustomize_dir)
+    util.run(["kustomize", "edit", "add", "label", "-f", f"{k}:{v}"],
+             cwd=kustomize_dir)
 
 
 class BlueprintRunner:
