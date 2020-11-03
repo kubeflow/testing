@@ -109,7 +109,7 @@ def py_func_import(py_func, kwargs):
   met = getattr(mod, create_function)
   return met(**kwargs)
 
-class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes,useless-object-inheritance
+class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
   """Datastructure to represent a component to submit a workflow."""
   def __init__(self, root_dir, data):
     self.name = data.get("name")
