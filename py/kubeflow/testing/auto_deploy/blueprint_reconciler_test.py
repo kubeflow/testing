@@ -3,7 +3,7 @@ import logging
 import os
 import pytest
 
-from kubeflow.testing.auto_deploy import blueprint_reconciler
+from kubeflow.testing.auto_deploy import blueprint_reconciler # pylint: disable=no-name-in-module
 
 def test_pipeline_wrapper():
   test_dir = os.path.join(os.path.dirname(__file__), "test_data")

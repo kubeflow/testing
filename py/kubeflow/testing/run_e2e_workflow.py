@@ -109,16 +109,16 @@ def py_func_import(py_func, kwargs):
   met = getattr(mod, create_function)
   return met(**kwargs)
 
-class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes,disable=useless-object-inheritance
+class WorkflowComponent(object): # pylint: disable=too-many-instance-attributes
   """Datastructure to represent a component to submit a workflow."""
   def __init__(self, root_dir, data):
     self.name = data.get("name")
     self.job_types = data.get("job_types", [])
     self.include_dirs = data.get("include_dirs", [])
     self.app_dir = os.path.join(root_dir, data.get("app_dir")) if data.get("app_dir") else ""
-    self.tekton_run = os.path.join(root_dir, data.get("tekton_run")) if data.get("tekton_run") else ""
+    self.tekton_run = os.path.join(root_dir, data.get("tekton_run")) if data.get("tekton_run") else "" # pylint: disable=line-too-long
     self.tekton_params = data.get("tekton_params", [])
-    self.tekton_teardown = os.path.join(root_dir, data.get("tekton_teardown")) if data.get("tekton_teardown") else ""
+    self.tekton_teardown = os.path.join(root_dir, data.get("tekton_teardown")) if data.get("tekton_teardown") else "" # pylint: disable=line-too-long
     self.tekton_teardown_params = data.get("tekton_teardown_params", [])
     self.component = data.get("component")
     self.params = data.get("params", {})
@@ -331,74 +331,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
     else:
       workflow_names.append(workflow_name)
 
-    # check if ks workflow and run
-    if w.app_dir:
-      ks_cmd = ks_util.get_ksonnet_cmd(w.app_dir)
-
-      # Print ksonnet version
-      util.run([ks_cmd, "version"])
-
-      # Create a new environment for this run
-      env = workflow_name
-
-      util.run([ks_cmd, "env", "add", env, "--namespace=" + get_namespace(args), "--api-spec=version:v1.8.0"],
-                cwd=w.app_dir)
-
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component,
-                "name", workflow_name],
-               cwd=w.app_dir)
-
-      # Set the prow environment variables.
-      prow_env = []
-
-      names = ["JOB_NAME", "JOB_TYPE", "BUILD_ID", "BUILD_NUMBER",
-               "PULL_BASE_SHA", "PULL_NUMBER", "PULL_PULL_SHA", "REPO_OWNER",
-               "REPO_NAME"]
-      names.sort()
-      for v in names:
-        if not os.getenv(v):
-          continue
-        prow_env.append("{0}={1}".format(v, os.getenv(v)))
-
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "prow_env",
-               ",".join(prow_env)], cwd=w.app_dir)
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "namespace",
-               get_namespace(args)], cwd=w.app_dir)
-      util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "bucket",
-               args.bucket], cwd=w.app_dir)
-      if args.cloud_provider == "aws":
-        util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "cluster_name",
-                "eks-cluster-{}".format(uuid.uuid4().hex[0:8])], cwd=w.app_dir)
-      if args.release:
-        util.run([ks_cmd, "param", "set", "--env=" + env, w.component, "versionTag",
-                  os.getenv("VERSION_TAG")], cwd=w.app_dir)
-
-      # Set any extra params. We do this in alphabetical order to make it easier to verify in
-      # the unittest.
-      param_names = w.params.keys()
-      if six.PY3:
-        # In python3, dict_keys.sort() not work given
-        # https://docs.python.org/3/whatsnew/3.0.html#views-and-iterators-instead-of-lists
-        param_names = sorted(param_names)
-      else:
-        param_names.sort()
-      for k in param_names:
-        util.run([ks_cmd, "param", "set", "--env=" + env, w.component, k,
-                 "{0}".format(w.params[k])], cwd=w.app_dir)
-
-      # For debugging print out the manifest
-      util.run([ks_cmd, "show", env, "-c", w.component], cwd=w.app_dir)
-      util.run([ks_cmd, "apply", env, "-c", w.component], cwd=w.app_dir)
-
-      if not args.cloud_provider or args.cloud_provider == "gcp":
-        ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
-                "?tab=workflow".format(workflow_name))
-      elif args.cloud_provider == "aws":
-        ui_url = ("http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com/workflows/kubeflow-test-infra/{0}"
-                "?tab=workflow".format(workflow_name))
-      ui_urls[workflow_name] = ui_url
-      logging.info("URL for workflow: %s", ui_url)
-    elif w.tekton_run:
+    if w.tekton_run:
       pull_revision = None
       if os.getenv("PULL_NUMBER"):
         pull_revision = "refs/pull/{pull_num}/head".format(
@@ -483,7 +416,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
                 "?tab=workflow".format(workflow_name))
       elif args.cloud_provider == "aws":
-        ui_url = ("http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com/workflows/kubeflow-test-infra/{0}"
+        ui_url = ("http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com/workflows/kubeflow-test-infra/{0}" # pylint: disable=line-too-long
                 "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)

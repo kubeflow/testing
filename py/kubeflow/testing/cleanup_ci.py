@@ -339,7 +339,7 @@ def  _instance_groups_iterator(project, zones):
       results = instanceGroups.list(project=project,
                                     zone=zone,
                                     pageToken=next_page_token).execute()
-      for ig in results.get("items",[]):
+      for ig in results.get("items", []):
         yield ig
 
 
@@ -701,7 +701,7 @@ def cleanup_backend_services(args):
 
       if args.dryrun:
         logging.info("Dryrun: Deleting backend services: %s, no matching "
-                     "URL map",  name)
+                     "URL map", name)
       else:
         logging.info("Deleting backend services: %s, no matching URL map",
                      name)
