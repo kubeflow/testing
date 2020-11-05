@@ -80,7 +80,7 @@ def is_match(name, patterns=None):
   return False
 
 SERVICE_ACCOUNT = collections.namedtuple("SERVICE_ACCOUNT",
-                                         ("name", "project", "suffix"))
+                                         ("name", "project", "suffix", "query"))
 def parse_service_account_email(email):
   """Take a string of the form serviceAccount:name@project.suffix
 
@@ -95,9 +95,15 @@ def parse_service_account_email(email):
 
   name, project_and_suffix = just_email.split("@", 1)
 
-  project, suffix = project_and_suffix.split(".", 1)
+  project, suffix_and_query = project_and_suffix.split(".", 1)
 
-  return SERVICE_ACCOUNT(name, project, suffix)
+  # We've seen once some iam bindings will bind with service account named
+  # like 'deleted:serviceAccount:apps-admin@kubeflow-ci-deployment.iam.gserviceaccount.com?uid=118042414155577216737'.
+  # so we need to correctly handle the ? part and the suffix part.
+  # Reference: https://github.com/kubeflow/gcp-blueprints/issues/145#issuecomment-722193433
+  suffix, _, query = suffix_and_query.partition("?")
+
+  return SERVICE_ACCOUNT(name, project, suffix, query)
 
 def full_email(service_account):
   """Generate the full email from service account"""
