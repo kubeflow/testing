@@ -21,4 +21,4 @@ spec:
       - name: revision 
         value: master
   pipelineRef:
-    name: py-lint-unittests
+    name: py-unittests-lint

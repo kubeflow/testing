@@ -1,14 +1,15 @@
+# This is intended to be a reusable pipeline for running py tests.
+# Ideally this will eventually run unittests as well as lint.
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: py-lint-unittests
-  namespace: auto-deploy
+  name: py-unittests-lint
 spec:
   params:
-  - description: GCS bucket and directory artifacts will be uploaded to. Should be
-      in the form of 'gs://'
-    name: artifacts-gcs
+  - name: artifacts-gcs
     type: string
+    description: GCS bucket and directory artifacts will be uploaded to. Should be
+      in the form of 'gs://'
   resources:
   - name: testing-repo
     type: git
@@ -16,7 +17,7 @@ spec:
   - name: py-lint
     params:
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: "$(params.artifacts-gcs)"
     resources:
       inputs:
       - name: testing-repo
@@ -26,12 +27,12 @@ spec:
   - name: py-test
     params:
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: "$(params.artifacts-gcs)"
     resources:
       inputs:
       - name: testing-repo
         resource: testing-repo
-    runAfter:
-    - py-lint
     taskRef:
       name: py-test
+    runAfter:
+      - py-lint

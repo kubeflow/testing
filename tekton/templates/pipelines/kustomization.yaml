@@ -6,4 +6,4 @@ resources:
 - go-test-pipeline.yaml
 - notebook-test-pipeline.yaml
 - test-pod.yaml
-- py-lint-unittest-pipeline.yaml
+- py-unittests-lint-pipeline.yaml
