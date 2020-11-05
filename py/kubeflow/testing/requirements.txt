@@ -1,0 +1,7 @@
+  python-dateutil
+  retrying
+  pyyaml
+  kubernetes
+  google-cloud-storage
+  google-api-python-client
+  oauth2client
