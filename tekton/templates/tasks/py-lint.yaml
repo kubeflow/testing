@@ -53,5 +53,5 @@ spec:
     - --artifacts-dir=/workspace/artifacts
     - --output-gcs=$(inputs.params.artifacts-gcs)
     env:
-    - name: PYTHONPATH
-      value: /workspace/$(inputs.resources.testing-repo.name)/py
+    - name: PYTHONPATH # N.B. This uses the version cached in the docker image.
+      value: /srcCache/kubeflow/testing/py
