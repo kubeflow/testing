@@ -29,7 +29,7 @@
     - [Creating secret for deployapp test](#creating-secret-for-deployapp-test)
     - [Troubleshooting](#troubleshooting)
   - [Setting up Kubeflow Release Clusters For Testing](#setting-up-kubeflow-release-clusters-for-testing)
-  - [Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>](#setting-up-a-kubeflow-repository-to-use-prow-a-idprow-setupa)
+  - [Setting up a Kubeflow Repository to Use Prow <a id="prow-setup"></a>](#setting-up-a-kubeflow-repository-to-use-prow-)
   - [Writing An Argo Workflow For An E2E Test](#writing-an-argo-workflow-for-an-e2e-test)
     - [Adding an E2E test to a repository](#adding-an-e2e-test-to-a-repository)
       - [Python function](#python-function)
@@ -473,16 +473,13 @@ kubectl proxy.
 ## Cleaning up leaked resources
 
 Test failures sometimes leave resources (GCP deployments, VMs, GKE clusters) still running. 
-The following scripts can be used to garbage collect leaked resources.
+The following scripts for example can be used to garbage collect leaked endpoints. The
+script can GC other resources with different commands.
 
 ```
-py/testing/kubeflow/testing/cleanup_ci.py --delete_script=${DELETE_SCRIPT}
+cd py
+python -m kubeflow.testing.cleanup_ci --project kubeflow-ci-deployment endpoints
 ```
-
-  * **DELETE_SCRIPT** should be the path to a copy of [delete_deployment.sh](https://github.com/kubeflow/kubeflow/blob/master/scripts/gke/delete_deployment.sh)
-
-There's a second script [cleanup_kubeflow_ci](https://github.com/kubeflow/kubeflow/blob/master/scripts/cleanup_kubeflow_ci.sh)
-in the kubeflow repository to cleanup resources left by ingresses.
 
 ## Integration with K8s Prow Infrastructure.
 
