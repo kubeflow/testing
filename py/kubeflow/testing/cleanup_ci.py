@@ -97,8 +97,8 @@ def parse_service_account_email(email):
 
   project, suffix_and_query = project_and_suffix.split(".", 1)
 
-  # We've seen once some iam bindings will bind with service account named
-  # like 'deleted:serviceAccount:apps-admin@kubeflow-ci-deployment.iam.gserviceaccount.com?uid=118042414155577216737'.
+  # We've seen once some iam bindings will bind with service account named like
+  # deleted:serviceAccount:xxx@yyy.iam.gserviceaccount.com?uid=118042414155577216737
   # so we need to correctly handle the ? part and the suffix part.
   # Reference: https://github.com/kubeflow/gcp-blueprints/issues/145#issuecomment-722193433
   suffix, _, query = suffix_and_query.partition("?")
