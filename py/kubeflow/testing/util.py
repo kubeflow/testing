@@ -476,7 +476,7 @@ def wait_for_ingress(api_client,
   while datetime.datetime.now() < end_time:
     ingress = net_client_apps.read_namespaced_ingress(name, namespace)
     try:
-      if len(ingress.status.load_balancer.ingress[0].hostname) == 0: # pylint: disable=len-as-condition
+      if len(ingress.status.load_balancer.ingress[0].hostname) != 0: # pylint: disable=len-as-condition
         logging.info("Ingress %s in namespace %s is ready", name, namespace)
         return ingress
     except Exception: # pylint: disable=broad-except
