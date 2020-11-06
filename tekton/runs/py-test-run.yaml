@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  generateName: py-test-
+  namespace: kf-ci
+  labels:
+    pipeline: py-test
+    repo: testing
+spec:
+  params:
+  - name: artifacts-gcs
+    value: "gs://kubeflow-ci-deployment/py-test"
+  serviceAccountName: kf-ci
+  resources:
+  - name: testing-repo
+    resourceSpec:
+      type: git
+      params:
+      - name: url
+        value: https://github.com/kubeflow/testing.git
+      - name: revision 
+        value: master
+  pipelineRef:
+    name: py-unittests
