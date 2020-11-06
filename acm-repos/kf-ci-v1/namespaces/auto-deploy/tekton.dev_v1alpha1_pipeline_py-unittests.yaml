@@ -1,8 +1,8 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: py-unittests-lint
-  namespace: kf-ci
+  name: py-unittests
+  namespace: auto-deploy
 spec:
   params:
   - description: GCS bucket and directory artifacts will be uploaded to. Should be
