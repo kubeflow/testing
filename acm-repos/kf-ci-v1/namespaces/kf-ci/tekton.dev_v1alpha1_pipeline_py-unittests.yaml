@@ -31,7 +31,5 @@ spec:
       inputs:
       - name: testing-repo
         resource: testing-repo
-    runAfter:
-    - py-lint
     taskRef:
       name: py-test
