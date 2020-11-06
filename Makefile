@@ -16,6 +16,11 @@ hydrate:
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy test-infra/auto-deploy/manifest
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/kf-ci $(TEKTON_INSTALLS)/kf-ci
 
+# Make sure there are no nomos errors
+.PHONY: 
+acm-test:
+	nomos vet --no-api-server-check --path=acm-repos/kf-ci-management
+	nomos vet --no-api-server-check --path=acm-repos/kf-ci-v1
 
 # This applies your local changes to tekton components to the kf-ci-dev namespace.
 # This allows you to test changes manually before your pipelines are submitted.
