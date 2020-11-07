@@ -19,3 +19,23 @@ spec:
     apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
     kind: Project
     external: "github-probots"
+
+---
+
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: jlewi-iap
+spec:  
+  member: "user:jeremy@lewi.us"
+  role: roles/iap.httpsResourceAccessor
+  # TODO(jlewi): This doesn't appear to work.
+  # Should be available in next version of Anthos 1.3.
+  # condition:
+  #   title: expires_after_2021_05_01
+  #   description: Expires at midnight of 2021-05-01
+  #   expression: request.time < timestamp("2021-05-01T00:00:00Z")
+  resourceRef:
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    kind: Project    
+    external: "github-probots"
