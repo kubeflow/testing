@@ -1,7 +1,8 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
-  generateName: py-test-
+  # generateName: py-test-
+  name: py-test-123
   namespace: kf-ci
   labels:
     pipeline: py-test
@@ -9,7 +10,7 @@ metadata:
 spec:
   params:
   - name: artifacts-gcs
-    value: "gs://kubeflow-ci-deployment/py-test"
+    value: "gs://subodh101-experiments/testing-123"
   serviceAccountName: kf-ci
   resources:
   - name: testing-repo
