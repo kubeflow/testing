@@ -6,7 +6,7 @@ metadata:
     gke.io/cluster: "gke://kubeflow-ci/us-central1/kf-ci-management" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"gcloud.core.project","value":"kubeflow-ci"},{"name":"name","value":"kf-ci-management"},{"name":"location","value":"us-central1"}]}}
 spec:
   clusterName: "gke://kubeflow-ci/us-central1/kf-ci-management" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"gcloud.core.project","value":"kubeflow-ci"},{"name":"name","value":"kf-ci-management"},{"name":"location","value":"us-central1"}]}}
-  git:    
+  git:
     syncRepo: "https://github.com/kubeflow/testing.git" # {"type":"string","x-kustomize":{"setBy":"kpt","partialSetters":[{"name":"source_repo","value":"https://github.com/jlewi/community-infra.git"}]}}    
     syncBranch: master
     secretType: none

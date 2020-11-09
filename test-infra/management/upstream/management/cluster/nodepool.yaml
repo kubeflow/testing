@@ -2,8 +2,8 @@
 apiVersion: container.cnrm.cloud.google.com/v1beta1
 kind: ContainerNodePool
 metadata:
-  clusterName: "gongyuan-pipeline-test/LOCATION/NAME" # {"$kpt-set":"cluster-name"}
-  name: NAME-pool # {"$kpt-set":"pool"}
+  clusterName: "kubeflow-ci/us-central1/kf-ci-management" # {"$kpt-set":"cluster-name"}
+  name: kf-ci-management-pool # {"$kpt-set":"pool"}
   annotations:
     # Annotation required by anthoscli
     gke.io/cluster: "bootstrap://"
@@ -29,4 +29,4 @@ spec:
     autoRepair: true
     autoUpgrade: true
   clusterRef:
-    name: NAME # {"$kpt-set":"name"}
+    name: kf-ci-management # {"$kpt-set":"name"}

@@ -4,4 +4,4 @@ metadata:
   name: configconnector.core.cnrm.cloud.google.com
 spec:
   mode: cluster
-  googleServiceAccount: "NAME-cnrm-system@gongyuan-pipeline-test.iam.gserviceaccount.com" # {"$kpt-set":"cnrm-system"}
+  googleServiceAccount: "kf-ci-management-cnrm-system@kubeflow-ci.iam.gserviceaccount.com" # {"$kpt-set":"cnrm-system"}

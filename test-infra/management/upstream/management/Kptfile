@@ -18,20 +18,19 @@ openAPI:
         setter:
           isSet: true
           name: gcloud.core.project
-          value: gongyuan-pipeline-test
-          setBy: kpt
+          value: kubeflow-ci
     io.k8s.cli.setters.location:
       x-k8s-cli:
         setter:
           isSet: true
           name: location
-          value: LOCATION
+          value: us-central1
     io.k8s.cli.setters.name:
       x-k8s-cli:
         setter:
           isSet: true
           name: name
-          value: NAME
+          value: kf-ci-management
     io.k8s.cli.substitutions.cluster-name:
       x-k8s-cli:
         substitution:

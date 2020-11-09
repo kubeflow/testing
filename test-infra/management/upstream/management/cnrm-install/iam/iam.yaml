@@ -1,7 +1,7 @@
 apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMServiceAccount
 metadata:
-  name: NAME-cnrm-system # {"$kpt-set":"cnrm-system-sa"}
+  name: kf-ci-management-cnrm-system # {"$kpt-set":"cnrm-system-sa"}
 spec:
   displayName: Service account for CNRM
 ---
@@ -12,13 +12,13 @@ spec:
 apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMPolicy
 metadata:
-  name: NAME-cnrm-system-wi # {"$kpt-set":"cnrm-system-wi"}
+  name: kf-ci-management-cnrm-system-wi # {"$kpt-set":"cnrm-system-wi"}
 spec:
   resourceRef:
     apiVersion: iam.cnrm.cloud.google.com/v1alpha1
     kind: IAMServiceAccount
-    name: NAME-cnrm-system # {"$kpt-set":"cnrm-system-sa"}
+    name: kf-ci-management-cnrm-system # {"$kpt-set":"cnrm-system-sa"}
   bindings:
   - role: roles/iam.workloadIdentityUser
     members:
-    - serviceAccount:gongyuan-pipeline-test.svc.id.goog[cnrm-system/cnrm-controller-manager] # {"$kpt-set":"cnrm-wi"}
+    - serviceAccount:kubeflow-ci.svc.id.goog[cnrm-system/cnrm-controller-manager] # {"$kpt-set":"cnrm-wi"}
