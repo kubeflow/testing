@@ -102,8 +102,9 @@ def _delete_blueprints(namespace, to_keep_names, context=None, dryrun=True):
 
     for i in results.get("items"):
       name = i["metadata"]["name"]
+      kf_name = i["metadata"].get("labels", {}).get(NAME_LABEL, "")
 
-      if name in to_keep_names:
+      if kf_name in to_keep_names:
         to_keep[kind].append(name)
         continue
 
