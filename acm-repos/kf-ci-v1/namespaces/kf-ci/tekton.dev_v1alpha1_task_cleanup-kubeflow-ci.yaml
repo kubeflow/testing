@@ -57,7 +57,7 @@ spec:
     - auto-blueprints
     - --project=$(inputs.params.project)
     - --context=$(inputs.params.management-project)
-    - --dryrun=false
+    - --dryrun=False
     env:
     - name: KUBECONFIG
       value: /workspace/kubeconfig

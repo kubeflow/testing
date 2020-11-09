@@ -15,7 +15,7 @@ hydrate:
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy $(TEKTON_INSTALLS)/auto-deploy
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy test-infra/auto-deploy/manifest
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/kf-ci $(TEKTON_INSTALLS)/kf-ci
-	cd test-infra/cleanup && make hydrate
+	cd test-infra/cleanup && $(MAKE) hydrate
 
 # Make sure there are no nomos errors
 .PHONY:
