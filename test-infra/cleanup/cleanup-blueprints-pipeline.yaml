@@ -16,9 +16,9 @@ spec:
       params:
         # TODO(jlewi): Switch to master on kubeflow/gcp-blueprints
         - name: revision
-          value: gcp_blueprint
+          value: master
         - name: url
-          value: https://github.com/jlewi/testing.git
+          value: https://github.com/kubeflow/testing.git
   # Need to use a KSA with appropriate GSA
   serviceAccountName: default-editor
   pipelineSpec:

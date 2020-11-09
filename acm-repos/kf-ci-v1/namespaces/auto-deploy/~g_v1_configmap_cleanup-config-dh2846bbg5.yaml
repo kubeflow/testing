@@ -6,7 +6,7 @@ data:
     \ # TODO(jlewi): Override any parameters?\n  #params: {}\n  resources:  \n  -
     name: testing-repo\n    resourceSpec:\n      type: git\n      params:\n        #
     TODO(jlewi): Switch to master on kubeflow/gcp-blueprints\n        - name: revision\n
-    \         value: gcp_blueprint\n        - name: url\n          value: https://github.com/jlewi/testing.git\n
+    \         value: master\n        - name: url\n          value: https://github.com/kubeflow/testing.git\n
     \ # Need to use a KSA with appropriate GSA\n  serviceAccountName: default-editor\n
     \ pipelineSpec:\n    params:\n    - name: management-cluster-name\n      type:
     string\n      description: The name of the management cluster. \n      default:
@@ -16,8 +16,8 @@ data:
     the task\n      params:\n      - name: management-cluster-name\n        value:
     \"$(params.management-cluster-name)\"\n      resources:\n        inputs:        \n
     \       - name: testing-repo\n          resource: testing-repo\n      taskRef:\n
-    \       name: cleanup-kubeflow-ci\n        kind: namespaced  "
+    \       name: cleanup-kubeflow-ci\n        kind: namespaced  \n"
 kind: ConfigMap
 metadata:
-  name: cleanup-config-4bm54d2bmb
+  name: cleanup-config-dh2846bbg5
   namespace: auto-deploy
