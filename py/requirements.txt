@@ -1,0 +1,13 @@
+# You should use python 3.8 and install this requirements.txt
+
+# The following are required by cleanup_blueprints.py
+fire
+kubernetes
+google-cloud-storage
+google-api-python-client
+
+# The following are required by cleanup_ci.py
+# oauth2client
+# python-dateutil
+# retrying
+# pyyaml
