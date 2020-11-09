@@ -1,15 +1,17 @@
-apiVersion: container.cnrm.cloud.google.com/v1alpha2
+apiVersion: container.cnrm.cloud.google.com/v1beta1
 kind: ContainerNodePool
 metadata:
-  clusterName: kubeflow-ci/us-central1/kf-ci-management
-  name: kf-ci-management-pool
+  annotations:
+    gke.io/cluster: bootstrap://
+  clusterName: gongyuan-pipeline-test/LOCATION/NAME
+  name: NAME-pool
   namespace: kubeflow-ci
 spec:
   autoscaling:
     maxNodeCount: 3
     minNodeCount: 1
   clusterRef:
-    name: kf-ci-management
+    name: NAME
   management:
     autoRepair: true
     autoUpgrade: true
@@ -23,7 +25,7 @@ spec:
     - https://www.googleapis.com/auth/devstorage.read_only
     - https://www.googleapis.com/auth/logging.write
     - https://www.googleapis.com/auth/monitoring
-    - https://www.googleapis.com/auth/servicecontrol
-    - https://www.googleapis.com/auth/service.management.readonly
     - https://www.googleapis.com/auth/trace.append
     preemptible: false
+    workloadMetadataConfig:
+      mode: GKE_METADATA

@@ -1,0 +1,14 @@
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerCluster
+metadata:
+  annotations:
+    gke.io/cluster: bootstrap://
+  name: NAME
+  namespace: kubeflow-ci
+spec:
+  initialNodeCount: 3
+  location: LOCATION
+  releaseChannel:
+    channel: REGULAR
+  workloadIdentityConfig:
+    identityNamespace: gongyuan-pipeline-test.svc.id.goog
