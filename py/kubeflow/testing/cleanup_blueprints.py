@@ -25,7 +25,7 @@ from kubernetes import client as k8s_client
 #
 # Which branch the blueprint was deployed from
 # TODO(jlewi): Where whould we define these so they are centrally located?
-BRANCH_LABEL = "blueprint-branch"
+GROUP_LABEL = "auto-deploy-group"
 NAME_LABEL = "kf-name"
 AUTO_DEPLOY_LABEL = "auto-deploy"
 
@@ -199,16 +199,16 @@ class Cleanup:
 
       logging.info("Blueprint %s is auto deployed", kf_name)
 
-      blueprint_branch = b["metadata"]["labels"].get(BRANCH_LABEL, "unknown")
+      blueprint_group = b["metadata"]["labels"].get(GROUP_LABEL, "unknown")
 
-      if blueprint_branch == "unknown":
+      if blueprint_group == "unknown":
         logging.warning("Blueprint %s was missing label %s", kf_name,
-                        BRANCH_LABEL)
+                        GROUP_LABEL)
 
-      if kf_name in auto_deployments[blueprint_branch]:
+      if kf_name in auto_deployments[blueprint_group]:
         continue
 
-      auto_deployments[blueprint_branch][kf_name] = (
+      auto_deployments[blueprint_group][kf_name] = (
         date_parser.parse(b["metadata"]["creationTimestamp"]))
 
     # Garbage collect the blueprints

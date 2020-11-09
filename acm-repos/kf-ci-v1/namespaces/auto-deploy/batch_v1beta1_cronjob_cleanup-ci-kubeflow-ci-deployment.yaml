@@ -41,7 +41,7 @@ spec:
           serviceAccountName: default-editor
           volumes:
           - configMap:
-              name: cleanup-config-4bm54d2bmb
+              name: cleanup-config-dh2846bbg5
             name: cleanup-config
   schedule: 0 */2 * * *
   successfulJobsHistoryLimit: 3
