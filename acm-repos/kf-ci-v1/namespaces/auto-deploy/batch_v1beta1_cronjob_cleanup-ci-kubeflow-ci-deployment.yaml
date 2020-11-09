@@ -1,0 +1,48 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  labels:
+    app: cleanup-ci-kubeflow-ci-deployment
+  name: cleanup-ci-kubeflow-ci-deployment
+  namespace: auto-deploy
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      creationTimestamp: null
+      labels:
+        job: cleanup-kubeflow-ci-deployment
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+          labels:
+            job: cleanup-kubeflow-ci-deployment
+        spec:
+          containers:
+          - command:
+            - kubectl
+            - create
+            - -f
+            - /configs/cleanup-blueprints-pipeline.yaml
+            image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+            imagePullPolicy: IfNotPresent
+            name: create-pipeline
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+            - mountPath: /configs
+              name: cleanup-config
+          restartPolicy: OnFailure
+          serviceAccountName: default-editor
+          volumes:
+          - configMap:
+              name: cleanup-config-4bm54d2bmb
+            name: cleanup-config
+  schedule: 0 */2 * * *
+  successfulJobsHistoryLimit: 3
+  suspend: false
