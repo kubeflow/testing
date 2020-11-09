@@ -95,13 +95,16 @@ def _delete_blueprints(namespace, to_keep_names, context=None, dryrun=True):
   for kind in kinds:
     client = cnrm_clients.CnrmClientApi(api_client, kind)
 
-    selector = "{0}=true".format(AUTO_DEPLOY_LABEL)
+    # https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
+    # selects resources with GROUP_LABEL set
+    selector = GROUP_LABEL
     results = client.list_namespaced(namespace, label_selector=selector)
 
     for i in results.get("items"):
       name = i["metadata"]["name"]
+      kf_name = i["metadata"].get("labels", {}).get(NAME_LABEL, "")
 
-      if name in to_keep_names:
+      if kf_name in to_keep_names:
         to_keep[kind].append(name)
         continue
 
@@ -170,12 +173,12 @@ class Cleanup:
       # Use labels to identify auto-deployed instances
       auto_deploy_label = b["metadata"].get("labels", {}).get(AUTO_DEPLOY_LABEL,
                                                               "false")
-
-      is_auto_deploy = auto_deploy_label.lower() == "true"
-
-      if not is_auto_deploy:
-        logging.info("Skipping cluster %s; its missing the auto-deploy label",
-                     name)
+      blueprint_group = b["metadata"]["labels"].get(GROUP_LABEL, "unknown")
+      if blueprint_group == "unknown":
+        logging.info("Skipping cluster %s; its missing the %s label; it is not "
+                     "an auto-deployed instance",
+                     name, GROUP_LABEL)
+        continue
 
       # Tha name of blueprint
       kf_name = b["metadata"].get("labels", {}).get(NAME_LABEL, "")
@@ -198,12 +201,6 @@ class Cleanup:
         kf_name = name
 
       logging.info("Blueprint %s is auto deployed", kf_name)
-
-      blueprint_group = b["metadata"]["labels"].get(GROUP_LABEL, "unknown")
-
-      if blueprint_group == "unknown":
-        logging.warning("Blueprint %s was missing label %s", kf_name,
-                        GROUP_LABEL)
 
       if kf_name in auto_deployments[blueprint_group]:
         continue

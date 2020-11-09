@@ -132,12 +132,12 @@ data:
     \     type: git\n      params:\n        - name: revision\n          value: v1.1-branch\n
     \       - name: url\n          value: https://github.com/kubeflow/gcp-blueprints.git\n
     \ - name: testing-repo\n    resourceSpec:\n      type: git\n      params:\n        -
-    name: revision\n          value: master\n        - name: url\n          value:
+    name: revision\n          value: v1.1-branch\n        - name: url\n          value:
     https://github.com/kubeflow/testing.git\n  # Need to use a KSA with appropriate
-    GSA\n  serviceAccountName: default-editor\n  pipelineRef:\n    name: deploy-gcp-blueprint"
+    GSA\n  serviceAccountName: default-editor\n  pipelineRef:\n    name: deploy-gcp-blueprint\n"
 kind: ConfigMap
 metadata:
   labels:
     service: auto-deploy
-  name: auto-deploy-config-2778d8c6c8
+  name: auto-deploy-config-7f4chh5g64
   namespace: auto-deploy

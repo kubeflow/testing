@@ -14,11 +14,15 @@ spec:
     resourceSpec:
       type: git
       params:
-        # TODO(jlewi): Switch to master on kubeflow/gcp-blueprints
         - name: revision
           value: master
         - name: url
           value: https://github.com/kubeflow/testing.git
+        # Uncomment the following when testing locally
+        # - name: revision
+        #   value: cleanup-blueprints
+        # - name: url
+        #   value: https://github.com/Bobgy/testing.git
   # Need to use a KSA with appropriate GSA
   serviceAccountName: default-editor
   pipelineSpec:
