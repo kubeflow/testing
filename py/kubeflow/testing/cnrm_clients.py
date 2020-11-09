@@ -34,9 +34,11 @@ class CnrmClientApi(k8s_client.CustomObjectsApi):
     return self.list_namespaced_custom_object(
       self.group, self.version, namespace, self.plural, **kwargs)
 
-  def delete_namespaced(self, namespace, name, body, **kwargs):
+  def delete_namespaced(self, namespace, name, dryrun=False, **kwargs):
+    dry_run = dryrun and 'All' or None
     return self.delete_namespaced_custom_object(self.group, self.version,
                                                 namespace, self.plural, name,
-                                                body, **kwargs)
+                                                dry_run=dry_run,
+                                                **kwargs)
 
   # TODO(jlewi): Add other methods as needed.

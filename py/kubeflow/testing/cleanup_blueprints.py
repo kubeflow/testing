@@ -1,5 +1,11 @@
 """Cleanup auto deployed blueprints.
 
+Running this script locally for production env:
+```
+python -m kubeflow.testing.cleanup_blueprints auto-blueprints \
+  --project=kubeflow-ci-deployment --context=kf-ci-management
+```
+
 Note: This is in a separate file from cleanup_ci because we wanted to start
 using Fire and python3.
 
@@ -125,7 +131,7 @@ def _delete_blueprints(namespace, to_keep_names, context=None, dryrun=True):
         logging.info("Dryrun: %s %s would be deleted", kind, name)
       else:
         logging.info("Deleting: %s %s", kind, name)
-        client.delete_namespaced(namespace, name, {})
+      client.delete_namespaced(namespace, name, dryrun=dryrun)
 
   for kind in kinds:
     logging.info("Deleted %s:\n%s", kind, "\n".join(to_delete[kind]))
