@@ -2,3 +2,11 @@ apiVersion: kpt.dev/v1alpha1
 kind: Kptfile
 metadata:
   name: .
+openAPI:
+  definitions:
+    io.k8s.cli.setters.gcloud.core.project:
+      x-k8s-cli:
+        setter:
+          name: gcloud.core.project
+          value: kubeflow-ci
+          isSet: true
