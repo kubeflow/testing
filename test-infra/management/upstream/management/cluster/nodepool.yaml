@@ -3,7 +3,7 @@ apiVersion: container.cnrm.cloud.google.com/v1beta1
 kind: ContainerNodePool
 metadata:
   clusterName: "kubeflow-ci/us-central1/kf-ci-management" # {"$kpt-set":"cluster-name"}
-  name: kf-ci-management-pool # {"$kpt-set":"pool"}
+  name: kf-ci-management-pool-2 # {"$kpt-set":"pool"}
   annotations:
     # Annotation required by anthoscli
     gke.io/cluster: "bootstrap://"

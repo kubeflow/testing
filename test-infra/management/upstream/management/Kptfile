@@ -81,7 +81,7 @@ openAPI:
       x-k8s-cli:
         substitution:
           name: pool
-          pattern: ${name}-pool
+          pattern: ${name}-pool-2
           values:
           - marker: ${name}
             ref: '#/definitions/io.k8s.cli.setters.name'

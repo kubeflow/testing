@@ -3,12 +3,12 @@ kind: ContainerCluster
 metadata:
   annotations:
     gke.io/cluster: bootstrap://
-  name: NAME
+  name: kf-ci-management
   namespace: kubeflow-ci
 spec:
   initialNodeCount: 3
-  location: LOCATION
+  location: us-central1
   releaseChannel:
     channel: REGULAR
   workloadIdentityConfig:
-    identityNamespace: gongyuan-pipeline-test.svc.id.goog
+    identityNamespace: kubeflow-ci.svc.id.goog

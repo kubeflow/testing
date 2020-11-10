@@ -3,15 +3,15 @@ kind: ContainerNodePool
 metadata:
   annotations:
     gke.io/cluster: bootstrap://
-  clusterName: gongyuan-pipeline-test/LOCATION/NAME
-  name: NAME-pool
+  clusterName: kubeflow-ci/us-central1/kf-ci-management
+  name: kf-ci-management-pool-2
   namespace: kubeflow-ci
 spec:
   autoscaling:
     maxNodeCount: 3
     minNodeCount: 1
   clusterRef:
-    name: NAME
+    name: kf-ci-management
   management:
     autoRepair: true
     autoUpgrade: true

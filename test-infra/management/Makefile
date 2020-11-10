@@ -52,9 +52,11 @@ create-ctxt:
 hydrate-kcc:
 	rm -rf ./.build/cnrm-install-system
 	mkdir -p ./.build/cnrm-install-system
+	rm -rf ./.build/cnrm-install-iam
+	mkdir -p ./.build/cnrm-install-iam
 	kustomize build -o ./.build/cnrm-install-system $(INSTANCE_DIR)/cnrm-install-system
+	kustomize build -o ./.build/cnrm-install-iam $(INSTANCE_DIR)/cnrm-install-iam
 
 .PHONY: apply-kcc
 apply-kcc: hydrate-kcc
-	kubectl --context=$(MGMTCTXT) apply -f .build/cnrm-install-system/~g_v1_namespace_cnrm-system.yaml
 	kubectl --context=$(MGMTCTXT) apply -f .build/cnrm-install-system
