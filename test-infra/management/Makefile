@@ -60,3 +60,12 @@ hydrate-kcc:
 .PHONY: apply-kcc
 apply-kcc: hydrate-kcc
 	kubectl --context=$(MGMTCTXT) apply -f .build/cnrm-install-system
+
+.PHONY: apply-managed-project
+apply-managed-project:
+	kpt cfg set instance managed-project kubeflow-ci-deployment
+	anthoscli apply -f instance/managed-project/iam.yaml
+	kpt cfg set instance managed-project github-probots
+	anthoscli apply -f instance/managed-project/iam.yaml
+	kpt cfg set instance managed-project issue-label-bot-dev
+	anthoscli apply -f instance/managed-project/iam.yaml

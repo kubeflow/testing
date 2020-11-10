@@ -30,5 +30,5 @@ openAPI:
       x-k8s-cli:
         setter:
           name: managed-project
-          value: kubeflow-ci-deployment
+          value: issue-label-bot-dev
           isSet: true
