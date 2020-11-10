@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    cnrm.cloud.google.com/operator-version: 1.29.0
+  labels:
+    cnrm.cloud.google.com/component: configconnector-operator
+    cnrm.cloud.google.com/operator-system: "true"
+  name: configconnector-operator
+  namespace: configconnector-operator-system
+spec:
+  selector:
+    matchLabels:
+      cnrm.cloud.google.com/component: configconnector-operator
+      cnrm.cloud.google.com/operator-system: "true"
+  serviceName: configconnector-operator-service
+  template:
+    metadata:
+      annotations:
+        cnrm.cloud.google.com/operator-version: 1.29.0
+      labels:
+        cnrm.cloud.google.com/component: configconnector-operator
+        cnrm.cloud.google.com/operator-system: "true"
+    spec:
+      containers:
+      - args:
+        - --local-repo=/configconnector-operator/channels
+        command:
+        - /configconnector-operator/manager
+        image: gcr.io/gke-release/cnrm/operator:737484d
+        name: manager
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - all
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+      serviceAccountName: configconnector-operator
+      terminationGracePeriodSeconds: 10
