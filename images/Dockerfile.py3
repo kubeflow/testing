@@ -20,7 +20,7 @@ RUN python3.8 -m pip install \
     junit-xml \
     # See https://github.com/kubeflow/gcp-blueprints/issues/52#issuecomment-645446088
     # our libs seem to break with 11.0.0
-    kubernetes==9.0.0 \
+    kubernetes==12.0.0 \
     lint \
     oauth2client \
     pytest==5.4 \
