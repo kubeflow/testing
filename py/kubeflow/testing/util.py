@@ -677,7 +677,7 @@ def wait_for_daemonset(api_client, namespace, name):
 
   while datetime.datetime.now() < end_time:
     damon = apps_client.read_namespaced_daemon_set(name, namespace)
-    if damon.status.number_unavailable == 0 and damon.status.desired_number_scheduled == damon.status.number_ready:
+    if damon.status.desired_number_scheduled == damon.status.current_number_scheduled:
       logging.info("Daemonset %s in namespace %s is ready", name, namespace)
       return damon
     logging.info("Waiting for Damonset %s in namespace %s", name, namespace)
