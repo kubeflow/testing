@@ -1,0 +1,14 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  labels:
+    kf-name: code-intelligence
+  name: code-intelligence-emojichat-wi
+  namespace: issue-label-bot-dev
+spec:
+  member: serviceAccount:issue-label-bot-dev.svc.id.goog[emojichat/default-editor]
+  resourceRef:
+    apiVersion: iam.cnrm.cloud.google.com/v1beta1
+    kind: IAMServiceAccount
+    name: code-intelligence-user
+  role: roles/iam.workloadIdentityUser
