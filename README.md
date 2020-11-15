@@ -473,13 +473,15 @@ kubectl proxy.
 ## Cleaning up leaked resources
 
 Test failures sometimes leave resources (GCP deployments, VMs, GKE clusters) still running. 
-The following scripts for example can be used to garbage collect leaked endpoints. The
-script can GC other resources with different commands.
+The following scripts for example can be used to garbage collect all resources. The
+script can GC specific resources with different commands.
 
 ```
 cd py
-python -m kubeflow.testing.cleanup_ci --project kubeflow-ci-deployment endpoints
+python -m kubeflow.testing.cleanup_ci --project kubeflow-ci-deployment all
 ```
+
+This script is set up as a cronjob by `cd test-infra/cleanup && make hydrate`.
 
 ## Integration with K8s Prow Infrastructure.
 
