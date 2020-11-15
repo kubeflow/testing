@@ -6,8 +6,8 @@ apiVersion: batch/v1beta1
 kind: CronJob
 metadata:  
   labels:
-    app: cleanup-ci-kubeflow-ci-deployment
-  name: cleanup-ci-kubeflow-ci-deployment
+    app: cleanup-blueprints
+  name: cleanup-blueprints
 spec:
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 1
@@ -15,14 +15,14 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        job: cleanup-kubeflow-ci-deployment
+        job: cleanup-blueprints
       annotations:
         sidecar.istio.io/inject: "false"
     spec:
       template:
         metadata:
           labels:
-            job: cleanup-kubeflow-ci-deployment
+            job: cleanup-blueprints
           annotations:
             sidecar.istio.io/inject: "false"
         spec:
