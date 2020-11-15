@@ -11,11 +11,17 @@ TEKTON_INSTALLS=./tekton/templates/installs
 hydrate:
 	find $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy -type f -not -name namespace.yaml -exec rm {} ";"
 	rm -f $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy/tekton*
-	rm -f $(REPO_DIRS)/kf-ci-v1/namespaces/kf-ci/kf-ci	
+	rm -f $(REPO_DIRS)/kf-ci-v1/namespaces/kf-ci/kf-ci
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy $(TEKTON_INSTALLS)/auto-deploy
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy test-infra/auto-deploy/manifest
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/kf-ci $(TEKTON_INSTALLS)/kf-ci
+	cd test-infra/cleanup && $(MAKE) hydrate
 
+# Make sure there are no nomos errors
+.PHONY:
+acm-test:
+	nomos vet --no-api-server-check --path=acm-repos/kf-ci-management
+	nomos vet --no-api-server-check --path=acm-repos/kf-ci-v1
 
 # This applies your local changes to tekton components to the kf-ci-dev namespace.
 # This allows you to test changes manually before your pipelines are submitted.
@@ -28,14 +34,14 @@ build-worker-image:
 set-worker-image:
 	kpt cfg set ./tekton test-image $(shell yq r ./images/latest_image.json builds[0].tag)
 
-update-worker-image: build-worker-image set-worker-image	
+update-worker-image: build-worker-image set-worker-image
 
 # This is a debug rule providing some sugar to hydrate and push the manifests and then wait for the
 # sync
 debug-push-and-run:
 	make hydrate && git add . && git commit -m "Latest" && git push jlewi
 	cd ./go/cmd/nomos-wait && go run .
-	kubectl --context=kf-ci-v1 create -f ./tekton/runs/nb-test-run.yaml 
+	kubectl --context=kf-ci-v1 create -f ./tekton/runs/nb-test-run.yaml
 
 # This is a debug rule providing some sugar for fast iteration during development
 # It might need to be customized for your usage.
@@ -47,4 +53,4 @@ debug-rebuild-and-run:
 	make update-worker-image
 	make hydrate && git add . && git commit -m "Latest" && git push jlewi
 	cd ./go/cmd/nomos-wait && go run .
-	kubectl --context=kf-ci-v1 create -f ./tekton/runs/nb-test-run.yaml 
+	kubectl --context=kf-ci-v1 create -f ./tekton/runs/nb-test-run.yaml

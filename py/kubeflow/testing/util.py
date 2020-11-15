@@ -476,7 +476,7 @@ def wait_for_ingress(api_client,
   while datetime.datetime.now() < end_time:
     ingress = net_client_apps.read_namespaced_ingress(name, namespace)
     try:
-      if len(ingress.status.load_balancer.ingress[0].hostname) == 0: # pylint: disable=len-as-condition
+      if len(ingress.status.load_balancer.ingress[0].hostname) != 0: # pylint: disable=len-as-condition
         logging.info("Ingress %s in namespace %s is ready", name, namespace)
         return ingress
     except Exception: # pylint: disable=broad-except
@@ -653,6 +653,41 @@ def wait_for_statefulset(api_client, namespace, name):
                 "ready", name, namespace)
   raise TimeoutError(
     "Timeout waiting for statefulset {0} in namespace {1}".format(
+      name, namespace))
+
+
+def wait_for_daemonset(api_client, namespace, name):
+  """Wait for daemonset to be ready.
+
+  Args:
+    api_client: K8s api client to use.
+    namespace: The name space for the daemonset.
+    name: The name of the daemonset.
+
+  Returns:
+    deploy: The deploy object describing the daemonset.
+
+  Raises:
+    TimeoutError: If timeout waiting for daemonset to be ready.
+  """
+  # Wait for tiller to be ready
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
+
+  apps_client = k8s_client.AppsV1Api(api_client)
+
+  while datetime.datetime.now() < end_time:
+    damon = apps_client.read_namespaced_daemon_set(name, namespace)
+    if damon.status.desired_number_scheduled == damon.status.current_number_scheduled:
+      logging.info("Daemonset %s in namespace %s is ready", name, namespace)
+      return damon
+    logging.info("Waiting for Damonset %s in namespace %s", name, namespace)
+    time.sleep(10)
+
+    run(["kubectl", "describe", "daemonset", "-n", namespace, name])
+  logging.error("Timeout waiting for daemonset %s in namespace %s to be "
+                "ready", name, namespace)
+  raise TimeoutError(
+    "Timeout waiting for daemonset {0} in namespace {1}".format(
       name, namespace))
 
 

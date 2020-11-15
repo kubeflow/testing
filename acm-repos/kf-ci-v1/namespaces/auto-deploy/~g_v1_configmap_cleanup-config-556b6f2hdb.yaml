@@ -1,0 +1,25 @@
+apiVersion: v1
+data:
+  cleanup-blueprints-pipeline.yaml: "# A Tekton PipelineRun to do a one off \n# cleaning
+    up the Kubeflow auto-deployed blueprints.\n#\napiVersion: tekton.dev/v1alpha1\nkind:
+    PipelineRun\nmetadata:\n  generateName: cleanup-blueprints-\n  namespace: auto-deploy\nspec:\n
+    \ # TODO(jlewi): Override any parameters?\n  #params: {}\n  resources:  \n  -
+    name: testing-repo\n    resourceSpec:\n      type: git\n      params:\n        -
+    name: revision\n          value: master\n        - name: url\n          value:
+    https://github.com/kubeflow/testing.git\n        # Uncomment the following when
+    testing locally\n        # - name: revision\n        #   value: cleanup-blueprints\n
+    \       # - name: url\n        #   value: https://github.com/Bobgy/testing.git\n
+    \ # Need to use a KSA with appropriate GSA\n  serviceAccountName: default-editor\n
+    \ pipelineSpec:\n    params:\n    - name: management-cluster-name\n      type:
+    string\n      description: The name of the management cluster. \n      default:
+    \"kf-ci-management\"\n    resources:\n    - name: testing-repo\n      type: git\n
+    \   tasks:\n    - name: cleanup-blueprints\n      # TODO(jlewi): expose other
+    parameters? Right now\n      # we are just relying on the defaults defined in
+    the task\n      params:\n      - name: management-cluster-name\n        value:
+    \"$(params.management-cluster-name)\"\n      resources:\n        inputs:        \n
+    \       - name: testing-repo\n          resource: testing-repo\n      taskRef:\n
+    \       name: cleanup-kubeflow-ci\n        kind: namespaced  \n"
+kind: ConfigMap
+metadata:
+  name: cleanup-config-556b6f2hdb
+  namespace: auto-deploy
