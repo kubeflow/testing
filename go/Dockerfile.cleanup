@@ -1,11 +1,3 @@
-# Build the manager binary
-#
-# The Docker context is expected to be:
-#
-# ${PATH_TO_KUBEFLOW/KUBEFLOW repo}/components
-#
-# This is necessary because the Jupyter controller now depends on
-# components/common
 ARG GOLANG_VERSION=1.14
 FROM golang:${GOLANG_VERSION} as builder
 
