@@ -19,7 +19,7 @@ spec:
           creationTimestamp: null
         spec:
           containers:
-          - image: gcr.io/kubeflow-ci/cleanup@latest
+          - image: gcr.io/kubeflow-ci/cleanup:latest
             imagePullPolicy: IfNotPresent
             name: cleanup
             resources: {}
