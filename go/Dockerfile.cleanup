@@ -1,0 +1,23 @@
+# Build the manager binary
+#
+# The Docker context is expected to be:
+#
+# ${PATH_TO_KUBEFLOW/KUBEFLOW repo}/components
+#
+# This is necessary because the Jupyter controller now depends on
+# components/common
+ARG GOLANG_VERSION=1.14
+FROM golang:${GOLANG_VERSION} as builder
+
+WORKDIR /workspace
+
+COPY . /workspace
+
+# Build
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o cleanup cmd/cleanup/main.go
+
+FROM gcr.io/distroless/base
+COPY --from=builder /workspace/cleanup /
+COPY ./cmd/cleanup/* /configs/
+ENTRYPOINT [ "/cleanup", "apply", "-f" ]
+CMD ["/configs/cleanup_pipelineruns_kf_releasing.yaml"]
