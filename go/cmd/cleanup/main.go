@@ -4,22 +4,24 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+	"time"
+
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"github.com/kubeflow/testing/go/cmd/cleanup/types"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-	"io/ioutil"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"path/filepath"
-	"time"
 )
 
 type ApplyOptions struct {
@@ -92,9 +94,9 @@ func deleteGroup(client dynamic.Interface, group types.Group) {
 	maxResults := 100
 	resultsPage := ""
 
-	for ;; {
+	for {
 		results, err := resApi.Namespace(group.Namespace).List(context.Background(), metav1.ListOptions{
-			Limit: int64(maxResults),
+			Limit:    int64(maxResults),
 			Continue: resultsPage})
 
 		if err != nil {
@@ -155,17 +157,21 @@ func apply() {
 		return
 	}
 
-	var kubeconfig *string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	}
-	flag.Parse()
-
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		panic(err)
+		log.Error(err, "Could not load in cluster config")
+		var kubeconfig *string
+		if home := homedir.HomeDir(); home != "" {
+			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+		} else {
+			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+		}
+		flag.Parse()
+
+		config, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
+		if err != nil {
+			panic(err)
+		}
 	}
 	client, err := dynamic.NewForConfig(config)
 	if err != nil {
@@ -175,7 +181,6 @@ func apply() {
 	for _, g := range bulkDelete.Spec.Groups {
 		deleteGroup(client, g)
 	}
-
 
 }
 

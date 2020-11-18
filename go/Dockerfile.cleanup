@@ -5,6 +5,8 @@ WORKDIR /workspace
 
 COPY . /workspace
 
+# Predownload modules
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go mod download
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o cleanup cmd/cleanup/main.go
 
