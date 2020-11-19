@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   labels:
-    job: cleanup
+    job: cleanup-pipelineruns
   generateName: cleanup-pipelineruns-
 spec:
   backoffLimit: 6
@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       labels:
-        job: cleanup
+        job: cleanup-pipelineruns
     spec:
       containers:
       - image: gcr.io/kubeflow-ci/cleanup:latest

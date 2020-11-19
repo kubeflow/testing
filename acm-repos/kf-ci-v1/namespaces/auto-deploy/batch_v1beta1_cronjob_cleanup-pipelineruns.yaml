@@ -1,12 +1,17 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
+  labels:
+    job: cleanup-pipelineruns
   name: cleanup-pipelineruns
-  namespace: cleanup
+  namespace: auto-deploy
 spec:
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 1
   jobTemplate:
+    metadata:
+      labels:
+        job: cleanup-pipelineruns
     spec:
       template:
         spec:
@@ -15,7 +20,7 @@ spec:
             imagePullPolicy: IfNotPresent
             name: cleanup
           restartPolicy: Never
-          serviceAccountName: cleanup
+          serviceAccountName: default-editor
           terminationGracePeriodSeconds: 30
   schedule: 0 */2 * * *
   successfulJobsHistoryLimit: 3
