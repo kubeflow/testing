@@ -5,7 +5,6 @@ namespace: auto-deploy
 resources:
 - cleanup-blueprints-cronjob.yaml
 - cleanup-kubeflow-ci-deployment-cronjob.yaml
-- cleanup-pipelineruns-cronjob.yaml
 configMapGenerator:
 - name: cleanup-config
   files:

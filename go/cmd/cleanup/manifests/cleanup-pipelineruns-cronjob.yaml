@@ -14,6 +14,14 @@ spec:
           - image: gcr.io/kubeflow-ci/cleanup@sha256:dc1ca21ceb049d7b88d83a611263653f3a05078133c26ef849704123093536e2
             imagePullPolicy: IfNotPresent
             name: cleanup
+            args: ['/config/cleanup-resources-config.yaml']
+            volumeMounts:
+            - mountPath: /config
+              name: cleanup-resources-config
+          volumes:
+            - name: cleanup-resources-config
+              configMap:
+                name: cleanup-resources-config
           restartPolicy: Never
           serviceAccountName: cleanup
           terminationGracePeriodSeconds: 30
