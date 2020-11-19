@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cleanup
+commonLabels:
+    job: cleanup
+resources:
+- cluster-role.yaml
+- cluster-role-binding.yaml
+- service-account.yaml
+- cleanup-pipelineruns-cronjob.yaml

@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  cleanup-resources-config.yaml: |
+    # Cleanup old pipelineruns in the ci system
+    spec:
+      groups:
+        - Group: "tekton.dev"
+          Version: "v1alpha1"
+          Namespace: "kf-ci"
+          MinAge: "72h"
+          Resource: "pipelineruns"
+        - Group: "tekton.dev"
+          Version: "v1alpha1"
+          Namespace: "auto-deploy"
+          MinAge: "72h"
+          Resource: "pipelineruns"
+kind: ConfigMap
+metadata:
+  name: cleanup-resources-config
+  namespace: cleanup
