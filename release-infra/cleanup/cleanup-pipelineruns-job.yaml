@@ -1,24 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  labels:
-    job: cleanup
   generateName: cleanup-pipelineruns-
   namespace: cleanup
-  resourceVersion: "213900790"
-  selfLink: /apis/batch/v1/namespaces/cleanup/jobs/cleanup-pipelineruns-1605679200
-  uid: 99f15232-94f1-4dcf-a2dc-f673d7157c16
 spec:
   backoffLimit: 6
   completions: 1
   parallelism: 1
   template:
-    metadata:
-      labels:
-        job: cleanup
     spec:
       containers:
-      - image: gcr.io/kubeflow-ci/cleanup:latest
+      - image: gcr.io/kubeflow-ci/cleanup@sha256:dc1ca21ceb049d7b88d83a611263653f3a05078133c26ef849704123093536e2
         imagePullPolicy: IfNotPresent
         name: cleanup
         resources: {}
@@ -28,6 +20,5 @@ spec:
       restartPolicy: Never
       schedulerName: default-scheduler
       securityContext: {}
-      serviceAccount: cleanup
       serviceAccountName: cleanup
       terminationGracePeriodSeconds: 30

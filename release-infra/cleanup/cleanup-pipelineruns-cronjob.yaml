@@ -1,22 +1,14 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  labels:
-    app: cleanup-pipelineruns
   name: cleanup-pipelineruns
   namespace: cleanup
 spec:
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 1
   jobTemplate:
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: cleanup-pipelineruns
     spec:
       template:
-        metadata:
-          creationTimestamp: null
         spec:
           containers:
           - image: gcr.io/kubeflow-ci/cleanup:latest
