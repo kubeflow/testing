@@ -17,3 +17,4 @@ data:
 kind: ConfigMap
 metadata:
   name: cleanup-resources-config
+  namespace: cleanup
