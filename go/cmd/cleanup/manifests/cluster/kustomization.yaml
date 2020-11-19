@@ -4,5 +4,5 @@ namespace: cleanup
 commonLabels:
     job: cleanup
 resources:
-- service-account.yaml
-- cleanup-pipelineruns-cronjob.yaml
+- cluster-role.yaml
+- cluster-role-binding.yaml
