@@ -16,7 +16,7 @@ spec:
   - name: py-lint
     params:
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: $(params.artifacts-gcs)/artifacts/junit_py-lint
     resources:
       inputs:
       - name: testing-repo
@@ -26,7 +26,7 @@ spec:
   - name: py-test
     params:
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: $(params.artifacts-gcs)/artifacts/junit_py-test
     resources:
       inputs:
       - name: testing-repo
