@@ -411,14 +411,16 @@ class CLI(object):
           has_failure = False
           for failure in testcase:
             has_failure = True
-            if failure.attrib.get("message"):
+            failure_element = failure.find('failure')
+            if failure_element is not None:
               logging.error("%s has failure: %s",
                             testname,
-                            failure.attrib.get("message", "message not found"))
+                            failure_element.attrib.get("message", "message not found"))
             else:
               logging.error("%s has failure: %s",
                             testname,
-                            failure[0].attrib.get("message", "message not found"))
+                            failure.attrib.get("message", "message not found"))
+
           if not has_failure:
             logging.info("%s has passed all the tests.", testname)
 
