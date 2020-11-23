@@ -37,7 +37,7 @@ spec:
   - name: py-test
     params:
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)/artifacts
+      value: $(params.artifacts-gcs)/artifacts/junit_py-test
     - name: test-src-dir
       value: "$(params.test-src-dir)"
     resources:
