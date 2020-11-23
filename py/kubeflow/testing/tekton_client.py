@@ -405,12 +405,20 @@ class CLI(object):
 
         for testcase in root:
           testname = testcase.attrib.get("name", "unknown-test")
+          # Detect error and failures from testcase
+          failed_num += int(testcase.attrib.get(
+            "errors", "0")) +int(testcase.attrib.get("failures", "0"))
           has_failure = False
           for failure in testcase:
             has_failure = True
-            logging.error("%s has failure: %s",
-                          testname,
-                          failure.attrib.get("message", "message not found"))
+            if failure.attrib.get("message"):
+              logging.error("%s has failure: %s",
+                            testname,
+                            failure.attrib.get("message", "message not found"))
+            else:
+              logging.error("%s has failure: %s",
+                            testname,
+                            failure[0].attrib.get("message", "message not found"))
           if not has_failure:
             logging.info("%s has passed all the tests.", testname)
 
