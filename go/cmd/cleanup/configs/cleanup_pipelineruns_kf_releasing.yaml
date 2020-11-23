@@ -1,0 +1,13 @@
+# Cleanup old pipelineruns in the release infra
+spec:
+  groups:
+    - Group: "tekton.dev"
+      Version: "v1alpha1"
+      Namespace: "kf-releasing"
+      MinAge: "72h"
+      Resource: "pipelineruns"
+    - Group: "tekton.dev"
+      Version: "v1alpha1"
+      Namespace: "kf-releasing-dev"
+      MinAge: "72h"
+      Resource: "pipelineruns"

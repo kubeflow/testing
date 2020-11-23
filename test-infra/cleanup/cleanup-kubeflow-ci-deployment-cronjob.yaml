@@ -1,0 +1,49 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  labels:
+    app: cleanup-ci-kubeflow-ci-deployment
+  name: cleanup-ci-kubeflow-ci-deployment
+  namespace: auto-deploy
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: cleanup-ci-kubeflow-ci-deployment
+    spec:
+      template:
+        metadata:
+          creationTimestamp: null
+        spec:
+          containers:
+          - command:
+            - /bin/sh
+            - -xc
+            - /usr/local/bin/checkout.sh /src; python -m kubeflow.testing.cleanup_ci
+              --project=kubeflow-ci-deployment --gc_backend_services=true all
+            env:
+            - name: REPO_OWNER
+              value: kubeflow
+            - name: REPO_NAME
+              value: testing
+            - name: PYTHONPATH
+              value: /src/kubeflow/testing/py
+            - name: EXTRA_REPOS
+              value: kubeflow/kubeflow@HEAD
+            image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+            imagePullPolicy: IfNotPresent
+            name: label-sync
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: Never
+          schedulerName: default-scheduler
+          serviceAccountName: default-editor
+          terminationGracePeriodSeconds: 30
+  schedule: 0 */2 * * *
+  successfulJobsHistoryLimit: 3
+  suspend: false

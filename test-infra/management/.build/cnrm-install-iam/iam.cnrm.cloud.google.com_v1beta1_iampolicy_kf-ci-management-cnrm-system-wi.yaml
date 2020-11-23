@@ -1,0 +1,14 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicy
+metadata:
+  name: kf-ci-management-cnrm-system-wi
+  namespace: kubeflow-ci
+spec:
+  bindings:
+  - members:
+    - serviceAccount:kubeflow-ci.svc.id.goog[cnrm-system/cnrm-controller-manager]
+    role: roles/iam.workloadIdentityUser
+  resourceRef:
+    apiVersion: iam.cnrm.cloud.google.com/v1alpha1
+    kind: IAMServiceAccount
+    name: kf-ci-management-cnrm-system

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cnrm.cloud.google.com/operator-version: 1.29.0
+  labels:
+    cnrm.cloud.google.com/operator-system: "true"
+  name: configconnector-operator-service
+  namespace: configconnector-operator-system
+spec:
+  ports:
+  - name: controller-manager
+    port: 443
+  selector:
+    cnrm.cloud.google.com/component: configconnector-operator
+    cnrm.cloud.google.com/operator-system: "true"

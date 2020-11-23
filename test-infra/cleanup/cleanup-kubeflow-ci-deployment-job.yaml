@@ -1,0 +1,47 @@
+# Use this script to launch oneoff runs of the cleanup job
+# Mostly used to test code from a PR.
+# The cron jobs are still defined in ksonnet and need to be ported over to YAML?kustomize
+# The autodeploy jobs are a good model
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: cleanup-kubeflow-ci-deployment-oneoff
+  generateName: cleanup-kubeflow-ci-deployment-
+  namespace: auto-deploy
+spec:
+  backoffLimit: 6
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: cleanup-kubeflow-ci-deployment-oneoff
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -xc
+        - /usr/local/bin/checkout.sh /src; python -m kubeflow.testing.cleanup_ci
+          --project=kubeflow-ci-deployment --gc_backend_services=true all
+        env:
+        - name: REPO_OWNER
+          value: kubeflow
+        - name: REPO_NAME
+          value: testing
+        - name: PYTHONPATH
+          value: /src/kubeflow/testing/py
+        - name: EXTRA_REPOS
+          value: kubeflow/kubeflow@HEAD
+        image: gcr.io/kubeflow-ci/test-worker-py3@sha256:b679ce5d7edbcc373fd7d28c57454f4f22ae987f200f601252b6dcca1fd8823b
+        imagePullPolicy: IfNotPresent
+        name: label-sync
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      serviceAccountName: default-editor
+      terminationGracePeriodSeconds: 30

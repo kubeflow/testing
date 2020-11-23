@@ -1,0 +1,9 @@
+# This is an initial list of requirements needed by cleanup_ci.py
+
+python-dateutil
+retrying
+pyyaml
+kubernetes
+google-cloud-storage
+google-api-python-client
+oauth2client

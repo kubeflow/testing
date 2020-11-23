@@ -1,5 +1,11 @@
 """Cleanup auto deployed blueprints.
 
+Running this script locally for production env:
+```
+python -m kubeflow.testing.cleanup_blueprints auto-blueprints \
+  --project=kubeflow-ci-deployment --context=kf-ci-management
+```
+
 Note: This is in a separate file from cleanup_ci because we wanted to start
 using Fire and python3.
 
@@ -25,7 +31,7 @@ from kubernetes import client as k8s_client
 #
 # Which branch the blueprint was deployed from
 # TODO(jlewi): Where whould we define these so they are centrally located?
-BRANCH_LABEL = "blueprint-branch"
+GROUP_LABEL = "auto-deploy-group"
 NAME_LABEL = "kf-name"
 AUTO_DEPLOY_LABEL = "auto-deploy"
 
@@ -95,13 +101,16 @@ def _delete_blueprints(namespace, to_keep_names, context=None, dryrun=True):
   for kind in kinds:
     client = cnrm_clients.CnrmClientApi(api_client, kind)
 
-    selector = "{0}=true".format(AUTO_DEPLOY_LABEL)
+    # https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
+    # selects resources with GROUP_LABEL set
+    selector = GROUP_LABEL
     results = client.list_namespaced(namespace, label_selector=selector)
 
     for i in results.get("items"):
       name = i["metadata"]["name"]
+      kf_name = i["metadata"].get("labels", {}).get(NAME_LABEL, "")
 
-      if name in to_keep_names:
+      if kf_name in to_keep_names:
         to_keep[kind].append(name)
         continue
 
@@ -122,7 +131,7 @@ def _delete_blueprints(namespace, to_keep_names, context=None, dryrun=True):
         logging.info("Dryrun: %s %s would be deleted", kind, name)
       else:
         logging.info("Deleting: %s %s", kind, name)
-        client.delete_namespaced(namespace, name, {})
+      client.delete_namespaced(namespace, name, dryrun=dryrun)
 
   for kind in kinds:
     logging.info("Deleted %s:\n%s", kind, "\n".join(to_delete[kind]))
@@ -170,12 +179,12 @@ class Cleanup:
       # Use labels to identify auto-deployed instances
       auto_deploy_label = b["metadata"].get("labels", {}).get(AUTO_DEPLOY_LABEL,
                                                               "false")
-
-      is_auto_deploy = auto_deploy_label.lower() == "true"
-
-      if not is_auto_deploy:
-        logging.info("Skipping cluster %s; its missing the auto-deploy label",
-                     name)
+      blueprint_group = b["metadata"]["labels"].get(GROUP_LABEL, "unknown")
+      if blueprint_group == "unknown":
+        logging.info("Skipping cluster %s; its missing the %s label; it is not "
+                     "an auto-deployed instance",
+                     name, GROUP_LABEL)
+        continue
 
       # Tha name of blueprint
       kf_name = b["metadata"].get("labels", {}).get(NAME_LABEL, "")
@@ -199,16 +208,10 @@ class Cleanup:
 
       logging.info("Blueprint %s is auto deployed", kf_name)
 
-      blueprint_branch = b["metadata"]["labels"].get(BRANCH_LABEL, "unknown")
-
-      if blueprint_branch == "unknown":
-        logging.warning("Blueprint %s was missing label %s", kf_name,
-                        BRANCH_LABEL)
-
-      if kf_name in auto_deployments[blueprint_branch]:
+      if kf_name in auto_deployments[blueprint_group]:
         continue
 
-      auto_deployments[blueprint_branch][kf_name] = (
+      auto_deployments[blueprint_group][kf_name] = (
         date_parser.parse(b["metadata"]["creationTimestamp"]))
 
     # Garbage collect the blueprints

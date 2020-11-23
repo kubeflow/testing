@@ -3,7 +3,8 @@ kind: Kustomization
 # Currently run in auto-deploy namespace to have appropriate credentials
 namespace: auto-deploy
 resources:
-- cleanup-ci-cronjob.yaml
+- cleanup-blueprints-cronjob.yaml
+- cleanup-kubeflow-ci-deployment-cronjob.yaml
 configMapGenerator:
 - name: cleanup-config
   files:

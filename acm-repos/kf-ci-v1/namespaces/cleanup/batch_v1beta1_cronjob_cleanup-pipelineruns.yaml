@@ -1,0 +1,39 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  labels:
+    job: cleanup
+  name: cleanup-pipelineruns
+  namespace: cleanup
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        job: cleanup
+    spec:
+      template:
+        metadata:
+          labels:
+            job: cleanup
+        spec:
+          containers:
+          - args:
+            - /config/cleanup-resources-config.yaml
+            image: gcr.io/kubeflow-ci/cleanup@sha256:dc1ca21ceb049d7b88d83a611263653f3a05078133c26ef849704123093536e2
+            imagePullPolicy: IfNotPresent
+            name: cleanup
+            volumeMounts:
+            - mountPath: /config
+              name: cleanup-resources-config
+          restartPolicy: Never
+          serviceAccountName: cleanup
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - configMap:
+              name: cleanup-resources-config
+            name: cleanup-resources-config
+  schedule: 0 */2 * * *
+  successfulJobsHistoryLimit: 3
+  suspend: false
