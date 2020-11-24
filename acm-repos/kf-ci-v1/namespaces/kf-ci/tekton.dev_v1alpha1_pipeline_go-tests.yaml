@@ -14,8 +14,7 @@ spec:
   - default: auto
     description: value of module support
     name: GO111MODULE
-  - description: GCS bucket and directory artifacts will be uploaded to. Should be
-      in the form of 'gs://'
+  - description: GCS bucket and directory artifacts will be uploaded to. Should be in the form of 'gs://'
     name: artifacts-gcs
     type: string
   resources:

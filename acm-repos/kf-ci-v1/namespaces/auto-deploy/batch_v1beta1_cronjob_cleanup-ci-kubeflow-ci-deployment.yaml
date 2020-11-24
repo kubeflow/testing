@@ -22,8 +22,7 @@ spec:
           - command:
             - /bin/sh
             - -xc
-            - /usr/local/bin/checkout.sh /src; python -m kubeflow.testing.cleanup_ci
-              --project=kubeflow-ci-deployment --gc_backend_services=true all
+            - /usr/local/bin/checkout.sh /src; python -m kubeflow.testing.cleanup_ci --project=kubeflow-ci-deployment --gc_backend_services=true all
             env:
             - name: REPO_OWNER
               value: kubeflow

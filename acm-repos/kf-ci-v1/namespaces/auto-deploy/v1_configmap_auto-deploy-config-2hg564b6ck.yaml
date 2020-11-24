@@ -105,39 +105,11 @@ data:
         # manifest. We may need to update the kfctl link as additional fixes to work with kfctl
         kfDefUrl: https://raw.githubusercontent.com/kubeflow/manifests/master/stacks/examples/kfctl_gcp_stacks.experimental.yaml
         kfctlUrl: https://storage.googleapis.com/kubeflow-ci_builds/kfctl/20200413_0845/linux/kfctl
-  pipeline-run-deploy-blueprint-master.yaml: "# A Tekton PipelineRune to deploy Kubeflow
-    using a blueprint.\n#\n# Several pieces of information in the spec are used to
-    configure autodeployments.\n# 1. labels:\n#    auto-deploy-group - Used to group
-    auto deployments. Only so many instances will be kept\n#        each pipeline
-    run should use a unique value \n#    auto-deploy-base-name: This will be changed
-    to name-{uid} to generate a unique name for the deployment\napiVersion: tekton.dev/v1alpha1\nkind:
-    PipelineRun\nmetadata:      \n  generateName: deploy-kf-master-\n  namespace:
-    auto-deploy\n  labels:\n    auto-deploy-group: gcp-blueprint-master\n    auto-deploy-base-name:
-    kf-vbp\nspec:    \n  resources:  \n  - name: blueprint-repo\n    resourceSpec:\n
-    \     type: git\n      params:\n        - name: revision\n          value: master\n
-    \       - name: url\n          value: https://github.com/kubeflow/gcp-blueprints.git\n
-    \ - name: testing-repo\n    resourceSpec:\n      type: git\n      params:\n        -
-    name: revision\n          value: master\n        - name: url\n          value:
-    https://github.com/kubeflow/testing.git\n  # Need to use a KSA with appropriate
-    GSA\n  serviceAccountName: default-editor\n  pipelineRef:\n    name: deploy-gcp-blueprint"
-  pipeline-run-deploy-blueprint-v1.1.yaml: "# A Tekton PipelineRune to deploy Kubeflow
-    using a blueprint.\n#\n# Several pieces of information in the spec are used to
-    configure autodeployments.\n# 1. labels:\n#    auto-deploy-group - Used to group
-    auto deployments. Only so many instances will be kept\n#        each pipeline
-    run should use a unique value \n#    auto-deploy-base-name: This will be changed
-    to name-{uid} to generate a unique name for the deployment\napiVersion: tekton.dev/v1alpha1\nkind:
-    PipelineRun\nmetadata:      \n  generateName: deploy-kf-v1-1-\n  namespace: auto-deploy\n
-    \ labels:\n    auto-deploy-group: gcp-blueprint-v1-1\n    auto-deploy-base-name:
-    kf-v1-1\nspec:    \n  resources:  \n  - name: blueprint-repo\n    resourceSpec:\n
-    \     type: git\n      params:\n        - name: revision\n          value: v1.1-branch\n
-    \       - name: url\n          value: https://github.com/kubeflow/gcp-blueprints.git\n
-    \ - name: testing-repo\n    resourceSpec:\n      type: git\n      params:\n        -
-    name: revision\n          value: v1.1-branch\n        - name: url\n          value:
-    https://github.com/kubeflow/testing.git\n  # Need to use a KSA with appropriate
-    GSA\n  serviceAccountName: default-editor\n  pipelineRef:\n    name: deploy-gcp-blueprint\n"
+  pipeline-run-deploy-blueprint-master.yaml: "# A Tekton PipelineRune to deploy Kubeflow using a blueprint.\n#\n# Several pieces of information in the spec are used to configure autodeployments.\n# 1. labels:\n#    auto-deploy-group - Used to group auto deployments. Only so many instances will be kept\n#        each pipeline run should use a unique value \n#    auto-deploy-base-name: This will be changed to name-{uid} to generate a unique name for the deployment\napiVersion: tekton.dev/v1alpha1\nkind: PipelineRun\nmetadata:      \n  generateName: deploy-kf-master-\n  namespace: auto-deploy\n  labels:\n    auto-deploy-group: gcp-blueprint-master\n    auto-deploy-base-name: kf-vbp\nspec:    \n  resources:  \n  - name: blueprint-repo\n    resourceSpec:\n      type: git\n      params:\n        - name: revision\n          value: master\n        - name: url\n          value: https://github.com/kubeflow/gcp-blueprints.git\n  - name: testing-repo\n    resourceSpec:\n      type: git\n      params:\n        - name: revision\n          value: master\n        - name: url\n          value: https://github.com/kubeflow/testing.git\n  # Need to use a KSA with appropriate GSA\n  serviceAccountName: default-editor\n  pipelineRef:\n    name: deploy-gcp-blueprint"
+  pipeline-run-deploy-blueprint-v1.1.yaml: "# A Tekton PipelineRune to deploy Kubeflow using a blueprint.\n#\n# Several pieces of information in the spec are used to configure autodeployments.\n# 1. labels:\n#    auto-deploy-group - Used to group auto deployments. Only so many instances will be kept\n#        each pipeline run should use a unique value \n#    auto-deploy-base-name: This will be changed to name-{uid} to generate a unique name for the deployment\napiVersion: tekton.dev/v1alpha1\nkind: PipelineRun\nmetadata:      \n  generateName: deploy-kf-v1-1-\n  namespace: auto-deploy\n  labels:\n    auto-deploy-group: gcp-blueprint-v1-1\n    auto-deploy-base-name: kf-v1-1\nspec:    \n  resources:  \n  - name: blueprint-repo\n    resourceSpec:\n      type: git\n      params:\n        - name: revision\n          value: v1.1-branch\n        - name: url\n          value: https://github.com/kubeflow/gcp-blueprints.git\n  - name: testing-repo\n    resourceSpec:\n      type: git\n      params:\n        - name: revision\n          value: v1.1-branch\n        - name: url\n          value: https://github.com/kubeflow/testing.git\n  # Need to use a KSA with appropriate GSA\n  serviceAccountName: default-editor\n  pipelineRef:\n    name: deploy-gcp-blueprint\n"
 kind: ConfigMap
 metadata:
   labels:
     service: auto-deploy
-  name: auto-deploy-config-7f4chh5g64
+  name: auto-deploy-config-2hg564b6ck
   namespace: auto-deploy

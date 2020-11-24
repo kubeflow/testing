@@ -5,19 +5,15 @@ metadata:
   namespace: auto-deploy
 spec:
   params:
-  - description: GCS bucket and directory artifacts will be uploaded to. Should be
-      in the form of 'gs://'
+  - description: GCS bucket and directory artifacts will be uploaded to. Should be in the form of 'gs://'
     name: artifacts-gcs
     type: string
   - default: ""
-    description: It is the location of the directory to run lint over. If we set it
-      "", then it finds all the *.py files in the repository and test lint over them.
+    description: It is the location of the directory to run lint over. If we set it "", then it finds all the *.py files in the repository and test lint over them.
     name: lint-src-dir
     type: string
   - default: ""
-    description: It is the location of the test directory which contains all the unit
-      tests. If we set it "", then it finds all the *_test.py files in the repository
-      and run unit test over them.
+    description: It is the location of the test directory which contains all the unit tests. If we set it "", then it finds all the *_test.py files in the repository and run unit test over them.
     name: test-src-dir
     type: string
   resources:

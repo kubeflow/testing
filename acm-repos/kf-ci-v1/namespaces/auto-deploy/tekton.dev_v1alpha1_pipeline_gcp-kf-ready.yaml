@@ -5,15 +5,13 @@ metadata:
   namespace: auto-deploy
 spec:
   params:
-  - description: Cluster pattern to select the KF cluster to run on Default to be
-      from master branch.
+  - description: Cluster pattern to select the KF cluster to run on Default to be from master branch.
     name: testing-cluster-pattern
     type: string
   - description: Location to search for test clusters e.g. us-central1 or us-central1-f
     name: testing-cluster-location
     type: string
-  - description: GCS bucket and directory artifacts will be uploaded to. Should be
-      in the form of 'gs://'
+  - description: GCS bucket and directory artifacts will be uploaded to. Should be in the form of 'gs://'
     name: artifacts-gcs
     type: string
   resources:

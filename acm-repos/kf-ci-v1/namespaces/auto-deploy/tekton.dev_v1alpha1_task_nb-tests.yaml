@@ -8,24 +8,19 @@ metadata:
 spec:
   inputs:
     params:
-    - description: Path to the notebook to run. This should be the relative path relative
-        to the root of the repository where the notebook lives.
+    - description: Path to the notebook to run. This should be the relative path relative to the root of the repository where the notebook lives.
       name: notebook-path
       type: string
-    - description: Cluster pattern to run the notebook test. Default to be from master
-        branch.
+    - description: Cluster pattern to run the notebook test. Default to be from master branch.
       name: testing-cluster-pattern
       type: string
     - description: Location to search for test clusters e.g. us-central1 or us-central1-f
       name: testing-cluster-location
       type: string
-    - description: This should be the bucket that the rendered notebook will be written
-        to. This should be a GCS path that is accessible from the KF cluster where
-        the notebook runs. It will be copied to artifacts-gcs. This should be a directory.
+    - description: This should be the bucket that the rendered notebook will be written to. This should be a GCS path that is accessible from the KF cluster where the notebook runs. It will be copied to artifacts-gcs. This should be a directory.
       name: notebook-output
       type: string
-    - description: GCS bucket and directory artifacts will be uploaded to. Should
-        be in the form of 'gs://'
+    - description: GCS bucket and directory artifacts will be uploaded to. Should be in the form of 'gs://'
       name: artifacts-gcs
       type: string
     - default: manual-testing
