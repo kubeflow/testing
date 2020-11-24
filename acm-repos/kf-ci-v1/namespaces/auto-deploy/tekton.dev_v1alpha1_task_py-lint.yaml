@@ -6,14 +6,11 @@ metadata:
 spec:
   inputs:
     params:
-    - description: GCS bucket and directory artifacts will be uploaded to. Should
-        be in the form of 'gs://'
+    - description: GCS bucket and directory artifacts will be uploaded to. Should be in the form of 'gs://'
       name: artifacts-gcs
       type: string
     - default: ""
-      description: It is the location of the directory to run lint over. If we set
-        it "", then it finds all the *.py files in the repository and test lint over
-        them.
+      description: It is the location of the directory to run lint over. If we set it "", then it finds all the *.py files in the repository and test lint over them.
       name: lint-src-dir
       type: string
     - default: gcr.io/kubeflow-ci/test-worker-py3@sha256:a749d7fa4d77466c892a206d3adf0909e86717da898dbd12378e6cbed59ffbd3

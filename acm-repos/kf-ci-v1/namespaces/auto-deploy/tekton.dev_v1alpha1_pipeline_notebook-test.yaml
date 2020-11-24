@@ -9,26 +9,19 @@ spec:
     description: Test targe name, used to group test results in JUNIT.
     name: test-target-name
     type: string
-  - description: This should be the bucket that the rendered notebook will be written
-      to. This should be a GCS path that is accessible from the KF cluster where the
-      notebook runs. It will be copied to artifacts-gcs
+  - description: This should be the bucket that the rendered notebook will be written to. This should be a GCS path that is accessible from the KF cluster where the notebook runs. It will be copied to artifacts-gcs
     name: notebook-output
     type: string
-  - description: Path to the notebook to run. This should be the relative path relative
-      to the root of the repository where the notebook lives. Do not include a leading
-      "/"
+  - description: Path to the notebook to run. This should be the relative path relative to the root of the repository where the notebook lives. Do not include a leading "/"
     name: notebook-path
     type: string
-  - description: GCS bucket and directory artifacts will be uploaded to. Should be
-      in the form of 'gs://'
+  - description: GCS bucket and directory artifacts will be uploaded to. Should be in the form of 'gs://'
     name: artifacts-gcs
     type: string
-  - description: Relative path to the GCS artifacts will be uploaded to. Base path
-      is artifacts-gcs so the actual GCS blob will be artifacts-gcs/junit-path
+  - description: Relative path to the GCS artifacts will be uploaded to. Base path is artifacts-gcs so the actual GCS blob will be artifacts-gcs/junit-path
     name: junit-path
     type: string
-  - description: Cluster pattern to run the notebook test. Default to be from master
-      branch.
+  - description: Cluster pattern to run the notebook test. Default to be from master branch.
     name: testing-cluster-pattern
     type: string
   - description: Location to search for test clusters.
