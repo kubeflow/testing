@@ -4,7 +4,7 @@ AUTO_DEPLOY_CONTEXT=kf-ci-v1
 .PHONY: hydrate
 hydrate:
 	# Remove old config maps.
-	rm -f $(ACM_REPO_DIR)/namespaces/auto-deploy/~g_v1_configmap_cleanup-config-*
+	rm -f $(ACM_REPO_DIR)/namespaces/auto-deploy/*v1_configmap_cleanup-config-*
 	kustomize build -o $(ACM_REPO_DIR)/namespaces/auto-deploy ./
 
 apply: hydrate
