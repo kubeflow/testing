@@ -150,7 +150,11 @@ spec:
       cd /workspace/build
       # Copy the source code
       cp -r /workspace/$(inputs.resources.notebook-repo.name) .
-      cp -r /srcCache/kubeflow/testing/notebook_testing/Dockerfile.notebook_runner ./Dockerfile.notebook_runner
+      # TODO(Bobgy): Replaced the following with curl -LO because test image has
+      # failed to build for a while. This is a quick workaround just to update
+      # the notebook_runner Dockerfile.
+      # cp -r /srcCache/kubeflow/testing/notebook_testing/Dockerfile.notebook_runner ./Dockerfile.notebook_runner
+      curl -LO https://raw.githubusercontent.com/kubeflow/testing/master/notebook_testing/Dockerfile.notebook_runner
       mkdir -p kubeflow/
       # Copy over the kubeflow/testing directory because we need it to run the
       # notebooks; note that the copy is coming from the worker test image.
