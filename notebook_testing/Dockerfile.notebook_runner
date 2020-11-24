@@ -6,10 +6,10 @@ FROM $BASE_IMAGE
 
 USER root
 
-RUN pip3 install -Iv papermill==2.0.0 
-RUN pip3 install -U nbconvert 
-RUN pip3 install -U nbformat
-RUN pip3 install -U retrying
+# See https://github.com/kubeflow/gcp-blueprints/issues/174#issuecomment-732787054
+RUN pip3 uninstall -y enum34
+RUN pip3 install -Iv papermill==2.0.0
+RUN pip3 install -U nbconvert nbformat retrying
 
 USER jovyan
 
