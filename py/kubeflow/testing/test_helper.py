@@ -53,12 +53,8 @@ class TestSuite(junit_xml.TestSuite):
     # want one underscore after junit.
     output_file = os.path.join(self.artifacts_dir,
                                "junit_" + self.name.replace("_", "-") + ".xml")
-    # junit_xml produces a list of test suites, but gubernator
-    # only parses a single test suite. So here we generate
-    # the xml using junit-xml and only output the first test
-    # suite in our output file
     xml_out = junit_xml.TestSuite.to_xml_string([self])
-    first_test_suite = ET.fromstring(xml_out)[0]
+    first_test_suite = ET.fromstring(xml_out)
     logging.info("Writing file: %s", output_file)
     ET.ElementTree(first_test_suite).write(output_file)
 

@@ -23,7 +23,7 @@ spec:
   - name: py-lint
     params:
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: $(params.artifacts-gcs)/artifacts/junit_py-lint
     - name: lint-src-dir
       value: $(params.lint-src-dir)
     resources:
@@ -35,7 +35,7 @@ spec:
   - name: py-test
     params:
     - name: artifacts-gcs
-      value: $(params.artifacts-gcs)
+      value: $(params.artifacts-gcs)/artifacts
     - name: test-src-dir
       value: $(params.test-src-dir)
     resources:
