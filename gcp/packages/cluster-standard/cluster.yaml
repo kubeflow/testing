@@ -1,0 +1,45 @@
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerCluster
+metadata:
+  annotations:
+    cnrm.cloud.google.com/remove-default-node-pool: "true"
+  name: NAME # {"$kpt-set":"name"}
+spec:
+  location: us-central1
+  initialNodeCount: 1
+  releaseChannel:
+    channel: REGULAR
+  loggingService: logging.googleapis.com/kubernetes
+  monitoringService: monitoring.googleapis.com/kubernetes
+---
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerNodePool
+metadata:
+  name: NAME-nodepool # {"$kpt-set":"name-nodepool"}
+spec:
+  location: us-central1
+  initialNodeCount: 1
+  autoscaling:
+    minNodeCount: 1
+    maxNodeCount: 3
+  nodeConfig:
+    diskSizeGb: 100
+    diskType: pd-standard
+    machineType: e2-standard-8
+    preemptible: false
+    metadata:
+      disable-legacy-endpoints: "true"
+    serviceAccountRef:
+      name: NAME-vm # {"$kpt-set":"name-sa"}
+  management:
+    autoRepair: true
+    autoUpgrade: true
+  clusterRef:
+    name: NAME # {"$kpt-set":"name"}
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMServiceAccount
+metadata:
+  name: NAME-vm # {"$kpt-set":"name-sa"}
+spec:
+  displayName: vm service account

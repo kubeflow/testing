@@ -1,0 +1,27 @@
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerNodePool
+metadata:
+  labels:
+    app.kubernetes.io/instance: kfp-standalone-1
+  name: kfp-standalone-1-nodepool
+  namespace: kubeflow-ci-deployment
+spec:
+  autoscaling:
+    maxNodeCount: 3
+    minNodeCount: 1
+  clusterRef:
+    name: kfp-standalone-1
+  initialNodeCount: 1
+  location: us-central1
+  management:
+    autoRepair: true
+    autoUpgrade: true
+  nodeConfig:
+    diskSizeGb: 100
+    diskType: pd-standard
+    machineType: e2-standard-8
+    metadata:
+      disable-legacy-endpoints: "true"
+    preemptible: false
+    serviceAccountRef:
+      name: kfp-standalone-1-vm
