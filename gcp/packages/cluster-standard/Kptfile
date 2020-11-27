@@ -1,0 +1,6 @@
+apiVersion: kpt.dev/v1alpha1
+kind: Kptfile
+metadata:
+  name: cluster-standard
+packageMetadata:
+  shortDescription: standard cluster template that uses a service account with minimum privilege

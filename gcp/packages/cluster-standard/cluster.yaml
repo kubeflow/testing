@@ -1,0 +1,44 @@
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerCluster
+metadata:
+  annotations:
+    cnrm.cloud.google.com/remove-default-node-pool: "true"
+  name: NAME
+spec:
+  location: us-central1
+  initialNodeCount: 1
+  releaseChannel:
+    channel: REGULAR
+  loggingService: logging.googleapis.com/kubernetes
+  monitoringService: monitoring.googleapis.com/kubernetes
+---
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerNodePool
+metadata:
+  name: NAME-nodepool-default
+spec:
+  location: us-central1
+  autoscaling:
+    minNodeCount: 1
+    maxNodeCount: 3
+  nodeConfig:
+    diskSizeGb: 100
+    diskType: pd-standard
+    machineType: e2-standard-8
+    preemptible: false
+    metadata:
+      disable-legacy-endpoints: "true"
+    serviceAccountRef:
+      name: NAME-vm
+  management:
+    autoRepair: true
+    autoUpgrade: true
+  clusterRef:
+    name: kfp-standalone-1
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMServiceAccount
+metadata:
+  name: NAME-vm
+spec:
+  displayName: vm service account
