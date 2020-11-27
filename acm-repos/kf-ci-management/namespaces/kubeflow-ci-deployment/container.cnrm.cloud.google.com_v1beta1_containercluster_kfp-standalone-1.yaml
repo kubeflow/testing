@@ -4,7 +4,8 @@ metadata:
   annotations:
     cnrm.cloud.google.com/remove-default-node-pool: "true"
   labels:
-    app.kubernetes.io/instance: kfp-standalone-1
+    app: kubeflow-pipelines
+    instance: kfp-standalone-1
   name: kfp-standalone-1
   namespace: kubeflow-ci-deployment
 spec:
