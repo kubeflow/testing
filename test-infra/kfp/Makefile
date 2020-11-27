@@ -25,6 +25,7 @@ get-pkg: FORCE
 update-pkg-upstream: FORCE
 	rm -r $(NAME)/upstream
 	kpt pkg get $(PACKAGE_UPSTEAM_URL) ./$(NAME)/upstream
+	$(MAKE) set-values
 
 set-values: FORCE
 	cd $(NAME) && $(MAKE) set-values
