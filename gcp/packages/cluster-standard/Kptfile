@@ -3,4 +3,61 @@ kind: Kptfile
 metadata:
   name: cluster-standard
 packageMetadata:
-  shortDescription: standard cluster template that uses a service account with minimum privilege
+  shortDescription: standard cluster template that uses a service account with minimum
+    privilege
+openAPI:
+  definitions:
+    io.k8s.cli.setters.name:
+      x-k8s-cli:
+        setter:
+          name: name
+          value: NAME
+          isSet: true
+    io.k8s.cli.substitutions.name-sa:
+      x-k8s-cli:
+        substitution:
+          name: name-sa
+          pattern: ${name}-vm
+          values:
+          - marker: ${name}
+            ref: '#/definitions/io.k8s.cli.setters.name'
+    io.k8s.cli.substitutions.name-prefix:
+      x-k8s-cli:
+        substitution:
+          name: name-prefix
+          pattern: ${name}-
+          values:
+          - marker: ${name}
+            ref: '#/definitions/io.k8s.cli.setters.name'
+    io.k8s.cli.setters.gcloud.core.project:
+      x-k8s-cli:
+        setter:
+          name: gcloud.core.project
+          value: PROJECT
+          isSet: true
+    io.k8s.cli.substitutions.project-ref:
+      x-k8s-cli:
+        substitution:
+          name: project-ref
+          pattern: projects/${gcloud.core.project}
+          values:
+          - marker: ${gcloud.core.project}
+            ref: '#/definitions/io.k8s.cli.setters.gcloud.core.project'
+    io.k8s.cli.substitutions.name-nodepool:
+      x-k8s-cli:
+        substitution:
+          name: name-nodepool
+          pattern: ${name}-nodepool
+          values:
+          - marker: ${name}
+            ref: '#/definitions/io.k8s.cli.setters.name'
+    io.k8s.cli.substitutions.vm-sa-ref:
+      x-k8s-cli:
+        substitution:
+          name: vm-sa-ref
+          pattern: serviceAccount:${name-sa}@${gcloud.core.project}.iam.gserviceaccount.com
+          values:
+          - marker: ${name-sa}
+            ref: '#/definitions/io.k8s.cli.substitutions.name-sa'
+          - marker: ${gcloud.core.project}
+            ref: '#/definitions/io.k8s.cli.setters.gcloud.core.project'

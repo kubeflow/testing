@@ -3,7 +3,7 @@ kind: ContainerCluster
 metadata:
   annotations:
     cnrm.cloud.google.com/remove-default-node-pool: "true"
-  name: NAME
+  name: NAME # {"$kpt-set":"name"}
 spec:
   location: us-central1
   initialNodeCount: 1
@@ -15,7 +15,7 @@ spec:
 apiVersion: container.cnrm.cloud.google.com/v1beta1
 kind: ContainerNodePool
 metadata:
-  name: NAME-nodepool-default
+  name: NAME-nodepool # {"$kpt-set":"name-nodepool"}
 spec:
   location: us-central1
   autoscaling:
@@ -29,16 +29,16 @@ spec:
     metadata:
       disable-legacy-endpoints: "true"
     serviceAccountRef:
-      name: NAME-vm
+      name: NAME-vm # {"$kpt-set":"name-sa"}
   management:
     autoRepair: true
     autoUpgrade: true
   clusterRef:
-    name: kfp-standalone-1
+    name: NAME # {"$kpt-set":"name"}
 ---
 apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMServiceAccount
 metadata:
-  name: NAME-vm
+  name: NAME-vm # {"$kpt-set":"name-sa"}
 spec:
   displayName: vm service account
