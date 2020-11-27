@@ -3,22 +3,23 @@ kind: ContainerCluster
 metadata:
   annotations:
     cnrm.cloud.google.com/remove-default-node-pool: "true"
-  name: NAME # {"$kpt-set":"name"}
+  name: kfp-standalone-1
 spec:
   location: us-central1
   initialNodeCount: 1
   releaseChannel:
     channel: REGULAR
+  workloadIdentityConfig:
+    identityNamespace: kubeflow-ci-deployment.svc.id.goog
   loggingService: logging.googleapis.com/kubernetes
   monitoringService: monitoring.googleapis.com/kubernetes
 ---
 apiVersion: container.cnrm.cloud.google.com/v1beta1
 kind: ContainerNodePool
 metadata:
-  name: NAME-nodepool # {"$kpt-set":"name-nodepool"}
+  name: containernodepool-default
 spec:
   location: us-central1
-  initialNodeCount: 1
   autoscaling:
     minNodeCount: 1
     maxNodeCount: 3
@@ -27,19 +28,16 @@ spec:
     diskType: pd-standard
     machineType: e2-standard-8
     preemptible: false
+    oauthScopes:
+      - "https://www.googleapis.com/auth/logging.write"
+      - "https://www.googleapis.com/auth/monitoring"
+    guestAccelerator:
+      - type: "nvidia-tesla-k80"
+        count: 1
     metadata:
       disable-legacy-endpoints: "true"
-    serviceAccountRef:
-      name: NAME-vm # {"$kpt-set":"name-sa"}
   management:
     autoRepair: true
     autoUpgrade: true
   clusterRef:
-    name: NAME # {"$kpt-set":"name"}
----
-apiVersion: iam.cnrm.cloud.google.com/v1beta1
-kind: IAMServiceAccount
-metadata:
-  name: NAME-vm # {"$kpt-set":"name-sa"}
-spec:
-  displayName: vm service account
+    name: kfp-standalone-1

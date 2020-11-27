@@ -4,12 +4,12 @@ kind: IAMPolicyMember
 metadata:
   name: vm-policy-storage
 spec:
-  member: serviceAccount:kfp-standalone-1-vm@kubeflow-ci-deployment.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
+  member: serviceAccount:NAME-vm@PROJECT.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
   role: roles/storage.objectViewer
   resourceRef:
     apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
     kind: Project
-    external: projects/kubeflow-ci-deployment # {"$kpt-set":"project-ref"}
+    external: projects/PROJECT # {"$kpt-set":"project-ref"}
 ---
 # The following resources are required by
 # https://cloud.google.com/kubernetes-engine/docs/how-to/hardening-your-cluster#use_least_privilege_sa
@@ -18,33 +18,33 @@ kind: IAMPolicyMember
 metadata:
   name: vm-policy-monitoring
 spec:
-  member: serviceAccount:kfp-standalone-1-vm@kubeflow-ci-deployment.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
+  member: serviceAccount:NAME-vm@PROJECT.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
   role: roles/monitoring.metricWriter
   resourceRef:
     apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
     kind: Project
-    external: projects/kubeflow-ci-deployment # {"$kpt-set":"project-ref"}
+    external: projects/PROJECT # {"$kpt-set":"project-ref"}
 ---
 apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMPolicyMember
 metadata:
   name: vm-policy-monitoring-viewer
 spec:
-  member: serviceAccount:kfp-standalone-1-vm@kubeflow-ci-deployment.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
+  member: serviceAccount:NAME-vm@PROJECT.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
   role: roles/monitoring.viewer
   resourceRef:
     apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
     kind: Project
-    external: projects/kubeflow-ci-deployment # {"$kpt-set":"project-ref"}
+    external: projects/PROJECT # {"$kpt-set":"project-ref"}
 ---
 apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMPolicyMember
 metadata:
   name: vm-logging
 spec:
-  member: serviceAccount:kfp-standalone-1-vm@kubeflow-ci-deployment.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
+  member: serviceAccount:NAME-vm@PROJECT.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
   role: roles/logging.logWriter
   resourceRef:
     apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
     kind: Project
-    external: projects/kubeflow-ci-deployment # {"$kpt-set":"project-ref"}
+    external: projects/PROJECT # {"$kpt-set":"project-ref"}
