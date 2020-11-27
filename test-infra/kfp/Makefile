@@ -1,6 +1,8 @@
-# TODO(Bobgy): switch to the following once the PR is merged
-# PACKAGE_URL=https://github.com/kubeflow/testing.git/gcp/packages/cluster-standard@master
-PACKAGE_URL=https://github.com/Bobgy/testing.git/gcp/packages/cluster-standard@kfp_ci_deployment
+PACKAGE_URL=https://github.com/kubeflow/testing.git/gcp/packages/cluster-standard@master
+
+# This can be uncommented for development
+# PACKAGE_URL=https://github.com/Bobgy/testing.git/gcp/packages/cluster-standard@branch
+
 export PROJECT=kubeflow-ci-deployment
 export NAME=kfp-standalone-1
 
@@ -12,8 +14,8 @@ hydrate: FORCE set-values
 	kustomize build $(NAME) -o $(NAMESPACE_DIR)
 
 get-pkg: FORCE
-	rm -r $(NAME)
-	kpt pkg get $(PACKAGE_URL) ./$(NAME)
+	rm -r $(NAME)/upstream
+	kpt pkg get $(PACKAGE_URL) ./$(NAME)/upstream
 
 set-values: FORCE
 	cd $(NAME) && $(MAKE) set-values
