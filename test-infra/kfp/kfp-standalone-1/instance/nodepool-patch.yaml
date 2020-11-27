@@ -6,10 +6,10 @@ metadata:
   name: kfp-standalone-1-nodepool # {"$kpt-set":"name-nodepool"}
 spec:
   location: us-central1
+  nodeLocations: # We only need two nodes.
+  - us-central1-a
+  - us-central1-b
   # Uncomment fields you care about to override.
-  # nodeLocations:
-  # - us-central1-a
-  # - us-central1-b
   # initialNodeCount: 1
   # autoscaling:
   #   minNodeCount: 1
