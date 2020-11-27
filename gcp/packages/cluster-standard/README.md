@@ -1,7 +1,7 @@
 # cluster-standard
 
 ## Description
-A standard cluster used for running workloads
+A standard cluster used for running workloads, defined using [CNRM resources](https://cloud.google.com/config-connector/docs/reference/overview).
 
 ## Usage
 

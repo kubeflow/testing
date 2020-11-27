@@ -11,7 +11,7 @@ openAPI:
       x-k8s-cli:
         setter:
           name: name
-          value: NAME
+          value: kfp-standalone-1
           isSet: true
     io.k8s.cli.substitutions.name-sa:
       x-k8s-cli:
@@ -33,7 +33,7 @@ openAPI:
       x-k8s-cli:
         setter:
           name: gcloud.core.project
-          value: PROJECT
+          value: kubeflow-ci-deployment
           isSet: true
     io.k8s.cli.substitutions.project-ref:
       x-k8s-cli:
