@@ -4,5 +4,7 @@ namespace: PROJECT # {"$kpt-set":"gcloud.core.project"}
 commonLabels:
   app.kubernetes.io/instance: NAME # {"$kpt-set":"name"}
 resources:
-- cluster.yaml
-- iam
+- ../upstream
+patchesStrategicMerge:
+- cluster-patch.yaml
+- nodepool-patch.yaml

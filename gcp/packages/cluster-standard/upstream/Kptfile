@@ -2,35 +2,22 @@ apiVersion: kpt.dev/v1alpha1
 kind: Kptfile
 metadata:
   name: cluster-standard
-upstream:
-  type: git
-  git:
-    commit: 81919afed545b08b671b610caa46efb037a19e47
-    repo: https://github.com/Bobgy/testing
-    directory: /gcp/packages/cluster-standard
-    ref: kfp_nodepool_size
 packageMetadata:
   shortDescription: standard cluster template that uses a service account with minimum
     privilege
 openAPI:
   definitions:
-    io.k8s.cli.setters.gcloud.core.project:
-      x-k8s-cli:
-        setter:
-          isSet: true
-          name: gcloud.core.project
-          value: kubeflow-ci-deployment
     io.k8s.cli.setters.name:
       x-k8s-cli:
         setter:
-          isSet: true
           name: name
-          value: kfp-standalone-1
-    io.k8s.cli.substitutions.name-nodepool:
+          value: NAME
+          isSet: true
+    io.k8s.cli.substitutions.name-sa:
       x-k8s-cli:
         substitution:
-          name: name-nodepool
-          pattern: ${name}-nodepool
+          name: name-sa
+          pattern: ${name}-vm
           values:
           - marker: ${name}
             ref: '#/definitions/io.k8s.cli.setters.name'
@@ -42,14 +29,12 @@ openAPI:
           values:
           - marker: ${name}
             ref: '#/definitions/io.k8s.cli.setters.name'
-    io.k8s.cli.substitutions.name-sa:
+    io.k8s.cli.setters.gcloud.core.project:
       x-k8s-cli:
-        substitution:
-          name: name-sa
-          pattern: ${name}-vm
-          values:
-          - marker: ${name}
-            ref: '#/definitions/io.k8s.cli.setters.name'
+        setter:
+          name: gcloud.core.project
+          value: PROJECT
+          isSet: true
     io.k8s.cli.substitutions.project-ref:
       x-k8s-cli:
         substitution:
@@ -58,6 +43,14 @@ openAPI:
           values:
           - marker: ${gcloud.core.project}
             ref: '#/definitions/io.k8s.cli.setters.gcloud.core.project'
+    io.k8s.cli.substitutions.name-nodepool:
+      x-k8s-cli:
+        substitution:
+          name: name-nodepool
+          pattern: ${name}-nodepool
+          values:
+          - marker: ${name}
+            ref: '#/definitions/io.k8s.cli.setters.name'
     io.k8s.cli.substitutions.vm-sa-ref:
       x-k8s-cli:
         substitution:

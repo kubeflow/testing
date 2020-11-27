@@ -1,0 +1,6 @@
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerCluster
+metadata:
+  name: NAME # {"$kpt-set":"name"}
+spec:
+  location: us-central1

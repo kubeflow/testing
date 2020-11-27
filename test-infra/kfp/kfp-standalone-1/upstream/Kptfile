@@ -5,9 +5,9 @@ metadata:
 upstream:
   type: git
   git:
-    commit: 81919afed545b08b671b610caa46efb037a19e47
+    commit: 6142d7ee8718ade857c5d29b149d42e4ec10b426
     repo: https://github.com/Bobgy/testing
-    directory: /gcp/packages/cluster-standard
+    directory: /gcp/packages/cluster-standard/upstream
     ref: kfp_nodepool_size
 packageMetadata:
   shortDescription: standard cluster template that uses a service account with minimum

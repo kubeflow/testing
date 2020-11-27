@@ -25,3 +25,6 @@ spec:
     preemptible: false
     serviceAccountRef:
       name: kfp-standalone-1-vm
+  nodeLocations:
+  - us-central1-a
+  - us-central1-b
