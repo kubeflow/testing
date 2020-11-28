@@ -1,0 +1,102 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-edit: "true"
+  name: kubeflow-pipeline-edit
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipeline-edit: "true"
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipeline-edit: "true"
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-view: "true"
+  name: kubeflow-pipeline-view
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipeline-view: "true"
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipeline-edit: "true"
+  name: aggregate-to-pipeline-edit
+rules:
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  - pipelines/versions
+  verbs:
+  - create
+  - delete
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - experiments
+  verbs:
+  - archive
+  - create
+  - delete
+  - unarchive
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runs
+  verbs:
+  - archive
+  - create
+  - delete
+  - retry
+  - terminate
+  - unarchive
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - disable
+  - enable
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipeline-view: "true"
+  name: aggregate-to-pipeline-view
+rules:
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  - pipelines/versions
+  - experiments
+  - runs
+  - jobs
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - viewers
+  verbs:
+  - create
+  - get
+  - delete
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - visualizations
+  verbs:
+  - create
