@@ -30,5 +30,16 @@ update-pkg-upstream: FORCE
 set-values: FORCE
 	cd $(NAME) && $(MAKE) set-values
 
+apply-configsync: FORCE
+	kubectl apply -k $(NAME)/configsync
+
+status-configsync: FORCE
+	nomos --contexts $(NAME) status
+
+connect: FORCE
+	kubectl config delete-context $(NAME) || echo "Not found"
+	gcloud container clusters get-credentials $(NAME) --region us-central1 --project kubeflow-ci-deployment
+	kubectl config rename-context $$(kubectl config current-context) $(NAME)
+
 # an empty rule forces other rules to always rerun
 FORCE: ;
