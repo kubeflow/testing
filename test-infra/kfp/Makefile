@@ -22,7 +22,7 @@ KFP_STANDALONE_1_DIR=$(ACM_REPOS)/kfp-standalone-1
 PIPELINES_VERSION=1.1.1-beta.1
 PIPELINES_SRC_REPO=https://github.com/kubeflow/pipelines.git
 
-all: hydrate hydrate-kfp-manifests
+all: hydrate hydrate-kfp-manifests vet-kfp-manifests
 
 hydrate: FORCE set-values
 	kustomize build $(NAME)/instance -o $(MGMT_DEPLOY_DIR)
@@ -58,6 +58,9 @@ hydrate-kfp-manifests: FORCE
 	rm -rf $(KFP_STANDALONE_1_DIR)
 	mkdir -p $(KFP_STANDALONE_1_DIR)
 	kubectl kustomize $(NAME)/kustomize/instance > $(KFP_STANDALONE_1_DIR)/kfp-all.yaml
+
+vet-kfp-manifests: FORCE
+	nomos vet --path=$(KFP_STANDALONE_1_DIR) --source-format unstructured
 
 # an empty rule forces other rules to always rerun
 FORCE: ;
