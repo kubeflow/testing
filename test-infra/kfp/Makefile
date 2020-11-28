@@ -63,7 +63,7 @@ vet-kfp-manifests: FORCE
 	nomos vet --path=$(KFP_STANDALONE_1_DIR) --source-format unstructured
 
 get-kfp-endpoint: FORCE
-	kubectl describe configmap inverse-proxy-config -n kubeflow | grep .pipelines.googleusercontent.com
+	@kubectl describe configmap inverse-proxy-config -n kubeflow | grep .pipelines.googleusercontent.com
 
 # an empty rule forces other rules to always rerun
 FORCE: ;
