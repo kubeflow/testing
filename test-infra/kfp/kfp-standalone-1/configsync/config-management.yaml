@@ -5,8 +5,10 @@ metadata:
 spec:
   clusterName: "gke://kubeflow-ci-deployment/us-central1/kfp-standalone-1"
   git:
-    syncRepo: "https://github.com/kubeflow/testing.git"
-    syncBranch: master
+    syncRepo: "https://github.com/Bobgy/testing.git"
+    syncBranch: kfp-standalone-1-configsync
+    # syncRepo: "https://github.com/kubeflow/testing.git"
+    # syncBranch: master
     secretType: none
     policyDir: "/acm-repos/kfp-standalone-1"
   sourceFormat: unstructured
