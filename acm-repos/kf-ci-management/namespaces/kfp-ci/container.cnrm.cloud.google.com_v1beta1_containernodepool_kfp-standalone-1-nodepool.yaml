@@ -5,7 +5,7 @@ metadata:
     app: kubeflow-pipelines
     instance: kfp-standalone-1
   name: kfp-standalone-1-nodepool
-  namespace: kubeflow-ci-deployment
+  namespace: kfp-ci
 spec:
   autoscaling:
     maxNodeCount: 3

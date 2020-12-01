@@ -9,12 +9,12 @@ PACKAGE_UPSTEAM_URL=$(REPO_URL)/gcp/packages/cluster-standard/upstream@$(GIT_REF
 # This can be uncommented for development
 # PACKAGE_URL=https://github.com/Bobgy/testing.git/gcp/packages/cluster-standard@branch
 
-export PROJECT=kubeflow-ci-deployment
+export PROJECT=kfp-ci
 export NAME=kfp-standalone-1
 
 REPO_ROOT=../..
 ACM_REPOS=$(REPO_ROOT)/acm-repos
-MGMT_DEPLOY_DIR=$(ACM_REPOS)/kf-ci-management/namespaces/kubeflow-ci-deployment
+MGMT_DEPLOY_DIR=$(ACM_REPOS)/kf-ci-management/namespaces/$(PROJECT)
 KFP_STANDALONE_1_DIR=$(ACM_REPOS)/kfp-standalone-1
 
 # Please edit the following version before running the script to pull new
@@ -46,7 +46,7 @@ status-configsync: FORCE
 
 connect: FORCE
 	kubectl config delete-context $(NAME) || echo "Not found"
-	gcloud container clusters get-credentials $(NAME) --region us-central1 --project kubeflow-ci-deployment
+	gcloud container clusters get-credentials $(NAME) --region us-central1 --project $(PROJECT)
 	kubectl config rename-context $$(kubectl config current-context) $(NAME)
 
 get-kfp-manifests: FORCE

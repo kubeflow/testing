@@ -1236,7 +1236,7 @@ data:
   containerRuntimeExecutor: docker
   dbHost: mysql
   dbPort: "3306"
-  gcsProjectId: kubeflow-ci-deployment
+  gcsProjectId: kfp-ci
   mlmdDb: metadb
   pipelineDb: mlpipeline
 kind: ConfigMap
@@ -1244,7 +1244,7 @@ metadata:
   annotations: {}
   labels:
     application-crd-id: kubeflow-pipelines
-  name: pipeline-install-config-hkb94hcb66
+  name: pipeline-install-config-ggf2d4kgk5
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -1532,17 +1532,17 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: cacheDb
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: DBCONFIG_HOST_NAME
           valueFrom:
             configMapKeyRef:
               key: dbHost
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: DBCONFIG_PORT
           valueFrom:
             configMapKeyRef:
               key: dbPort
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: DBCONFIG_USER
           valueFrom:
             secretKeyRef:
@@ -1690,17 +1690,17 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: mlmdDb
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: MYSQL_HOST
           valueFrom:
             configMapKeyRef:
               key: dbHost
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: MYSQL_PORT
           valueFrom:
             configMapKeyRef:
               key: dbPort
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         image: gcr.io/tfx-oss-public/ml_metadata_store_server:0.22.1
         livenessProbe:
           initialDelaySeconds: 3
@@ -2049,7 +2049,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: autoUpdatePipelineDefaultVersion
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
@@ -2060,7 +2060,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: bucketName
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: DBCONFIG_USER
           valueFrom:
             secretKeyRef:
@@ -2075,17 +2075,17 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: pipelineDb
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: DBCONFIG_HOST
           valueFrom:
             configMapKeyRef:
               key: dbHost
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: DBCONFIG_PORT
           valueFrom:
             configMapKeyRef:
               key: dbPort
-              name: pipeline-install-config-hkb94hcb66
+              name: pipeline-install-config-ggf2d4kgk5
         - name: OBJECTSTORECONFIG_ACCESSKEY
           valueFrom:
             secretKeyRef:

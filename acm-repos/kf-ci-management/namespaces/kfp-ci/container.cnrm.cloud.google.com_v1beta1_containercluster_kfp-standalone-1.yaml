@@ -7,7 +7,7 @@ metadata:
     app: kubeflow-pipelines
     instance: kfp-standalone-1
   name: kfp-standalone-1
-  namespace: kubeflow-ci-deployment
+  namespace: kfp-ci
 spec:
   initialNodeCount: 1
   location: us-central1

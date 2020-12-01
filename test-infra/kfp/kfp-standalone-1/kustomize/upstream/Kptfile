@@ -19,7 +19,7 @@ openAPI:
         setter:
           isSet: true
           name: gcloud.core.project
-          value: kubeflow-ci-deployment
+          value: kfp-ci
     io.k8s.cli.setters.name:
       x-k8s-cli:
         setter:

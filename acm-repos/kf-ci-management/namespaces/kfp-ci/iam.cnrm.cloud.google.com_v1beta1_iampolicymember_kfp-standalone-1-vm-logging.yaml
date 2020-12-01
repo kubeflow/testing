@@ -1,0 +1,15 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  labels:
+    app: kubeflow-pipelines
+    instance: kfp-standalone-1
+  name: kfp-standalone-1-vm-logging
+  namespace: kfp-ci
+spec:
+  member: serviceAccount:kfp-standalone-1-vm@kfp-ci.iam.gserviceaccount.com
+  resourceRef:
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    external: projects/kfp-ci
+    kind: Project
+  role: roles/logging.logWriter
