@@ -46,7 +46,7 @@ status-configsync: FORCE
 
 connect: FORCE
 	kubectl config delete-context $(NAME) || echo "Not found"
-	gcloud container clusters get-credentials $(NAME) --region us-central1 --project kubeflow-ci-deployment
+	gcloud container clusters get-credentials $(NAME) --region us-central1 --project $(PROJECT)
 	kubectl config rename-context $$(kubectl config current-context) $(NAME)
 
 get-kfp-manifests: FORCE
