@@ -4,12 +4,12 @@ metadata:
   labels:
     app: kubeflow-pipelines
     instance: kfp-standalone-1
-  name: kfp-standalone-1-vm-logging
-  namespace: kubeflow-ci-deployment
+  name: kfp-standalone-1-vm-policy-storage
+  namespace: kfp-ci
 spec:
-  member: serviceAccount:kfp-standalone-1-vm@kubeflow-ci-deployment.iam.gserviceaccount.com
+  member: serviceAccount:kfp-standalone-1-vm@kfp-ci.iam.gserviceaccount.com
   resourceRef:
     apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
-    external: projects/kubeflow-ci-deployment
+    external: projects/kfp-ci
     kind: Project
-  role: roles/logging.logWriter
+  role: roles/storage.objectViewer

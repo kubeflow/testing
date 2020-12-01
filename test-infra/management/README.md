@@ -105,61 +105,31 @@ to manage GCP infrastructure using GitOps.
 
 ### Setup KCC Namespace For Each Project
 
-You will configure Config Connector in [Namespaced Mode](https://cloud.google.com/config-connector/docs/concepts/installation-types#namespaced_mode). This means
+You will configure Config Connector in [Cluster Mode](https://cloud.google.com/config-connector/docs/concepts/installation-types#single_service_account). This means
 
 * There will be a separate namespace for each GCP project under management
 * CNRM resources will be created in the namespace matching the GCP project
   in which the resource lives.
-* There will be multiple instances of the CNRM controller each managing
-  resources in a different namespace
-* Each CNRM controller can use a different K8s account which can be bound
-  through workload identity to a different GCP Service Account with permissions to manage the project
+* There will be one single instance of the config connector bound with a single service account managing resources in all namespaces
 
 For each project you want to setup follow the instructions below.
 
 1. Create a copy of the per namespace/project resources
 
    ```
-   cp -r ./instance/install-per-project ./instance/cnrm-install-${MANAGED_PROJECT}
+   cp -r ./instance/managed-project ./instance/cnrm-install-${MANAGED_PROJECT}
    ```
+
 1. Set the project to be mananged
 
    ```
-   kpt cfg set cnrm-install-${MANAGED_PROJECT} managed_project ${MANAGED_PROJECT}
+   kpt cfg set ./instance/cnrm-install-${MANAGED_PROJECT} managed_project ${MANAGED_PROJECT}
    ```
 
-1. Set the host project where kcc is running
+1. make the kf-ci-management GSA an owner of the managed project
 
    ```
-   kpt cfg set instance/cnrm-install-${MANAGED_PROJECT} managed_gsa_name ${MANAGED_GSA_NAME}
-   kpt cfg set instance/cnrm-install-${MANAGED_PROJECT} host_project ${HOST_PROJECT}
-   kpt cfg set instance/cnrm-install-${MANAGED_PROJECt} host_id_pool ${HOST_PROJECT}.svc.id.goog
-   ```
-
-   * **MANAGED_SA_NAME** Name for the Google Service Account (GSA) to create to be used
-     with Cloud Config Connector to create resources in the managed project
-   * host_id_pool should be the workload identity pool used for the host project
-
-1. Apply this manifest to the mgmt cluster
-
-
-   ```
-   kubectl --context=$(MGMTCTXT) apply -f ./instance/cnrm-install-${PROJECT}/per-namespace-components.yaml
-   ```
-
-1. Create the GSA and workload identity binding
-
-   ```
-   anthoscli apply --project=${MANAGED_PROJECT} -f ./instance/cnrm-install-${PROJECT}/service_account.yaml
-   ```
-
-1. anthoscli doesn't support IAMPolicyMember resources yet so we use this as a workaround
-   to make the newly created GSA an owner of the hosted project
-
-   ```
-   gcloud projects add-iam-policy-binding ${MANAGED_PROJECT} \
-    --member=serviceAccount:${MANAGED_GSA_NAME}@${MANAGED_PROJECT}.iam.gserviceaccount.com  \
-    --role roles/owner
+   gcloud beta authos apply -f ./instance/cnrm-install-${MANAGED_PROJECT}/iam.yaml
    ```
 
 ## References

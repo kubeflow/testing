@@ -12,7 +12,7 @@ hydrate:
 	find $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy -type f -not -name namespace.yaml -exec rm {} ";"
 	rm -f $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy/tekton*
 	find $(REPO_DIRS)/kf-ci-v1/namespaces/kf-ci -type f -not -name namespace.yaml -o -name service-account-kf-ci.yaml -exec rm {} ";"
-	find $(REPO_DIRS)/kf-ci-management/namespaces/kubeflow-ci-deployment -type f -not -name namespace.yaml -exec rm {} ";"
+	find $(REPO_DIRS)/kf-ci-management/namespaces/kfp-ci -type f -not -name namespace.yaml -exec rm {} ";"
 
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy $(TEKTON_INSTALLS)/auto-deploy
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy test-infra/auto-deploy/manifest
