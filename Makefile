@@ -6,6 +6,9 @@ KFCI_CONTEXT=kf-ci-v1
 
 TEKTON_INSTALLS=./tekton/templates/installs
 
+.PHONY: all
+all: hydrate acm-test
+
 # Hydrate ACM repos
 .PHONY: hydrate
 hydrate:

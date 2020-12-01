@@ -26,13 +26,16 @@ all: hydrate hydrate-kfp-manifests vet-kfp-manifests
 
 hydrate: FORCE set-values
 	kustomize build $(NAME)/instance -o $(MGMT_DEPLOY_DIR)
+	kustomize build $(NAME)/upstream/services -o $(MGMT_DEPLOY_DIR)
 
 get-pkg: FORCE
 	kpt pkg get $(PACKAGE_URL) ./$(NAME)
 
 update-pkg-upstream: FORCE
-	rm -r $(NAME)/upstream
-	kpt pkg get $(PACKAGE_UPSTEAM_URL) ./$(NAME)/upstream
+	rm -rf $(NAME)/upstream
+	cp -r $(REPO_ROOT)/gcp/packages/cluster-standard/upstream ./$(NAME)/
+	# Or use the following to fetch from remote
+	# kpt pkg get $(PACKAGE_UPSTEAM_URL) ./$(NAME)/upstream
 	$(MAKE) set-values
 
 set-values: FORCE
