@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kf-ci-v1-user-cnrm-admin
+  namespace: kubeflow-ci-deployment
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cnrm-admin # this cluster role is installed with config connector
+subjects:
+- kind: User
+  name: kf-ci-v1-user@kubeflow-ci.iam.gserviceaccount.com
