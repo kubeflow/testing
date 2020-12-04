@@ -1,0 +1,12 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: ci-team
+  namespace: kfp-ci
+spec:
+  member: group:ci-team@kubeflow.org
+  role: roles/owner
+  resourceRef:
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    kind: Project
+    external: projects/kfp-ci
