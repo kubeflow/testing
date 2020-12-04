@@ -27,6 +27,7 @@ all: hydrate hydrate-kfp-manifests vet-kfp-manifests
 hydrate: FORCE set-values
 	kustomize build $(NAME)/instance -o $(MGMT_DEPLOY_DIR)
 	kustomize build $(NAME)/upstream/services -o $(MGMT_DEPLOY_DIR)
+	cp iam/iam.yaml $(MGMT_DEPLOY_DIR)/
 
 get-pkg: FORCE
 	kpt pkg get $(PACKAGE_URL) ./$(NAME)
