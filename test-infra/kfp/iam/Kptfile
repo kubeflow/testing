@@ -1,0 +1,20 @@
+apiVersion: kpt.dev/v1alpha1
+kind: Kptfile
+metadata:
+  name: kfp-ci-iam
+openAPI:
+  definitions:
+    io.k8s.cli.setters.name:
+      x-k8s-cli:
+        setter:
+          isSet: true
+          name: name
+          value: kfp-standalone-1
+    io.k8s.cli.substitutions.name-sa:
+      x-k8s-cli:
+        substitution:
+          name: name-sa
+          pattern: ${name}-vm
+          values:
+          - marker: ${name}
+            ref: '#/definitions/io.k8s.cli.setters.name'
