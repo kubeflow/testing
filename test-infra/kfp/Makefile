@@ -40,6 +40,7 @@ update-pkg-upstream: FORCE
 	$(MAKE) set-values
 
 set-values: FORCE
+	kpt cfg set ./iam name "$(NAME)"
 	cd $(NAME) && $(MAKE) set-values
 
 apply-configsync: FORCE
