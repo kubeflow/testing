@@ -49,6 +49,8 @@
 
 This directory contains the Kubeflow test Infrastructure.
 
+> Note: If you're using Optional-Test-Infra for kubeflow, please [check](https://github.com/kubeflow/testing/blob/master/aws/README.md)
+
 We use [Prow](https://github.com/kubernetes/test-infra/tree/master/prow),
 K8s' continuous integration tool.
 

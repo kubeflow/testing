@@ -1,0 +1,189 @@
+prowjob_namespace: prow
+pod_namespace: test-pods
+
+in_repo_config:
+  enabled:
+    "*": true
+
+deck:
+ spyglass:
+   lenses:
+   - lens:
+       name: metadata
+     required_files:
+     - started.json|finished.json
+   - lens:
+       config:
+       name: buildlog
+     required_files:
+     - build-log.txt
+   - lens:
+       name: junit
+     required_files:
+     - .*/junit.*\.xml
+   - lens:
+       name: podinfo
+     required_files:
+     - podinfo.json
+
+plank:
+  job_url_prefix_config:
+    "*": http://8069b97e-prow-prow-6530-1439048706.us-west-2.elb.amazonaws.com/view/
+  job_url_template: 'http://8069b97e-prow-prow-6530-1439048706.us-west-2.elb.amazonaws.com/view/s3/aws-kubernetes-jenkins/pr-logs/pull/{{.Spec.Refs.Org}}_{{.Spec.Refs.Repo}}/{{with index .Spec.Refs.Pulls 0}}{{.Number}}{{end}}/{{.Spec.Job}}/{{.Status.BuildID}}'
+  report_templates:
+    '*': >-
+        [Full PR test history](http://8069b97e-prow-prow-6530-1439048706.us-west-2.elb.amazonaws.com/pr-history?org={{.Spec.Refs.Org}}&repo={{.Spec.Refs.Repo}}&pr={{with index .Spec.Refs.Pulls 0}}{{.Number}}{{end}}).
+        [Your PR dashboard](http://8069b97e-prow-prow-6530-1439048706.us-west-2.elb.amazonaws.com/pr?query=is:pr+state:open+author:{{with
+        index .Spec.Refs.Pulls 0}}{{.Author}}{{end}}).
+  default_decoration_configs:
+    "*":
+      gcs_configuration:
+        bucket: s3://aws-kubernetes-jenkins
+        path_strategy: explicit
+      s3_credentials_secret: s3-credentials
+      utility_images:
+        clonerefs: gcr.io/k8s-prow/clonerefs:v20200825-967ee0e48b
+        entrypoint: gcr.io/k8s-prow/entrypoint:v20200825-967ee0e48b
+        initupload: gcr.io/k8s-prow/initupload:v20200825-967ee0e48b
+        sidecar: gcr.io/k8s-prow/sidecar:v20200825-967ee0e48b
+
+github_reporter:
+  job_types_to_report:
+  - presubmit
+  - postsubmit
+
+presets:
+# credential presets
+- labels:
+  preset-aws-cred: "true"
+  env:
+  - name: CLOUD_PROVIDER
+    value: aws
+  - name: AWS_DEFAULT_REGION
+    value: us-west-2
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: aws-credentials
+        key: AWS_ACCESS_KEY_ID
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: aws-credentials
+        key: AWS_SECRET_ACCESS_KEY
+  - name: AWS_EKS_CLUSTER
+    value: kubeflow-shared-test-infra-poc-argo
+
+
+decorate_all_jobs: true
+periodics:
+- interval: 24h
+  agent: kubernetes
+  name: kubeflow-manifests-master-periodic
+  decorate: true
+  labels:
+    preset-aws-cred: "true"
+  spec:
+    containers:
+    - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:v1.2-branch
+      imagePullPolicy: Always
+      command: ["/usr/local/bin/run_workflows.sh"]
+      env:
+      # USER Modified ENVS
+      - name: REPO_OWNER
+        value: kubeflow
+      - name: REPO_NAME
+        value: manifests
+      - name: BRANCH_NAME
+        value: master
+
+- interval: 24h
+  agent: kubernetes
+  name: kubeflow-manifests-1-2-periodic
+  decorate: true
+  spec:
+    containers:
+    - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:v1.2-branch
+      imagePullPolicy: Always
+      command: ["/usr/local/bin/run_workflows.sh"]
+      env:
+      # USER Modified ENVS
+      - name: REPO_OWNER
+        value: kubeflow
+      - name: REPO_NAME
+        value: manifests
+      - name: BRANCH_NAME
+        value: v1.2-branch
+
+presubmits:
+  kubeflow/katib:
+  - name: kubeflow-katib-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    branches:
+    - master
+    decorate: false
+    labels:
+      preset-aws-cred: "true"
+    always_run: true
+    spec:
+      containers:
+      - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/run_workflows.sh"]
+
+  kubeflow/kfctl:
+  - name: kubeflow-kfctl-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    branches:
+    - master
+    - v1.2-branch
+    decorate: false
+    labels:
+      preset-aws-cred: "true"
+    always_run: true
+    spec:
+      containers:
+      - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:v1.2-branch
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/run_workflows.sh"]
+
+  kubeflow/kfserving:
+  - name: kubeflow-kfserving-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    branches:
+    - master
+    decorate: false
+    labels:
+      preset-aws-cred: "true"
+    always_run: true
+    spec:
+      containers:
+      - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:v1.2-branch
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/run_workflows.sh"]
+
+  kubeflow/manifests:
+  - name: kubeflow-manifests-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    branches:
+    - master
+    - v1.2-branch
+    decorate: false
+    labels:
+      preset-aws-cred: "true"
+    always_run: true
+    spec:
+      containers:
+      - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/run_workflows.sh"]
+
+  kubeflow/pytorch-operator:
+  - name: kubeflow-pytorch-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    branches:
+    - master
+    decorate: false
+    labels:
+      preset-aws-cred: "true"
+    always_run: true
+    spec:
+      containers:
+      - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/run_workflows.sh"]
