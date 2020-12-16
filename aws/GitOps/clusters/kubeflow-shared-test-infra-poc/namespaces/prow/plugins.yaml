@@ -1,0 +1,16 @@
+apiVersion: v1
+data:
+  config.yaml: |
+    triggers:
+    - repos:
+      - kubeflow
+      join_org_url: "https://github.com/kubeflow/kubeflow/blob/master/CONTRIBUTING.md"
+      only_org_members: true
+    plugins:
+      kubeflow:
+      - trigger
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: plugins
+  namespace: prow
