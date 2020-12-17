@@ -21,7 +21,7 @@ Here's how it works
   * Each step in the Argo workflow or Each task in the Tekton Pipelinerun will be a binary invoked inside a container
   * The Argo workflow will use an NFS volume to attach a shared POSIX compliant filesystem to each step in the
     workflow.
-  * Each step in the pipeline can write outputs and junit.xml files to a test directory in the volume
+    * Each step in the pipeline can write outputs and junit.xml files to a test directory in the volume
   * A final step in the Argo pipeline / Tekton Pipelinerun will upload the outputs to S3 so they are available in spyglass
 
 Quick Links
@@ -37,7 +37,6 @@ Quick Links
   to trigger an Argo workflow / Tekton Pipelinerun that checks out our code and runs our tests.
 * Our tests are structured as Argo workflows / Tekton Pipelinerun so that we can easily perform steps in parallel.
 * The Argo workflow / Tekton Pipelinerun is defined in the repository being tested
-   * We always use the worfklow / pipelinerun at the commit being tested
 * [checkout.sh](https://github.com/kubeflow/testing/blob/master/images/checkout.sh) is used to checkout the code being tested
    * This also checks out [kubeflow/testing](https://github.com/kubeflow/testing/) so that all repositories can
      rely on it for shared tools.

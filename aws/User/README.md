@@ -20,7 +20,7 @@ clusters
 ## Add Prow jobs in Optional-Test-Infra
 Add specific prows jobs in [config.yaml](https://github.com/kubeflow/testing/tree/master/aws/User/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/configmap/config.yaml) file
 
-## Add Tekton Resources in Argo cluster
+## Add Argo Resources in Argo cluster
 Add expected yaml files in [argo folder](https://github.com/kubeflow/testing/tree/master/aws/User/clusters/kubeflow-shared-test-infra-poc-argo/namespaces/argo/)
 
 ## Add Tekton Resources in Tekton cluster
