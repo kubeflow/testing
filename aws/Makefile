@@ -16,7 +16,7 @@ optional-generate-kubeflow-shared-test-infra-poc:
 	--dry-run=client -o yaml > \
 	${OPTIONAL_TEST_INFRA_REPO_DIRS}/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/config.yaml
 	kubectl -n prow create configmap plugins \
-	--from-file=config.yaml=./User/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/configmap/plugins.yaml \
+	--from-file=plugins.yaml=./User/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/configmap/plugins.yaml \
 	--dry-run=client -o yaml > \
 	${OPTIONAL_TEST_INFRA_REPO_DIRS}/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/plugins.yaml
 	echo "Finish generating yaml files for kubeflow-shared-test-infra-poc cluster"
