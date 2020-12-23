@@ -17,6 +17,11 @@ clusters
   ...
 ```
 
+For each namespace fold, we have an `installs` sub-folder as a reference for users, which includes specific installation manifests.
+
+TODO(PatrickXYS):
+- Add guidance to replicate same test-infra as optional-test-infra
+
 ## Add Prow jobs in Optional-Test-Infra
 Add specific prows jobs in [config.yaml](https://github.com/kubeflow/testing/tree/master/aws/User/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/configmap/config.yaml) file
 
