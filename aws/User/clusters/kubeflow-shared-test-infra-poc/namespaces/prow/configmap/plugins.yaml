@@ -6,3 +6,5 @@ triggers:
 plugins:
   kubeflow:
   - trigger
+  PatrickXYS-testing:
+  - trigger
