@@ -5,7 +5,7 @@ Resolves #
 
 
 **Checklist:**
-<br> If PR related to **Optional-Test-Infra**,
+If PR related to **Optional-Test-Infra**,
 
 - [ ] Changes have been generated to `aws/GitOps` folder: 
     1. `cd aws`
