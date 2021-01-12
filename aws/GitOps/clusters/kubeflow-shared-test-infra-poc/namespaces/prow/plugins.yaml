@@ -9,6 +9,8 @@ data:
     plugins:
       kubeflow:
       - trigger
+      PatrickXYS-testing:
+      - trigger
 kind: ConfigMap
 metadata:
   creationTimestamp: null
