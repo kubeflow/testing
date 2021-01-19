@@ -7,6 +7,9 @@ optional-generate:
 	make optional-generate-kubeflow-shared-test-infra-poc
 	make optional-generate-kubeflow-shared-test-infra-poc-argo
 	make optional-generate-kubeflow-shared-test-infra-poc-tekton
+	make optional-generate-optional-test-infra-prow
+	make optional-generate-optional-test-infra-argo
+	make optional-generate-optional-test-infra-tekton
 
 # Generate YAML files for Optional-Test-Infra GitOps for kubeflow-shared-test-infra-poc cluster
 optional-generate-kubeflow-shared-test-infra-poc:
@@ -40,5 +43,34 @@ optional-generate-kubeflow-shared-test-infra-poc-tekton:
 	####
 	echo "Finish generating yaml files for kubeflow-shared-test-infra-poc-tekton cluster"
 
+# Generate YAML files for Optional-Test-Infra GitOps for optional-test-infra-prow cluster
+optional-generate-optional-test-infra-prow:
+	echo "Start generating yaml files for optional-test-infra-prow cluster"
+	rm -rf ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-prow/namespaces/prow/*
+	kubectl -n prow create configmap config \
+	--from-file=config.yaml=./User/clusters/optional-test-infra-prow/namespaces/prow/configmap/config.yaml \
+	--dry-run=client -o yaml > \
+	${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-prow/namespaces/prow/config.yaml
+	kubectl -n prow create configmap plugins \
+	--from-file=plugins.yaml=./User/clusters/optional-test-infra-prow/namespaces/prow/configmap/plugins.yaml \
+	--dry-run=client -o yaml > \
+	${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-prow/namespaces/prow/plugins.yaml
+	echo "Finish generating yaml files for optional-test-infra-prow cluster"
 
+# Generate YAML files for Optional-Test-Infra GitOps for optional-test-infra-argo cluster
+optional-generate-optional-test-infra-argo:
+	echo "Start generating yaml files for optional-test-infra-argo cluster"
+	rm -rf ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-argo/namespaces/argo/*
+	####
+	# Add Logic to copy yaml files here
+	####
+	echo "Finish generating yaml files for optional-test-infra-argo cluster"
 
+# Generate YAML files for Optional-Test-Infra GitOps for optional-test-infra-tekton cluster
+optional-generate-optional-test-infra-tekton:
+	echo "Start generating yaml files for optional-test-infra-tekton cluster"
+	rm -rf ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/argo/*
+	####
+	# Add Logic to copy yaml files here
+	####
+	echo "Finish generating yaml files for optional-test-infra-tekton cluster"
