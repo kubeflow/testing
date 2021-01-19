@@ -24,10 +24,14 @@ hydrate:
 	cd test-infra/kfp && make all
 
 # Make sure there are no nomos errors
-.PHONY:
+.PHONY: acm-test
 acm-test:
 	nomos vet --no-api-server-check --path=acm-repos/kf-ci-management
 	nomos vet --no-api-server-check --path=acm-repos/kf-ci-v1
+
+.PHONY: acm-status
+acm-status:
+	nomos status --contexts=kf-ci-management,kfp-standalone-1
 
 # This applies your local changes to tekton components to the kf-ci-dev namespace.
 # This allows you to test changes manually before your pipelines are submitted.
