@@ -7,6 +7,8 @@ metadata:
     mesh_id: issue-label-bot-dev_us-central1_code-intelligence
   name: code-intelligence
   namespace: issue-label-bot-dev
+  annotations:
+    cnrm.cloud.google.com/remove-default-node-pool: "true"
 spec:
   clusterAutoscaling:
     autoProvisioningDefaults:
