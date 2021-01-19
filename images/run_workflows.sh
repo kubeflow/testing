@@ -25,6 +25,7 @@ else
     python -m kubeflow.testing.run_e2e_workflow \
       --cluster=${AWS_EKS_CLUSTER:-"kubeflow-shared-test-infra-poc-argo"} \
       --bucket=${ARTIFACTS_S3_BUCKET:-"aws-kubernetes-jenkins"} \
+      --aws_argo_cluster_endpoint=${ARGO_ENDPOINT:-"http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com"} \
       --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
       --repos_dir=/src \
       --cloud_provider=aws \

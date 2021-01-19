@@ -9,7 +9,8 @@ import json
 import os
 import six
 import time
-from google.cloud import storage  # pylint: disable=no-name-in-module
+if not os.getenv("CLOUD_PROVIDER") or os.getenv("CLOUD_PROVIDER") == "gcp":
+  from google.cloud import storage  # pylint: disable=no-name-in-module
 from kubeflow.testing import test_util
 from kubeflow.testing import util
 

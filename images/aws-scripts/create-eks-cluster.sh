@@ -26,11 +26,6 @@ EKS_CLUSTER_NAME="${CLUSTER_NAME}"
 # TODO (PatrickXYS): Need to determine which NG template we need
 eksctl create cluster \
 --name $EKS_CLUSTER_NAME \
---version ${EKS_CLUSTER_VERSION:-"1.17"} \
+--version ${EKS_CLUSTER_VERSION:-"1.18"} \
 --region ${AWS_REGION:-"us-west-2"} \
---nodegroup-name linux-nodes \
---node-type ${EKS_NODE_TYPE:-"m5.xlarge"} \
---nodes ${DESIRED_NODE:-"2"} \
---nodes-min ${MIN_NODE:-"1"} \
---nodes-max ${MAX_NODE:-"4"} \
 --managed
