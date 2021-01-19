@@ -4,13 +4,12 @@ This doc describes how to onboard new kubeflow repository using optional-test-in
 
 ## Preparations
 1. Grant repo access to aws-kf-ci-bot, check [PR](https://github.com/kubeflow/internal-acls/pull/373)
-2. Add Webhook to the repo, ping YaoXiao@ for help [TODO(PatrickXYS): Need to be automated]
-3. Configure Presubmit on Optional-Test-Infra Prow Cluster, check [config.yaml](https://github.com/kubeflow/testing/blob/master/aws/User/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/configmap/config.yaml#L119-L131)
+2. Configure Presubmit on Optional-Test-Infra Prow Cluster, check [config.yaml](https://github.com/kubeflow/testing/blob/master/aws/User/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/configmap/config.yaml#L119-L131)
 
 ## Instructions 
 A geneic Argo Workflow / Tekton Pipelinerun diagram attached [here](https://github.com/kubeflow/testing/tree/master/aws/Picture/GenericArgoWorkflow.png)
 
-Below is the steps for WG who want to write a simple E2E test cases
+Below are the steps for WG who want to write a generic E2E test cases
 
 1. setup_cluster or tear_down cluster. You can remove all GCP settings and use [these scripts](https://github.com/kubeflow/testing/tree/master/images/aws-scripts) instead, scripts have been built into the test image.
    <br> If you need GPU instances, feel free to check [here](https://github.com/kubeflow/testing/blob/master/images/aws-scripts/create-eks-cluster.sh#L32) to pass P3.2xlarge as instance type. (I would recommend not using GPU for now)
