@@ -4,7 +4,7 @@ metadata:
   clusterName: issue-label-bot-dev/us-central1/code-intelligence
   labels:
     kf-name: code-intelligence
-  name: code-intelligence-cpu-pool-v1
+  name: code-intelligence-cpu-pool-v2
   namespace: issue-label-bot-dev
 spec:
   autoscaling:
