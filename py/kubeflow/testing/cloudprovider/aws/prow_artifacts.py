@@ -1,5 +1,4 @@
 """Script to create artifacts needed by Gubernator.
-
 For reference see:
 https://github.com/kubernetes/test-infra/tree/master/gubernator
 """
@@ -14,10 +13,15 @@ import boto3
 
 from kubeflow.testing.cloudprovider.aws import util as aws_util
 
+# The default bucket where we should upload artifacts to in
+# prow. Currently AWS test-grid and spyglass are looking at the aws-kubernetes-jenkins bucket
+AWS_PROW_RESULTS_BUCKET = "aws-kubernetes-jenkins"
 
+# TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
+# version. We should do that when we switch tensorflow/k8s to use Argo instead
+# of Airflow.
 def create_started(ui_urls):
   """Return a string containing the contents of started.json for gubernator.
-
   ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI
       for the workflows launched.
   """
@@ -57,9 +61,11 @@ def create_started(ui_urls):
   return json.dumps(started)
 
 
+# TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
+# version. We should do that when we switch tensorflow/k8s to use Argo instead
+# of Airflow.
 def create_finished(success, workflow_phase, ui_urls):
   """Create a string containing the contents for finished.json.
-
   Args:
     success: Bool indicating whether the workflow succeeded or not.
     workflow_phase: Dictionary of workflow name to phase.
@@ -174,7 +180,6 @@ def copy_artifacts_to_s3(args):
 
 def create_pr_symlink_s3(args):
   """Create a 'symlink' in S3 pointing at the results for a PR.
-
   This is a null op if PROW environment variables indicate this is not a PR
   job.
   """
@@ -234,13 +239,10 @@ def check_no_errors_s3(s3_client, artifacts_dir):
 
   return no_errors
 
-
 def finalize_prow_job_to_s3(bucket, workflow_success, workflow_phase, ui_urls):
   """Finalize a prow job.
-
   Finalizing a PROW job consists of determining the status of the
   prow job by looking at the junit files and then creating finished.json.
-
   Args
     bucket: The S3 bucket where results are stored.
     workflow_success: Bool indicating whether the job should be considered succeeded or failed.
@@ -270,3 +272,94 @@ def finalize_prow_job_to_s3(bucket, workflow_success, workflow_phase, ui_urls):
 
   return test_success
 
+
+def main(unparsed_args=None):  # pylint: disable=too-many-locals
+  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+  # create the top-level parser
+  parser = argparse.ArgumentParser(
+    description="Create prow artifacts.")
+
+  parser.add_argument(
+    "--artifacts_dir",
+    default="",
+    type=str,
+    help="Directory to use for all the gubernator artifacts.")
+
+  subparsers = parser.add_subparsers()
+
+  #############################################################################
+  # Copy artifacts to S3.
+  parser_copy = subparsers.add_parser(
+    "copy_artifacts_to_s3", help="Copy the artifacts.")
+
+  parser_copy.add_argument(
+    "--bucket",
+    default=AWS_PROW_RESULTS_BUCKET,
+    type=str,
+    help="S3 Bucket to copy the artifacts to.")
+
+  parser_copy.add_argument(
+    "--suffix",
+    default="",
+    type=str,
+    help=("Optional if supplied add this suffix to the names of all artifact "
+          "files before copying them to the S3 bucket."))
+
+  parser_copy.set_defaults(func=copy_artifacts_to_s3)
+
+  #############################################################################
+  # Create the pr symlink S3.
+  parser_link = subparsers.add_parser(
+    "create_pr_symlink_s3", help="Create a symlink pointing at PR output dir in S3; null "
+                           "op if prow job is not a presubmit job.")
+
+  parser_link.add_argument(
+    "--bucket",
+    default=AWS_PROW_RESULTS_BUCKET,
+    type=str,
+    help="S3 Bucket to copy the artifacts to")
+
+  parser_link.set_defaults(func=create_pr_symlink_s3)
+
+  #############################################################################
+  # Process the command line arguments.
+
+  # Parse the args
+  args = parser.parse_args(args=unparsed_args)
+
+  # Setup a logging file handler. This way we can upload the log outputs
+  # to gubernator.
+  root_logger = logging.getLogger()
+
+  test_log = os.path.join(os.path.join(args.artifacts_dir, "artifacts"),
+                          "logs", "prow_artifacts." + args.func.__name__ +
+                          ".log")
+  if not os.path.exists(os.path.dirname(test_log)):
+    try:
+      os.makedirs(os.path.dirname(test_log))
+    # Ignore OSError because sometimes another process
+    # running in parallel creates this directory at the same time
+    except OSError:
+      pass
+
+
+  file_handler = logging.FileHandler(test_log)
+  root_logger.addHandler(file_handler)
+  # We need to explicitly set the formatter because it will not pick up
+  # the BasicConfig.
+  formatter = logging.Formatter(fmt=("%(levelname)s|%(asctime)s"
+                                     "|%(pathname)s|%(lineno)d| %(message)s"),
+                                datefmt="%Y-%m-%dT%H:%M:%S")
+  file_handler.setFormatter(formatter)
+  logging.info("Logging to %s", test_log)
+
+  args.func(args)
+
+if __name__ == "__main__":
+  logging.basicConfig(level=logging.INFO,
+                      format=('%(levelname)s|%(asctime)s'
+                              '|%(pathname)s|%(lineno)d| %(message)s'),
+                      datefmt='%Y-%m-%dT%H:%M:%S',
+                      )
+  logging.getLogger().setLevel(logging.INFO)
+  main()
