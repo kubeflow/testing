@@ -13,6 +13,7 @@ optional-generate:
 
 # Validate if optional-generate runs
 optional-test:
+	rm -rf ./tmp
 	mkdir ./tmp
 	make optional-generate OPTIONAL_TEST_INFRA_GITOPS_DIRS=./tmp
 	diff -x '*.md'  ./tmp ./GitOps
@@ -24,11 +25,11 @@ optional-generate-kubeflow-shared-test-infra-poc:
 	echo "Start generating yaml files for kubeflow-shared-test-infra-poc cluster"
 	rm -rf ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/*
 	mkdir -p ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/
-	kubectl -n prow create configmap config \
+	kubectl -n prow --kubeconfig=./testing/fake-kubeconfig/config.yaml create configmap config \
 	--from-file=config.yaml=./User/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/configmap/config.yaml \
 	--dry-run=client -o yaml > \
 	${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/config.yaml
-	kubectl -n prow create configmap plugins \
+	kubectl -n prow --kubeconfig=./testing/fake-kubeconfig/config.yaml create configmap plugins \
 	--from-file=plugins.yaml=./User/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/configmap/plugins.yaml \
 	--dry-run=client -o yaml > \
 	${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/kubeflow-shared-test-infra-poc/namespaces/prow/plugins.yaml
@@ -62,11 +63,11 @@ optional-generate-optional-test-infra-prow:
 	echo "Start generating yaml files for optional-test-infra-prow cluster"
 	rm -rf ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-prow/namespaces/prow/*
 	mkdir -p ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-prow/namespaces/prow/
-	kubectl -n prow create configmap config \
+	kubectl -n prow --kubeconfig=./testing/fake-kubeconfig/config.yaml create configmap config \
 	--from-file=config.yaml=./User/clusters/optional-test-infra-prow/namespaces/prow/configmap/config.yaml \
 	--dry-run=client -o yaml > \
 	${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-prow/namespaces/prow/config.yaml
-	kubectl -n prow create configmap plugins \
+	kubectl -n prow --kubeconfig=./testing/fake-kubeconfig/config.yaml create configmap plugins \
 	--from-file=plugins.yaml=./User/clusters/optional-test-infra-prow/namespaces/prow/configmap/plugins.yaml \
 	--dry-run=client -o yaml > \
 	${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-prow/namespaces/prow/plugins.yaml
