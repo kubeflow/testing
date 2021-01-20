@@ -165,7 +165,6 @@ data:
       kubeflow/manifests:
       - name: kubeflow-manifests-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:
-        - master
         - v1.2-branch
         decorate: false
         labels:
