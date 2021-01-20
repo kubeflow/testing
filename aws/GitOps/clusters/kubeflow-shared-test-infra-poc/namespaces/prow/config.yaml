@@ -136,7 +136,6 @@ data:
       kubeflow/kfctl:
       - name: kubeflow-kfctl-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:
-        - master
         - v1.2-branch
         decorate: false
         labels:
