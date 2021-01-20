@@ -1,0 +1,67 @@
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: /apps-cd
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: docker
+    directory: /go
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: docker
+    directory: /images
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: docker
+    directory: /notebook_testing
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: docker
+    directory: /test-infra/auto-deploy
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: npm
+    directory: /py/kubeflow/testing/node-license-tools
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: pip
+    directory: /apps-cd
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: pip
+    directory: /py
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: pip
+    directory: /py/kubeflow/testing
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: pip
+    directory: /test-infra/auto-deploy
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: /go
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: /go/cmd/nomos-wait
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: /tests
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
