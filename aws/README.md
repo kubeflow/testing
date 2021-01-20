@@ -9,3 +9,4 @@ Each sub-folder refer to different functionality for Optional-Test-Infra
 * **GitOps**: ArgoCD sync changes in the folder to update cluster resources
 * **Doc**: documentations for optional-test-infra
 * **Picture**: pictures embedded in the documentations
+* **testing**: testing artifacts storage

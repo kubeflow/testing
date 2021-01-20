@@ -10,7 +10,7 @@ contexts:
     namespace: default
     user: fake-user
   name: fake-context
-current-context: ""
+current-context: "fake-context"
 kind: Config
 preferences: {}
 users:
