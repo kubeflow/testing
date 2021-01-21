@@ -16,10 +16,14 @@ hydrate:
 	rm -f $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy/tekton*
 	find $(REPO_DIRS)/kf-ci-v1/namespaces/kf-ci -type f -not -name namespace.yaml -o -name service-account-kf-ci.yaml -exec rm {} ";"
 	find $(REPO_DIRS)/kf-ci-management/namespaces/kfp-ci -type f -not -name namespace.yaml -exec rm {} ";"
+	rm -rf $(REPO_DIRS)/kf-ci-v1/namespaces/test-pods
+	mkdir -p $(REPO_DIRS)/kf-ci-v1/namespaces/test-pods
 
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy $(TEKTON_INSTALLS)/auto-deploy
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/auto-deploy test-infra/auto-deploy/manifest
 	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/kf-ci $(TEKTON_INSTALLS)/kf-ci
+	kustomize build -o $(REPO_DIRS)/kf-ci-v1/namespaces/test-pods test-infra/kf-ci-v1/test-pods
+	cp test-infra/kf-ci-v1/test-pods/namespace.yaml $(REPO_DIRS)/kf-ci-v1/namespaces/test-pods/
 	cd test-infra/cleanup && $(MAKE) hydrate
 	cd test-infra/kfp && make all
 

@@ -1,0 +1,5 @@
+# Namespace to run prow test pods.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-pods

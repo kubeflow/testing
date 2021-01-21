@@ -28,6 +28,7 @@ limitations under the License.
 {% set KF_ADMIN_NAME = NAME_PREFIX + '-admin' %}
 {% set KF_USER_NAME = NAME_PREFIX + '-user' %}
 {% set KF_VM_SA_NAME = NAME_PREFIX + '-vm' %}
+{% set PROW_SA_NAME = NAME_PREFIX + '-prow' %}
 
 resources:
 - name: {{ KF_ADMIN_NAME }}
@@ -47,6 +48,18 @@ resources:
   properties:
     accountId: {{ KF_VM_SA_NAME }}
     displayName: GCP Service Account to use as VM Service Account for Kubeflow Cluster VMs
+
+- name: {{ PROW_SA_NAME }}
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: {{ PROW_SA_NAME }}
+    displayName: GCP Service Account for Kubeflow prow test infra.
+  accessControl:
+    gcpIamPolicy:
+      bindings:
+      - role: roles/iam.workloadIdentityUser
+        members:
+        - serviceAccount:{{ env['project'] }}.svc.id.goog[test-pods/default]
 
 - name: {{ CLUSTER_NAME }}
   {% if properties['gkeApiVersion'] == 'v1beta1' %}
@@ -99,7 +112,7 @@ resources:
         autoprovisioningNodePoolDefaults:
           oauthScopes: {{ VM_OAUTH_SCOPES }}
           serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
-          
+
         resourceLimits:
         - resourceType: 'cpu'
           maximum: {{ properties['autoprovisioning-config']['max-cpu'] }}
