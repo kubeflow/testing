@@ -1,5 +1,4 @@
 """Script to create artifacts needed by Gubernator.
-
 For reference see:
 https://github.com/kubernetes/test-infra/tree/master/gubernator
 """
@@ -23,7 +22,6 @@ AWS_PROW_RESULTS_BUCKET = "aws-kubernetes-jenkins"
 # of Airflow.
 def create_started(ui_urls):
   """Return a string containing the contents of started.json for gubernator.
-
   ui_urls: Dictionary of workflow name to URL corresponding to the Argo UI
       for the workflows launched.
   """
@@ -68,7 +66,6 @@ def create_started(ui_urls):
 # of Airflow.
 def create_finished(success, workflow_phase, ui_urls):
   """Create a string containing the contents for finished.json.
-
   Args:
     success: Bool indicating whether the workflow succeeded or not.
     workflow_phase: Dictionary of workflow name to phase.
@@ -183,7 +180,6 @@ def copy_artifacts_to_s3(args):
 
 def create_pr_symlink_s3(args):
   """Create a 'symlink' in S3 pointing at the results for a PR.
-
   This is a null op if PROW environment variables indicate this is not a PR
   job.
   """
@@ -245,10 +241,8 @@ def check_no_errors_s3(s3_client, artifacts_dir):
 
 def finalize_prow_job_to_s3(bucket, workflow_success, workflow_phase, ui_urls):
   """Finalize a prow job.
-
   Finalizing a PROW job consists of determining the status of the
   prow job by looking at the junit files and then creating finished.json.
-
   Args
     bucket: The S3 bucket where results are stored.
     workflow_success: Bool indicating whether the job should be considered succeeded or failed.

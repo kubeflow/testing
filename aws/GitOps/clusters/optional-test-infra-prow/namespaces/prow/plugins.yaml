@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  plugins.yaml: |
+    plugins:
+      PatrickXYS-testing:
+      - trigger
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: plugins
+  namespace: prow

@@ -153,6 +153,7 @@ def parse_config_file(config_file, root_dir):
     components.append(WorkflowComponent(root_dir, i))
   return config, components
 
+
 def generate_env_from_head(args):
   commit = util.run(["git", "rev-parse", "HEAD"], cwd=os.path.join(
     args.repos_dir, os.getenv("REPO_OWNER"), os.getenv("REPO_NAME")))
@@ -170,6 +171,7 @@ def generate_env_from_head(args):
     if os.getenv(k):
       continue
     os.environ[k] = env_var.get(k)
+
 
 def run(args, file_handler): # pylint: disable=too-many-statements,too-many-branches
   # Check https://github.com/kubernetes/test-infra/blob/master/prow/jobs.md
@@ -396,7 +398,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
                   "?tab=workflow".format(workflow_name))
       elif args.cloud_provider == "aws":
         ui_url = (
-          "http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com"
+          args.aws_argo_cluster_endpoint +
           "/workflows/kubeflow-test-infra/{0}"
           "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
@@ -486,7 +488,7 @@ def run(args, file_handler): # pylint: disable=too-many-statements,too-many-bran
         ui_url = ("http://testing-argo.kubeflow.org/workflows/kubeflow-test-infra/{0}"
                 "?tab=workflow".format(workflow_name))
       elif args.cloud_provider == "aws":
-        ui_url = ("http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com/workflows/kubeflow-test-infra/{0}" # pylint: disable=line-too-long
+        ui_url = (args.aws_argo_cluster_endpoint + "/workflows/kubeflow-test-infra/{0}"  # pylint: disable=line-too-long
                 "?tab=workflow".format(workflow_name))
       ui_urls[workflow_name] = ui_url
       logging.info("URL for workflow: %s", ui_url)
@@ -665,7 +667,22 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     "--aws_region",
     type=str,
     default="us-west-2",
-    help="region containing the EKS cluster to use to run the workflow."
+    help="Region containing the EKS cluster to use to run the workflow."
+  )
+
+  # TODO (PatrickXYS): change default to https://argo.kubeflow-testing.com after migration
+  parser.add_argument(
+    "--aws_argo_cluster_endpoint",
+    type=str,
+    default="http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com",
+    help="Endpoint of AWS Argo Cluster"
+  )
+
+  parser.add_argument(
+    "--aws_tekton_cluster_endpoint",
+    type=str,
+    default="PLACEHOLDER",
+    help="Endpoint of AWS Tekton Cluster"
   )
 
   #############################################################################

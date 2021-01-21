@@ -12,12 +12,13 @@ import time
 import urllib
 import yaml
 
-import google.auth
-import google.auth.transport
-import google.auth.transport.requests
-from google.cloud import storage  # pylint: disable=no-name-in-module
+if not os.getenv("CLOUD_PROVIDER") or os.getenv("CLOUD_PROVIDER") == "gcp":
+  import google.auth
+  import google.auth.transport
+  import google.auth.transport.requests
+  from google.cloud import storage  # pylint: disable=no-name-in-module
+  from googleapiclient import errors
 
-from googleapiclient import errors
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from kubernetes.config import kube_config

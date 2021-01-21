@@ -1,0 +1,23 @@
+name: Unit Test
+
+on:
+  push:
+    paths:
+      - 'aws/**'
+  pull_request:
+    paths:
+      - 'aws/**'
+
+jobs:
+  build:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repo
+      uses: actions/checkout@v2
+
+    - name: Unit Test
+      run: |
+        cd aws
+        make optional-test
