@@ -35,7 +35,7 @@ acm-test:
 
 .PHONY: acm-status
 acm-status:
-	nomos status --contexts=kf-ci-management,kfp-standalone-1
+	nomos status --contexts=kf-ci-management,kfp-standalone-1,kf-ci-v1
 
 # This applies your local changes to tekton components to the kf-ci-dev namespace.
 # This allows you to test changes manually before your pipelines are submitted.
