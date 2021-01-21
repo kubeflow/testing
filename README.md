@@ -42,6 +42,7 @@
     - [Step Image](#step-image)
     - [Checking out code](#checking-out-code)
     - [Building Docker Images](#building-docker-images)
+  - [Creating dependabot config yaml for this repo](#Creating-dependabot-config-yaml-for-this-repo)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1108,3 +1109,7 @@ is
   * TAG used for the images
 
 * Argo workflow should define the image paths and tag so that subsequent steps can use the newly built images
+
+## Creating dependabot config yaml for this repo
+
+In an effort to use the most current versions and mitigate vulnerable software dependencies and base images, a script was created to properly configure dependabot. The script scans the repository for directories containing files listing such dependencies, and matches the found folders to the relevant `OWNERS` files. It then goes on to generate the `.github/dependabot.yml` file which tells dependabot which directories it needs to scan and for what package ecosystems. When a dependency update is found, dependabot will create a pull request to update the dependency and assign the relevant owners. If changes are made to the repository that add new dependency listing files, the script will need to be run so that `.github/dependabot.yml` is updated to reflect these changes. To manually run the script, execute `make build-dependabot` from the root of this repository.

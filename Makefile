@@ -64,3 +64,7 @@ debug-rebuild-and-run:
 	make hydrate && git add . && git commit -m "Latest" && git push jlewi
 	cd ./go/cmd/nomos-wait && go run .
 	kubectl --context=kf-ci-v1 create -f ./tekton/runs/nb-test-run.yaml
+
+build-dependabot:
+	chmod +x hack/create_dependabot.sh
+	hack/create_dependabot.sh
