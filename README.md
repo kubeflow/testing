@@ -1112,4 +1112,13 @@ is
 
 ## Creating dependabot config yaml for this repo
 
-In an effort to use the most current versions and mitigate vulnerable software dependencies and base images, a script was created to properly configure dependabot. The script scans the repository for directories containing files listing such dependencies, and matches the found folders to the relevant `OWNERS` files. It then goes on to generate the `.github/dependabot.yml` file which tells dependabot which directories it needs to scan and for what package ecosystems. When a dependency update is found, dependabot will create a pull request to update the dependency and assign the relevant owners. If changes are made to the repository that add new dependency listing files, the script will need to be run so that `.github/dependabot.yml` is updated to reflect these changes. To manually run the script, execute `make build-dependabot` from the root of this repository.
+To use the most current versions and mitigate vulnerable software dependencies and base images, we configure dependabot for desired funtionality.
+
+* The way dependabot works as below:
+  1. We uses a script to scan the repository for directories containing files listing such dependencies, and matches the found folders to the relevant `OWNERS` files
+  2. Then it generate the `.github/dependabot.yml` file which tells dependabot which directories it needs to scan and for what package ecosystems.
+  3. When a dependency update is found, dependabot will create a pull request to update the dependency and assign the relevant owners and reviewers.
+
+To generate a new dependabot configuration when dependency listing files are moved or created, the script can be run by executing `make build-dependabot` from the root of this repository.
+
+More details about dependabot and its configuration can be found here (https://docs.github.com/en/github/managing-security-vulnerabilities/managing-vulnerabilities-in-your-projects-dependencies)
