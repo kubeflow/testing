@@ -92,6 +92,4 @@ optional-generate-optional-test-infra-tekton:
 	mkdir -p ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/
 	cp -r ./User/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/task/ \
     ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/
-	cp -r ./User/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/pipeline/ \
-    ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/
 	echo "Finish generating yaml files for optional-test-infra-tekton cluster"
