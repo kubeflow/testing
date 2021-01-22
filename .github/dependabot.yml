@@ -1,114 +1,150 @@
-version: 2
 updates:
-  - package-ecosystem: "docker"
-    directory: "./apps-cd"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "docker"
-    directory: "./go"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "docker"
-    directory: "./images"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "docker"
-    directory: "./notebook_testing"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "docker"
-    directory: "./test-infra/auto-deploy"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "npm"
-    directory: "."
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "npm"
-    directory: "./py/kubeflow/testing/node-license-tools"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "pip"
-    directory: "./apps-cd"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "pip"
-    directory: "./py"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "pip"
-    directory: "./py/kubeflow/testing"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "pip"
-    directory: "./test-infra/auto-deploy"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "gomod"
-    directory: "./go"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "gomod"
-    directory: "./go/cmd/nomos-wait"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
-  - package-ecosystem: "gomod"
-    directory: "./tests"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    assignees:
-      - bobgy
-      - jlewi
+- assignees:
+  - bobgy
+  - jlewi
+  directory: notebook_testing
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: test-infra/auto-deploy
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  - PatrickXYS
+  directory: images
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: apps-cd
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: go
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: .
+  open-pull-requests-limit: 10
+  package-ecosystem: npm
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  - PatrickXYS
+  directory: py/kubeflow/testing/node-license-tools
+  open-pull-requests-limit: 10
+  package-ecosystem: npm
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: test-infra/auto-deploy
+  open-pull-requests-limit: 10
+  package-ecosystem: pip
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: apps-cd
+  open-pull-requests-limit: 10
+  package-ecosystem: pip
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: py
+  open-pull-requests-limit: 10
+  package-ecosystem: pip
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  - PatrickXYS
+  directory: py/kubeflow/testing
+  open-pull-requests-limit: 10
+  package-ecosystem: pip
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: go
+  open-pull-requests-limit: 10
+  package-ecosystem: gomod
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: go/cmd/nomos-wait
+  open-pull-requests-limit: 10
+  package-ecosystem: gomod
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+- assignees:
+  - bobgy
+  - jlewi
+  directory: tests
+  open-pull-requests-limit: 10
+  package-ecosystem: gomod
+  reviewers:
+  - Jeffwan
+  - pingsutw
+  schedule:
+    interval: daily
+version: 2

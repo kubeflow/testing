@@ -66,5 +66,4 @@ debug-rebuild-and-run:
 	kubectl --context=kf-ci-v1 create -f ./tekton/runs/nb-test-run.yaml
 
 build-dependabot:
-	chmod +x hack/create_dependabot.sh
-	hack/create_dependabot.sh
+	python3 hack/create_dependabot.py
