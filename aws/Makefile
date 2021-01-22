@@ -88,9 +88,8 @@ optional-generate-optional-test-infra-argo:
 optional-generate-optional-test-infra-tekton:
 	echo ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}
 	echo "Start generating yaml files for optional-test-infra-tekton cluster"
-	rm -rf ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/argo/*
-	mkdir -p ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/argo/
-	####
-	# Add Logic to copy yaml files here
-	####
+	rm -rf ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/*
+	mkdir -p ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/
+	cp -r ./User/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/task/ \
+    ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/
 	echo "Finish generating yaml files for optional-test-infra-tekton cluster"
