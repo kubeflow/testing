@@ -46,7 +46,7 @@ plank:
 
 decorate_all_jobs: true
 periodics:
-- interval: 1d
+- interval: 1s
   agent: kubernetes
   name: echo-test
   spec:
