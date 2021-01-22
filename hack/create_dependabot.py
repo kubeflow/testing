@@ -2,10 +2,6 @@ import yaml
 import collections
 from pathlib import Path
 
-repo_path = Path(__file__).parents[1]
-
-print(repo_path.anchor)
-
 dependabot = {}
 dependabot['version'] = 2
 dependabot['updates'] = []
@@ -26,8 +22,6 @@ def get_docker_paths():
             if dockerfile.parents[0] not in docker_clean_list:
                 docker_clean_list.append(dockerfile.parents[0])
     return docker_clean_list
-
-print(get_docker_paths())
 
 def get_npm_paths():
     npm_list = list(repo_path.glob('**/package*.json'))
@@ -99,7 +93,8 @@ def main():
     print(get_docker_paths())
     print(get_npm_paths())
     print(get_pip_paths())
-    print(get_go_paths)
+    print(get_go_paths())
 
 if __name__ == "__main__":
+    repo_path = Path(__file__).parents[1]
     main()
