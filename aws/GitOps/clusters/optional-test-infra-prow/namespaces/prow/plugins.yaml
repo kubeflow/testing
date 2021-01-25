@@ -1,9 +1,11 @@
 apiVersion: v1
 data:
-  plugins.yaml: |
+  plugins.yaml: |-
     plugins:
       PatrickXYS-testing:
       - trigger
+      kubeflow/pytorch-operator:
+      - trigeer
 kind: ConfigMap
 metadata:
   creationTimestamp: null

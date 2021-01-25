@@ -47,6 +47,32 @@ data:
             initupload: gcr.io/k8s-prow/initupload:v20210114-dfe4a7d4c0
             sidecar: gcr.io/k8s-prow/sidecar:v20210114-dfe4a7d4c0
 
+    presets:
+    # credential presets
+    - labels:
+      preset-aws-cred: "true"
+      env:
+      - name: CLOUD_PROVIDER
+        value: aws
+      - name: AWS_DEFAULT_REGION
+        value: us-west-2
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: aws-credentials
+            key: AWS_ACCESS_KEY_ID
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: aws-credentials
+            key: AWS_SECRET_ACCESS_KEY
+      - name: AWS_EKS_CLUSTER
+        value: optional-test-infra-argo
+      - name: ARGO_ENDPOINT
+        value: https://argo.kubeflow-testing.com/
+      - name: ARTIFACTS_S3_BUCKET
+        value: aws-kubeflow-jenkins
+
     decorate_all_jobs: true
     periodics:
     - interval: 1h
@@ -66,6 +92,20 @@ data:
           containers:
           - image: alpine
             command: ["/bin/date"]
+
+      kubeflow/pytorch-operator:
+        - name: kubeflow-pytorch-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+          branches:
+          - master
+          decorate: false
+          labels:
+            preset-aws-cred: "true"
+          always_run: true
+          spec:
+            containers:
+              - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:latest
+                imagePullPolicy: Always
+                command: ["/usr/local/bin/run_workflows.sh"]
 kind: ConfigMap
 metadata:
   creationTimestamp: null
