@@ -5,7 +5,7 @@ data:
       PatrickXYS-testing:
       - trigger
       kubeflow/pytorch-operator:
-      - trigeer
+      - trigger
 kind: ConfigMap
 metadata:
   creationTimestamp: null
