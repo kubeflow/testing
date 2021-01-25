@@ -22,9 +22,6 @@ data:
       kubeflow/manifests:
       - trigger
 
-      kubeflow/pytorch-operator:
-      - trigger
-
       kubeflow/tf-operator:
       - trigger
 
