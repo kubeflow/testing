@@ -8,6 +8,8 @@ data:
       - trigger
       kubeflow/kfctl:
       - trigger
+      kubeflow/kubeflow:
+      - trigger
       kubeflow/manifests:
       - trigger
       kubeflow/pytorch-operator:
