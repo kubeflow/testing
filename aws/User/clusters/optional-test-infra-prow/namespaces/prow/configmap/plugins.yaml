@@ -1,6 +1,8 @@
 plugins:
   PatrickXYS-testing:
   - trigger
+  kubeflow/katib:
+  - trigger
   kubeflow/kfctl:
   - trigger
   kubeflow/manifests:
