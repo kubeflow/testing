@@ -96,7 +96,7 @@ data:
           always_run: true
           spec:
             containers:
-              - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+              - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:test
                 imagePullPolicy: Always
                 command: ["/usr/local/bin/run_workflows.sh"]
 kind: ConfigMap
