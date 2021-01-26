@@ -674,7 +674,7 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   parser.add_argument(
     "--aws_argo_cluster_endpoint",
     type=str,
-    default="http://86308603-argo-argo-5ce9-1162466691.us-west-2.elb.amazonaws.com",
+    default="",
     help="Endpoint of AWS Argo Cluster"
   )
 

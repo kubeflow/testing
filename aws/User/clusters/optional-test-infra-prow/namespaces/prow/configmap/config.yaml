@@ -71,14 +71,7 @@ presets:
     value: aws-kubeflow-jenkins
 
 decorate_all_jobs: true
-periodics:
-- interval: 1h
-  agent: kubernetes
-  name: echo-test
-  spec:
-    containers:
-    - image: alpine
-      command: ["/bin/date"]
+
 presubmits:
   PatrickXYS-testing/flux-testing:
   - name: flux-echo-test
