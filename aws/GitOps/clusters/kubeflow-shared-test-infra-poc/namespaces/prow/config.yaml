@@ -120,9 +120,6 @@ data:
 
     presubmits:
 
-
-
-
       kubeflow/kfserving:
       - name: kubeflow-kfserving-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:

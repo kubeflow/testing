@@ -10,9 +10,6 @@ data:
       kubeflow/kfserving:
       - trigger
 
-      kubeflow/kubeflow:
-      - trigger
-
       kubeflow/tf-operator:
       - trigger
 
