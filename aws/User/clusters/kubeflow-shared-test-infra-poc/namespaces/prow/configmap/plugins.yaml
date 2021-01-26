@@ -7,9 +7,6 @@ plugins:
   kubeflow/katib:
   - trigger
 
-  kubeflow/kfctl:
-  - trigger
-
   kubeflow/kfserving:
   - trigger
 
