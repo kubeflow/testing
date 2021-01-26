@@ -4,6 +4,8 @@ data:
     plugins:
       PatrickXYS-testing:
       - trigger
+      kubeflow/kfctl:
+      - trigger
       kubeflow/manifests:
       - trigger
       kubeflow/pytorch-operator:
