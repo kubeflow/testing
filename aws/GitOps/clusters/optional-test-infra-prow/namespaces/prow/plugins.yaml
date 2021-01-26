@@ -4,6 +4,8 @@ data:
     plugins:
       PatrickXYS-testing:
       - trigger
+      kubeflow/manifests:
+      - trigger
       kubeflow/pytorch-operator:
       - trigger
 kind: ConfigMap

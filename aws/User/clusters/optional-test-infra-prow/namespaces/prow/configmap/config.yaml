@@ -83,6 +83,21 @@ presubmits:
       - image: alpine
         command: ["/bin/date"]
 
+  kubeflow/manifests:
+  - name: kubeflow-manifests-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    branches:
+    - master
+    - v1.2-branch
+    decorate: false
+    labels:
+      preset-aws-cred: "true"
+    always_run: true
+    spec:
+      containers:
+      - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/run_workflows.sh"]
+
   kubeflow/pytorch-operator:
     - name: kubeflow-pytorch-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
       branches:

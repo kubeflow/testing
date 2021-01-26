@@ -19,9 +19,6 @@ data:
       kubeflow/kubeflow:
       - trigger
 
-      kubeflow/manifests:
-      - trigger
-
       kubeflow/tf-operator:
       - trigger
 
