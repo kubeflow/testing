@@ -2,8 +2,6 @@ apiVersion: v1
 data:
   plugins.yaml: |-
     plugins:
-      PatrickXYS-testing:
-      - trigger
       kubeflow/katib:
       - trigger
       kubeflow/kfctl:
@@ -13,6 +11,8 @@ data:
       kubeflow/manifests:
       - trigger
       kubeflow/pytorch-operator:
+      - trigger
+      kubeflow/xgboost-operator:
       - trigger
 kind: ConfigMap
 metadata:

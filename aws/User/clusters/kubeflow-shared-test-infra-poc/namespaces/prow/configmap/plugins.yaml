@@ -6,9 +6,5 @@ triggers:
 plugins:
   kubeflow/kfserving:
   - trigger
-
   kubeflow/tf-operator:
-  - trigger
-
-  kubeflow/xgboost-operator:
   - trigger

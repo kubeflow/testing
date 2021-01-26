@@ -1,6 +1,4 @@
 plugins:
-  PatrickXYS-testing:
-  - trigger
   kubeflow/katib:
   - trigger
   kubeflow/kfctl:
@@ -10,4 +8,6 @@ plugins:
   kubeflow/manifests:
   - trigger
   kubeflow/pytorch-operator:
+  - trigger
+  kubeflow/xgboost-operator:
   - trigger

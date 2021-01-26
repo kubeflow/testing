@@ -73,16 +73,6 @@ presets:
 decorate_all_jobs: true
 
 presubmits:
-  PatrickXYS-testing/flux-testing:
-  - name: flux-echo-test
-    branches:
-    - master
-    always_run: true
-    spec:
-      containers:
-      - image: alpine
-        command: ["/bin/date"]
-
   kubeflow/katib:
   - name: kubeflow-katib-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
     branches:
