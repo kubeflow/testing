@@ -47,13 +47,43 @@ plank:
         initupload: gcr.io/k8s-prow/initupload:v20210128-721ee668fd
         sidecar: gcr.io/k8s-prow/sidecar:v20210128-721ee668fd
 
+presets:
+# credential presets
+- labels:
+  preset-aws-cred: "true"
+  env:
+  - name: AWS_DEFAULT_REGION
+    value: us-west-2
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: aws-credentials
+        key: AWS_ACCESS_KEY_ID
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: aws-credentials
+        key: AWS_SECRET_ACCESS_KEY
+  - name: GIT_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: github-token
+        key: token
+
 
 decorate_all_jobs: true
 periodics:
-- interval: 1m
+- interval: 1h
   agent: kubernetes
-  name: echo-test
+  name: infra-editor-sync
+  labels:
+    preset-aws-cred: "true"
   spec:
     containers:
-    - image: alpine
-      command: ["/bin/date"]
+    - image: public.ecr.aws/j1r0q0g6/daily-worker:latest
+      command: ["/usr/local/bin/update-iam-assume-role-policy.sh"]
+      env:
+      - name: TRUST_POLICY
+        value: https://raw.githubusercontent.com/kubeflow/testing/master/aws/Access/assume-role-access/infra-editor/trust-policy.json
+      - name: ROLE_NAME
+        value: infra-editor
