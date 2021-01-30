@@ -1,0 +1,1 @@
+[TODO] PatrickXYS: add instructions for adding team member with infra permission
