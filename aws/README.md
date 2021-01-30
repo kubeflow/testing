@@ -8,6 +8,7 @@
   - [Setting up a Kubeflow Repository to Use Optional-Test-Infra](#setting-up-a-kubeflow-repository-to-use-optional-test-infra)
   - [Writing an Argo Workflow for E2E Test](#writing-an-argo-workflow-for-e2e-test)
   - [Applying for Access to Optional-Test-Infra](#applying-for-access-to-optional-test-infra)
+  - [Debugging failed E2E Test](#debugging-failed-e2e-test)
   - [Folder Organizations](#folder-organizations)
   - [Want to contribute](#want-to-contribute)
 
@@ -30,16 +31,17 @@ understanding how optional-test-infra works and how different clusters interact 
 ## Setting up a Kubeflow Repository to Use Optional-Test-Infra
 
 * [Adopting Optional-Test-Infra](https://github.com/kubeflow/testing/tree/master/aws/Doc/onboarding.md)
-provides a detailed instruction for kubeflow WG to onboard their kubeflow repo to use optional-test-infra.
+provides a detailed instruction for kubeflow application WG to onboard their kubeflow repo to use optional-test-infra.
 
 ## Writing an Argo Workflow for E2E Test
 * [Writing Argo Workflow for E2E Tests](https://github.com/kubeflow/testing/tree/master/aws/Doc/argo_e2e.md)
 * [TODO] PatrickXYS: need to provide more detailed instructions
 
 ## Applying for Access to Optional-Test-Infra
-* The [Access Granting](https://docs.google.com/document/d/1hrjIDO7UQ8l5uvADSxbiyM2GDfst1L7vyIKekrrdlwA/edit#heading=h.dix8w86ghq2) 
-doc provides detailed instructions to apply Editor/Viewer Permissions to Optional-Test-infra DataPlane.
-* [TODO] PatrickXYS: develop [IAM as Code](https://github.com/kubeflow/testing/issues/848) to GitOps permission granting in open-source community 
+* [Access Control](https://github.com/kubeflow/testing/tree/master/aws/Access/README.md)
+
+## Debugging failed E2E Test
+[TODO] PatrickXYS: need detailed guidance
 
 ## Folder Organizations
 
