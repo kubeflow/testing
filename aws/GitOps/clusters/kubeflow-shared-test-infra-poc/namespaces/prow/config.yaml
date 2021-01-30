@@ -119,21 +119,6 @@ data:
             value: v1.2-branch
 
     presubmits:
-
-      kubeflow/kfserving:
-      - name: kubeflow-kfserving-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        - master
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:v1.2-branch
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
-
       kubeflow/tf-operator:
       - name: kubeflow-tf-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:

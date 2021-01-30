@@ -6,6 +6,8 @@ data:
       - trigger
       kubeflow/kfctl:
       - trigger
+      kubeflow/kfserving:
+      - trigger
       kubeflow/kubeflow:
       - trigger
       kubeflow/manifests:
