@@ -129,3 +129,17 @@ presubmits:
       - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:latest
         imagePullPolicy: Always
         command: ["/usr/local/bin/run_workflows.sh"]
+
+  PatrickXYS-testing/kfserving:
+  - name: self-kfserving-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    branches:
+    - master
+    decorate: false
+    labels:
+      preset-aws-cred: "true"
+    always_run: true
+    spec:
+      containers:
+      - image: 527798164940.dkr.ecr.us-west-2.amazonaws.com/aws-kubeflow-ci/test-worker:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/run_workflows.sh"]

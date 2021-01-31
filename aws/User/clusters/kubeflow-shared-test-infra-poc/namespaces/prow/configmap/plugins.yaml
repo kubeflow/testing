@@ -6,3 +6,5 @@ triggers:
 plugins:
   kubeflow/tf-operator:
   - trigger
+  PatrickXYS-testing/kfserving:
+  - trigeer
