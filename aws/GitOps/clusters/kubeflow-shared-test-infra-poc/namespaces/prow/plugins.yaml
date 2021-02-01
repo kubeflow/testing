@@ -9,8 +9,6 @@ data:
     plugins:
       kubeflow/tf-operator:
       - trigger
-      PatrickXYS-testing/kfserving:
-      - trigger
 kind: ConfigMap
 metadata:
   creationTimestamp: null
