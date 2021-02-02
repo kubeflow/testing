@@ -51,7 +51,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 protocol = 'https://'
-godoc_base = 'godoc.org/'
+godoc_base = 'pkg.go.dev/'
 github_base = 'github.com/'
 gopkg_base = 'gopkg.in/'
 
@@ -83,7 +83,6 @@ def get_github_repo(url):
     github_repo = github_repo[:-1]
   return github_repo
 
-
 def fetch_github_uri_from_godoc(url):
   '''
   Tries to resolve github repo from godoc website.
@@ -101,15 +100,12 @@ def fetch_github_uri_from_godoc(url):
                                                     response.reason)
 
   soup = Soup(response.text, features="html.parser")
-  navs = soup.select('#x-projnav')
-  if len(navs) != 1:
-    raise Exception(
-      '#x-projnav should occur exactly once, but {} found for {}'.format(len(navs), url))
-  nav = navs[0]
-  package_name = nav.select_one('span').contents[0]
-  assert package_name == url, 'fetched package name should be the same'
-  link = nav.select_one('a').attrs.get('href')
-  return get_github_repo(link)
+  navs = soup.find_all("div", class_="UnitMeta")
+  for nav in navs:
+    if  nav.text.strip().startswith("Repository"):
+      link = nav.select_one('a').attrs.get('href')
+      return get_github_repo(link)
+  return None
 
 
 def fetch_gopkg_uri(url):
