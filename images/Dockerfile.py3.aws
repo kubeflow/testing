@@ -14,9 +14,6 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python get-pip.py
 RUN python3.8 -m pip install \
     filelock \
     fire \
-    google-api-python-client \
-    google-cloud \
-    google-cloud-storage \
     junit-xml \
     # See https://github.com/kubeflow/gcp-blueprints/issues/52#issuecomment-645446088
     # our libs seem to break with 11.0.0
