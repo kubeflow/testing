@@ -3,6 +3,3 @@ triggers:
   - kubeflow
   join_org_url: "https://github.com/kubeflow/kubeflow/blob/master/CONTRIBUTING.md"
   only_org_members: true
-plugins:
-  kubeflow/tf-operator:
-  - trigger

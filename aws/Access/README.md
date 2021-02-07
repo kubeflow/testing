@@ -29,7 +29,7 @@ infra-viewer and infra-editor can be only be access via CLI.
 
 0. Create AWS IAM ROLE/USER from your console via [official doc](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_console):  
 0.1. In #4 step, select **Programmatic access**  
-0.2. In #6 step, choose **Attach existing policies to user directly**, and use administrator policy for simplicity.
+0.2. In #6 step, choose **Attach existing policies to user directly**, and use administrator policy for simplicity.  
 0.3. In #11 step, save user's access keys for below usage.
 
 1. Configure AWS Credentials with keys you stored and region
