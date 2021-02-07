@@ -11,5 +11,7 @@ plugins:
   - trigger
   kubeflow/pytorch-operator:
   - trigger
+  kubeflow/tf-operator:
+  - trigger
   kubeflow/xgboost-operator:
   - trigger
