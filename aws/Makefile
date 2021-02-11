@@ -4,9 +4,9 @@ OPTIONAL_TEST_INFRA_GITOPS_DIRS=./GitOps
 
 # Generate YAML files for Optional-Test-Infra GitOps
 optional-generate:
-	make optional-generate-optional-test-infra-prow
-	make optional-generate-optional-test-infra-tekton
-	make optional-generate-optional-test-infra-daily-worker
+	@make optional-generate-optional-test-infra-prow
+	@make optional-generate-optional-test-infra-tekton
+	@make optional-generate-optional-test-infra-daily-worker
 
 # Validate if optional-generate runs
 optional-test:
@@ -38,7 +38,7 @@ optional-generate-optional-test-infra-tekton:
 	@echo "Start generating yaml files for optional-test-infra-tekton cluster"
 	@rm -rf ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/*
 	@mkdir -p ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/
-	@cp -r ./User/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/task/ \
+	@cp -r ./User/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/task/* \
     ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/
 	@echo "Finish generating yaml files for optional-test-infra-tekton cluster"
 
