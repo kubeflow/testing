@@ -14,7 +14,7 @@ optional-test:
 	rm -rf ./tmp
 	mkdir ./tmp
 	make optional-generate OPTIONAL_TEST_INFRA_GITOPS_DIRS=./tmp
-	diff -x '*.md'  ./tmp ./GitOps
+	diff -qr -x '*.md'  ./tmp ./GitOps
 	rm -rf ./tmp
 
 # Generate YAML files for Optional-Test-Infra GitOps for optional-test-infra-prow cluster
