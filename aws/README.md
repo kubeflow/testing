@@ -22,6 +22,9 @@ This documentation describes configuration and automation for Kubeflow Optional-
 The [architecture doc](https://github.com/kubeflow/testing/tree/master/aws/Doc/architecture.md) will give you a deep
 understanding how optional-test-infra works and how different clusters interact with each other. 
 
+## Test LifeCycle
+The [diagram](./Picture/TestLifeCycle.png) shows the phases that the kubeflow tests goes through when you send a PR.
+
 ## Dashboards
 
 * [Prow Dashboard](https://prow.kubeflow-testing.com/) shows what jobs are running or have recently run in prow
