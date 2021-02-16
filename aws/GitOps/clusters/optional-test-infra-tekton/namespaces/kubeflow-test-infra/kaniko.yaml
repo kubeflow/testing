@@ -55,6 +55,7 @@ spec:
     - --context=$(params.CONTEXT)  # The user does not need to care the workspace and the source.
     - --context-sub-path=$(params.SUBPATH)
     - --destination=$(params.IMAGE)
+    - --cache=true
     - --oci-layout-path=$(workspaces.source.path)/image-digest
     # kaniko assumes it is running as root, which means this example fails on platforms
     # that default to run containers as random uid (like OpenShift). Adding this securityContext
