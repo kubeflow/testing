@@ -24,7 +24,7 @@ The [architecture doc](https://github.com/kubeflow/testing/tree/master/aws/Doc/a
 understanding how optional-test-infra works and how different clusters interact with each other. 
 
 ## Test LifeCycle
-The [diagram](./Picture/TestLifeCycle.png) shows the phases that the kubeflow tests goes through when you send a PR.
+The [diagram](./Picture/TestLifeCycle.png) shows the phases that kubeflow tests goes through when you send a PR.
 
 ## Dashboards
 
