@@ -4,6 +4,7 @@
 
 - [Optional Test Infrastructure](#optional-test-infrastructure)
   - [Architecture](#architecture)
+  - [Test LifeCycle](#test-lifecycle)
   - [Dashboards](#dashboards)
   - [Setting up a Kubeflow Repository to Use Optional-Test-Infra](#setting-up-a-kubeflow-repository-to-use-optional-test-infra)
   - [Writing an Argo Workflow for E2E Test](#writing-an-argo-workflow-for-e2e-test)
