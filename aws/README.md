@@ -4,6 +4,7 @@
 
 - [Optional Test Infrastructure](#optional-test-infrastructure)
   - [Architecture](#architecture)
+  - [Test LifeCycle](#test-lifecycle)
   - [Dashboards](#dashboards)
   - [Setting up a Kubeflow Repository to Use Optional-Test-Infra](#setting-up-a-kubeflow-repository-to-use-optional-test-infra)
   - [Writing an Argo Workflow for E2E Test](#writing-an-argo-workflow-for-e2e-test)
@@ -21,6 +22,9 @@ This documentation describes configuration and automation for Kubeflow Optional-
 ## Architecture
 The [architecture doc](https://github.com/kubeflow/testing/tree/master/aws/Doc/architecture.md) will give you a deep
 understanding how optional-test-infra works and how different clusters interact with each other. 
+
+## Test LifeCycle
+The [diagram](./Picture/TestLifeCycle.png) shows the phases that kubeflow tests goes through when you send a PR.
 
 ## Dashboards
 
