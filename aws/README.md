@@ -4,6 +4,7 @@
 
 - [Optional Test Infrastructure](#optional-test-infrastructure)
   - [Architecture](#architecture)
+  - [Management](#management)
   - [Test LifeCycle](#test-lifecycle)
   - [Dashboards](#dashboards)
   - [Setting up a Kubeflow Repository to Use Optional-Test-Infra](#setting-up-a-kubeflow-repository-to-use-optional-test-infra)
