@@ -23,6 +23,8 @@ spec:
   - name: SUBPATH
     description: Sub path within the given context.
     default: ""
+  - name: REVISION
+    description: Revision (commit SHA1) of the git repository to clone and the docker repository to tag.
   - name: EXTRA_ARGS
     default: ""
   - name: BUILDER_IMAGE
@@ -54,8 +56,10 @@ spec:
     - --dockerfile=$(params.DOCKERFILE)
     - --context=$(params.CONTEXT)  # The user does not need to care the workspace and the source.
     - --context-sub-path=$(params.SUBPATH)
-    - --destination=$(params.IMAGE)
+    - --destination=$(params.IMAGE):$(params.REVISION)
     - --cache=true
+    - --cache-repo=$(params.IMAGE)
+    - --snapshotMode=redo
     - --oci-layout-path=$(workspaces.source.path)/image-digest
     # kaniko assumes it is running as root, which means this example fails on platforms
     # that default to run containers as random uid (like OpenShift). Adding this securityContext
