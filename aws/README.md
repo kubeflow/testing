@@ -4,6 +4,7 @@
 
 - [Optional Test Infrastructure](#optional-test-infrastructure)
   - [Architecture](#architecture)
+  - [Management](#management)
   - [Test LifeCycle](#test-lifecycle)
   - [Dashboards](#dashboards)
   - [Setting up a Kubeflow Repository to Use Optional-Test-Infra](#setting-up-a-kubeflow-repository-to-use-optional-test-infra)
@@ -22,6 +23,12 @@ This documentation describes configuration and automation for Kubeflow Optional-
 ## Architecture
 The [architecture doc](https://github.com/kubeflow/testing/tree/master/aws/Doc/architecture.md) will give you a deep
 understanding how optional-test-infra works and how different clusters interact with each other. 
+
+## Management
+Today we still rely on human to manipulate test-infra AWS resources, such as the number of EC2 instances.
+We're now experimenting IaC(Infrastructure as Code) tool
+[CDK](https://github.com/kubeflow/testing/tree/master/aws/IaC/CDK/test-infra/README.md)
+to manage test-infra resources.
 
 ## Test LifeCycle
 The [diagram](./Picture/TestLifeCycle.png) shows the phases that kubeflow tests goes through when you send a PR.
@@ -61,6 +68,6 @@ Each sub-folder refer to different functionality for Optional-Test-Infra
 ## Want to contribute
 Let's join us and start contributing! 
 
-[TODO] PatrickXYS: Provide a detailed guidance for people who want to start contributing to optional-test-infra.
+[TODO] PatrickXYS: Provide a detailed guidance for people who want to start contributing to optional-test-infra.  
 [TODO] PatrickXYS: Provide a deep-dive doc for design of optional-test-infra.
 
