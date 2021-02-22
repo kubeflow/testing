@@ -29,8 +29,7 @@ spec:
     default: ""
   - name: BUILDER_IMAGE
     description: The image on which builds will run
-    # custom build while pending PRs awslabs/amazon-ecr-credential-helper#253, GoogleContainerTools/kaniko#1515 and #1543
-    default: docker.io/theofpa/executor@sha256:e968634a9c63f3a16c8ef331749115cb6cbcde4d1726c28e3e0b4e5eb79aa4aa
+    default: gcr.io/kaniko-project/executor:v1.5.0
   workspaces:
   - name: source
   - name: aws-credentials
