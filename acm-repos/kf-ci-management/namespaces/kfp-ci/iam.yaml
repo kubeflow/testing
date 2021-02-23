@@ -17,11 +17,16 @@ metadata:
   name: prow-test-sa
   namespace: kfp-ci
 spec:
-  member: serviceAccount:pr-kubekins@kubernetes-jenkins-pull.iam.gserviceaccount.com
+  member: serviceAccount:kf-ci-v1-prow@kubeflow-ci.iam.gserviceaccount.com
   # Refer to the following documentation for required permission to access KFP:
   # https://cloud.google.com/ai-platform/pipelines/docs/access-control#grant_a_user_access_to
   role: roles/iam.serviceAccountUser
   resourceRef:
-    apiVersion: iam.cnrm.cloud.google.com/v1beta1
-    kind: IAMServiceAccount
-    name: kfp-standalone-1-vm # {"$kpt-set":"name-sa"}
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    kind: Project
+    external: projects/kfp-ci
+# TODO: wait for resolving staging permission issue
+#   resourceRef:
+#     apiVersion: iam.cnrm.cloud.google.com/v1beta1
+#     kind: IAMServiceAccount
+#     name: kfp-standalone-1-vm # {"$kpt-set":"name-sa"}
