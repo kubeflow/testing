@@ -37,11 +37,11 @@ update-pkg-upstream: FORCE
 	cp -r $(REPO_ROOT)/gcp/packages/cluster-standard/upstream ./$(NAME)/
 	# Or use the following to fetch from remote
 	# kpt pkg get $(PACKAGE_UPSTEAM_URL) ./$(NAME)/upstream
-	$(MAKE) set-values
+	make set-values
 
 set-values: FORCE
 	kpt cfg set ./iam name "$(NAME)"
-	cd $(NAME) && $(MAKE) set-values
+	cd $(NAME) && make set-values
 
 apply-configsync: FORCE
 	kubectl apply -k $(NAME)/configsync

@@ -2188,10 +2188,7 @@ spec:
         application-crd-id: kubeflow-pipelines
     spec:
       containers:
-      - env:
-        - name: PROXY_URL
-          value: https://datalab-staging.cloud.google.com/tun/m/4592f092208ecc84946b8f8f8016274df1b36a14
-        image: gcr.io/ml-pipeline/inverse-proxy-agent:1.1.1-beta.1
+      - image: gcr.io/ml-pipeline/inverse-proxy-agent:1.1.1-beta.1
         imagePullPolicy: IfNotPresent
         name: proxy-agent
       hostNetwork: true
