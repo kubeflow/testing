@@ -54,7 +54,6 @@ def run(command,
     lines = []
     for k in keys:
       lines.append("{0}={1}".format(k, env[k]))
-    logging.info("Running: Environment:\n%s", "\n".join(lines))
 
   process = subprocess.Popen(
     command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
