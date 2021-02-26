@@ -22,7 +22,7 @@ RELEASE_WORKER ?= gcr.io/kubeflow-releasing/worker
 # Whether to use cached images with GCB
 USE_IMAGE_CACHE ?= true
 
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)-$(go env GOARCH)
 DIR := ${CURDIR}
 
 all: build
@@ -31,6 +31,10 @@ all: build
 # export DOCKER_BUILD_OPTS=--no-cache
 build:
 	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) .	
+	@echo Built $(IMG):$(TAG)
+
+build-ppc:
+	docker build ${DOCKER_BUILD_OPTS} -f ./images/Dockerfile.py3_ppc --build-arg ARCH=ppc64le -t $(IMG):$(TAG) .	
 	@echo Built $(IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
@@ -43,6 +47,10 @@ push: build
 	gcloud docker -- push $(RELEASE_WORKER):$(TAG) 
 	@echo Pushed $(IMG):$(TAG)
 	@echo Pushed $(RELEASE_WORKER):$(TAG)
+
+push-ppc: build-ppc
+	# Add tag starting hitting problems so tag and push
+	docker tag $(IMG):$(TAG) $(RELEASE_WORKER):$(TAG)
 	
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
