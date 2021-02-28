@@ -57,9 +57,6 @@ def create_started(ui_urls):
     return json.dumps(started)
 
 
-# TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
-# version. We should do that when we switch tensorflow/k8s to use Argo instead
-# of Airflow.
 def create_finished(success, workflow_phase, ui_urls):
     """Create a string containing the contents for finished.json.
     Args:

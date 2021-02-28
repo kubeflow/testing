@@ -5,7 +5,7 @@ bin/
 .vscode/
 
 # Virtual env files
-.venv/
+**/.venv
 
 # Compiled python files.
 *.pyc
