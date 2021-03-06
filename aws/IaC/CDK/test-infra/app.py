@@ -11,12 +11,10 @@ from test_infra.test_infra_stack import (
     CDKProwClusterStack,
     CDKTektonClusterStack,
     CDKWorkerClusterStack,
+    env,
 )
 
 app = core.App()
-
-# Add CDK Environment variable
-env = core.Environment(account="809251082950", region="us-west-2")
 
 # Reference CDK Stacks
 CDKS3Stack(app, "cdk-s3")

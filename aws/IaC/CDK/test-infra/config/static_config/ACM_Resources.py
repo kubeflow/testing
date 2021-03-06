@@ -8,8 +8,13 @@ ACM_Certs_List = {
     # "cdk-id": ("domain-name", "validation-method")
     # Example:
 
-    # "cdk-poc": (
-    #     "cdk-poc.kubeflow-testing.com",
-    #     aws_certificatemanager.ValidationMethod.DNS,
-    # )
+    "cdk-poc-grafana-dashboard": (
+        "dashboard.cdk-poc.kubeflow-testing.com",
+        aws_certificatemanager.ValidationMethod.DNS,
+    ),
+
+    "cdk-poc-prow-dashboard": (
+        "prow.cdk-poc.kubeflow-testing.com",
+        aws_certificatemanager.ValidationMethod.DNS,
+    )
 }
