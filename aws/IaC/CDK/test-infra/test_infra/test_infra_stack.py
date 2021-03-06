@@ -14,6 +14,9 @@ from config.static_config.EKS_Resources import EKS_Cluster_List
 from config.static_config.IAM_Resources import IAM_Role_List
 from config.static_config.ACM_Resources import ACM_Certs_List
 
+# Add CDK Environment variable
+env = core.Environment(account="809251082950", region="us-west-2")
+
 
 class CDKS3Stack(core.Stack):
     """CDK Class for S3_Resources.py buckets"""

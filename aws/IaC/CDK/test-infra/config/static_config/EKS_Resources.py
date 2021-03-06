@@ -9,10 +9,10 @@ EKS_Cluster_List = {
     # "cdk-id": (("cluster-name", "kubernetes-version"), (instance_type, min_size, max_size, desired_size, disk_size))
     # Example:
 
-    # "prow_cluster": (
-    #     ("cdk-poc-prow", aws_eks.KubernetesVersion.V1_18),
-    #     (aws_ec2.InstanceType("m5.large"), 2, 4, 2, 20),
-    # ),
+    "prow_cluster": (
+        ("cdk-poc-prow", aws_eks.KubernetesVersion.V1_18),
+        (aws_ec2.InstanceType("m5.large"), 2, 4, 2, 20),
+    ),
     # "argo_cluster": (
     #     ("cdk-poc-argo", aws_eks.KubernetesVersion.V1_18),
     #     (aws_ec2.InstanceType("m5.large"), 2, 4, 2, 20),

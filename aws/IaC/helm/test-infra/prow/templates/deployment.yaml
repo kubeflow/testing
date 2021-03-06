@@ -1,0 +1,481 @@
+# This file contains Kubernetes YAML files for the most important prow
+# components. Don't edit resources in this file. Instead, pull them out into
+# their own files.
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prow
+  name: hook
+  labels:
+    app: hook
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: hook
+  template:
+    metadata:
+      labels:
+        app: hook
+    spec:
+      serviceAccountName: "hook"
+      terminationGracePeriodSeconds: 180
+      containers:
+      - name: hook
+        image: gcr.io/k8s-prow/hook:v20210224-8a51e1a927
+        imagePullPolicy: Always
+        args:
+        - --dry-run=false
+        - --config-path=/etc/config/config.yaml
+        - --github-token-path=/etc/github/token
+        - --github-endpoint=http://ghproxy
+        - --github-endpoint=https://api.github.com
+        ports:
+          - name: http
+            containerPort: 8888
+        volumeMounts:
+        - name: hmac
+          mountPath: /etc/webhook
+          readOnly: true
+        - name: github-token
+          mountPath: /etc/github
+          readOnly: true
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: plugins
+          mountPath: /etc/plugins
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /healthz/ready
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 3
+          timeoutSeconds: 600
+      volumes:
+      - name: hmac
+        secret:
+          secretName: hmac-token
+      - name: github-token
+        secret:
+          secretName: github-token
+      - name: config
+        configMap:
+          name: config
+      - name: plugins
+        configMap:
+          name: plugins
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prow
+  name: sinker
+  labels:
+    app: sinker
+spec:
+  selector:
+    matchLabels:
+      app: sinker
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sinker
+    spec:
+      serviceAccountName: "sinker"
+      containers:
+      - name: sinker
+        image: gcr.io/k8s-prow/sinker:v20210224-8a51e1a927
+        args:
+        - --config-path=/etc/config/config.yaml
+        volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prow
+  name: deck
+  labels:
+    app: deck
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: deck
+  template:
+    metadata:
+      labels:
+        app: deck
+    spec:
+      serviceAccountName: "deck"
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: deck
+        image: gcr.io/k8s-prow/deck:v20210224-8a51e1a927
+        args:
+        - --config-path=/etc/config/config.yaml
+        - --plugin-config=/etc/plugins/plugins.yaml
+        - --tide-url=http://tide/
+        - --hook-url=http://hook:8888/plugin-help
+        - --github-token-path=/etc/github/token
+        - --github-endpoint=http://ghproxy
+        - --github-endpoint=https://api.github.com
+        - --github-graphql-endpoint=http://ghproxy/graphql
+        - --plugin-config=/etc/plugins/plugins.yaml
+        - --s3-credentials-file=/etc/s3-credentials/service-account.json
+        - --spyglass=true
+        ports:
+          - name: http
+            containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: github-token
+          mountPath: /etc/github
+          readOnly: true
+        - name: plugins
+          mountPath: /etc/plugins
+          readOnly: true
+        - name: s3-credentials
+          mountPath: /etc/s3-credentials
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /healthz/ready
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 3
+          timeoutSeconds: 600
+      volumes:
+      - name: config
+        configMap:
+          name: config
+      - name: github-token
+        secret:
+          secretName: github-token
+      - name: plugins
+        configMap:
+          name: plugins
+      - name: s3-credentials
+        secret:
+          secretName: s3-credentials
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prow
+  name: horologium
+  labels:
+    app: horologium
+spec:
+  replicas: 1 # Do not scale up.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: horologium
+  template:
+    metadata:
+      labels:
+        app: horologium
+    spec:
+      serviceAccountName: "horologium"
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: horologium
+        image: gcr.io/k8s-prow/horologium:v20210224-8a51e1a927
+        args:
+        - --dry-run=false
+        - --config-path=/etc/config/config.yaml
+        volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prow
+  name: tide
+  labels:
+    app: tide
+spec:
+  replicas: 1 # Do not scale up.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tide
+  template:
+    metadata:
+      labels:
+        app: tide
+    spec:
+      serviceAccountName: "tide"
+      containers:
+      - name: tide
+        image: gcr.io/k8s-prow/tide:v20210224-8a51e1a927
+        args:
+        - --dry-run=false
+        - --config-path=/etc/config/config.yaml
+        - --github-token-path=/etc/github/token
+        - --github-endpoint=http://ghproxy
+        - --github-endpoint=https://api.github.com
+        - --github-graphql-endpoint=http://ghproxy/graphql
+        - --s3-credentials-file=/etc/s3-credentials/service-account.json
+        - --status-path=s3://{{ .Values.s3Buckets.tide }}/tide-status
+        - --history-uri=s3://{{ .Values.s3Buckets.tide }}/tide-history.json
+        ports:
+          - name: http
+            containerPort: 8888
+        volumeMounts:
+        - name: github-token
+          mountPath: /etc/github
+          readOnly: true
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: s3-credentials
+          mountPath: /etc/s3-credentials
+          readOnly: true
+      volumes:
+      - name: github-token
+        secret:
+          secretName: github-token
+      - name: config
+        configMap:
+          name: config
+      - name: s3-credentials
+        secret:
+          secretName: s3-credentials
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statusreconciler
+  namespace: prow
+  labels:
+    app: statusreconciler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statusreconciler
+  template:
+    metadata:
+      labels:
+        app: statusreconciler
+    spec:
+      serviceAccountName: statusreconciler
+      terminationGracePeriodSeconds: 180
+      containers:
+      - name: statusreconciler
+        image: gcr.io/k8s-prow/status-reconciler:v20210224-8a51e1a927
+        args:
+        - --dry-run=false
+        - --continue-on-error=true
+        - --plugin-config=/etc/plugins/plugins.yaml
+        - --config-path=/etc/config/config.yaml
+        - --github-token-path=/etc/github/token
+        - --github-endpoint=http://ghproxy
+        - --github-endpoint=https://api.github.com
+        - --s3-credentials-file=/etc/s3-credentials/service-account.json
+        - --status-path=s3://{{ .Values.s3Buckets.statusReconciler }}/status-reconciler-status
+        volumeMounts:
+        - name: github-token
+          mountPath: /etc/github
+          readOnly: true
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: plugins
+          mountPath: /etc/plugins
+          readOnly: true
+        - name: s3-credentials
+          mountPath: /etc/s3-credentials
+          readOnly: true
+      volumes:
+      - name: github-token
+        secret:
+          secretName: github-token
+      - name: config
+        configMap:
+          name: config
+      - name: plugins
+        configMap:
+          name: plugins
+      - name: s3-credentials
+        secret:
+          secretName: s3-credentials
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prow
+  name: ghproxy
+  labels:
+    app: ghproxy
+spec:
+  selector:
+    matchLabels:
+      app: ghproxy
+  strategy:
+    type: Recreate
+  # GHProxy does not support HA
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ghproxy
+    spec:
+      containers:
+      - name: ghproxy
+        image: gcr.io/k8s-prow/ghproxy:v20210224-8a51e1a927
+        args:
+        - --cache-dir=/cache
+        - --cache-sizeGB=99
+        - --push-gateway=pushgateway
+        - --serve-metrics=true
+        ports:
+        - containerPort: 8888
+        volumeMounts:
+        - name: cache
+          mountPath: /cache
+      volumes:
+      - name: cache
+        persistentVolumeClaim:
+          claimName: ghproxy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prow
+  name: prow-controller-manager
+  labels:
+    app: prow-controller-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prow-controller-manager
+  template:
+    metadata:
+      labels:
+        app: prow-controller-manager
+    spec:
+      serviceAccountName: prow-controller-manager
+      containers:
+      - name: prow-controller-manager
+        args:
+        - --dry-run=false
+        - --config-path=/etc/config/config.yaml
+        - --github-token-path=/etc/github/token
+        - --github-endpoint=http://ghproxy
+        - --github-endpoint=https://api.github.com
+        - --enable-controller=plank
+        image: gcr.io/k8s-prow/prow-controller-manager:v20210224-8a51e1a927
+        volumeMounts:
+        - name: github-token
+          mountPath: /etc/github
+          readOnly: true
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+      volumes:
+      - name: github-token
+        secret:
+          secretName: github-token
+      - name: config
+        configMap:
+          name: config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prow
+  name: crier
+  labels:
+    app: crier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crier
+  template:
+    metadata:
+      labels:
+        app: crier
+    spec:
+      serviceAccountName: crier
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: crier
+        image: gcr.io/k8s-prow/crier:v20210224-8a51e1a927
+        args:
+        - --blob-storage-workers=10
+        - --config-path=/etc/config/config.yaml
+        - --s3-credentials-file=/etc/s3-credentials/service-account.json
+        - --github-endpoint=http://ghproxy
+        - --github-endpoint=https://api.github.com
+        - --github-token-path=/etc/github/token
+        - --github-workers=10
+        - --kubernetes-blob-storage-workers=10
+        volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: github-token
+          mountPath: /etc/github
+          readOnly: true
+        - name: s3-credentials
+          mountPath: /etc/s3-credentials
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: config
+      - name: github-token
+        secret:
+          secretName: github-token
+      - name: s3-credentials
+        secret:
+          secretName: s3-credentials
+

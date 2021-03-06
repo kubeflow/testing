@@ -1,8 +1,7 @@
-
-# Infrastructure as Code
+# [AWS Resources] Infrastructure as Code
 
 We utilize [CDK](https://github.com/aws/aws-cdk) which
-serves as the tool of Infrastructure as Code (IAC).
+serves as the AWS resources tool of Infrastructure as Code (IAC).
 
 ## Project Architecture
 We define AWS resources in [static_config](https://github.com/kubeflow/testing/tree/master/aws/IaC/CDK/test-infra/config/static_config),

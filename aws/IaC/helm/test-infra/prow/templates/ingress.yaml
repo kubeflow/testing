@@ -1,0 +1,27 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: prow
+  name: prow
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTP": 8888}]'
+    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.prowDashboardDomainNameACMCerts }}
+spec:
+  backend:
+    serviceName: deck
+    servicePort: 80
+  rules:
+   - host: {{ .Values.prowDashboardDomainName }}
+     http:
+      paths:
+      - path: /
+        backend:
+          serviceName: deck
+          servicePort: 80
+      - path: /hook
+        backend:
+          serviceName: hook
+          servicePort: 8888
