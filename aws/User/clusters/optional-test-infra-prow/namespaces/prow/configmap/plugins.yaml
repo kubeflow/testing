@@ -15,3 +15,5 @@ plugins:
   - trigger
   kubeflow/xgboost-operator:
   - trigger
+  kubeflow/testing:
+  - trigger
