@@ -72,33 +72,3 @@ presets:
 
 
 decorate_all_jobs: true
-periodics:
-- interval: 1h
-  agent: kubernetes
-  name: infra-editor-sync
-  labels:
-    preset-aws-cred: "true"
-  spec:
-    containers:
-    - image: public.ecr.aws/j1r0q0g6/daily-worker:latest
-      command: ["/usr/local/bin/update-iam-assume-role-policy.sh"]
-      env:
-      - name: TRUST_POLICY
-        value: https://raw.githubusercontent.com/kubeflow/testing/master/aws/Access/assume-role-access/infra-editor/trust-policy.json
-      - name: ROLE_NAME
-        value: infra-editor
-
-- interval: 1h
-  agent: kubernetes
-  name: infra-viewer-sync
-  labels:
-    preset-aws-cred: "true"
-  spec:
-    containers:
-    - image: public.ecr.aws/j1r0q0g6/daily-worker:latest
-      command: ["/usr/local/bin/update-iam-assume-role-policy.sh"]
-      env:
-      - name: TRUST_POLICY
-        value: https://raw.githubusercontent.com/kubeflow/testing/master/aws/Access/assume-role-access/infra-viewer/trust-policy.json
-      - name: ROLE_NAME
-        value: infra-viewer
