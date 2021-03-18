@@ -6,7 +6,6 @@ OPTIONAL_TEST_INFRA_GITOPS_DIRS=./GitOps
 optional-generate:
 	@make optional-generate-optional-test-infra-prow
 	@make optional-generate-optional-test-infra-tekton
-	@make optional-generate-optional-test-infra-daily-worker
 
 # Validate if optional-generate runs
 optional-test:
@@ -41,14 +40,3 @@ optional-generate-optional-test-infra-tekton:
 	@cp -r ./User/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/task/* \
     ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-tekton/namespaces/kubeflow-test-infra/
 	@echo "Finish generating yaml files for optional-test-infra-tekton cluster"
-
-optional-generate-optional-test-infra-daily-worker:
-	@echo ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}
-	@echo "Start generating yaml files for optional-test-infra-daily-worker cluster"
-	@rm -rf ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-daily-worker/namespaces/prow/*
-	@mkdir -p ${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-daily-worker/namespaces/prow/
-	@kubectl -n prow --kubeconfig=./testing/fake-kubeconfig/config.yaml create configmap config \
-	--from-file=config.yaml=./User/clusters/optional-test-infra-daily-worker/namespaces/prow/configmap/config.yaml \
-	--dry-run=client -o yaml > \
-	${OPTIONAL_TEST_INFRA_GITOPS_DIRS}/clusters/optional-test-infra-daily-worker/namespaces/prow/config.yaml
-	@echo "Finish generating yaml files for optional-test-infra-daily-worker cluster"
