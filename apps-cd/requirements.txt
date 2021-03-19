@@ -9,7 +9,7 @@ google-auth==1.6.3
 google-auth-httplib2==0.0.3
 google-cloud-core==1.0.3
 google-cloud-storage==1.17.0
-jinja2==2.11.2
+jinja2==2.11.3
 json-log-formatter==0.2.0
 jwcrypto==0.6.0
 kubernetes==9.0.0
