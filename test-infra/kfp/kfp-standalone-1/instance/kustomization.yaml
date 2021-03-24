@@ -6,6 +6,7 @@ commonLabels:
   instance: kfp-standalone-1 # {"$kpt-set":"name"}
 resources:
 - ../upstream
+- iam.yaml
 patchesStrategicMerge:
 - cluster-patch.yaml
 - nodepool-patch.yaml

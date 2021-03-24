@@ -1,0 +1,14 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: vm-cloud-storage-object-admin
+spec:
+  member: serviceAccount:kfp-standalone-1-vm@kfp-ci.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
+  # This allows tests to:
+  # * get/put cloud storage objects
+  # * pull/push cloud container registry images
+  role: roles/storage.objectAdmin
+  resourceRef:
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    kind: Project
+    external: projects/kfp-ci # {"$kpt-set":"project-ref"}
