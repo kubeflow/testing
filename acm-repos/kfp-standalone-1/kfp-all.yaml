@@ -251,12 +251,18 @@ spec:
   group: argoproj.io
   names:
     kind: ClusterWorkflowTemplate
+    listKind: ClusterWorkflowTemplateList
     plural: clusterworkflowtemplates
     shortNames:
     - clusterwftmpl
     - cwft
+    singular: clusterworkflowtemplate
   scope: Cluster
   version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -268,12 +274,18 @@ spec:
   group: argoproj.io
   names:
     kind: CronWorkflow
+    listKind: CronWorkflowList
     plural: cronworkflows
     shortNames:
-    - cronwf
     - cwf
+    - cronwf
+    singular: cronworkflow
   scope: Namespaced
   version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -322,6 +334,28 @@ kind: CustomResourceDefinition
 metadata:
   labels:
     application-crd-id: kubeflow-pipelines
+  name: workfloweventbindings.argoproj.io
+spec:
+  group: argoproj.io
+  names:
+    kind: WorkflowEventBinding
+    listKind: WorkflowEventBindingList
+    plural: workfloweventbindings
+    shortNames:
+    - wfeb
+    singular: workfloweventbinding
+  scope: Namespaced
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
   name: workflows.argoproj.io
 spec:
   additionalPrinterColumns:
@@ -337,11 +371,18 @@ spec:
   group: argoproj.io
   names:
     kind: Workflow
+    listKind: WorkflowList
     plural: workflows
     shortNames:
     - wf
+    singular: workflow
   scope: Namespaced
+  subresources: {}
   version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -353,11 +394,17 @@ spec:
   group: argoproj.io
   names:
     kind: WorkflowTemplate
+    listKind: WorkflowTemplateList
     plural: workflowtemplates
     shortNames:
     - wftmpl
+    singular: workflowtemplate
   scope: Namespaced
   version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -468,6 +515,14 @@ kind: ServiceAccount
 metadata:
   labels:
     application-crd-id: kubeflow-pipelines
+  name: mysql
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
   name: pipeline-runner
   namespace: kubeflow
 ---
@@ -537,24 +592,71 @@ rules:
   - ""
   resources:
   - persistentvolumeclaims
-  - events
   verbs:
   - create
   - delete
+  - get
 - apiGroups:
   - argoproj.io
   resources:
   - workflows
   - workflows/finalizers
-  - workflowtemplates
-  - workflowtemplates/finalizers
-  - cronworkflows
   verbs:
   - get
   - list
   - watch
   - update
   - patch
+  - delete
+  - create
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflowtemplates
+  - workflowtemplates/finalizers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - cronworkflows
+  - cronworkflows/finalizers
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - create
+  - get
   - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -841,6 +943,12 @@ rules:
   - authorization.k8s.io
   resources:
   - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
   verbs:
   - create
 ---
@@ -1229,11 +1337,12 @@ metadata:
 apiVersion: v1
 data:
   appName: kfp-standalone-1
-  appVersion: 1.1.1-beta.1
+  appVersion: 1.5.0-rc.0
   autoUpdatePipelineDefaultVersion: "true"
   bucketName: mlpipeline
   cacheDb: cachedb
-  containerRuntimeExecutor: docker
+  cacheImage: gcr.io/google-containers/busybox
+  cronScheduleTimezone: UTC
   dbHost: mysql
   dbPort: "3306"
   gcsProjectId: kfp-ci
@@ -1244,35 +1353,26 @@ metadata:
   annotations: {}
   labels:
     application-crd-id: kubeflow-pipelines
-  name: pipeline-install-config-ggf2d4kgk5
+  name: pipeline-install-config
   namespace: kubeflow
 ---
 apiVersion: v1
 data:
-  config: |
-    {
-    namespace: kubeflow,
-    executorImage: gcr.io/ml-pipeline/argoexec:v2.7.5-license-compliance,
-    containerRuntimeExecutor: docker,
-    artifactRepository:
-    {
-        s3: {
-            bucket: mlpipeline,
-            keyPrefix: artifacts,
-            endpoint: minio-service.kubeflow:9000,
-            insecure: true,
-            accessKeySecret: {
-                name: mlpipeline-minio-artifact,
-                key: accesskey
-            },
-            secretKeySecret: {
-                name: mlpipeline-minio-artifact,
-                key: secretkey
-            }
-        },
-        archiveLogs: true
-    }
-    }
+  artifactRepository: |
+    archiveLogs: true
+    s3:
+      endpoint: "minio-service.kubeflow:9000"
+      bucket: "mlpipeline"
+      keyFormat: "artifacts/{{workflow.name}}/{{pod.name}}"
+      # insecure will disable TLS. Primarily used for minio installs not configured with TLS
+      insecure: true
+      accessKeySecret:
+        name: mlpipeline-minio-artifact
+        key: accesskey
+      secretKeySecret:
+        name: mlpipeline-minio-artifact
+        key: secretkey
+  containerRuntimeExecutor: docker
 kind: ConfigMap
 metadata:
   labels:
@@ -1281,16 +1381,15 @@ metadata:
   namespace: kubeflow
 ---
 apiVersion: v1
-data:
-  accesskey: bWluaW8=
-  secretkey: bWluaW8xMjM=
 kind: Secret
 metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: mlpipeline-minio-artifact
   namespace: kubeflow
-type: Opaque
+stringData:
+  accesskey: minio
+  secretkey: minio123
 ---
 apiVersion: v1
 data:
@@ -1301,7 +1400,7 @@ metadata:
   annotations: {}
   labels:
     application-crd-id: kubeflow-pipelines
-  name: mysql-secret-fd5gktm75t
+  name: mysql-secret
   namespace: kubeflow
 type: Opaque
 ---
@@ -1462,6 +1561,23 @@ spec:
     app: mysql
     application-crd-id: kubeflow-pipelines
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: workflow-controller-metrics
+  namespace: kubeflow
+spec:
+  ports:
+  - name: metrics
+    port: 9090
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app: workflow-controller
+    application-crd-id: kubeflow-pipelines
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1490,7 +1606,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-deployer:1.1.1-beta.1
+        image: gcr.io/ml-pipeline/cache-deployer:1.5.0-rc.0
         imagePullPolicy: Always
         name: main
       restartPolicy: Always
@@ -1526,38 +1642,43 @@ spec:
         - --db_password=$(DBCONFIG_PASSWORD)
         - --namespace_to_watch=$(NAMESPACE_TO_WATCH)
         env:
+        - name: CACHE_IMAGE
+          valueFrom:
+            configMapKeyRef:
+              key: cacheImage
+              name: pipeline-install-config
         - name: DBCONFIG_DRIVER
           value: mysql
         - name: DBCONFIG_DB_NAME
           valueFrom:
             configMapKeyRef:
               key: cacheDb
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: DBCONFIG_HOST_NAME
           valueFrom:
             configMapKeyRef:
               key: dbHost
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: DBCONFIG_PORT
           valueFrom:
             configMapKeyRef:
               key: dbPort
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: DBCONFIG_USER
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql-secret-fd5gktm75t
+              name: mysql-secret
         - name: DBCONFIG_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql-secret-fd5gktm75t
+              name: mysql-secret
         - name: NAMESPACE_TO_WATCH
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-server:1.1.1-beta.1
+        image: gcr.io/ml-pipeline/cache-server:1.5.0-rc.0
         imagePullPolicy: Always
         name: server
         ports:
@@ -1597,7 +1718,11 @@ spec:
     spec:
       containers:
       - command:
-        - /root/manager
+        - /bin/sh
+        - -c
+        - |
+          echo "logs are hidden because volume is too excessive" &&
+          /root/manager 2> /dev/null
         env:
         - name: NAMESPACE
           valueFrom:
@@ -1636,7 +1761,7 @@ spec:
         component: metadata-envoy
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/metadata-envoy:1.1.1-beta.1
+      - image: gcr.io/ml-pipeline/metadata-envoy:1.5.0-rc.0
         name: container
         ports:
         - containerPort: 9090
@@ -1680,28 +1805,28 @@ spec:
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql-secret-fd5gktm75t
+              name: mysql-secret
         - name: DBCONFIG_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql-secret-fd5gktm75t
+              name: mysql-secret
         - name: MYSQL_DATABASE
           valueFrom:
             configMapKeyRef:
               key: mlmdDb
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: MYSQL_HOST
           valueFrom:
             configMapKeyRef:
               key: dbHost
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: MYSQL_PORT
           valueFrom:
             configMapKeyRef:
               key: dbPort
-              name: pipeline-install-config-ggf2d4kgk5
-        image: gcr.io/tfx-oss-public/ml_metadata_store_server:0.22.1
+              name: pipeline-install-config
+        image: gcr.io/tfx-oss-public/ml_metadata_store_server:0.25.1
         livenessProbe:
           initialDelaySeconds: 3
           periodSeconds: 5
@@ -1745,7 +1870,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/metadata-writer:1.1.1-beta.1
+        image: gcr.io/ml-pipeline/metadata-writer:1.5.0-rc.0
         name: main
       serviceAccountName: kubeflow-pipelines-metadata-writer
 ---
@@ -1789,6 +1914,10 @@ spec:
         name: minio
         ports:
         - containerPort: 9000
+        resources:
+          requests:
+            cpu: 20m
+            memory: 25Mi
         volumeMounts:
         - mountPath: /data
           name: data
@@ -1813,6 +1942,8 @@ spec:
       application-crd-id: kubeflow-pipelines
   template:
     metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         app: ml-pipeline-persistenceagent
         application-crd-id: kubeflow-pipelines
@@ -1827,9 +1958,13 @@ spec:
           value: "86400"
         - name: NUM_WORKERS
           value: "2"
-        image: gcr.io/ml-pipeline/persistenceagent:1.1.1-beta.1
+        image: gcr.io/ml-pipeline/persistenceagent:1.5.0-rc.0
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-persistenceagent
+        resources:
+          requests:
+            cpu: 120m
+            memory: 2Gi
       serviceAccountName: ml-pipeline-persistenceagent
 ---
 apiVersion: apps/v1
@@ -1847,6 +1982,8 @@ spec:
       application-crd-id: kubeflow-pipelines
   template:
     metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         app: ml-pipeline-scheduledworkflow
         application-crd-id: kubeflow-pipelines
@@ -1857,7 +1994,12 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/scheduledworkflow:1.1.1-beta.1
+        - name: CRON_SCHEDULE_TIMEZONE
+          valueFrom:
+            configMapKeyRef:
+              key: cronScheduleTimezone
+              name: pipeline-install-config
+        image: gcr.io/ml-pipeline/scheduledworkflow:1.5.0-rc.0
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-scheduledworkflow
       serviceAccountName: ml-pipeline-scheduledworkflow
@@ -1877,6 +2019,8 @@ spec:
       application-crd-id: kubeflow-pipelines
   template:
     metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         app: ml-pipeline-ui
         application-crd-id: kubeflow-pipelines
@@ -1901,7 +2045,7 @@ spec:
               name: mlpipeline-minio-artifact
         - name: ALLOW_CUSTOM_VISUALIZATIONS
           value: "true"
-        image: gcr.io/ml-pipeline/frontend:1.1.1-beta.1
+        image: gcr.io/ml-pipeline/frontend:1.5.0-rc.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -1930,6 +2074,10 @@ spec:
           initialDelaySeconds: 3
           periodSeconds: 5
           timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 10m
+            memory: 70Mi
         volumeMounts:
         - mountPath: /etc/config
           name: config-volume
@@ -1955,6 +2103,8 @@ spec:
       application-crd-id: kubeflow-pipelines
   template:
     metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         app: ml-pipeline-viewer-crd
         application-crd-id: kubeflow-pipelines
@@ -1967,7 +2117,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/viewer-crd-controller:1.1.1-beta.1
+        image: gcr.io/ml-pipeline/viewer-crd-controller:1.5.0-rc.0
         imagePullPolicy: Always
         name: ml-pipeline-viewer-crd
       serviceAccountName: ml-pipeline-viewer-crd-service-account
@@ -1987,12 +2137,14 @@ spec:
       application-crd-id: kubeflow-pipelines
   template:
     metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         app: ml-pipeline-visualizationserver
         application-crd-id: kubeflow-pipelines
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/visualization-server:1.1.1-beta.1
+      - image: gcr.io/ml-pipeline/visualization-server:1.5.0-rc.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -2039,6 +2191,8 @@ spec:
       application-crd-id: kubeflow-pipelines
   template:
     metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         app: ml-pipeline
         application-crd-id: kubeflow-pipelines
@@ -2049,7 +2203,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: autoUpdatePipelineDefaultVersion
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
@@ -2060,32 +2214,32 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: bucketName
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: DBCONFIG_USER
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql-secret-fd5gktm75t
+              name: mysql-secret
         - name: DBCONFIG_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql-secret-fd5gktm75t
+              name: mysql-secret
         - name: DBCONFIG_DBNAME
           valueFrom:
             configMapKeyRef:
               key: pipelineDb
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: DBCONFIG_HOST
           valueFrom:
             configMapKeyRef:
               key: dbHost
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: DBCONFIG_PORT
           valueFrom:
             configMapKeyRef:
               key: dbPort
-              name: pipeline-install-config-ggf2d4kgk5
+              name: pipeline-install-config
         - name: OBJECTSTORECONFIG_ACCESSKEY
           valueFrom:
             secretKeyRef:
@@ -2096,7 +2250,7 @@ spec:
             secretKeyRef:
               key: secretkey
               name: mlpipeline-minio-artifact
-        image: gcr.io/ml-pipeline/api-server:1.1.1-beta.1
+        image: gcr.io/ml-pipeline/api-server:1.5.0-rc.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -2128,6 +2282,10 @@ spec:
           initialDelaySeconds: 3
           periodSeconds: 5
           timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: "2"
+            memory: 4Gi
       serviceAccountName: ml-pipeline
 ---
 apiVersion: apps/v1
@@ -2152,10 +2310,14 @@ spec:
         application-crd-id: kubeflow-pipelines
     spec:
       containers:
-      - env:
+      - args:
+        - --ignore-db-dir=lost+found
+        - --datadir
+        - /var/lib/mysql
+        env:
         - name: MYSQL_ALLOW_EMPTY_PASSWORD
           value: "true"
-        image: gcr.io/ml-pipeline/mysql:5.6
+        image: gcr.io/ml-pipeline/mysql:5.7
         name: mysql
         ports:
         - containerPort: 3306
@@ -2163,6 +2325,7 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/mysql
           name: mysql-persistent-storage
+      serviceAccountName: mysql
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
@@ -2191,7 +2354,7 @@ spec:
       - env:
         - name: PROXY_URL
           value: https://datalab-staging.cloud.google.com/tun/m/4592f092208ecc84946b8f8f8016274df1b36a14
-        image: gcr.io/ml-pipeline/inverse-proxy-agent:1.1.1-beta.1
+        image: gcr.io/ml-pipeline/inverse-proxy-agent:1.5.0-rc.0
         imagePullPolicy: IfNotPresent
         name: proxy-agent
       hostNetwork: true
@@ -2201,26 +2364,16 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: workflow-controller
     application-crd-id: kubeflow-pipelines
   name: workflow-controller
   namespace: kubeflow
 spec:
-  progressDeadlineSeconds: 600
-  replicas: 1
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: workflow-controller
       application-crd-id: kubeflow-pipelines
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: workflow-controller
         application-crd-id: kubeflow-pipelines
@@ -2230,28 +2383,26 @@ spec:
         - --configmap
         - workflow-controller-configmap
         - --executor-image
-        - gcr.io/ml-pipeline/argoexec:v2.7.5-license-compliance
+        - gcr.io/ml-pipeline/argoexec:v2.12.9-license-compliance
+        - --namespaced
         command:
         - workflow-controller
-        env:
-        - name: ARGO_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/workflow-controller:v2.7.5-license-compliance
-        imagePullPolicy: IfNotPresent
+        image: gcr.io/ml-pipeline/workflow-controller:v2.12.9-license-compliance
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          initialDelaySeconds: 30
+          periodSeconds: 30
         name: workflow-controller
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      serviceAccount: argo
+        ports:
+        - containerPort: 9090
+          name: metrics
+      nodeSelector:
+        kubernetes.io/os: linux
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: argo
-      terminationGracePeriodSeconds: 30
 ---
 apiVersion: app.k8s.io/v1beta1
 kind: Application
@@ -2293,7 +2444,7 @@ spec:
       url: https://github.com/kubeflow/pipelines
     notes: Please go to [Hosted Kubeflow Pipelines Console](https://console.cloud.google.com/ai-platform/pipelines/clusters).
     type: Kubeflow Pipelines
-    version: 1.1.1-beta.1
+    version: 1.5.0-rc.0
   info:
   - name: Console
     value: https://console.cloud.google.com/ai-platform/pipelines/clusters
