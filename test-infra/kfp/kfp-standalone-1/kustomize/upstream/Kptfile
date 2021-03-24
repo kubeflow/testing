@@ -5,10 +5,10 @@ metadata:
 upstream:
   type: git
   git:
-    commit: c1aebb5d22948896d0786c573c9c378d0d08e91d
+    commit: d2c66deb931f978c97fa2df492a5cf7fb6cc278b
     repo: https://github.com/kubeflow/pipelines
     directory: /manifests/kustomize
-    ref: 1.1.1-beta.1
+    ref: 1.5.0-rc.0
 packageMetadata:
   shortDescription: standard cluster template that uses a service account with minimum
     privilege
