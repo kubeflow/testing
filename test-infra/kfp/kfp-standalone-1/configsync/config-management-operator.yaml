@@ -243,9 +243,9 @@ metadata:
     k8s-app: config-management-operator
   name: config-management-operator
 rules:
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: ["*"]
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
 ---
 # ----- k8s/operators/addons_rolebinding_rbac.yaml -----
 apiVersion: rbac.authorization.k8s.io/v1
