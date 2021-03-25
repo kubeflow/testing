@@ -61,6 +61,14 @@ hydrate-kcc:
 apply-kcc: hydrate-kcc
 	kubectl --context=$(MGMTCTXT) apply -f .build/cnrm-install-system
 
+.PHONY: update-kcc
+update-kcc:
+	# reference: https://cloud.google.com/config-connector/docs/how-to/advanced-install#manual
+	gsutil cp gs://configconnector-operator/latest/release-bundle.tar.gz release-bundle.tar.gz
+	tar zxvf release-bundle.tar.gz -C upstream/management/cnrm-install
+	# We do not need the samples
+	rm -rf upstream/management/cnrm-install/samples
+
 .PHONY: apply-managed-project
 apply-managed-project:
 	kpt cfg set instance managed-project kubeflow-ci-deployment

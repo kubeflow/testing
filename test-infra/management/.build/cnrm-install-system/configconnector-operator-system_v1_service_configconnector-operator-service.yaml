@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    cnrm.cloud.google.com/operator-version: 1.29.0
+    cnrm.cloud.google.com/operator-version: 1.43.0
   labels:
     cnrm.cloud.google.com/operator-system: "true"
   name: configconnector-operator-service
