@@ -14,7 +14,7 @@ spec:
 apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMPolicyMember
 metadata:
-  name: prow-test-sa
+  name: prow-test-sa-v2
   namespace: kfp-ci
 spec:
   member: serviceAccount:kf-ci-v1-prow@kubeflow-ci.iam.gserviceaccount.com
