@@ -35,7 +35,7 @@ spec:
   member: serviceAccount:kf-ci-v1-prow@kubeflow-ci.iam.gserviceaccount.com
   role: roles/storage.objectAdmin
   resourceRef:
-    apiVersion: iam.cnrm.cloud.google.com/v1beta1
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
     kind: Project
     name: projects/kfp-ci
 ---
