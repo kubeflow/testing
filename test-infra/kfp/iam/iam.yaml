@@ -1,7 +1,7 @@
 apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMPolicyMember
 metadata:
-  name: ci-team-v2
+  name: ci-team-v3
   namespace: kfp-ci
 spec:
   member: group:ci-team@kubeflow.org
@@ -29,7 +29,7 @@ spec:
 apiVersion: iam.cnrm.cloud.google.com/v1beta1
 kind: IAMPolicyMember
 metadata:
-  name: prow-test-sa-gcs-object-admin-v2
+  name: prow-test-sa-gcs-object-admin-v3
   namespace: kfp-ci
 spec:
   member: serviceAccount:kf-ci-v1-prow@kubeflow-ci.iam.gserviceaccount.com
