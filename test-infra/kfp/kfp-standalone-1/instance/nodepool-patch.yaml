@@ -9,8 +9,9 @@ spec:
   nodeLocations: # We only need two nodes.
   - us-central1-a
   - us-central1-b
-  oauthScopes: # Allow entire cloud platform scope, use IAM to control access.
-  - https://www.googleapis.com/auth/cloud-platform
+  nodeConfig:
+    oauthScopes: # Allow entire cloud platform scope, use IAM to control access.
+    - https://www.googleapis.com/auth/cloud-platform
 
 # Uncomment fields you care about to override.
 # initialNodeCount: 1

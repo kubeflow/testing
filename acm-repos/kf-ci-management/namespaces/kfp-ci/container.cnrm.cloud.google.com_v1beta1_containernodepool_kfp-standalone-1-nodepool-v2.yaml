@@ -23,11 +23,11 @@ spec:
     machineType: e2-standard-8
     metadata:
       disable-legacy-endpoints: "true"
+    oauthScopes:
+    - https://www.googleapis.com/auth/cloud-platform
     preemptible: false
     serviceAccountRef:
       name: kfp-standalone-1-vm
   nodeLocations:
   - us-central1-a
   - us-central1-b
-  oauthScopes:
-  - https://www.googleapis.com/auth/cloud-platform
