@@ -12,3 +12,17 @@ spec:
     apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
     kind: Project
     external: projects/kfp-ci # {"$kpt-set":"project-ref"}
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: vm-viewer
+spec:
+  member: serviceAccount:kfp-standalone-1-vm@kfp-ci.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
+  # This allows tests to list storage buckets.
+  # Reference: https://cloud.google.com/storage/docs/access-control/iam-roles#basic-roles-intrinsic
+  role: roles/viewer
+  resourceRef:
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    kind: Project
+    external: projects/kfp-ci # {"$kpt-set":"project-ref"}
