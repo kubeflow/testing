@@ -26,7 +26,7 @@ deck:
 plank:
   job_url_prefix_config:
     "*": http://prow.kubeflow-testing.com/view/
-  job_url_template: 'http://prow.kubeflow-testing.com/view/s3/aws-kubeflow-jenkins/pr-logs/pull/{{.Spec.Refs.Org}}_{{.Spec.Refs.Repo}}/{{with index .Spec.Refs.Pulls 0}}{{.Number}}{{end}}/{{.Spec.Job}}/{{.Status.BuildID}}'
+  job_url_template: 'http://prow.kubeflow-testing.com/view/s3/aws-kubeflow-jenkins/{{if eq .Spec.Type "presubmit"}}pr-logs/pull{{else}}logs{{end}}/{{if eq .Spec.Type "presubmit"}}{{.Spec.Refs.Org}}_{{.Spec.Refs.Repo}}/{{with index .Spec.Refs.Pulls 0}}{{.Number}}{{end}}{{end}}/{{.Spec.Job}}/{{.Status.BuildID}}'
   report_templates:
     '*': >-
         [Full PR test history](http://prow.kubeflow-testing.com/pr-history?org={{.Spec.Refs.Org}}&repo={{.Spec.Refs.Repo}}&pr={{with index .Spec.Refs.Pulls 0}}{{.Number}}{{end}}).
