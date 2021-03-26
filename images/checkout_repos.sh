@@ -83,16 +83,17 @@ main() {
     EXTRA_PR="$(cut -d':' -s -f2 <<< "$SHA_AND_PR")"
     URL=https://github.com/${EXTRA_ORG}/${EXTRA_NAME}.git
     TARGET=${src_dir}/${EXTRA_ORG}/${EXTRA_NAME}
+    PULL_BASE_REF="${PULL_BASE_REF:-master}"
 
     mkdir -p ${src_dir}/${EXTRA_ORG}
 
     if [ ! -d ${TARGET} ]; then
       if [ "${depth}" == "all" ]; then
         git clone  ${URL} ${TARGET}
-      else        
+      else
         git clone --depth=${depth} ${URL} ${TARGET}
-      fi 
-    else 
+      fi
+    else
       # init containers might get restarted so its possible we already checked out the repo
       echo ${TARGET} already exists
     fi
@@ -104,6 +105,7 @@ main() {
       git checkout pr
 
       if [ "$SHA" -ne "HEAD" ]; then
+        git fetch origin ${PULL_BASE_REF}
         git checkout ${SHA}
       fi      
     else    
