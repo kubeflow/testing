@@ -108,7 +108,8 @@ main() {
         git fetch origin ${PULL_BASE_REF}
         git checkout ${SHA}
       fi      
-    else    
+    else
+      git fetch origin ${PULL_BASE_REF}
       git checkout ${SHA}
     fi
     echo ${TARGET} is at `git describe --tags --always --dirty`
