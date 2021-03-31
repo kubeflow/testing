@@ -80,6 +80,7 @@ data:
       - name: kubeflow-katib-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:
         - master
+        - release-0.11
         decorate: false
         labels:
           preset-aws-cred: "true"
