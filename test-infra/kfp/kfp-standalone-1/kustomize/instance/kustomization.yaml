@@ -34,3 +34,8 @@ patchesStrategicMerge:
 # 2. Change values in params-db-secret.env file for CloudSQL username and password
 # 3. kubectl apply -k ./
 ####
+
+images:
+- name: gcr.io/ml-pipeline/api-server
+  newName: gcr.io/ml-pipeline-test/api-server
+  newTag: d95764b7560cf6782168f559157615a09a45a6da

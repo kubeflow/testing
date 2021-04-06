@@ -15,18 +15,18 @@ spec:
     spec:
       serviceAccountName: dex
       containers:
-        - name: dex
-          image: quay.io/dexidp/dex:v2.23.0
-          args:
-            - serve
-            - /data/config.yaml
-          ports:
-            - name: http
-              containerPort: 5556
-          volumeMounts:
-            - mountPath: /data
-              name: config
+      - name: dex
+        image: quay.io/dexidp/dex:v2.23.0
+        args:
+        - serve
+        - /data/config.yaml
+        ports:
+        - name: http
+          containerPort: 5556
+        volumeMounts:
+        - mountPath: /data
+          name: config
       volumes:
-        - name: config
-          configMap:
-            name: dex
+      - name: config
+        configMap:
+          name: dex

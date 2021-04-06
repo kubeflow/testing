@@ -18,17 +18,15 @@ spec:
       - name: prometheus
         image: prom/prometheus
         volumeMounts:
-          - name: config-volume
-            mountPath: /etc/prometheus/prometheus.yml
-            subPath: prometheus.yml
-        args: ["--storage.tsdb.retention.time=7d",  # Adjust retention policy if necessary
-               "--storage.tsdb.retention.size=1GB",
-               "--config.file=/etc/prometheus/prometheus.yml",
-               ]
+        - name: config-volume
+          mountPath: /etc/prometheus/prometheus.yml
+          subPath: prometheus.yml
+        args: ["--storage.tsdb.retention.time=7d", # Adjust retention policy if necessary
+          "--storage.tsdb.retention.size=1GB", "--config.file=/etc/prometheus/prometheus.yml"]
         ports:
         - containerPort: 9090
       volumes:
-        - name: config-volume
-          configMap:
-           name: prometheus-configmap
+      - name: config-volume
+        configMap:
+          name: prometheus-configmap
       serviceAccountName: prometheus

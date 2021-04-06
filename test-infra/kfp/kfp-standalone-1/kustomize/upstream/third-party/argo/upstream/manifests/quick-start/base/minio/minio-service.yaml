@@ -8,7 +8,6 @@ spec:
   selector:
     app: minio
   ports:
-    - protocol: TCP
-      port: 9000
-      targetPort: 9000
-
+  - protocol: TCP
+    port: 9000
+    targetPort: 9000

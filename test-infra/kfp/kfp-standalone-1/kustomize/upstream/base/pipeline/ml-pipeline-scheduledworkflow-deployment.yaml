@@ -20,13 +20,13 @@ spec:
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-scheduledworkflow
         env:
-          - name: NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: CRON_SCHEDULE_TIMEZONE
-            valueFrom:
-              configMapKeyRef:
-                name: pipeline-install-config
-                key: cronScheduleTimezone
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CRON_SCHEDULE_TIMEZONE
+          valueFrom:
+            configMapKeyRef:
+              name: pipeline-install-config
+              key: cronScheduleTimezone
       serviceAccountName: ml-pipeline-scheduledworkflow
