@@ -434,6 +434,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
+    app: cache-server
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-cache
   namespace: kubeflow
@@ -460,6 +461,14 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-viewer
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: metadata-grpc-server
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -663,7 +672,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app: kubeflow-pipelines-cache-deployer-role
+    app: cache-deployer
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-cache-deployer-role
   namespace: kubeflow
@@ -683,7 +692,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app: kubeflow-pipelines-cache-role
+    app: cache-server
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-cache-role
   namespace: kubeflow
@@ -1125,6 +1134,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
+    app: cache-server
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-cache-binding
   namespace: kubeflow
@@ -1141,6 +1151,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
+    app: cache-deployer
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-cache-deployer-rolebinding
   namespace: kubeflow
@@ -1337,7 +1348,7 @@ metadata:
 apiVersion: v1
 data:
   appName: kfp-standalone-1
-  appVersion: 1.5.0-rc.0
+  appVersion: 1.5.0-rc.2
   autoUpdatePipelineDefaultVersion: "true"
   bucketName: mlpipeline
   cacheDb: cachedb
@@ -1408,6 +1419,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
+    app: cache-server
     application-crd-id: kubeflow-pipelines
   name: cache-server
   namespace: kubeflow
@@ -1606,7 +1618,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-deployer:1.5.0-rc.0
+        image: gcr.io/ml-pipeline/cache-deployer:1.5.0-rc.2
         imagePullPolicy: Always
         name: main
       restartPolicy: Always
@@ -1678,7 +1690,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-server:1.5.0-rc.0
+        image: gcr.io/ml-pipeline/cache-server:1.5.0-rc.2
         imagePullPolicy: Always
         name: server
         ports:
@@ -1756,12 +1768,14 @@ spec:
       component: metadata-envoy
   template:
     metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
       labels:
         application-crd-id: kubeflow-pipelines
         component: metadata-envoy
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/metadata-envoy:1.5.0-rc.0
+      - image: gcr.io/ml-pipeline/metadata-envoy:1.5.0-rc.2
         name: container
         ports:
         - containerPort: 9090
@@ -1843,6 +1857,7 @@ spec:
           tcpSocket:
             port: grpc-api
           timeoutSeconds: 2
+      serviceAccountName: metadata-grpc-server
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1870,7 +1885,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/metadata-writer:1.5.0-rc.0
+        image: gcr.io/ml-pipeline/metadata-writer:1.5.0-rc.2
         name: main
       serviceAccountName: kubeflow-pipelines-metadata-writer
 ---
@@ -1917,7 +1932,7 @@ spec:
         resources:
           requests:
             cpu: 20m
-            memory: 25Mi
+            memory: 100Mi
         volumeMounts:
         - mountPath: /data
           name: data
@@ -1958,13 +1973,13 @@ spec:
           value: "86400"
         - name: NUM_WORKERS
           value: "2"
-        image: gcr.io/ml-pipeline/persistenceagent:1.5.0-rc.0
+        image: gcr.io/ml-pipeline/persistenceagent:1.5.0-rc.2
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-persistenceagent
         resources:
           requests:
             cpu: 120m
-            memory: 2Gi
+            memory: 500Mi
       serviceAccountName: ml-pipeline-persistenceagent
 ---
 apiVersion: apps/v1
@@ -1999,7 +2014,7 @@ spec:
             configMapKeyRef:
               key: cronScheduleTimezone
               name: pipeline-install-config
-        image: gcr.io/ml-pipeline/scheduledworkflow:1.5.0-rc.0
+        image: gcr.io/ml-pipeline/scheduledworkflow:1.5.0-rc.2
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-scheduledworkflow
       serviceAccountName: ml-pipeline-scheduledworkflow
@@ -2045,7 +2060,7 @@ spec:
               name: mlpipeline-minio-artifact
         - name: ALLOW_CUSTOM_VISUALIZATIONS
           value: "true"
-        image: gcr.io/ml-pipeline/frontend:1.5.0-rc.0
+        image: gcr.io/ml-pipeline/frontend:1.5.0-rc.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -2117,7 +2132,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/viewer-crd-controller:1.5.0-rc.0
+        image: gcr.io/ml-pipeline/viewer-crd-controller:1.5.0-rc.2
         imagePullPolicy: Always
         name: ml-pipeline-viewer-crd
       serviceAccountName: ml-pipeline-viewer-crd-service-account
@@ -2144,7 +2159,7 @@ spec:
         application-crd-id: kubeflow-pipelines
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/visualization-server:1.5.0-rc.0
+      - image: gcr.io/ml-pipeline/visualization-server:1.5.0-rc.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -2174,6 +2189,10 @@ spec:
           initialDelaySeconds: 3
           periodSeconds: 5
           timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 30m
+            memory: 500Mi
       serviceAccountName: ml-pipeline-visualizationserver
 ---
 apiVersion: apps/v1
@@ -2250,7 +2269,7 @@ spec:
             secretKeyRef:
               key: secretkey
               name: mlpipeline-minio-artifact
-        image: gcr.io/ml-pipeline/api-server:1.5.0-rc.0
+        image: gcr.io/ml-pipeline-test/api-server:d95764b7560cf6782168f559157615a09a45a6da
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -2284,8 +2303,8 @@ spec:
           timeoutSeconds: 2
         resources:
           requests:
-            cpu: "2"
-            memory: 4Gi
+            cpu: 250m
+            memory: 500Mi
       serviceAccountName: ml-pipeline
 ---
 apiVersion: apps/v1
@@ -2322,6 +2341,10 @@ spec:
         ports:
         - containerPort: 3306
           name: mysql
+        resources:
+          requests:
+            cpu: 100m
+            memory: 800Mi
         volumeMounts:
         - mountPath: /var/lib/mysql
           name: mysql-persistent-storage
@@ -2354,7 +2377,7 @@ spec:
       - env:
         - name: PROXY_URL
           value: https://datalab-staging.cloud.google.com/tun/m/4592f092208ecc84946b8f8f8016274df1b36a14
-        image: gcr.io/ml-pipeline/inverse-proxy-agent:1.5.0-rc.0
+        image: gcr.io/ml-pipeline/inverse-proxy-agent:1.5.0-rc.2
         imagePullPolicy: IfNotPresent
         name: proxy-agent
       hostNetwork: true
@@ -2398,6 +2421,10 @@ spec:
         ports:
         - containerPort: 9090
           name: metrics
+        resources:
+          requests:
+            cpu: 100m
+            memory: 500Mi
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:
@@ -2444,7 +2471,7 @@ spec:
       url: https://github.com/kubeflow/pipelines
     notes: Please go to [Hosted Kubeflow Pipelines Console](https://console.cloud.google.com/ai-platform/pipelines/clusters).
     type: Kubeflow Pipelines
-    version: 1.5.0-rc.0
+    version: 1.5.0-rc.2
   info:
   - name: Console
     value: https://console.cloud.google.com/ai-platform/pipelines/clusters
