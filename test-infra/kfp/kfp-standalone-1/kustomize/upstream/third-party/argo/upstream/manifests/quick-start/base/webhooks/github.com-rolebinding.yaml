@@ -7,6 +7,6 @@ roleRef:
   kind: Role
   name: submit-workflow-template
 subjects:
-  - kind: ServiceAccount
-    name: github.com
-    namespace: argo
+- kind: ServiceAccount
+  name: github.com
+  namespace: argo

@@ -57,4 +57,4 @@ spec:
       securityContext:
         fsGroup: 472
         runAsUser: 472
-# TODO(jingzhang36): consider adding persistent volume if you would like the created dashboards to persist.
+        # TODO(jingzhang36): consider adding persistent volume if you would like the created dashboards to persist.
