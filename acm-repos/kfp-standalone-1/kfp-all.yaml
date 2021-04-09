@@ -1392,6 +1392,18 @@ metadata:
   namespace: kubeflow
 ---
 apiVersion: v1
+data:
+  accesskey: bWluaW8=
+  secretkey: bWluaW8xMjM=
+kind: Secret
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kfp-s3-secret
+  namespace: kubeflow
+type: Opaque
+---
+apiVersion: v1
 kind: Secret
 metadata:
   labels:
