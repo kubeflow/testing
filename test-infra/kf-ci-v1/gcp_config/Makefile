@@ -17,8 +17,15 @@ preview:
 		--config cluster-kubeflow.yaml \
 		--preview
 
-apply:
+apply-preview:
 	gcloud deployment-manager deployments update $(DEPLOYMENT) $(PROJECT_ARG)
+
+apply:
+	gcloud deployment-manager deployments update $(DEPLOYMENT) $(PROJECT_ARG) \
+		--config cluster-kubeflow.yaml
 
 cancel:
 	gcloud deployment-manager deployments cancel-preview $(DEPLOYMENT) $(PROJECT_ARG)
+
+stop:
+	gcloud deployment-manager deployments stop $(DEPLOYMENT) $(PROJECT_ARG)

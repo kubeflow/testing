@@ -141,7 +141,8 @@ resources:
           serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
           oauthScopes: {{ VM_OAUTH_SCOPES }}
           # Set min cpu platform to ensure AVX2 is supported.
-          minCpuPlatform: 'Intel Broadwell'
+          # TODO: understand why this is needed, it's not compatible with e2 family machine type.
+          # minCpuPlatform: 'Intel Broadwell'
   metadata:
     dependsOn:
     - {{ KF_VM_SA_NAME }}

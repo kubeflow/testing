@@ -10,10 +10,10 @@ resources:
         type: nvidia-tesla-k80
       max-cpu: 128
       max-memory: 2000
-    cluster-version: 1.14.8
+    cluster-version: 1.17
     cpu-pool-enable-autoscaling: true
     cpu-pool-initialNodeCount: 2
-    cpu-pool-machine-type: n1-standard-8
+    cpu-pool-machine-type: e2-standard-8
     cpu-pool-max-nodes: 10
     cpu-pool-min-nodes: 0
     enable-workload-identity: true
@@ -28,7 +28,7 @@ resources:
     gpu-type: nvidia-tesla-k80
     identity-namespace: kubeflow-ci.svc.id.goog
     ipName: kf-ci-v1-ip
-    pool-version: v1
+    pool-version: v3
     securityConfig:
       masterAuthorizedNetworksConfigCidr:
       - cidrBlock: 1.2.3.4/32
