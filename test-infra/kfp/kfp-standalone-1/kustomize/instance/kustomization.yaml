@@ -37,5 +37,6 @@ patchesStrategicMerge:
 
 images:
 - name: gcr.io/ml-pipeline/frontend
-  newName: gcr.io/ml-pipeline-test/7857bb525a27e137d8058f2a656db86d35b74cee/frontend
+  # https://github.com/kubeflow/pipelines/pull/5618
+  newName: gcr.io/ml-pipeline-test/4b87b3cc0cca03b807af29188cf2c8f3593c8153/frontend
   newTag: latest
