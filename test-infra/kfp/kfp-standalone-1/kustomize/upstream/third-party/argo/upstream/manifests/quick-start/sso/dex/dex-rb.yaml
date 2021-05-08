@@ -7,5 +7,5 @@ roleRef:
   kind: Role
   name: dex
 subjects:
-- kind: ServiceAccount
-  name: dex
+  - kind: ServiceAccount
+    name: dex

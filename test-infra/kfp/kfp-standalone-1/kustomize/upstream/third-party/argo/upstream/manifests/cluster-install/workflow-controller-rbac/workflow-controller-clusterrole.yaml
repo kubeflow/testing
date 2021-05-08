@@ -83,10 +83,10 @@ rules:
   - create
   - patch
 - apiGroups:
-  - "policy"
+    - "policy"
   resources:
-  - poddisruptionbudgets
+    - poddisruptionbudgets
   verbs:
-  - create
-  - get
-  - delete
+    - create
+    - get
+    - delete

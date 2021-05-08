@@ -3,33 +3,33 @@ kind: ClusterRole
 metadata:
   name: argo-server-clusterworkflowtemplate-role
 rules:
-- apiGroups:
-  - argoproj.io
-  resources:
-  - clusterworkflowtemplates
-  - clusterworkflowtemplates/finalizers
-  verbs:
-  - create
-  - delete
-  - watch
-  - get
-  - list
-  - watch
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - clusterworkflowtemplates
+      - clusterworkflowtemplates/finalizers
+    verbs:
+      - create
+      - delete
+      - watch
+      - get
+      - list
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: argo-clusterworkflowtemplate-role
 rules:
-- apiGroups:
-  - argoproj.io
-  resources:
-  - clusterworkflowtemplates
-  - clusterworkflowtemplates/finalizers
-  verbs:
-  - get
-  - list
-  - watch
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - clusterworkflowtemplates
+      - clusterworkflowtemplates/finalizers
+    verbs:
+      - get
+      - list
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -40,9 +40,9 @@ roleRef:
   kind: ClusterRole
   name: argo-clusterworkflowtemplate-role
 subjects:
-- kind: ServiceAccount
-  name: argo
-  namespace: argo
+  - kind: ServiceAccount
+    name: argo
+    namespace: argo
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -53,6 +53,7 @@ roleRef:
   kind: ClusterRole
   name: argo-server-clusterworkflowtemplate-role
 subjects:
-- kind: ServiceAccount
-  name: argo-server
-  namespace: argo
+  - kind: ServiceAccount
+    name: argo-server
+    namespace: argo
+

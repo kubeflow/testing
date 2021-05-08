@@ -18,7 +18,9 @@ spec:
         - cluster.local/ns/kubeflow/sa/ml-pipeline-viewer-crd-service-account
         - cluster.local/ns/kubeflow/sa/kubeflow-pipelines-cache
         - cluster.local/ns/kubeflow/sa/metadata-grpc-server
+
 ---
+
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
 metadata:

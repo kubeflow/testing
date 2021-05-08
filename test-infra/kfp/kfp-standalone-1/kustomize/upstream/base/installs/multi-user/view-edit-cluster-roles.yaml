@@ -1,3 +1,9 @@
+# NOTE: IMPORTANT
+# We need to separate out actual rules from aggregation rules due to
+# https://github.com/kubernetes/kubernetes/issues/65171
+# TL;DR: We can't have both aggregation and rules in a [Cluster]Role. When that
+# is the case, the rules get ignored.
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -9,7 +15,9 @@ aggregationRule:
   - matchLabels:
       rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-edit: "true"
 rules: []
+
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -22,7 +30,9 @@ aggregationRule:
   - matchLabels:
       rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-view: "true"
 rules: []
+
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -68,7 +78,9 @@ rules:
   - delete
   - disable
   - enable
+
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

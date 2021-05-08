@@ -1,68 +1,11 @@
 apiVersion: kpt.dev/v1alpha1
 kind: Kptfile
 metadata:
-  name: cluster-standard
+  name: upstream
 upstream:
   type: git
   git:
-    commit: f870570a790beb4a125d6c33a20f3c8b89319702
+    commit: 31939086d66d633732f75300ce69eb60e9fb0269
     repo: https://github.com/kubeflow/pipelines
     directory: /manifests/kustomize
-    ref: 1.5.0-rc.2
-packageMetadata:
-  shortDescription: standard cluster template that uses a service account with minimum
-    privilege
-openAPI:
-  definitions:
-    io.k8s.cli.setters.gcloud.core.project:
-      x-k8s-cli:
-        setter:
-          isSet: true
-          name: gcloud.core.project
-          value: kfp-ci
-    io.k8s.cli.setters.name:
-      x-k8s-cli:
-        setter:
-          isSet: true
-          name: name
-          value: kfp-standalone-1
-    io.k8s.cli.setters.name-nodepool:
-      x-k8s-cli:
-        setter:
-          isSet: true
-          name: name-nodepool
-          value: kfp-standalone-1-nodepool-v2
-    io.k8s.cli.substitutions.name-prefix:
-      x-k8s-cli:
-        substitution:
-          name: name-prefix
-          pattern: ${name}-
-          values:
-          - marker: ${name}
-            ref: '#/definitions/io.k8s.cli.setters.name'
-    io.k8s.cli.substitutions.name-sa:
-      x-k8s-cli:
-        substitution:
-          name: name-sa
-          pattern: ${name}-vm
-          values:
-          - marker: ${name}
-            ref: '#/definitions/io.k8s.cli.setters.name'
-    io.k8s.cli.substitutions.project-ref:
-      x-k8s-cli:
-        substitution:
-          name: project-ref
-          pattern: projects/${gcloud.core.project}
-          values:
-          - marker: ${gcloud.core.project}
-            ref: '#/definitions/io.k8s.cli.setters.gcloud.core.project'
-    io.k8s.cli.substitutions.vm-sa-ref:
-      x-k8s-cli:
-        substitution:
-          name: vm-sa-ref
-          pattern: serviceAccount:${name-sa}@${gcloud.core.project}.iam.gserviceaccount.com
-          values:
-          - marker: ${name-sa}
-            ref: '#/definitions/io.k8s.cli.substitutions.name-sa'
-          - marker: ${gcloud.core.project}
-            ref: '#/definitions/io.k8s.cli.setters.gcloud.core.project'
+    ref: 31939086d66d633732f75300ce69eb60e9fb0269

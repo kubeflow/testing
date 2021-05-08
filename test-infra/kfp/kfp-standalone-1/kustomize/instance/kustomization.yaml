@@ -36,6 +36,6 @@ patchesStrategicMerge:
 ####
 
 images:
-- name: gcr.io/ml-pipeline/api-server
-  newName: gcr.io/ml-pipeline-test/api-server
-  newTag: d95764b7560cf6782168f559157615a09a45a6da
+- name: gcr.io/ml-pipeline/frontend
+  newName: gcr.io/ml-pipeline-test/7857bb525a27e137d8058f2a656db86d35b74cee/frontend
+  newTag: latest
