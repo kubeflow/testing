@@ -35,8 +35,9 @@ patchesStrategicMerge:
 # 3. kubectl apply -k ./
 ####
 
-images:
-- name: gcr.io/ml-pipeline/frontend
-  # https://github.com/kubeflow/pipelines/pull/5618
-  newName: gcr.io/ml-pipeline-test/4b87b3cc0cca03b807af29188cf2c8f3593c8153/frontend
-  newTag: latest
+images: []
+# Example override:
+# - name: gcr.io/ml-pipeline/frontend
+#   # https://github.com/kubeflow/pipelines/pull/5618
+#   newName: gcr.io/ml-pipeline-test/4b87b3cc0cca03b807af29188cf2c8f3593c8153/frontend
+#   newTag: latest
