@@ -16,7 +16,9 @@ KFP_STANDALONE_1_DIR=$(ACM_REPOS)/kfp-standalone-1
 
 # Please edit the following version before running the script to pull new
 # pipelines version.
-PIPELINES_VERSION=1.6.0
+# TODO(Bobgy): upgrade to 1.7.0 after release
+# PIPELINES_VERSION=1.6.0
+PIPELINES_VERSION=85013375f02bfcb8fbf2ec82540c0e0cbd18e2f0
 PIPELINES_SRC_REPO=https://github.com/kubeflow/pipelines.git
 
 all: hydrate hydrate-kfp-manifests vet-kfp-manifests
