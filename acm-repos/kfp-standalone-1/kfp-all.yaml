@@ -5,6 +5,210 @@ metadata:
     application-crd-id: kubeflow-pipelines
   name: kubeflow
 ---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: clusterworkflowtemplates.argoproj.io
+spec:
+  group: argoproj.io
+  names:
+    kind: ClusterWorkflowTemplate
+    listKind: ClusterWorkflowTemplateList
+    plural: clusterworkflowtemplates
+    shortNames:
+    - clusterwftmpl
+    - cwft
+    singular: clusterworkflowtemplate
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: cronworkflows.argoproj.io
+spec:
+  group: argoproj.io
+  names:
+    kind: CronWorkflow
+    listKind: CronWorkflowList
+    plural: cronworkflows
+    shortNames:
+    - cwf
+    - cronwf
+    singular: cronworkflow
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: workfloweventbindings.argoproj.io
+spec:
+  group: argoproj.io
+  names:
+    kind: WorkflowEventBinding
+    listKind: WorkflowEventBindingList
+    plural: workfloweventbindings
+    shortNames:
+    - wfeb
+    singular: workfloweventbinding
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: workflows.argoproj.io
+spec:
+  group: argoproj.io
+  names:
+    kind: Workflow
+    listKind: WorkflowList
+    plural: workflows
+    shortNames:
+    - wf
+    singular: workflow
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - description: Status of the workflow
+      jsonPath: .status.phase
+      name: Status
+      type: string
+    - description: When the workflow was started
+      format: date-time
+      jsonPath: .status.startedAt
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: workflowtemplates.argoproj.io
+spec:
+  group: argoproj.io
+  names:
+    kind: WorkflowTemplate
+    listKind: WorkflowTemplateList
+    plural: workflowtemplates
+    shortNames:
+    - wftmpl
+    singular: workflowtemplate
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true
+---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
@@ -246,52 +450,6 @@ kind: CustomResourceDefinition
 metadata:
   labels:
     application-crd-id: kubeflow-pipelines
-  name: clusterworkflowtemplates.argoproj.io
-spec:
-  group: argoproj.io
-  names:
-    kind: ClusterWorkflowTemplate
-    listKind: ClusterWorkflowTemplateList
-    plural: clusterworkflowtemplates
-    shortNames:
-    - clusterwftmpl
-    - cwft
-    singular: clusterworkflowtemplate
-  scope: Cluster
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
-    served: true
-    storage: true
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: cronworkflows.argoproj.io
-spec:
-  group: argoproj.io
-  names:
-    kind: CronWorkflow
-    listKind: CronWorkflowList
-    plural: cronworkflows
-    shortNames:
-    - cwf
-    - cronwf
-    singular: cronworkflow
-  scope: Namespaced
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
-    served: true
-    storage: true
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
   name: scheduledworkflows.kubeflow.org
 spec:
   group: kubeflow.org
@@ -329,83 +487,6 @@ spec:
     served: true
     storage: true
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: workfloweventbindings.argoproj.io
-spec:
-  group: argoproj.io
-  names:
-    kind: WorkflowEventBinding
-    listKind: WorkflowEventBindingList
-    plural: workfloweventbindings
-    shortNames:
-    - wfeb
-    singular: workfloweventbinding
-  scope: Namespaced
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
-    served: true
-    storage: true
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: workflows.argoproj.io
-spec:
-  additionalPrinterColumns:
-  - JSONPath: .status.phase
-    description: Status of the workflow
-    name: Status
-    type: string
-  - JSONPath: .status.startedAt
-    description: When the workflow was started
-    format: date-time
-    name: Age
-    type: date
-  group: argoproj.io
-  names:
-    kind: Workflow
-    listKind: WorkflowList
-    plural: workflows
-    shortNames:
-    - wf
-    singular: workflow
-  scope: Namespaced
-  subresources: {}
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
-    served: true
-    storage: true
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: workflowtemplates.argoproj.io
-spec:
-  group: argoproj.io
-  names:
-    kind: WorkflowTemplate
-    listKind: WorkflowTemplateList
-    plural: workflowtemplates
-    shortNames:
-    - wftmpl
-    singular: workflowtemplate
-  scope: Namespaced
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
-    served: true
-    storage: true
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -426,17 +507,17 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    app: cache-server
     application-crd-id: kubeflow-pipelines
-  name: kubeflow-pipelines-cache
+  name: kubeflow-pipelines-cache-deployer-sa
   namespace: kubeflow
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
+    app: cache-server
     application-crd-id: kubeflow-pipelines
-  name: kubeflow-pipelines-cache-deployer-sa
+  name: kubeflow-pipelines-cache
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -469,14 +550,6 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: metadata-grpc-server
-  namespace: kubeflow
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -517,6 +590,14 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-visualizationserver
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -576,6 +657,14 @@ metadata:
   name: argo-role
   namespace: kubeflow
 rules:
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - get
+  - update
 - apiGroups:
   - ""
   resources:
@@ -764,60 +853,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - pods/log
-  verbs:
-  - get
-  - list
-  - delete
-- apiGroups:
-  - argoproj.io
-  resources:
-  - workflows
-  verbs:
-  - create
-  - get
-  - list
-  - watch
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - scheduledworkflows
-  verbs:
-  - create
-  - get
-  - list
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - authorization.k8s.io
-  resources:
-  - subjectaccessreviews
-  verbs:
-  - create
-- apiGroups:
-  - authentication.k8s.io
-  resources:
-  - tokenreviews
-  verbs:
-  - create
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent-role
   namespace: kubeflow
@@ -960,6 +995,60 @@ rules:
   - update
   - patch
   - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -1184,23 +1273,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: ml-pipeline
-subjects:
-- kind: ServiceAccount
-  name: ml-pipeline
-  namespace: kubeflow
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent-binding
   namespace: kubeflow
@@ -1260,6 +1332,23 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ml-pipeline-viewer-crd-service-account
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline
   namespace: kubeflow
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -1359,7 +1448,7 @@ apiVersion: v1
 data:
   ConMaxLifeTimeSec: "120"
   appName: kfp-standalone-1
-  appVersion: 1.6.0
+  appVersion: 1.7.0-alpha.2
   autoUpdatePipelineDefaultVersion: "true"
   bucketName: mlpipeline
   cacheDb: cachedb
@@ -1381,6 +1470,7 @@ data:
     namespace: `kubectl rollout restart deployment -n <your-namespace>`.
 kind: ConfigMap
 metadata:
+  annotations: {}
   labels:
     application-crd-id: kubeflow-pipelines
   name: pipeline-install-config
@@ -1393,7 +1483,18 @@ data:
     s3:
       endpoint: "minio-service.kubeflow:9000"
       bucket: "mlpipeline"
-      keyFormat: "artifacts/{{workflow.name}}/{{pod.name}}"
+      # keyFormat is a format pattern to define how artifacts will be organized in a bucket.
+      # It can reference workflow metadata variables such as workflow.namespace, workflow.name,
+      # pod.name. Can also use strftime formating of workflow.creationTimestamp so that workflow
+      # artifacts can be organized by date. If omitted, will use `{{workflow.name}}/{{pod.name}}`,
+      # which has potential for have collisions, because names do not guarantee they are unique
+      # over the lifetime of the cluster.
+      # Refer to https://kubernetes.io/docs/concepts/overview/working-with-objects/names/.
+      #
+      # The following format looks like:
+      # artifacts/my-workflow-abc123/2018/08/23/my-workflow-abc123-1234567890
+      # Adding date into the path greatly reduces the chance of {{pod.name}} collision.
+      keyFormat: "artifacts/{{workflow.name}}/{{workflow.creationTimestamp.Y}}/{{workflow.creationTimestamp.m}}/{{workflow.creationTimestamp.d}}/{{pod.name}}"
       # insecure will disable TLS. Primarily used for minio installs not configured with TLS
       insecure: true
       accessKeySecret:
@@ -1436,6 +1537,7 @@ data:
   username: cm9vdA==
 kind: Secret
 metadata:
+  annotations: {}
   labels:
     application-crd-id: kubeflow-pipelines
   name: mysql-secret
@@ -1532,27 +1634,6 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-spec:
-  ports:
-  - name: http
-    port: 8888
-    protocol: TCP
-    targetPort: 8888
-  - name: grpc
-    port: 8887
-    protocol: TCP
-    targetPort: 8887
-  selector:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
     app: ml-pipeline-ui
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-ui
@@ -1589,6 +1670,27 @@ kind: Service
 metadata:
   labels:
     application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  - name: grpc
+    port: 8887
+    protocol: TCP
+    targetPort: 8887
+  selector:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
   name: mysql
   namespace: kubeflow
 spec:
@@ -1604,6 +1706,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
+    app: workflow-controller
     application-crd-id: kubeflow-pipelines
   name: workflow-controller-metrics
   namespace: kubeflow
@@ -1616,34 +1719,6 @@ spec:
   selector:
     app: workflow-controller
     application-crd-id: kubeflow-pipelines
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: minio-pvc
-  namespace: kubeflow
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: mysql-pv-claim
-  namespace: kubeflow
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1673,7 +1748,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-deployer:1.6.0
+        image: gcr.io/ml-pipeline/cache-deployer:1.7.0-alpha.2
         imagePullPolicy: Always
         name: main
       restartPolicy: Always
@@ -1750,7 +1825,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-server:1.6.0
+        image: gcr.io/ml-pipeline/cache-server:1.7.0-alpha.2
         imagePullPolicy: Always
         name: server
         ports:
@@ -1835,7 +1910,7 @@ spec:
         component: metadata-envoy
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/metadata-envoy:1.6.0
+      - image: gcr.io/ml-pipeline/metadata-envoy:1.7.0-alpha.2
         name: container
         ports:
         - containerPort: 9090
@@ -1945,7 +2020,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/metadata-writer:1.6.0
+        image: gcr.io/ml-pipeline/metadata-writer:1.7.0-alpha.2
         name: main
       serviceAccountName: kubeflow-pipelines-metadata-writer
 ---
@@ -2001,6 +2076,259 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: minio-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-persistenceagent
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-persistenceagent
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-persistenceagent
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-persistenceagent
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: TTL_SECONDS_AFTER_WORKFLOW_FINISH
+          value: "86400"
+        - name: NUM_WORKERS
+          value: "2"
+        image: gcr.io/ml-pipeline/persistenceagent:1.7.0-alpha.2
+        imagePullPolicy: IfNotPresent
+        name: ml-pipeline-persistenceagent
+        resources:
+          requests:
+            cpu: 120m
+            memory: 500Mi
+      serviceAccountName: ml-pipeline-persistenceagent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-scheduledworkflow
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-scheduledworkflow
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-scheduledworkflow
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-scheduledworkflow
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CRON_SCHEDULE_TIMEZONE
+          valueFrom:
+            configMapKeyRef:
+              key: cronScheduleTimezone
+              name: pipeline-install-config
+        image: gcr.io/ml-pipeline/scheduledworkflow:1.7.0-alpha.2
+        imagePullPolicy: IfNotPresent
+        name: ml-pipeline-scheduledworkflow
+      serviceAccountName: ml-pipeline-scheduledworkflow
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-ui
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-ui
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: VIEWER_TENSORBOARD_POD_TEMPLATE_SPEC_PATH
+          value: /etc/config/viewer-pod-template.json
+        - name: MINIO_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        - name: ALLOW_CUSTOM_VISUALIZATIONS
+          value: "true"
+        image: gcr.io/ml-pipeline/frontend:1.7.0-alpha.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:3000/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-ui
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:3000/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 10m
+            memory: 70Mi
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+          readOnly: true
+      serviceAccountName: ml-pipeline-ui
+      volumes:
+      - configMap:
+          name: ml-pipeline-ui-configmap
+        name: config-volume
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-viewer-crd
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-viewer-crd
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-viewer-crd
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-viewer-crd
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: MAX_NUM_VIEWERS
+          value: "50"
+        - name: MINIO_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: gcr.io/ml-pipeline/viewer-crd-controller:1.7.0-alpha.2
+        imagePullPolicy: Always
+        name: ml-pipeline-viewer-crd
+      serviceAccountName: ml-pipeline-viewer-crd-service-account
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-visualizationserver
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-visualizationserver
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-visualizationserver
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-visualizationserver
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - image: gcr.io/ml-pipeline/visualization-server:1.7.0-alpha.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:8888/
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-visualizationserver
+        ports:
+        - containerPort: 8888
+          name: http
+        readinessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:8888/
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 30m
+            memory: 500Mi
+      serviceAccountName: ml-pipeline-visualizationserver
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2081,7 +2409,7 @@ spec:
             secretKeyRef:
               key: secretkey
               name: mlpipeline-minio-artifact
-        image: gcr.io/ml-pipeline/api-server:1.6.0
+        image: gcr.io/ml-pipeline/api-server:1.7.0-alpha.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -2118,259 +2446,6 @@ spec:
             cpu: 250m
             memory: 500Mi
       serviceAccountName: ml-pipeline
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: ml-pipeline-persistenceagent
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline-persistenceagent
-  namespace: kubeflow
-spec:
-  selector:
-    matchLabels:
-      app: ml-pipeline-persistenceagent
-      application-crd-id: kubeflow-pipelines
-  template:
-    metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-      labels:
-        app: ml-pipeline-persistenceagent
-        application-crd-id: kubeflow-pipelines
-    spec:
-      containers:
-      - env:
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: TTL_SECONDS_AFTER_WORKFLOW_FINISH
-          value: "86400"
-        - name: NUM_WORKERS
-          value: "2"
-        image: gcr.io/ml-pipeline/persistenceagent:1.6.0
-        imagePullPolicy: IfNotPresent
-        name: ml-pipeline-persistenceagent
-        resources:
-          requests:
-            cpu: 120m
-            memory: 500Mi
-      serviceAccountName: ml-pipeline-persistenceagent
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: ml-pipeline-scheduledworkflow
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline-scheduledworkflow
-  namespace: kubeflow
-spec:
-  selector:
-    matchLabels:
-      app: ml-pipeline-scheduledworkflow
-      application-crd-id: kubeflow-pipelines
-  template:
-    metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-      labels:
-        app: ml-pipeline-scheduledworkflow
-        application-crd-id: kubeflow-pipelines
-    spec:
-      containers:
-      - env:
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: CRON_SCHEDULE_TIMEZONE
-          valueFrom:
-            configMapKeyRef:
-              key: cronScheduleTimezone
-              name: pipeline-install-config
-        image: gcr.io/ml-pipeline/scheduledworkflow:1.6.0
-        imagePullPolicy: IfNotPresent
-        name: ml-pipeline-scheduledworkflow
-      serviceAccountName: ml-pipeline-scheduledworkflow
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: ml-pipeline-ui
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline-ui
-  namespace: kubeflow
-spec:
-  selector:
-    matchLabels:
-      app: ml-pipeline-ui
-      application-crd-id: kubeflow-pipelines
-  template:
-    metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-      labels:
-        app: ml-pipeline-ui
-        application-crd-id: kubeflow-pipelines
-    spec:
-      containers:
-      - env:
-        - name: VIEWER_TENSORBOARD_POD_TEMPLATE_SPEC_PATH
-          value: /etc/config/viewer-pod-template.json
-        - name: MINIO_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: MINIO_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              key: accesskey
-              name: mlpipeline-minio-artifact
-        - name: MINIO_SECRET_KEY
-          valueFrom:
-            secretKeyRef:
-              key: secretkey
-              name: mlpipeline-minio-artifact
-        - name: ALLOW_CUSTOM_VISUALIZATIONS
-          value: "true"
-        image: gcr.io/ml-pipeline/frontend:1.6.0
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          exec:
-            command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:3000/apis/v1beta1/healthz
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
-        name: ml-pipeline-ui
-        ports:
-        - containerPort: 3000
-        readinessProbe:
-          exec:
-            command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:3000/apis/v1beta1/healthz
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
-        resources:
-          requests:
-            cpu: 10m
-            memory: 70Mi
-        volumeMounts:
-        - mountPath: /etc/config
-          name: config-volume
-          readOnly: true
-      serviceAccountName: ml-pipeline-ui
-      volumes:
-      - configMap:
-          name: ml-pipeline-ui-configmap
-        name: config-volume
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: ml-pipeline-viewer-crd
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline-viewer-crd
-  namespace: kubeflow
-spec:
-  selector:
-    matchLabels:
-      app: ml-pipeline-viewer-crd
-      application-crd-id: kubeflow-pipelines
-  template:
-    metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-      labels:
-        app: ml-pipeline-viewer-crd
-        application-crd-id: kubeflow-pipelines
-    spec:
-      containers:
-      - env:
-        - name: MAX_NUM_VIEWERS
-          value: "50"
-        - name: MINIO_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/viewer-crd-controller:1.6.0
-        imagePullPolicy: Always
-        name: ml-pipeline-viewer-crd
-      serviceAccountName: ml-pipeline-viewer-crd-service-account
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: ml-pipeline-visualizationserver
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline-visualizationserver
-  namespace: kubeflow
-spec:
-  selector:
-    matchLabels:
-      app: ml-pipeline-visualizationserver
-      application-crd-id: kubeflow-pipelines
-  template:
-    metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-      labels:
-        app: ml-pipeline-visualizationserver
-        application-crd-id: kubeflow-pipelines
-    spec:
-      containers:
-      - image: gcr.io/ml-pipeline/visualization-server:1.6.0
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          exec:
-            command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:8888/
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
-        name: ml-pipeline-visualizationserver
-        ports:
-        - containerPort: 8888
-          name: http
-        readinessProbe:
-          exec:
-            command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:8888/
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
-        resources:
-          requests:
-            cpu: 30m
-            memory: 500Mi
-      serviceAccountName: ml-pipeline-visualizationserver
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2442,7 +2517,7 @@ spec:
       - env:
         - name: PROXY_URL
           value: https://datalab-staging.cloud.google.com/tun/m/4592f092208ecc84946b8f8f8016274df1b36a14
-        image: gcr.io/ml-pipeline/inverse-proxy-agent:1.6.0
+        image: gcr.io/ml-pipeline/inverse-proxy-agent:1.7.0-alpha.2
         imagePullPolicy: IfNotPresent
         name: proxy-agent
       hostNetwork: true
@@ -2471,25 +2546,41 @@ spec:
         - --configmap
         - workflow-controller-configmap
         - --executor-image
-        - gcr.io/ml-pipeline/argoexec:v2.12.9-license-compliance
+        - gcr.io/ml-pipeline/argoexec:v3.1.1-license-compliance
         - --namespaced
         command:
         - workflow-controller
-        image: gcr.io/ml-pipeline/workflow-controller:v2.12.9-license-compliance
+        env:
+        - name: LEADER_ELECTION_IDENTITY
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        image: gcr.io/ml-pipeline/workflow-controller:v3.1.1-license-compliance
         livenessProbe:
+          failureThreshold: 3
           httpGet:
-            path: /metrics
-            port: metrics
-          initialDelaySeconds: 30
-          periodSeconds: 30
+            path: /healthz
+            port: 6060
+          initialDelaySeconds: 90
+          periodSeconds: 60
+          timeoutSeconds: 30
         name: workflow-controller
         ports:
         - containerPort: 9090
           name: metrics
+        - containerPort: 6060
         resources:
           requests:
             cpu: 100m
             memory: 500Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:
@@ -2536,10 +2627,38 @@ spec:
       url: https://github.com/kubeflow/pipelines
     notes: Please go to [Hosted Kubeflow Pipelines Console](https://console.cloud.google.com/ai-platform/pipelines/clusters).
     type: Kubeflow Pipelines
-    version: 1.6.0
+    version: 1.7.0-alpha.2
   info:
   - name: Console
     value: https://console.cloud.google.com/ai-platform/pipelines/clusters
   selector:
     matchLabels:
       application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: minio-pvc
+  namespace: kubeflow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: mysql-pv-claim
+  namespace: kubeflow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
