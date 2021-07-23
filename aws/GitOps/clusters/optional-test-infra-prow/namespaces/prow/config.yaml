@@ -182,6 +182,7 @@ data:
       - name: kubeflow-tf-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:
         - master
+        - all-in-one-operator
         decorate: false
         labels:
           preset-aws-cred: "true"
@@ -212,6 +213,7 @@ data:
       - name: kubeflow-tf-operator-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:
         - master
+        - all-in-one-operator
         decorate: false
         labels:
           preset-aws-cred: "true"
