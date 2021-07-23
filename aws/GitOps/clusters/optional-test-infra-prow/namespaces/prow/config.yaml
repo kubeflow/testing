@@ -119,7 +119,7 @@ data:
           - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
             imagePullPolicy: Always
             command: ["/usr/local/bin/run_workflows.sh"]
-            
+
       kserve/kserve:
       - name: kubeflow-kserve-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:
@@ -132,7 +132,7 @@ data:
           containers:
           - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
             imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]      
+            command: ["/usr/local/bin/run_workflows.sh"]
 
       kubeflow/kubeflow:
       - name: kubeflow-kubeflow-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
