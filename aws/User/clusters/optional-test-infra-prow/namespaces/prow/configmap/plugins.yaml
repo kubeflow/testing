@@ -5,6 +5,8 @@ plugins:
   - trigger
   kubeflow/kfserving:
   - trigger
+  kserve/kserve:
+  - trigger
   kubeflow/kubeflow:
   - trigger
   kubeflow/manifests:
