@@ -10,6 +10,14 @@ data:
       - trigger
       kserve/kserve:
       - trigger
+      - approve
+      - assign
+      - blunderbuss
+      - hold
+      - label
+      - lgtm
+      - verify-owners
+      - wip
       kubeflow/kubeflow:
       - trigger
       kubeflow/manifests:
