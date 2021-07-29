@@ -2416,7 +2416,7 @@ spec:
             secretKeyRef:
               key: secretkey
               name: mlpipeline-minio-artifact
-        image: gcr.io/ml-pipeline/api-server:1.7.0-rc.2
+        image: gcr.io/ml-pipeline-test/9747bf7bd8b70ca1abbd3fcc5dbbe2d64b21857e/api-server:latest
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
