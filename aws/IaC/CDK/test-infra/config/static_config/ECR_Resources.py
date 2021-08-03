@@ -31,4 +31,6 @@ ECR_Private_Registry_List = {
     "katib-trial-enas-cnn-cifar10-gpu": "katib/v1beta1/trial-enas-cnn-cifar10-gpu",
     "katib-trial-enas-cnn-cifar10-cpu": "katib/v1beta1/trial-enas-cnn-cifar10-cpu",
     "katib-trial-darts-cnn-cifar10": "katib/v1beta1/trial-darts-cnn-cifar10",
+    # Training operator
+    "training-operator": "training-operator",
 }
