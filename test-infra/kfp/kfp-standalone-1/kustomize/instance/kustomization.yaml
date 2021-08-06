@@ -35,11 +35,7 @@ patchesStrategicMerge:
 # 3. kubectl apply -k ./
 ####
 
-images:
-# temporary override to verify https://github.com/kubeflow/pipelines/pull/6190
-- name: gcr.io/ml-pipeline/api-server
-  newName: gcr.io/ml-pipeline-test/9747bf7bd8b70ca1abbd3fcc5dbbe2d64b21857e/api-server
-  newTag: latest
+images: []
 
 # Example override:
 # - name: gcr.io/ml-pipeline/frontend

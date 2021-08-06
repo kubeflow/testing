@@ -15,7 +15,7 @@ spec:
 apiVersion: container.cnrm.cloud.google.com/v1beta1
 kind: ContainerNodePool
 metadata:
-  name: kfp-standalone-1-nodepool-v2 # {"$kpt-set":"name-nodepool"}
+  name: kfp-standalone-1-nodepool # {"$kpt-set":"name-nodepool"}
 spec:
   location: us-central1
   initialNodeCount: 1
