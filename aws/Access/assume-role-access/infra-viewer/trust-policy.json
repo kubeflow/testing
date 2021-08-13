@@ -6,7 +6,7 @@
       "Principal": {
         "AWS": "arn:aws:iam::068661676837:root",
         "AWS": "arn:aws:iam::678801486373:root",
-        "AWS": "arn:aws:iam::692867976397:root"
+        "AWS": "arn:aws:iam::692867976397:user/kubeflow-testing-infra"
       },
       "Action": "sts:AssumeRole",
       "Condition": {}
