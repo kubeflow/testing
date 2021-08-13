@@ -21,6 +21,7 @@ ECR_Private_Registry_List = {
     "katib-suggestion-skopt": "katib/v1beta1/suggestion-skopt",
     "katib-suggestion-hyperband": "katib/v1beta1/suggestion-hyperband",
     "katib-suggestion-goptuna": "katib/v1beta1/suggestion-goptuna",
+    "katib-suggestion-optuna": "katib/v1beta1/suggestion-optuna",
     "katib-suggestion-enas": "katib/v1beta1/suggestion-enas",
     "katib-suggestion-darts": "katib/v1beta1/suggestion-darts",
     # Katib Early Stopping list.
