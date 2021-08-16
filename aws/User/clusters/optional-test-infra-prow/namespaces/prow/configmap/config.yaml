@@ -136,6 +136,7 @@ presubmits:
     branches:
     - master
     - v1.3-branch
+    - v1.4-branch
     decorate: false
     labels:
       preset-aws-cred: "true"
@@ -210,6 +211,7 @@ postsubmits:
     branches:
     - master
     - v1.3-branch
+    - v1.4-branch
     decorate: false
     labels:
       preset-aws-cred: "true"
