@@ -197,6 +197,7 @@ presubmits:
     - master
     - all-in-one-operator
     - v1.2-branch
+    - v1.3-branch
     decorate: false
     labels:
       preset-aws-cred: "true"
@@ -230,6 +231,7 @@ postsubmits:
     - master
     - all-in-one-operator
     - v1.2-branch
+    - v1.3-branch
     decorate: false
     labels:
       preset-aws-cred: "true"

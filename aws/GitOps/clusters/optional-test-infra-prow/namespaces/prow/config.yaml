@@ -200,6 +200,7 @@ data:
         - master
         - all-in-one-operator
         - v1.2-branch
+        - v1.3-branch
         decorate: false
         labels:
           preset-aws-cred: "true"
@@ -233,6 +234,7 @@ data:
         - master
         - all-in-one-operator
         - v1.2-branch
+        - v1.3-branch
         decorate: false
         labels:
           preset-aws-cred: "true"
