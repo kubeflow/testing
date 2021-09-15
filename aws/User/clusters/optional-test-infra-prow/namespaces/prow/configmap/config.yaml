@@ -195,7 +195,6 @@ presubmits:
   - name: kubeflow-tf-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
     branches:
     - master
-    - all-in-one-operator
     - v1.2-branch
     - v1.3-branch
     decorate: false
@@ -229,7 +228,6 @@ postsubmits:
   - name: kubeflow-tf-operator-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
     branches:
     - master
-    - all-in-one-operator
     - v1.2-branch
     - v1.3-branch
     decorate: false
