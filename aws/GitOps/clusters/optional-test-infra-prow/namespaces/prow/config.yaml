@@ -194,8 +194,8 @@ data:
             imagePullPolicy: Always
             command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/tf-operator:
-      - name: kubeflow-tf-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+      kubeflow/training-operator:
+      - name: kubeflow-training-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:
         - master
         - v1.2-branch
@@ -227,8 +227,8 @@ data:
             imagePullPolicy: Always
             command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/tf-operator:
-      - name: kubeflow-tf-operator-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+      kubeflow/training-operator:
+      - name: kubeflow-training-operator-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
         branches:
         - master
         - v1.2-branch
