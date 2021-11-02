@@ -1,17 +1,14 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: kubeflow
-
 bases:
 - ../../base
 resources:
 - metadata-db-pvc.yaml
 - metadata-db-deployment.yaml
 - metadata-db-service.yaml
-
 patchesStrategicMerge:
 - patches/metadata-grpc-deployment.yaml
-
 configMapGenerator:
 - name: metadata-db-parameters
   envs:
@@ -22,13 +19,10 @@ secretGenerator:
   - secrets.env
 generatorOptions:
   disableNameSuffixHash: true
-
-
 images:
 - name: mysql
   newName: mysql
   newTag: 8.0.3
-
 vars:
 - name: MLMD_DB_HOST
   objref:

@@ -1,6 +1,6 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
-metadata:
+metadata: # kpt-merge: /ml-pipeline-ui
   name: ml-pipeline-ui
 spec:
   gateways:
