@@ -28,6 +28,7 @@ secretGenerator:
 namespace: kubeflow
 patchesStrategicMerge:
 - proxy-agent-patch.yaml
+- workflow-controller-configmap-patch.yaml
 
 #### Customization ###
 # 1. Change values in params.env file
