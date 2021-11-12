@@ -29,6 +29,7 @@ ECR_Private_Registry_List = {
     # Katib Trial list.
     "katib-trial-mxnet-mnist": "katib/v1beta1/trial-mxnet-mnist",
     "katib-trial-pytorch-mnist": "katib/v1beta1/trial-pytorch-mnist",
+    "katib-trial-tf-mnist-with-summaries": "katib/v1beta1/trial-tf-mnist-with-summaries",
     "katib-trial-enas-cnn-cifar10-gpu": "katib/v1beta1/trial-enas-cnn-cifar10-gpu",
     "katib-trial-enas-cnn-cifar10-cpu": "katib/v1beta1/trial-enas-cnn-cifar10-cpu",
     "katib-trial-darts-cnn-cifar10": "katib/v1beta1/trial-darts-cnn-cifar10",
