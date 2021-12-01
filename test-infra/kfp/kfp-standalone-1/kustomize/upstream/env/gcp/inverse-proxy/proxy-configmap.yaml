@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: ConfigMap
-metadata: # kpt-merge: /inverse-proxy-config
+metadata:
   name: inverse-proxy-config

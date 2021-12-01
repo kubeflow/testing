@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: ServiceAccount
-metadata: # kpt-merge: /metadata-grpc-server
+metadata:
   name: metadata-grpc-server

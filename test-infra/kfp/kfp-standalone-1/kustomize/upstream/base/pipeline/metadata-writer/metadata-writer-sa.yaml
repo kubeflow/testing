@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: ServiceAccount
-metadata: # kpt-merge: /kubeflow-pipelines-metadata-writer
+metadata:
   name: kubeflow-pipelines-metadata-writer

@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: ServiceAccount
-metadata: # kpt-merge: /kubeflow-pipelines-cloudsql-proxy
+metadata:
   name: kubeflow-pipelines-cloudsql-proxy

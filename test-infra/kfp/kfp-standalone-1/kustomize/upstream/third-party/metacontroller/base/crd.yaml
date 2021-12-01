@@ -1,6 +1,7 @@
+---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
-metadata: # kpt-merge: /compositecontrollers.metacontroller.k8s.io
+metadata:
   name: compositecontrollers.metacontroller.k8s.io
 spec:
   group: metacontroller.k8s.io
@@ -16,7 +17,7 @@ spec:
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
-metadata: # kpt-merge: /controllerrevisions.metacontroller.k8s.io
+metadata:
   name: controllerrevisions.metacontroller.k8s.io
 spec:
   group: metacontroller.k8s.io
@@ -29,7 +30,7 @@ spec:
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
-metadata: # kpt-merge: /decoratorcontrollers.metacontroller.k8s.io
+metadata:
   name: decoratorcontrollers.metacontroller.k8s.io
 spec:
   group: metacontroller.k8s.io

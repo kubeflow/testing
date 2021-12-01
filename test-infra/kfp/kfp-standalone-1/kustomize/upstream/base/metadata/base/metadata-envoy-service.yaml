@@ -1,6 +1,6 @@
 kind: Service
 apiVersion: v1
-metadata: # kpt-merge: /metadata-envoy-service
+metadata:
   labels:
     app: metadata-envoy
   name: metadata-envoy-service

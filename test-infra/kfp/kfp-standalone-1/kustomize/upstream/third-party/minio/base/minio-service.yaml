@@ -1,6 +1,6 @@
 apiVersion: v1
 kind: Service
-metadata: # kpt-merge: /minio-service
+metadata:
   name: minio-service
 spec:
   ports:
