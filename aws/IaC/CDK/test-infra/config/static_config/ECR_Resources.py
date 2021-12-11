@@ -21,6 +21,7 @@ ECR_Private_Registry_List = {
     "katib-suggestion-skopt": "katib/v1beta1/suggestion-skopt",
     "katib-suggestion-hyperband": "katib/v1beta1/suggestion-hyperband",
     "katib-suggestion-goptuna": "katib/v1beta1/suggestion-goptuna",
+    "katib-suggestion-optuna": "katib/v1beta1/suggestion-optuna",
     "katib-suggestion-enas": "katib/v1beta1/suggestion-enas",
     "katib-suggestion-darts": "katib/v1beta1/suggestion-darts",
     # Katib Early Stopping list.
@@ -28,7 +29,10 @@ ECR_Private_Registry_List = {
     # Katib Trial list.
     "katib-trial-mxnet-mnist": "katib/v1beta1/trial-mxnet-mnist",
     "katib-trial-pytorch-mnist": "katib/v1beta1/trial-pytorch-mnist",
+    "katib-trial-tf-mnist-with-summaries": "katib/v1beta1/trial-tf-mnist-with-summaries",
     "katib-trial-enas-cnn-cifar10-gpu": "katib/v1beta1/trial-enas-cnn-cifar10-gpu",
     "katib-trial-enas-cnn-cifar10-cpu": "katib/v1beta1/trial-enas-cnn-cifar10-cpu",
     "katib-trial-darts-cnn-cifar10": "katib/v1beta1/trial-darts-cnn-cifar10",
+    # Training operator
+    "training-operator": "training-operator",
 }

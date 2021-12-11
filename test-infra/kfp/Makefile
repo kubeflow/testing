@@ -14,9 +14,9 @@ ACM_REPOS=$(REPO_ROOT)/acm-repos
 MGMT_DEPLOY_DIR=$(ACM_REPOS)/kf-ci-management/namespaces/$(PROJECT)
 KFP_STANDALONE_1_DIR=$(ACM_REPOS)/kfp-standalone-1
 
-# Please edit the following version before running the script to pull new
-# pipelines version.
-PIPELINES_VERSION=1.7.0-rc.2
+# Please edit the following version before running:
+# make kfp-update
+PIPELINES_VERSION=1.8.0-alpha.0
 PIPELINES_SRC_REPO=https://github.com/kubeflow/pipelines.git
 
 all: hydrate hydrate-kfp-manifests vet-kfp-manifests
@@ -50,6 +50,8 @@ connect: FORCE
 	kubectl config delete-context $(NAME) || echo "Not found"
 	gcloud container clusters get-credentials $(NAME) --region us-central1 --project $(PROJECT)
 	kubectl config rename-context $$(kubectl config current-context) $(NAME)
+
+kfp-update: get-kfp-manifests hydrate-kfp-manifests FORCE
 
 get-kfp-manifests: FORCE
 	rm -rf $(NAME)/kustomize/upstream

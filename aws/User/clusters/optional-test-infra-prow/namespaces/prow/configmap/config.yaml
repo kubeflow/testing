@@ -78,6 +78,7 @@ presubmits:
     branches:
     - master
     - release-0.11
+    - release-0.12
     decorate: false
     labels:
       preset-aws-cred: "true"
@@ -117,11 +118,26 @@ presubmits:
         imagePullPolicy: Always
         command: ["/usr/local/bin/run_workflows.sh"]
 
+  kserve/kserve:
+  - name: kubeflow-kserve-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    branches:
+    - master
+    decorate: false
+    labels:
+      preset-aws-cred: "true"
+    always_run: true
+    spec:
+      containers:
+      - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/run_workflows.sh"]
+
   kubeflow/kubeflow:
   - name: kubeflow-kubeflow-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
     branches:
     - master
     - v1.3-branch
+    - v1.4-branch
     decorate: false
     labels:
       preset-aws-cred: "true"
@@ -175,11 +191,12 @@ presubmits:
         imagePullPolicy: Always
         command: ["/usr/local/bin/run_workflows.sh"]
 
-  kubeflow/tf-operator:
-  - name: kubeflow-tf-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+  kubeflow/training-operator:
+  - name: kubeflow-training-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
     branches:
     - master
-    - all-in-one-operator
+    - v1.2-branch
+    - v1.3-branch
     decorate: false
     labels:
       preset-aws-cred: "true"
@@ -196,6 +213,7 @@ postsubmits:
     branches:
     - master
     - v1.3-branch
+    - v1.4-branch
     decorate: false
     labels:
       preset-aws-cred: "true"
@@ -206,11 +224,12 @@ postsubmits:
         imagePullPolicy: Always
         command: ["/usr/local/bin/run_workflows.sh"]
 
-  kubeflow/tf-operator:
-  - name: kubeflow-tf-operator-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+  kubeflow/training-operator:
+  - name: kubeflow-training-operator-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
     branches:
     - master
-    - all-in-one-operator
+    - v1.2-branch
+    - v1.3-branch
     decorate: false
     labels:
       preset-aws-cred: "true"
