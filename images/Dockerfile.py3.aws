@@ -57,7 +57,7 @@ RUN curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/
     chmod a+x /usr/local/bin/aws-iam-authenticator
 
 # Install eksctl
-RUN curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp && \
+RUN curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/v0.76.0/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp && \
     mv /tmp/eksctl /usr/local/bin && \
     chmod a+x /usr/local/bin/eksctl
 
