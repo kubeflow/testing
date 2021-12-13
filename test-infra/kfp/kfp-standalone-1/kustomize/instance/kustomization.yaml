@@ -3,6 +3,8 @@ kind: Kustomization
 bases:
 - cluster-scoped-resources
 - ../upstream/env/dev
+resources:
+- limit-range.yaml
 # Kubeflow Pipelines servers are capable of collecting Prometheus metrics.
 # If you want to monitor your Kubeflow Pipelines servers with those metrics, you'll need a Prometheus server in your Kubeflow Pipelines cluster.
 # If you don't already have a Prometheus server up, you can use the following configuration files for Prometheus.

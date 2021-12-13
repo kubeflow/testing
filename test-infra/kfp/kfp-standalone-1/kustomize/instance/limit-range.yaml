@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: container-default-resources
+spec:
+  # Any container without a memory/cpu limit/request specified will default
+  # to the following values. This avoids assigning too many containers in the
+  # same node.
+  # The values are empirical.
+  limits:
+  - default:
+      memory: 0.5Gi
+      cpu: '1'
+    defaultRequest:
+      cpu: '0.5'
+    type: Container
