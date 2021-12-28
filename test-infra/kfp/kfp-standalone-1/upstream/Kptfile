@@ -43,14 +43,6 @@ openAPI:
           values:
           - marker: ${gcloud.core.project}
             ref: '#/definitions/io.k8s.cli.setters.gcloud.core.project'
-    io.k8s.cli.substitutions.name-nodepool:
-      x-k8s-cli:
-        substitution:
-          name: name-nodepool
-          pattern: ${name}-nodepool
-          values:
-          - marker: ${name}
-            ref: '#/definitions/io.k8s.cli.setters.name'
     io.k8s.cli.substitutions.vm-sa-ref:
       x-k8s-cli:
         substitution:
@@ -61,3 +53,9 @@ openAPI:
             ref: '#/definitions/io.k8s.cli.substitutions.name-sa'
           - marker: ${gcloud.core.project}
             ref: '#/definitions/io.k8s.cli.setters.gcloud.core.project'
+    io.k8s.cli.setters.name-nodepool:
+      x-k8s-cli:
+        setter:
+          name: name-nodepool
+          value: kfp-standalone-1-nodepool-v2
+          isSet: true
