@@ -54,3 +54,34 @@ spec:
     apiVersion: iam.cnrm.cloud.google.com/v1beta1
     kind: IAMServiceAccount
     name: kfp-standalone-1-vm # {"$kpt-set":"name-sa"}
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: vm-dataflow-admin
+  namespace: kfp-ci
+spec:
+  member: serviceAccount:kfp-standalone-1-vm@kfp-ci.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
+  # This allows the following sample to create dataflow jobs:
+  # https://github.com/kubeflow/pipelines/blob/f4a37b27ec5950310a76943e1ff68289b9c40d7d/samples/core/dataflow/dataflow.ipynb
+  # Reference: https://cloud.google.com/iam/docs/understanding-roles#dataflow-roles
+  role: roles/dataflow.admin
+  resourceRef:
+    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+    kind: Project
+    external: projects/kfp-ci # {"$kpt-set":"project-ref"}
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: vm-compute-default-sa-user
+  namespace: kfp-ci
+spec:
+  member: serviceAccount:kfp-standalone-1-vm@kfp-ci.iam.gserviceaccount.com
+  # The permission is required to let vm service account create dataflow jobs
+  # that uses the default compute service account.
+  role: roles/iam.serviceAccountUser
+  resourceRef:
+    apiVersion: iam.cnrm.cloud.google.com/v1beta1
+    kind: IAMServiceAccount
+    external: projects/kfp-ci/serviceAccounts/354112195098-compute@developer.gserviceaccount.com

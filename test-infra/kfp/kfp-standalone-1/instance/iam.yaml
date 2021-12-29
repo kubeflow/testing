@@ -26,18 +26,4 @@ spec:
     apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
     kind: Project
     external: projects/kfp-ci # {"$kpt-set":"project-ref"}
----
-apiVersion: iam.cnrm.cloud.google.com/v1beta1
-kind: IAMPolicyMember
-metadata:
-  name: vm-dataflow-admin
-spec:
-  member: serviceAccount:kfp-standalone-1-vm@kfp-ci.iam.gserviceaccount.com # {"$kpt-set":"vm-sa-ref"}
-  # This allows the following sample to create dataflow jobs:
-  # https://github.com/kubeflow/pipelines/blob/f4a37b27ec5950310a76943e1ff68289b9c40d7d/samples/core/dataflow/dataflow.ipynb
-  # Reference: https://cloud.google.com/iam/docs/understanding-roles#dataflow-roles
-  role: roles/dataflow.admin
-  resourceRef:
-    apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
-    kind: Project
-    external: projects/kfp-ci # {"$kpt-set":"project-ref"}
+  
