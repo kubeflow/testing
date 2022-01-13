@@ -1,6 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-metadata-writer-role
   labels:
     app: kubeflow-pipelines-metadata-writer-role
   name: kubeflow-pipelines-metadata-writer-role
