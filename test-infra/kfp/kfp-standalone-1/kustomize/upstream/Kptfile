@@ -1,11 +1,18 @@
-apiVersion: kpt.dev/v1alpha1
+apiVersion: kpt.dev/v1
 kind: Kptfile
 metadata:
   name: upstream
 upstream:
   type: git
   git:
-    commit: ca9b9444ac879666f6ab9e11f82a62a7890f4373
     repo: https://github.com/kubeflow/pipelines
     directory: /manifests/kustomize
-    ref: 1.8.0-alpha.0
+    ref: 1.8.0-rc.1
+  updateStrategy: resource-merge
+upstreamLock:
+  type: git
+  git:
+    repo: https://github.com/kubeflow/pipelines
+    directory: /manifests/kustomize
+    ref: 1.8.0-rc.1
+    commit: ebadcf271755004d48c9bba8578179435b2850e0

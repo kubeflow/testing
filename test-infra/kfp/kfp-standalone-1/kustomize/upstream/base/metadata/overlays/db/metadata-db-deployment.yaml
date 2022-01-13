@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /metadata-db
   name: metadata-db
   labels:
     component: db
@@ -49,4 +49,3 @@ spec:
       - name: metadata-mysql
         persistentVolumeClaim:
           claimName: metadata-mysql
-

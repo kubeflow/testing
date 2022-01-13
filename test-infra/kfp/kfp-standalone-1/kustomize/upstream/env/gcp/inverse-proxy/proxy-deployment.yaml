@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /proxy-agent
   labels:
     app: proxy-agent
   name: proxy-agent
