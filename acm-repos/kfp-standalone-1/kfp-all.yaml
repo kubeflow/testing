@@ -8,6 +8,539 @@ metadata:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/application/pull/2
+    controller-gen.kubebuilder.io/version: v0.4.0
+  creationTimestamp: null
+  labels:
+    application-crd-id: kubeflow-pipelines
+    controller-tools.k8s.io: "1.0"
+  name: applications.app.k8s.io
+spec:
+  group: app.k8s.io
+  names:
+    categories:
+    - all
+    kind: Application
+    listKind: ApplicationList
+    plural: applications
+    shortNames:
+    - app
+    singular: application
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - description: The type of the application
+      jsonPath: .spec.descriptor.type
+      name: Type
+      type: string
+    - description: The creation date
+      jsonPath: .spec.descriptor.version
+      name: Version
+      type: string
+    - description: The application object owns the matched resources
+      jsonPath: .spec.addOwnerRef
+      name: Owner
+      type: boolean
+    - description: Numbers of components ready
+      jsonPath: .status.componentsReady
+      name: Ready
+      type: string
+    - description: The creation date
+      jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: Application is the Schema for the applications API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ApplicationSpec defines the specification for an Application.
+            properties:
+              addOwnerRef:
+                description: AddOwnerRef objects - flag to indicate if we need to
+                  add OwnerRefs to matching objects Matching is done by using Selector
+                  to query all ComponentGroupKinds
+                type: boolean
+              assemblyPhase:
+                description: AssemblyPhase represents the current phase of the application's
+                  assembly. An empty value is equivalent to "Succeeded".
+                type: string
+              componentKinds:
+                description: ComponentGroupKinds is a list of Kinds for Application's
+                  components (e.g. Deployments, Pods, Services, CRDs). It can be used
+                  in conjunction with the Application's Selector to list or watch
+                  the Applications components.
+                items:
+                  description: GroupKind specifies a Group and a Kind, but does not
+                    force a version.  This is useful for identifying concepts during
+                    lookup stages without having partially valid types
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  type: object
+                type: array
+              descriptor:
+                description: Descriptor regroups information and metadata about an
+                  application.
+                properties:
+                  description:
+                    description: Description is a brief string description of the
+                      Application.
+                    type: string
+                  icons:
+                    description: Icons is an optional list of icons for an application.
+                      Icon information includes the source, size, and mime type.
+                    items:
+                      description: ImageSpec contains information about an image used
+                        as an icon.
+                      properties:
+                        size:
+                          description: (optional) The size of the image in pixels
+                            (e.g., 25x25).
+                          type: string
+                        src:
+                          description: The source for image represented as either
+                            an absolute URL to the image or a Data URL containing
+                            the image. Data URLs are defined in RFC 2397.
+                          type: string
+                        type:
+                          description: (optional) The mine type of the image (e.g.,
+                            "image/png").
+                          type: string
+                      required:
+                      - src
+                      type: object
+                    type: array
+                  keywords:
+                    description: Keywords is an optional list of key words associated
+                      with the application (e.g. MySQL, RDBMS, database).
+                    items:
+                      type: string
+                    type: array
+                  links:
+                    description: Links are a list of descriptive URLs intended to
+                      be used to surface additional documentation, dashboards, etc.
+                    items:
+                      description: Link contains information about an URL to surface
+                        documentation, dashboards, etc.
+                      properties:
+                        description:
+                          description: Description is human readable content explaining
+                            the purpose of the link.
+                          type: string
+                        url:
+                          description: Url typically points at a website address.
+                          type: string
+                      type: object
+                    type: array
+                  maintainers:
+                    description: Maintainers is an optional list of maintainers of
+                      the application. The maintainers in this list maintain the the
+                      source code, images, and package for the application.
+                    items:
+                      description: ContactData contains information about an individual
+                        or organization.
+                      properties:
+                        email:
+                          description: Email is the email address.
+                          type: string
+                        name:
+                          description: Name is the descriptive name.
+                          type: string
+                        url:
+                          description: Url could typically be a website address.
+                          type: string
+                      type: object
+                    type: array
+                  notes:
+                    description: Notes contain a human readable snippets intended
+                      as a quick start for the users of the Application. CommonMark
+                      markdown syntax may be used for rich text representation.
+                    type: string
+                  owners:
+                    description: Owners is an optional list of the owners of the installed
+                      application. The owners of the application should be contacted
+                      in the event of a planned or unplanned disruption affecting
+                      the application.
+                    items:
+                      description: ContactData contains information about an individual
+                        or organization.
+                      properties:
+                        email:
+                          description: Email is the email address.
+                          type: string
+                        name:
+                          description: Name is the descriptive name.
+                          type: string
+                        url:
+                          description: Url could typically be a website address.
+                          type: string
+                      type: object
+                    type: array
+                  type:
+                    description: Type is the type of the application (e.g. WordPress,
+                      MySQL, Cassandra).
+                    type: string
+                  version:
+                    description: Version is an optional version indicator for the
+                      Application.
+                    type: string
+                type: object
+              info:
+                description: Info contains human readable key,value pairs for the
+                  Application.
+                items:
+                  description: InfoItem is a human readable key,value pair containing
+                    important information about how to access the Application.
+                  properties:
+                    name:
+                      description: Name is a human readable title for this piece of
+                        information.
+                      type: string
+                    type:
+                      description: Type of the value for this InfoItem.
+                      type: string
+                    value:
+                      description: Value is human readable content.
+                      type: string
+                    valueFrom:
+                      description: ValueFrom defines a reference to derive the value
+                        from another source.
+                      properties:
+                        configMapKeyRef:
+                          description: Selects a key of a ConfigMap.
+                          properties:
+                            apiVersion:
+                              description: API version of the referent.
+                              type: string
+                            fieldPath:
+                              description: 'If referring to a piece of an object instead
+                                of an entire object, this string should contain a
+                                valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
+                                For example, if the object reference is to a container
+                                within a pod, this would take on a value like: "spec.containers{name}"
+                                (where "name" refers to the name of the container
+                                that triggered the event) or if no container name
+                                is specified "spec.containers[2]" (container with
+                                index 2 in this pod). This syntax is chosen only to
+                                have some well-defined way of referencing a part of
+                                an object. TODO: this design is not final and this
+                                field is subject to change in the future.'
+                              type: string
+                            key:
+                              description: The key to select.
+                              type: string
+                            kind:
+                              description: 'Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
+                              type: string
+                            namespace:
+                              description: 'Namespace of the referent. More info:
+                                https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'
+                              type: string
+                            resourceVersion:
+                              description: 'Specific resourceVersion to which this
+                                reference is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency'
+                              type: string
+                            uid:
+                              description: 'UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids'
+                              type: string
+                          type: object
+                        ingressRef:
+                          description: Select an Ingress.
+                          properties:
+                            apiVersion:
+                              description: API version of the referent.
+                              type: string
+                            fieldPath:
+                              description: 'If referring to a piece of an object instead
+                                of an entire object, this string should contain a
+                                valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
+                                For example, if the object reference is to a container
+                                within a pod, this would take on a value like: "spec.containers{name}"
+                                (where "name" refers to the name of the container
+                                that triggered the event) or if no container name
+                                is specified "spec.containers[2]" (container with
+                                index 2 in this pod). This syntax is chosen only to
+                                have some well-defined way of referencing a part of
+                                an object. TODO: this design is not final and this
+                                field is subject to change in the future.'
+                              type: string
+                            host:
+                              description: The optional host to select.
+                              type: string
+                            kind:
+                              description: 'Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
+                              type: string
+                            namespace:
+                              description: 'Namespace of the referent. More info:
+                                https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'
+                              type: string
+                            path:
+                              description: The optional HTTP path.
+                              type: string
+                            protocol:
+                              description: Protocol for the ingress
+                              type: string
+                            resourceVersion:
+                              description: 'Specific resourceVersion to which this
+                                reference is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency'
+                              type: string
+                            uid:
+                              description: 'UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids'
+                              type: string
+                          type: object
+                        secretKeyRef:
+                          description: Selects a key of a Secret.
+                          properties:
+                            apiVersion:
+                              description: API version of the referent.
+                              type: string
+                            fieldPath:
+                              description: 'If referring to a piece of an object instead
+                                of an entire object, this string should contain a
+                                valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
+                                For example, if the object reference is to a container
+                                within a pod, this would take on a value like: "spec.containers{name}"
+                                (where "name" refers to the name of the container
+                                that triggered the event) or if no container name
+                                is specified "spec.containers[2]" (container with
+                                index 2 in this pod). This syntax is chosen only to
+                                have some well-defined way of referencing a part of
+                                an object. TODO: this design is not final and this
+                                field is subject to change in the future.'
+                              type: string
+                            key:
+                              description: The key to select.
+                              type: string
+                            kind:
+                              description: 'Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
+                              type: string
+                            namespace:
+                              description: 'Namespace of the referent. More info:
+                                https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'
+                              type: string
+                            resourceVersion:
+                              description: 'Specific resourceVersion to which this
+                                reference is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency'
+                              type: string
+                            uid:
+                              description: 'UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids'
+                              type: string
+                          type: object
+                        serviceRef:
+                          description: Select a Service.
+                          properties:
+                            apiVersion:
+                              description: API version of the referent.
+                              type: string
+                            fieldPath:
+                              description: 'If referring to a piece of an object instead
+                                of an entire object, this string should contain a
+                                valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
+                                For example, if the object reference is to a container
+                                within a pod, this would take on a value like: "spec.containers{name}"
+                                (where "name" refers to the name of the container
+                                that triggered the event) or if no container name
+                                is specified "spec.containers[2]" (container with
+                                index 2 in this pod). This syntax is chosen only to
+                                have some well-defined way of referencing a part of
+                                an object. TODO: this design is not final and this
+                                field is subject to change in the future.'
+                              type: string
+                            kind:
+                              description: 'Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
+                              type: string
+                            namespace:
+                              description: 'Namespace of the referent. More info:
+                                https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'
+                              type: string
+                            path:
+                              description: The optional HTTP path.
+                              type: string
+                            port:
+                              description: The optional port to select.
+                              format: int32
+                              type: integer
+                            protocol:
+                              description: Protocol for the service
+                              type: string
+                            resourceVersion:
+                              description: 'Specific resourceVersion to which this
+                                reference is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency'
+                              type: string
+                            uid:
+                              description: 'UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids'
+                              type: string
+                          type: object
+                        type:
+                          description: Type of source.
+                          type: string
+                      type: object
+                  type: object
+                type: array
+              selector:
+                description: 'Selector is a label query over kinds that created by
+                  the application. It must match the component objects'' labels. More
+                  info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors'
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: A label selector requirement is a selector that
+                        contains values, a key, and an operator that relates the key
+                        and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: operator represents a key's relationship to
+                            a set of values. Valid operators are In, NotIn, Exists
+                            and DoesNotExist.
+                          type: string
+                        values:
+                          description: values is an array of string values. If the
+                            operator is In or NotIn, the values array must be non-empty.
+                            If the operator is Exists or DoesNotExist, the values
+                            array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: matchLabels is a map of {key,value} pairs. A single
+                      {key,value} in the matchLabels map is equivalent to an element
+                      of matchExpressions, whose key field is "key", the operator
+                      is "In", and the values array contains only "value". The requirements
+                      are ANDed.
+                    type: object
+                type: object
+            type: object
+          status:
+            description: ApplicationStatus defines controller's the observed state
+              of Application
+            properties:
+              components:
+                description: Object status array for all matching objects
+                items:
+                  description: ObjectStatus is a generic status holder for objects
+                  properties:
+                    group:
+                      description: Object group
+                      type: string
+                    kind:
+                      description: Kind of object
+                      type: string
+                    link:
+                      description: Link to object
+                      type: string
+                    name:
+                      description: Name of object
+                      type: string
+                    status:
+                      description: 'Status. Values: InProgress, Ready, Unknown'
+                      type: string
+                  type: object
+                type: array
+              componentsReady:
+                description: 'ComponentsReady: status of the components in the format
+                  ready/total'
+                type: string
+              conditions:
+                description: Conditions represents the latest state of the object
+                items:
+                  description: Condition describes the state of an object at a certain
+                    point.
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition transitioned from one status
+                        to another.
+                      format: date-time
+                      type: string
+                    lastUpdateTime:
+                      description: Last time the condition was probed
+                      format: date-time
+                      type: string
+                    message:
+                      description: A human readable message indicating details about
+                        the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
+                    type:
+                      description: Type of condition.
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+              observedGeneration:
+                description: ObservedGeneration is the most recent generation observed.
+                  It corresponds to the Object's generation, which is updated on mutation
+                  by the API Server.
+                format: int64
+                type: integer
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: clusterworkflowtemplates.argoproj.io
@@ -82,6 +615,85 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         required:
         - metadata
+        - spec
+        type: object
+    served: true
+    storage: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: scheduledworkflows.kubeflow.org
+spec:
+  group: kubeflow.org
+  names:
+    kind: ScheduledWorkflow
+    listKind: ScheduledWorkflowList
+    plural: scheduledworkflows
+    shortNames:
+    - swf
+    singular: scheduledworkflow
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-map-type: atomic
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-map-type: atomic
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - spec
+        - status
+        type: object
+    served: true
+    storage: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: viewers.kubeflow.org
+spec:
+  group: kubeflow.org
+  names:
+    kind: Viewer
+    listKind: ViewerList
+    plural: viewers
+    shortNames:
+    - vi
+    singular: viewer
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-map-type: atomic
+            x-kubernetes-preserve-unknown-fields: true
+        required:
         - spec
         type: object
     served: true
@@ -183,6 +795,48 @@ kind: CustomResourceDefinition
 metadata:
   labels:
     application-crd-id: kubeflow-pipelines
+  name: workflowtasksets.argoproj.io
+spec:
+  group: argoproj.io
+  names:
+    kind: WorkflowTaskSet
+    listKind: WorkflowTaskSetList
+    plural: workflowtasksets
+    shortNames:
+    - wfts
+    singular: workflowtaskset
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-map-type: atomic
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-map-type: atomic
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
   name: workflowtemplates.argoproj.io
 spec:
   group: argoproj.io
@@ -216,284 +870,6 @@ spec:
     served: true
     storage: true
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-    controller-tools.k8s.io: "1.0"
-  name: applications.app.k8s.io
-spec:
-  group: app.k8s.io
-  names:
-    kind: Application
-    plural: applications
-  scope: Namespaced
-  validation:
-    openAPIV3Schema:
-      properties:
-        apiVersion:
-          type: string
-        kind:
-          type: string
-        metadata:
-          type: object
-        spec:
-          properties:
-            addOwnerRef:
-              type: boolean
-            assemblyPhase:
-              type: string
-            componentKinds:
-              items:
-                type: object
-              type: array
-            descriptor:
-              properties:
-                description:
-                  type: string
-                icons:
-                  items:
-                    properties:
-                      size:
-                        type: string
-                      src:
-                        type: string
-                      type:
-                        type: string
-                    required:
-                    - src
-                    type: object
-                  type: array
-                keywords:
-                  items:
-                    type: string
-                  type: array
-                links:
-                  items:
-                    properties:
-                      description:
-                        type: string
-                      url:
-                        type: string
-                    type: object
-                  type: array
-                maintainers:
-                  items:
-                    properties:
-                      email:
-                        type: string
-                      name:
-                        type: string
-                      url:
-                        type: string
-                    type: object
-                  type: array
-                notes:
-                  type: string
-                owners:
-                  items:
-                    properties:
-                      email:
-                        type: string
-                      name:
-                        type: string
-                      url:
-                        type: string
-                    type: object
-                  type: array
-                type:
-                  type: string
-                version:
-                  type: string
-              type: object
-            info:
-              items:
-                properties:
-                  name:
-                    type: string
-                  type:
-                    type: string
-                  value:
-                    type: string
-                  valueFrom:
-                    properties:
-                      configMapKeyRef:
-                        properties:
-                          apiVersion:
-                            type: string
-                          fieldPath:
-                            type: string
-                          key:
-                            type: string
-                          kind:
-                            type: string
-                          name:
-                            type: string
-                          namespace:
-                            type: string
-                          resourceVersion:
-                            type: string
-                          uid:
-                            type: string
-                        type: object
-                      ingressRef:
-                        properties:
-                          apiVersion:
-                            type: string
-                          fieldPath:
-                            type: string
-                          host:
-                            type: string
-                          kind:
-                            type: string
-                          name:
-                            type: string
-                          namespace:
-                            type: string
-                          path:
-                            type: string
-                          resourceVersion:
-                            type: string
-                          uid:
-                            type: string
-                        type: object
-                      secretKeyRef:
-                        properties:
-                          apiVersion:
-                            type: string
-                          fieldPath:
-                            type: string
-                          key:
-                            type: string
-                          kind:
-                            type: string
-                          name:
-                            type: string
-                          namespace:
-                            type: string
-                          resourceVersion:
-                            type: string
-                          uid:
-                            type: string
-                        type: object
-                      serviceRef:
-                        properties:
-                          apiVersion:
-                            type: string
-                          fieldPath:
-                            type: string
-                          kind:
-                            type: string
-                          name:
-                            type: string
-                          namespace:
-                            type: string
-                          path:
-                            type: string
-                          port:
-                            format: int32
-                            type: integer
-                          resourceVersion:
-                            type: string
-                          uid:
-                            type: string
-                        type: object
-                      type:
-                        type: string
-                    type: object
-                type: object
-              type: array
-            selector:
-              type: object
-          type: object
-        status:
-          properties:
-            components:
-              items:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  link:
-                    type: string
-                  name:
-                    type: string
-                  status:
-                    type: string
-                type: object
-              type: array
-            conditions:
-              items:
-                properties:
-                  lastTransitionTime:
-                    format: date-time
-                    type: string
-                  lastUpdateTime:
-                    format: date-time
-                    type: string
-                  message:
-                    type: string
-                  reason:
-                    type: string
-                  status:
-                    type: string
-                  type:
-                    type: string
-                required:
-                - type
-                - status
-                type: object
-              type: array
-            observedGeneration:
-              format: int64
-              type: integer
-          type: object
-  version: v1beta1
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: scheduledworkflows.kubeflow.org
-spec:
-  group: kubeflow.org
-  names:
-    kind: ScheduledWorkflow
-    listKind: ScheduledWorkflowList
-    plural: scheduledworkflows
-    shortNames:
-    - swf
-    singular: scheduledworkflow
-  scope: Namespaced
-  versions:
-  - name: v1beta1
-    served: true
-    storage: true
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: viewers.kubeflow.org
-spec:
-  group: kubeflow.org
-  names:
-    kind: Viewer
-    listKind: ViewerList
-    plural: viewers
-    shortNames:
-    - vi
-    singular: viewer
-  scope: Namespaced
-  versions:
-  - name: v1beta1
-    served: true
-    storage: true
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -514,17 +890,17 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
+    app: cache-server
     application-crd-id: kubeflow-pipelines
-  name: kubeflow-pipelines-cache-deployer-sa
+  name: kubeflow-pipelines-cache
   namespace: kubeflow
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    app: cache-server
     application-crd-id: kubeflow-pipelines
-  name: kubeflow-pipelines-cache
+  name: kubeflow-pipelines-cache-deployer-sa
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -557,6 +933,14 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: metadata-grpc-server
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -597,14 +981,6 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-visualizationserver
-  namespace: kubeflow
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -706,6 +1082,8 @@ rules:
   resources:
   - workflows
   - workflows/finalizers
+  - workflowtasksets
+  - workflowtasksets/finalizers
   verbs:
   - get
   - list
@@ -860,6 +1238,60 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent-role
   namespace: kubeflow
@@ -994,6 +1426,7 @@ rules:
   - kubeflow.org
   resources:
   - viewers
+  - viewers/finalizers
   verbs:
   - create
   - get
@@ -1002,60 +1435,6 @@ rules:
   - update
   - patch
   - delete
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  labels:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - pods/log
-  verbs:
-  - get
-  - list
-  - delete
-- apiGroups:
-  - argoproj.io
-  resources:
-  - workflows
-  verbs:
-  - create
-  - get
-  - list
-  - watch
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - scheduledworkflows
-  verbs:
-  - create
-  - get
-  - list
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - authorization.k8s.io
-  resources:
-  - subjectaccessreviews
-  verbs:
-  - create
-- apiGroups:
-  - authentication.k8s.io
-  resources:
-  - tokenreviews
-  verbs:
-  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -1280,6 +1659,23 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent-binding
   namespace: kubeflow
@@ -1339,23 +1735,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ml-pipeline-viewer-crd-service-account
-  namespace: kubeflow
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: ml-pipeline
-subjects:
-- kind: ServiceAccount
-  name: ml-pipeline
   namespace: kubeflow
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -1453,9 +1832,9 @@ metadata:
 ---
 apiVersion: v1
 data:
-  ConMaxLifeTimeSec: "120"
+  ConMaxLifeTime: 120s
   appName: kfp-standalone-1
-  appVersion: 1.7.0
+  appVersion: 1.8.0-rc.1
   autoUpdatePipelineDefaultVersion: "true"
   bucketName: mlpipeline
   cacheDb: cachedb
@@ -1477,7 +1856,6 @@ data:
     namespace: `kubectl rollout restart deployment -n <your-namespace>`.
 kind: ConfigMap
 metadata:
-  annotations: {}
   labels:
     application-crd-id: kubeflow-pipelines
   name: pipeline-install-config
@@ -1510,7 +1888,7 @@ data:
       secretKeySecret:
         name: mlpipeline-minio-artifact
         key: secretkey
-  containerRuntimeExecutor: docker
+  containerRuntimeExecutor: emissary
   executor: |
     imagePullPolicy: IfNotPresent
     resources:
@@ -1544,7 +1922,6 @@ data:
   username: cm9vdA==
 kind: Secret
 metadata:
-  annotations: {}
   labels:
     application-crd-id: kubeflow-pipelines
   name: mysql-secret
@@ -1640,6 +2017,31 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    prometheus.io/port: "8888"
+    prometheus.io/scheme: http
+    prometheus.io/scrape: "true"
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  - name: grpc
+    port: 8887
+    protocol: TCP
+    targetPort: 8887
+  selector:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
   labels:
     app: ml-pipeline-ui
     application-crd-id: kubeflow-pipelines
@@ -1677,27 +2079,6 @@ kind: Service
 metadata:
   labels:
     application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-spec:
-  ports:
-  - name: http
-    port: 8888
-    protocol: TCP
-    targetPort: 8888
-  - name: grpc
-    port: 8887
-    protocol: TCP
-    targetPort: 8887
-  selector:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
   name: mysql
   namespace: kubeflow
 spec:
@@ -1727,6 +2108,34 @@ spec:
     app: workflow-controller
     application-crd-id: kubeflow-pipelines
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: minio-pvc
+  namespace: kubeflow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: mysql-pv-claim
+  namespace: kubeflow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1755,7 +2164,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-deployer:1.7.0
+        image: gcr.io/ml-pipeline/cache-deployer:1.8.0-rc.1
         imagePullPolicy: Always
         name: main
       restartPolicy: Always
@@ -1832,7 +2241,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-server:1.7.0
+        image: gcr.io/ml-pipeline/cache-server:1.8.0-rc.1
         imagePullPolicy: Always
         name: server
         ports:
@@ -1917,7 +2326,7 @@ spec:
         component: metadata-envoy
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/metadata-envoy:1.7.0
+      - image: gcr.io/ml-pipeline/metadata-envoy:1.8.0-rc.1
         name: container
         ports:
         - containerPort: 9090
@@ -1982,7 +2391,7 @@ spec:
             configMapKeyRef:
               key: dbPort
               name: pipeline-install-config
-        image: gcr.io/tfx-oss-public/ml_metadata_store_server:1.0.0
+        image: gcr.io/tfx-oss-public/ml_metadata_store_server:1.5.0
         livenessProbe:
           initialDelaySeconds: 3
           periodSeconds: 5
@@ -2027,7 +2436,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/metadata-writer:1.7.0
+        image: gcr.io/ml-pipeline/metadata-writer:1.8.0-rc.1
         name: main
       serviceAccountName: kubeflow-pipelines-metadata-writer
 ---
@@ -2088,6 +2497,123 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: AUTO_UPDATE_PIPELINE_DEFAULT_VERSION
+          valueFrom:
+            configMapKeyRef:
+              key: autoUpdatePipelineDefaultVersion
+              name: pipeline-install-config
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: OBJECTSTORECONFIG_SECURE
+          value: "false"
+        - name: OBJECTSTORECONFIG_BUCKETNAME
+          valueFrom:
+            configMapKeyRef:
+              key: bucketName
+              name: pipeline-install-config
+        - name: DBCONFIG_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: mysql-secret
+        - name: DBCONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: mysql-secret
+        - name: DBCONFIG_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              key: pipelineDb
+              name: pipeline-install-config
+        - name: DBCONFIG_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: dbHost
+              name: pipeline-install-config
+        - name: DBCONFIG_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: dbPort
+              name: pipeline-install-config
+        - name: DBCONFIG_CONMAXLIFETIME
+          valueFrom:
+            configMapKeyRef:
+              key: ConMaxLifeTime
+              name: pipeline-install-config
+        - name: OBJECTSTORECONFIG_ACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: OBJECTSTORECONFIG_SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        image: gcr.io/ml-pipeline/api-server:1.8.0-rc.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:8888/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-api-server
+        ports:
+        - containerPort: 8888
+          name: http
+        - containerPort: 8887
+          name: grpc
+        readinessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:8888/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 250m
+            memory: 500Mi
+      serviceAccountName: ml-pipeline
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
     app: ml-pipeline-persistenceagent
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent
@@ -2115,7 +2641,7 @@ spec:
           value: "86400"
         - name: NUM_WORKERS
           value: "2"
-        image: gcr.io/ml-pipeline/persistenceagent:1.7.0
+        image: gcr.io/ml-pipeline/persistenceagent:1.8.0-rc.1
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-persistenceagent
         resources:
@@ -2156,7 +2682,7 @@ spec:
             configMapKeyRef:
               key: cronScheduleTimezone
               name: pipeline-install-config
-        image: gcr.io/ml-pipeline/scheduledworkflow:1.7.0
+        image: gcr.io/ml-pipeline/scheduledworkflow:1.8.0-rc.1
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-scheduledworkflow
       serviceAccountName: ml-pipeline-scheduledworkflow
@@ -2202,7 +2728,7 @@ spec:
               name: mlpipeline-minio-artifact
         - name: ALLOW_CUSTOM_VISUALIZATIONS
           value: "true"
-        image: gcr.io/ml-pipeline/frontend:1.7.0
+        image: gcr.io/ml-pipeline/frontend:1.8.0-rc.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -2274,7 +2800,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/viewer-crd-controller:1.7.0
+        image: gcr.io/ml-pipeline/viewer-crd-controller:1.8.0-rc.1
         imagePullPolicy: Always
         name: ml-pipeline-viewer-crd
       serviceAccountName: ml-pipeline-viewer-crd-service-account
@@ -2301,7 +2827,7 @@ spec:
         application-crd-id: kubeflow-pipelines
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/visualization-server:1.7.0
+      - image: gcr.io/ml-pipeline/visualization-server:1.8.0-rc.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -2336,123 +2862,6 @@ spec:
             cpu: 30m
             memory: 500Mi
       serviceAccountName: ml-pipeline-visualizationserver
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-spec:
-  selector:
-    matchLabels:
-      app: ml-pipeline
-      application-crd-id: kubeflow-pipelines
-  template:
-    metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-      labels:
-        app: ml-pipeline
-        application-crd-id: kubeflow-pipelines
-    spec:
-      containers:
-      - env:
-        - name: AUTO_UPDATE_PIPELINE_DEFAULT_VERSION
-          valueFrom:
-            configMapKeyRef:
-              key: autoUpdatePipelineDefaultVersion
-              name: pipeline-install-config
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: OBJECTSTORECONFIG_SECURE
-          value: "false"
-        - name: OBJECTSTORECONFIG_BUCKETNAME
-          valueFrom:
-            configMapKeyRef:
-              key: bucketName
-              name: pipeline-install-config
-        - name: DBCONFIG_USER
-          valueFrom:
-            secretKeyRef:
-              key: username
-              name: mysql-secret
-        - name: DBCONFIG_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: mysql-secret
-        - name: DBCONFIG_DBNAME
-          valueFrom:
-            configMapKeyRef:
-              key: pipelineDb
-              name: pipeline-install-config
-        - name: DBCONFIG_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: dbHost
-              name: pipeline-install-config
-        - name: DBCONFIG_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: dbPort
-              name: pipeline-install-config
-        - name: DBCONFIG_CONMAXLIFETIMESEC
-          valueFrom:
-            configMapKeyRef:
-              key: ConMaxLifeTimeSec
-              name: pipeline-install-config
-        - name: OBJECTSTORECONFIG_ACCESSKEY
-          valueFrom:
-            secretKeyRef:
-              key: accesskey
-              name: mlpipeline-minio-artifact
-        - name: OBJECTSTORECONFIG_SECRETACCESSKEY
-          valueFrom:
-            secretKeyRef:
-              key: secretkey
-              name: mlpipeline-minio-artifact
-        image: gcr.io/ml-pipeline/api-server:1.7.0
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          exec:
-            command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:8888/apis/v1beta1/healthz
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
-        name: ml-pipeline-api-server
-        ports:
-        - containerPort: 8888
-          name: http
-        - containerPort: 8887
-          name: grpc
-        readinessProbe:
-          exec:
-            command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:8888/apis/v1beta1/healthz
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
-        resources:
-          requests:
-            cpu: 250m
-            memory: 500Mi
-      serviceAccountName: ml-pipeline
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2524,7 +2933,7 @@ spec:
       - env:
         - name: PROXY_URL
           value: https://datalab-staging.cloud.google.com/tun/m/4592f092208ecc84946b8f8f8016274df1b36a14
-        image: gcr.io/ml-pipeline/inverse-proxy-agent:1.7.0
+        image: gcr.io/ml-pipeline/inverse-proxy-agent:1.8.0-rc.1
         imagePullPolicy: IfNotPresent
         name: proxy-agent
       hostNetwork: true
@@ -2553,7 +2962,7 @@ spec:
         - --configmap
         - workflow-controller-configmap
         - --executor-image
-        - gcr.io/ml-pipeline/argoexec:v3.1.6-patch-license-compliance
+        - gcr.io/ml-pipeline/argoexec:v3.2.3-license-compliance
         - --namespaced
         command:
         - workflow-controller
@@ -2563,7 +2972,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.name
-        image: gcr.io/ml-pipeline/workflow-controller:v3.1.6-patch-license-compliance
+        image: gcr.io/ml-pipeline/workflow-controller:v3.2.3-license-compliance
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -2634,38 +3043,10 @@ spec:
       url: https://github.com/kubeflow/pipelines
     notes: Please go to [Hosted Kubeflow Pipelines Console](https://console.cloud.google.com/ai-platform/pipelines/clusters).
     type: Kubeflow Pipelines
-    version: 1.7.0
+    version: 1.8.0-rc.1
   info:
   - name: Console
     value: https://console.cloud.google.com/ai-platform/pipelines/clusters
   selector:
     matchLabels:
       application-crd-id: kubeflow-pipelines
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: minio-pvc
-  namespace: kubeflow
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: mysql-pv-claim
-  namespace: kubeflow
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
