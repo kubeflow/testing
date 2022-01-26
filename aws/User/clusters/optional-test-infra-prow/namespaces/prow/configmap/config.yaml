@@ -133,9 +133,7 @@ presubmits:
   kubeflow/kubeflow:
   - name: kubeflow-kubeflow-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
     branches:
-    - master
-    - v1.3-branch
-    - v1.4-branch
+    - ^master|v.+$
     decorate: false
     labels:
       preset-aws-cred: "true"
@@ -149,8 +147,7 @@ presubmits:
   kubeflow/manifests:
   - name: kubeflow-manifests-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
     branches:
-    - master
-    - v1.2-branch
+    - ^master|v.+$
     decorate: false
     labels:
       preset-aws-cred: "true"
@@ -209,9 +206,7 @@ postsubmits:
   kubeflow/kubeflow:
   - name: kubeflow-kubeflow-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
     branches:
-    - master
-    - v1.3-branch
-    - v1.4-branch
+    - ^master|v.+$
     decorate: false
     labels:
       preset-aws-cred: "true"
