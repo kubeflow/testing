@@ -9,7 +9,7 @@ spec:
   # The values are empirical.
   limits:
   - default:
-      memory: 0.5Gi
+      memory: 1Gi # Default limit is set to 1Gi because mysql request 800Mi.
       cpu: '1'
     defaultRequest:
       cpu: '0.5'
