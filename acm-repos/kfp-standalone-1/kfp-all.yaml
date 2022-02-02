@@ -2872,6 +2872,8 @@ spec:
         - containerPort: 3306
           name: mysql
         resources:
+          limits:
+            memory: 1Gi
           requests:
             cpu: 100m
             memory: 800Mi
