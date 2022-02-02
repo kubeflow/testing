@@ -1,0 +1,6 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: applications.app.k8s.io
+status:
+  $patch: delete
