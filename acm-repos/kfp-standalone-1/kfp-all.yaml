@@ -11,7 +11,6 @@ metadata:
   annotations:
     api-approved.kubernetes.io: https://github.com/kubernetes-sigs/application/pull/2
     controller-gen.kubebuilder.io/version: v0.4.0
-  creationTimestamp: null
   labels:
     application-crd-id: kubeflow-pipelines
     controller-tools.k8s.io: "1.0"
@@ -531,13 +530,6 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  $patch: delete
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -891,17 +883,17 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
+    app: cache-server
     application-crd-id: kubeflow-pipelines
-  name: kubeflow-pipelines-cache-deployer-sa
+  name: kubeflow-pipelines-cache
   namespace: kubeflow
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    app: cache-server
     application-crd-id: kubeflow-pipelines
-  name: kubeflow-pipelines-cache
+  name: kubeflow-pipelines-cache-deployer-sa
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -934,6 +926,14 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: metadata-grpc-server
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -974,14 +974,6 @@ metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-visualizationserver
-  namespace: kubeflow
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
   namespace: kubeflow
 ---
 apiVersion: v1
@@ -1239,6 +1231,60 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent-role
   namespace: kubeflow
@@ -1382,60 +1428,6 @@ rules:
   - update
   - patch
   - delete
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  labels:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - pods/log
-  verbs:
-  - get
-  - list
-  - delete
-- apiGroups:
-  - argoproj.io
-  resources:
-  - workflows
-  verbs:
-  - create
-  - get
-  - list
-  - watch
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - scheduledworkflows
-  verbs:
-  - create
-  - get
-  - list
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - authorization.k8s.io
-  resources:
-  - subjectaccessreviews
-  verbs:
-  - create
-- apiGroups:
-  - authentication.k8s.io
-  resources:
-  - tokenreviews
-  verbs:
-  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -1660,6 +1652,23 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent-binding
   namespace: kubeflow
@@ -1719,23 +1728,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ml-pipeline-viewer-crd-service-account
-  namespace: kubeflow
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: ml-pipeline
-subjects:
-- kind: ServiceAccount
-  name: ml-pipeline
   namespace: kubeflow
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -1857,7 +1849,6 @@ data:
     namespace: `kubectl rollout restart deployment -n <your-namespace>`.
 kind: ConfigMap
 metadata:
-  annotations: {}
   labels:
     application-crd-id: kubeflow-pipelines
   name: pipeline-install-config
@@ -1924,7 +1915,6 @@ data:
   username: cm9vdA==
 kind: Secret
 metadata:
-  annotations: {}
   labels:
     application-crd-id: kubeflow-pipelines
   name: mysql-secret
@@ -2020,6 +2010,31 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    prometheus.io/port: "8888"
+    prometheus.io/scheme: http
+    prometheus.io/scrape: "true"
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  - name: grpc
+    port: 8887
+    protocol: TCP
+    targetPort: 8887
+  selector:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
   labels:
     app: ml-pipeline-ui
     application-crd-id: kubeflow-pipelines
@@ -2055,31 +2070,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    prometheus.io/port: "8888"
-    prometheus.io/scheme: http
-    prometheus.io/scrape: "true"
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-spec:
-  ports:
-  - name: http
-    port: 8888
-    protocol: TCP
-    targetPort: 8888
-  - name: grpc
-    port: 8887
-    protocol: TCP
-    targetPort: 8887
-  selector:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
----
-apiVersion: v1
-kind: Service
-metadata:
   labels:
     application-crd-id: kubeflow-pipelines
   name: mysql
@@ -2110,6 +2100,50 @@ spec:
   selector:
     app: workflow-controller
     application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: container-default-resources
+  namespace: kubeflow
+spec:
+  limits:
+  - default:
+      cpu: "1"
+      memory: 0.5Gi
+    defaultRequest:
+      cpu: "0.5"
+    type: Container
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: minio-pvc
+  namespace: kubeflow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: mysql-pv-claim
+  namespace: kubeflow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2472,6 +2506,123 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: AUTO_UPDATE_PIPELINE_DEFAULT_VERSION
+          valueFrom:
+            configMapKeyRef:
+              key: autoUpdatePipelineDefaultVersion
+              name: pipeline-install-config
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: OBJECTSTORECONFIG_SECURE
+          value: "false"
+        - name: OBJECTSTORECONFIG_BUCKETNAME
+          valueFrom:
+            configMapKeyRef:
+              key: bucketName
+              name: pipeline-install-config
+        - name: DBCONFIG_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: mysql-secret
+        - name: DBCONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: mysql-secret
+        - name: DBCONFIG_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              key: pipelineDb
+              name: pipeline-install-config
+        - name: DBCONFIG_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: dbHost
+              name: pipeline-install-config
+        - name: DBCONFIG_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: dbPort
+              name: pipeline-install-config
+        - name: DBCONFIG_CONMAXLIFETIME
+          valueFrom:
+            configMapKeyRef:
+              key: ConMaxLifeTime
+              name: pipeline-install-config
+        - name: OBJECTSTORECONFIG_ACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: OBJECTSTORECONFIG_SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        image: gcr.io/ml-pipeline/api-server:1.8.0-rc.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:8888/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-api-server
+        ports:
+        - containerPort: 8888
+          name: http
+        - containerPort: 8887
+          name: grpc
+        readinessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:8888/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 250m
+            memory: 500Mi
+      serviceAccountName: ml-pipeline
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
     app: ml-pipeline-persistenceagent
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent
@@ -2725,123 +2876,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: ml-pipeline
-    application-crd-id: kubeflow-pipelines
-  name: ml-pipeline
-  namespace: kubeflow
-spec:
-  selector:
-    matchLabels:
-      app: ml-pipeline
-      application-crd-id: kubeflow-pipelines
-  template:
-    metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-      labels:
-        app: ml-pipeline
-        application-crd-id: kubeflow-pipelines
-    spec:
-      containers:
-      - env:
-        - name: AUTO_UPDATE_PIPELINE_DEFAULT_VERSION
-          valueFrom:
-            configMapKeyRef:
-              key: autoUpdatePipelineDefaultVersion
-              name: pipeline-install-config
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: OBJECTSTORECONFIG_SECURE
-          value: "false"
-        - name: OBJECTSTORECONFIG_BUCKETNAME
-          valueFrom:
-            configMapKeyRef:
-              key: bucketName
-              name: pipeline-install-config
-        - name: DBCONFIG_USER
-          valueFrom:
-            secretKeyRef:
-              key: username
-              name: mysql-secret
-        - name: DBCONFIG_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: mysql-secret
-        - name: DBCONFIG_DBNAME
-          valueFrom:
-            configMapKeyRef:
-              key: pipelineDb
-              name: pipeline-install-config
-        - name: DBCONFIG_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: dbHost
-              name: pipeline-install-config
-        - name: DBCONFIG_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: dbPort
-              name: pipeline-install-config
-        - name: DBCONFIG_CONMAXLIFETIME
-          valueFrom:
-            configMapKeyRef:
-              key: ConMaxLifeTime
-              name: pipeline-install-config
-        - name: OBJECTSTORECONFIG_ACCESSKEY
-          valueFrom:
-            secretKeyRef:
-              key: accesskey
-              name: mlpipeline-minio-artifact
-        - name: OBJECTSTORECONFIG_SECRETACCESSKEY
-          valueFrom:
-            secretKeyRef:
-              key: secretkey
-              name: mlpipeline-minio-artifact
-        image: gcr.io/ml-pipeline/api-server:1.8.0-rc.2
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          exec:
-            command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:8888/apis/v1beta1/healthz
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
-        name: ml-pipeline-api-server
-        ports:
-        - containerPort: 8888
-          name: http
-        - containerPort: 8887
-          name: grpc
-        readinessProbe:
-          exec:
-            command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:8888/apis/v1beta1/healthz
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
-        resources:
-          requests:
-            cpu: 250m
-            memory: 500Mi
-      serviceAccountName: ml-pipeline
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
     app: mysql
     application-crd-id: kubeflow-pipelines
   name: mysql
@@ -3027,47 +3061,3 @@ spec:
   selector:
     matchLabels:
       application-crd-id: kubeflow-pipelines
----
-apiVersion: v1
-kind: LimitRange
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: container-default-resources
-  namespace: kubeflow
-spec:
-  limits:
-  - default:
-      cpu: "1"
-      memory: 0.5Gi
-    defaultRequest:
-      cpu: "0.5"
-    type: Container
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: minio-pvc
-  namespace: kubeflow
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    application-crd-id: kubeflow-pipelines
-  name: mysql-pv-claim
-  namespace: kubeflow
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
