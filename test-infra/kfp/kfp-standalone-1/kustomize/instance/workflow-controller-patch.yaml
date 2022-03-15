@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-controller
+  labels:
+    app: workflow-controller
+spec:
+  template:
+    spec:
+      containers:
+      - name: workflow-controller
+        resources:
+          limits:
+            memory: 1Gi
