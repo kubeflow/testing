@@ -2955,6 +2955,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
+    app: workflow-controller
     application-crd-id: kubeflow-pipelines
   name: workflow-controller
   namespace: kubeflow
@@ -2999,6 +3000,8 @@ spec:
           name: metrics
         - containerPort: 6060
         resources:
+          limits:
+            memory: 1Gi
           requests:
             cpu: 100m
             memory: 500Mi
