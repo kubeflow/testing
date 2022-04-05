@@ -2,6 +2,14 @@
 
 ## Upgrade KFP
 
+1. (Optionally) Run:
+
+    ```bash
+    make hydrate-kfp-manifests
+    ```
+    
+    To check the generated raw k8s resources in acm-repos folder based on local changes (without pulling manifests from kfp repo). 
+
 1. Edit `PIPELINES_VERSION=<new-version>` in Makefile.
 
 1. Run:
