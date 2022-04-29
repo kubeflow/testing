@@ -26,6 +26,6 @@ EKS_CLUSTER_NAME="${CLUSTER_NAME}"
 # TODO (PatrickXYS): Need to determine which NG template we need
 eksctl create cluster \
 --name $EKS_CLUSTER_NAME \
---version ${EKS_CLUSTER_VERSION:-"1.18"} \
+--version ${EKS_CLUSTER_VERSION:-"1.19"} \
 --region ${AWS_REGION:-"us-west-2"} \
 --managed
