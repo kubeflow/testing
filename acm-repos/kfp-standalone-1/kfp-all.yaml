@@ -2418,6 +2418,9 @@ spec:
           tcpSocket:
             port: grpc-api
           timeoutSeconds: 2
+        resources:
+          limits:
+            memory: 1Gi
       serviceAccountName: metadata-grpc-server
 ---
 apiVersion: apps/v1

@@ -34,6 +34,7 @@ patchesStrategicMerge:
 - status-deletion.yaml
 - mysql-patch.yaml
 - workflow-controller-patch.yaml
+- metadata-grpc-deployment-patch.yaml
 
 #### Customization ###
 # 1. Change values in params.env file
