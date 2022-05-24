@@ -75,197 +75,197 @@ data:
 
     decorate_all_jobs: true
 
-    presubmits:
-      kubeflow/katib:
-      - name: kubeflow-katib-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        - ^master|release-.+$
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    # presubmits:
+    #   kubeflow/katib:
+    #   - name: kubeflow-katib-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     - ^master|release-.+$
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/kfctl:
-      - name: kubeflow-kfctl-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        - master
-        - v1.2-branch
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    #   kubeflow/kfctl:
+    #   - name: kubeflow-kfctl-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     - master
+    #     - v1.2-branch
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/kfserving:
-      - name: kubeflow-kfserving-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        - master
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    #   kubeflow/kfserving:
+    #   - name: kubeflow-kfserving-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     - master
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-      kserve/kserve:
-      - name: kubeflow-kserve-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        - master
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    #   kserve/kserve:
+    #   - name: kubeflow-kserve-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     - master
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/kubeflow:
-      - name: kubeflow-kubeflow-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        ^master|v.+-branch$
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    #   kubeflow/kubeflow:
+    #   - name: kubeflow-kubeflow-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     ^master|v.+-branch$
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/manifests:
-      - name: kubeflow-manifests-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        ^master|v.+-branch$
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    #   kubeflow/manifests:
+    #   - name: kubeflow-manifests-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     ^master|v.+-branch$
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/pytorch-operator:
-        - name: kubeflow-pytorch-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-          branches:
-          - master
-          decorate: false
-          labels:
-            preset-aws-cred: "true"
-          always_run: true
-          spec:
-            containers:
-              - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-                imagePullPolicy: Always
-                command: ["/usr/local/bin/run_workflows.sh"]
+    #   kubeflow/pytorch-operator:
+    #     - name: kubeflow-pytorch-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #       branches:
+    #       - master
+    #       decorate: false
+    #       labels:
+    #         preset-aws-cred: "true"
+    #       always_run: true
+    #       spec:
+    #         containers:
+    #           - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #             imagePullPolicy: Always
+    #             command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/testing:
-      - name: kubeflow-testing-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        - master
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    #   kubeflow/testing:
+    #   - name: kubeflow-testing-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     - master
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/training-operator:
-      - name: kubeflow-training-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        - master
-        - v1.2-branch
-        - v1.3-branch
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    #   kubeflow/training-operator:
+    #   - name: kubeflow-training-operator-presubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     - master
+    #     - v1.2-branch
+    #     - v1.3-branch
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-    postsubmits:
-      kubeflow/kubeflow:
-      - name: kubeflow-kubeflow-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        ^master|v.+-branch$
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    # postsubmits:
+    #   kubeflow/kubeflow:
+    #   - name: kubeflow-kubeflow-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     ^master|v.+-branch$
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-      kubeflow/training-operator:
-      - name: kubeflow-training-operator-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
-        branches:
-        - master
-        - v1.2-branch
-        - v1.3-branch
-        decorate: false
-        labels:
-          preset-aws-cred: "true"
-        always_run: true
-        spec:
-          containers:
-          - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
-            imagePullPolicy: Always
-            command: ["/usr/local/bin/run_workflows.sh"]
+    #   kubeflow/training-operator:
+    #   - name: kubeflow-training-operator-postsubmit  # convention: (job type)-(repo name)-(suite name)-(test type)
+    #     branches:
+    #     - master
+    #     - v1.2-branch
+    #     - v1.3-branch
+    #     decorate: false
+    #     labels:
+    #       preset-aws-cred: "true"
+    #     always_run: true
+    #     spec:
+    #       containers:
+    #       - image: public.ecr.aws/j1r0q0g6/kubeflow-testing:latest
+    #         imagePullPolicy: Always
+    #         command: ["/usr/local/bin/run_workflows.sh"]
 
-    periodics:
-    - interval: 1h
-      agent: kubernetes
-      name: infra-editor-sync
-      labels:
-        preset-aws-cred: "true"
-      spec:
-        containers:
-        - image: public.ecr.aws/j1r0q0g6/daily-worker:latest
-          command: ["/usr/local/bin/update-iam-assume-role-policy.sh"]
-          env:
-          - name: TRUST_POLICY
-            value: https://raw.githubusercontent.com/kubeflow/testing/master/aws/Access/assume-role-access/infra-editor/trust-policy.json
-          - name: ROLE_NAME
-            value: infra-editor
+    # periodics:
+    # - interval: 1h
+    #   agent: kubernetes
+    #   name: infra-editor-sync
+    #   labels:
+    #     preset-aws-cred: "true"
+    #   spec:
+    #     containers:
+    #     - image: public.ecr.aws/j1r0q0g6/daily-worker:latest
+    #       command: ["/usr/local/bin/update-iam-assume-role-policy.sh"]
+    #       env:
+    #       - name: TRUST_POLICY
+    #         value: https://raw.githubusercontent.com/kubeflow/testing/master/aws/Access/assume-role-access/infra-editor/trust-policy.json
+    #       - name: ROLE_NAME
+    #         value: infra-editor
 
-    - interval: 1h
-      agent: kubernetes
-      name: infra-viewer-sync
-      labels:
-        preset-aws-cred: "true"
-      spec:
-        containers:
-        - image: public.ecr.aws/j1r0q0g6/daily-worker:latest
-          command: ["/usr/local/bin/update-iam-assume-role-policy.sh"]
-          env:
-          - name: TRUST_POLICY
-            value: https://raw.githubusercontent.com/kubeflow/testing/master/aws/Access/assume-role-access/infra-viewer/trust-policy.json
-          - name: ROLE_NAME
-            value: infra-viewer
+    # - interval: 1h
+    #   agent: kubernetes
+    #   name: infra-viewer-sync
+    #   labels:
+    #     preset-aws-cred: "true"
+    #   spec:
+    #     containers:
+    #     - image: public.ecr.aws/j1r0q0g6/daily-worker:latest
+    #       command: ["/usr/local/bin/update-iam-assume-role-policy.sh"]
+    #       env:
+    #       - name: TRUST_POLICY
+    #         value: https://raw.githubusercontent.com/kubeflow/testing/master/aws/Access/assume-role-access/infra-viewer/trust-policy.json
+    #       - name: ROLE_NAME
+    #         value: infra-viewer
 kind: ConfigMap
 metadata:
   creationTimestamp: null
