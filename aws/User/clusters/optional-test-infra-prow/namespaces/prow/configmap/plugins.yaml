@@ -1,21 +1,21 @@
-plugins:
-  kubeflow/katib:
-  - trigger
-  kubeflow/kfctl:
-  - trigger
-  kubeflow/kfserving:
-  - trigger
-  kserve/kserve:
-  - trigger
-  kubeflow/kubeflow:
-  - trigger
-  kubeflow/manifests:
-  - trigger
-  kubeflow/pytorch-operator:
-  - trigger
-  kubeflow/training-operator:
-  - trigger
-  kubeflow/xgboost-operator:
-  - trigger
-  kubeflow/testing:
-  - trigger
+# plugins:
+#   kubeflow/katib:
+#   - trigger
+#   kubeflow/kfctl:
+#   - trigger
+#   kubeflow/kfserving:
+#   - trigger
+#   kserve/kserve:
+#   - trigger
+#   kubeflow/kubeflow:
+#   - trigger
+#   kubeflow/manifests:
+#   - trigger
+#   kubeflow/pytorch-operator:
+#   - trigger
+#   kubeflow/training-operator:
+#   - trigger
+#   kubeflow/xgboost-operator:
+#   - trigger
+#   kubeflow/testing:
+#   - trigger
