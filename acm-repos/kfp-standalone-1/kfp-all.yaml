@@ -2912,10 +2912,10 @@ spec:
           name: mysql
         resources:
           limits:
-            memory: 1Gi
+            memory: 2Gi
           requests:
             cpu: 100m
-            memory: 800Mi
+            memory: 1Gi
         volumeMounts:
         - mountPath: /var/lib/mysql
           name: mysql-persistent-storage
