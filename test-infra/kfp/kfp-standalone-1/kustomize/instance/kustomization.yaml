@@ -35,6 +35,7 @@ patchesStrategicMerge:
 - mysql-patch.yaml
 - workflow-controller-patch.yaml
 - metadata-grpc-deployment-patch.yaml
+- persistent-agent-deployment-patch.yaml
 
 #### Customization ###
 # 1. Change values in params.env file
