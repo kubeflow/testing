@@ -2917,6 +2917,9 @@ spec:
               fieldPath: metadata.namespace
         image: gcr.io/ml-pipeline/metadata-writer:2.0.0-alpha.4
         name: main
+        resources:
+          limits:
+            memory: 1Gi
       serviceAccountName: kubeflow-pipelines-metadata-writer
 ---
 apiVersion: apps/v1
