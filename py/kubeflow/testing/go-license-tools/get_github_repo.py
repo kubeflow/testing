@@ -100,11 +100,10 @@ def fetch_github_uri_from_godoc(url):
                                                     response.reason)
 
   soup = Soup(response.text, features="html.parser")
-  navs = soup.find_all("div", class_="UnitMeta")
+  navs = soup.find_all("div", class_="UnitMeta-repo")
   for nav in navs:
-    if  nav.text.strip().startswith("Repository"):
-      link = nav.select_one('a').attrs.get('href')
-      return get_github_repo(link)
+    link = nav.select_one('a').attrs.get('href')
+    return get_github_repo(link)
   return None
 
 
@@ -181,12 +180,15 @@ def main():
         else:
           # Try to resolve if not found
           repo = get_github_repo_for_dep(dep)
-        if repo in repo_seen:
-          print('repo {} is seen more than once'.format(repo), file=sys.stderr)
+        if repo is not None:
+          if repo in repo_seen:
+            print('repo {} is seen more than once'.format(repo), file=sys.stderr)
+          else:
+            repo_seen.add(repo)
+            print(repo, file=output_file)
+          dep_succeeded.append(dep)
         else:
-          repo_seen.add(repo)
-          print(repo, file=output_file)
-        dep_succeeded.append(dep)
+          raise Exception('Cant find dep {}'.format(dep))
       except Exception as e: # pylint: disable=broad-except
         print('[failed]', e, file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
@@ -201,6 +203,7 @@ def main():
       print('We failed to resolve the following dependencies:', file=sys.stderr)
       for dep in dep_failed:
         print(dep, file=sys.stderr)
+      sys.exit(1)
 
 
 if __name__ == '__main__':
