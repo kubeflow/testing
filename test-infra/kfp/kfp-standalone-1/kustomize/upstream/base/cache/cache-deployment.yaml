@@ -69,7 +69,11 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        args: ["--db_driver=$(DBCONFIG_DRIVER)", "--db_host=$(DBCONFIG_HOST_NAME)", "--db_port=$(DBCONFIG_PORT)", "--db_name=$(DBCONFIG_DB_NAME)", "--db_user=$(DBCONFIG_USER)", "--db_password=$(DBCONFIG_PASSWORD)", "--namespace_to_watch=$(NAMESPACE_TO_WATCH)"]
+        # If you update WEBHOOK_PORT, also change the value of the
+        # containerPort "webhook-api" to match.
+        - name: WEBHOOK_PORT
+          value: "8443"
+        args: ["--db_driver=$(DBCONFIG_DRIVER)", "--db_host=$(DBCONFIG_HOST_NAME)", "--db_port=$(DBCONFIG_PORT)", "--db_name=$(DBCONFIG_DB_NAME)", "--db_user=$(DBCONFIG_USER)", "--db_password=$(DBCONFIG_PASSWORD)", "--namespace_to_watch=$(NAMESPACE_TO_WATCH)", "--listen_port=$(WEBHOOK_PORT)"]
         imagePullPolicy: Always
         ports:
         - containerPort: 8443
