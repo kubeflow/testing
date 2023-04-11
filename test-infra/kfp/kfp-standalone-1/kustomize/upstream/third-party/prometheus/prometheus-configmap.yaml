@@ -27,5 +27,5 @@ data:
         static_configs:
           - targets: ['ml-pipeline:8888']
 kind: ConfigMap
-metadata: # kpt-merge: /prometheus-configmap
+metadata:
   name: prometheus-configmap

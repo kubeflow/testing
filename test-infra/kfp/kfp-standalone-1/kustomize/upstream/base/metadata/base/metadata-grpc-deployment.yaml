@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: # kpt-merge: /metadata-grpc-deployment
+metadata:
   name: metadata-grpc-deployment
   labels:
     component: metadata-grpc-server
@@ -50,7 +50,14 @@ spec:
               name: pipeline-install-config
               key: dbPort
         command: ["/bin/metadata_store_server"]
-        args: ["--grpc_port=8080", "--mysql_config_database=$(MYSQL_DATABASE)", "--mysql_config_host=$(MYSQL_HOST)", "--mysql_config_port=$(MYSQL_PORT)", "--mysql_config_user=$(DBCONFIG_USER)", "--mysql_config_password=$(DBCONFIG_PASSWORD)", "--enable_database_upgrade=true"]
+        args: ["--grpc_port=8080",
+               "--mysql_config_database=$(MYSQL_DATABASE)",
+               "--mysql_config_host=$(MYSQL_HOST)",
+               "--mysql_config_port=$(MYSQL_PORT)",
+               "--mysql_config_user=$(DBCONFIG_USER)",
+               "--mysql_config_password=$(DBCONFIG_PASSWORD)",
+               "--enable_database_upgrade=true"
+               ]
         ports:
         - name: grpc-api
           containerPort: 8080
@@ -67,3 +74,4 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 2
       serviceAccountName: metadata-grpc-server
+

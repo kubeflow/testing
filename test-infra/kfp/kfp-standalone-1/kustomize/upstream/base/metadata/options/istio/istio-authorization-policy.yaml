@@ -1,6 +1,6 @@
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
-metadata: # kpt-merge: /metadata-grpc-service
+metadata:
   name: metadata-grpc-service
 spec:
   action: ALLOW

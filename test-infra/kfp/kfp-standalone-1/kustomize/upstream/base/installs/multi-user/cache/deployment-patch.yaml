@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: # kpt-merge: /cache-server
+metadata:
   name: cache-server
 spec:
   template:
@@ -8,6 +8,6 @@ spec:
       containers:
       - name: server
         env:
-        - name: NAMESPACE_TO_WATCH
-          value: ''
-          valueFrom: null
+          - name: NAMESPACE_TO_WATCH
+            value: ''
+            valueFrom: null

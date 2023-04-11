@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: # kpt-merge: /cache-deployer-deployment
+metadata:
   name: cache-deployer-deployment
   labels:
     app: cache-deployer

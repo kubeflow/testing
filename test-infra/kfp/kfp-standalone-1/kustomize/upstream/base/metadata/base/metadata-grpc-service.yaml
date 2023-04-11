@@ -1,6 +1,6 @@
 kind: Service
 apiVersion: v1
-metadata: # kpt-merge: /metadata-grpc-service
+metadata:
   labels:
     app: metadata
   name: metadata-grpc-service

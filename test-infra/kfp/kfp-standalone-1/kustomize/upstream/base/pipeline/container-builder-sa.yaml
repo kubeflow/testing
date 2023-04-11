@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: ServiceAccount
-metadata: # kpt-merge: /kubeflow-pipelines-container-builder
+metadata:
   name: kubeflow-pipelines-container-builder

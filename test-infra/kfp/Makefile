@@ -16,7 +16,7 @@ KFP_STANDALONE_1_DIR=$(ACM_REPOS)/kfp-standalone-1
 
 # Please edit the following version before running:
 # make kfp-update
-PIPELINES_VERSION?=2.0.0-beta.0
+PIPELINES_VERSION?=2.0.0-beta.1
 PIPELINES_SRC_REPO=https://github.com/kubeflow/pipelines.git
 
 all: hydrate hydrate-kfp-manifests vet-kfp-manifests

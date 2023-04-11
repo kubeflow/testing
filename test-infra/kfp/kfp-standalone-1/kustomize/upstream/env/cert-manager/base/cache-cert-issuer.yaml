@@ -1,6 +1,6 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
-metadata: # kpt-merge: /kfp-cache-selfsigned-issuer
+metadata:
   name: kfp-cache-selfsigned-issuer
 spec:
   selfSigned: {}

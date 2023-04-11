@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: # kpt-merge: /ml-pipeline-scheduledworkflow
+metadata:
   name: ml-pipeline-scheduledworkflow
 spec:
   template:

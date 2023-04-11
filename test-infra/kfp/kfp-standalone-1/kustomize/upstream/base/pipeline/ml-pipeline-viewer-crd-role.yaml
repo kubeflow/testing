@@ -1,6 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
-metadata: # kpt-merge: /ml-pipeline-viewer-controller-role
+metadata:
   name: ml-pipeline-viewer-controller-role
 rules:
 - apiGroups:

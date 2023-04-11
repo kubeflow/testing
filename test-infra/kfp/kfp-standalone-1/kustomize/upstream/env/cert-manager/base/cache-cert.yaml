@@ -1,6 +1,6 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
-metadata: # kpt-merge: /kfp-cache-cert
+metadata:
   name: kfp-cache-cert
 spec:
   commonName: kfp-cache-cert
