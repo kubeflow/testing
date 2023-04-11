@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: # kpt-merge: /ml-pipeline
+metadata:
   labels:
     app: ml-pipeline
   name: ml-pipeline
@@ -84,24 +84,24 @@ spec:
         readinessProbe:
           exec:
             command:
-            - wget
-            - -q # quiet
-            - -S # show server response
-            - -O
-            - "-" # Redirect output to stdout
-            - http://localhost:8888/apis/v1beta1/healthz
+              - wget
+              - -q # quiet
+              - -S # show server response
+              - -O
+              - "-" # Redirect output to stdout
+              - http://localhost:8888/apis/v1beta1/healthz
           initialDelaySeconds: 3
           periodSeconds: 5
           timeoutSeconds: 2
         livenessProbe:
           exec:
             command:
-            - wget
-            - -q # quiet
-            - -S # show server response
-            - -O
-            - "-" # Redirect output to stdout
-            - http://localhost:8888/apis/v1beta1/healthz
+              - wget
+              - -q # quiet
+              - -S # show server response
+              - -O
+              - "-" # Redirect output to stdout
+              - http://localhost:8888/apis/v1beta1/healthz
           initialDelaySeconds: 3
           periodSeconds: 5
           timeoutSeconds: 2
@@ -111,12 +111,12 @@ spec:
         startupProbe:
           exec:
             command:
-            - wget
-            - -q # quiet
-            - -S # show server response
-            - -O
-            - "-" # Redirect output to stdout
-            - http://localhost:8888/apis/v1beta1/healthz
+              - wget
+              - -q # quiet
+              - -S # show server response
+              - -O
+              - "-" # Redirect output to stdout
+              - http://localhost:8888/apis/v1beta1/healthz
           failureThreshold: 12
           periodSeconds: 5
           timeoutSeconds: 2

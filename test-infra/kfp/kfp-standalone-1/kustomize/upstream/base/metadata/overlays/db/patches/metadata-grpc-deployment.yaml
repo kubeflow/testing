@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: # kpt-merge: /metadata-grpc-deployment
+metadata:
   name: metadata-grpc-deployment
 spec:
   template:
@@ -9,12 +9,17 @@ spec:
         - name: container
           # Remove existing environment variables
           env:
-            - $patch: replace
+          - $patch: replace
           envFrom:
-            - configMapRef:
-                name: metadata-db-parameters
-            - secretRef:
-                name: metadata-db-secrets
-            - configMapRef:
-                name: metadata-grpc-configmap
-          args: ["--grpc_port=$(METADATA_GRPC_SERVICE_PORT)", "--mysql_config_host=$(MLMD_DB_HOST)", "--mysql_config_database=$(MYSQL_DATABASE)", "--mysql_config_port=$(MYSQL_PORT)", "--mysql_config_user=$(MYSQL_USER_NAME)", "--mysql_config_password=$(MYSQL_ROOT_PASSWORD)"]
+          - configMapRef:
+              name: metadata-db-parameters
+          - secretRef:
+              name: metadata-db-secrets
+          - configMapRef:
+              name: metadata-grpc-configmap
+          args: ["--grpc_port=$(METADATA_GRPC_SERVICE_PORT)",
+                 "--mysql_config_host=$(MLMD_DB_HOST)",
+                 "--mysql_config_database=$(MYSQL_DATABASE)",
+                 "--mysql_config_port=$(MYSQL_PORT)",
+                 "--mysql_config_user=$(MYSQL_USER_NAME)",
+                 "--mysql_config_password=$(MYSQL_ROOT_PASSWORD)"]

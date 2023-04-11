@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: ServiceAccount
-metadata: # kpt-merge: /pipeline-runner
+metadata:
   name: pipeline-runner

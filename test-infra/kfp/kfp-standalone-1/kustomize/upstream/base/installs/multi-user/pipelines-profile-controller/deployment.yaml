@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: # kpt-merge: /kubeflow-pipelines-profile-controller
+metadata:
   name: kubeflow-pipelines-profile-controller
 spec:
   replicas: 1

@@ -1,6 +1,6 @@
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
-metadata: # kpt-merge: kubeflow/mysql
+metadata:
   name: mysql
   namespace: kubeflow
 spec:
@@ -18,10 +18,12 @@ spec:
         - cluster.local/ns/kubeflow/sa/ml-pipeline-viewer-crd-service-account
         - cluster.local/ns/kubeflow/sa/kubeflow-pipelines-cache
         - cluster.local/ns/kubeflow/sa/metadata-grpc-server
+
 ---
+
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
-metadata: # kpt-merge: /ml-pipeline-mysql
+metadata:
   name: ml-pipeline-mysql
 spec:
   host: mysql.kubeflow.svc.cluster.local

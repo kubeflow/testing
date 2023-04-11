@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: # kpt-merge: /metadata-writer
+metadata:
   name: metadata-writer
   labels:
     app: metadata-writer

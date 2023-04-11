@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: StatefulSet
-metadata: # kpt-merge: /metacontroller
+metadata:
   labels:
     app: metacontroller
   name: metacontroller
@@ -32,7 +32,7 @@ spec:
           securityContext:
             capabilities:
               drop:
-                - ALL
+              - ALL
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000

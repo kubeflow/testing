@@ -1,6 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
-metadata: # kpt-merge: /ml-pipeline
+metadata:
   name: ml-pipeline
 rules:
 - apiGroups:

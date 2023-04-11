@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: ServiceAccount
-metadata: # kpt-merge: /kubeflow-pipelines-minio-gcs-gateway
+metadata:
   name: kubeflow-pipelines-minio-gcs-gateway

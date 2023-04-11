@@ -2,7 +2,7 @@
 # Only  sync namespaces with pipelines.kubeflow.org/enabled = "true"
 apiVersion: metacontroller.k8s.io/v1alpha1
 kind: CompositeController
-metadata: # kpt-merge: /kubeflow-pipelines-profile-controller
+metadata:
   name: kubeflow-pipelines-profile-controller
 spec:
   generateSelector: true

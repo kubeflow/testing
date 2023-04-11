@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
-metadata: # kpt-merge: /ml-pipeline-ui-configmap
+metadata:
   name: ml-pipeline-ui-configmap
 data:
-  viewer-pod-template.json: |-
+   viewer-pod-template.json:  |-
     {
         "spec": {
             "serviceAccountName": "kubeflow-pipelines-viewer"

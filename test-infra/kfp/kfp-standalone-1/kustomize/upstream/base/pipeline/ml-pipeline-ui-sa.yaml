@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: ServiceAccount
-metadata: # kpt-merge: /ml-pipeline-ui
+metadata:
   name: ml-pipeline-ui

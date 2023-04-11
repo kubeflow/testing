@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: Namespace
-metadata: # kpt-merge: /$(kfp-dev-namespace)
+metadata:
   name: '$(kfp-dev-namespace)'

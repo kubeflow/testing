@@ -1,6 +1,6 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
-metadata: # kpt-merge: /cache-webhook-kubeflow
+metadata:
   name: cache-webhook-kubeflow
   annotations:
     cert-manager.io/inject-ca-from: $(kfp-namespace)/kfp-cache-cert
@@ -13,10 +13,10 @@ webhooks:
         path: "/mutate"
     failurePolicy: Ignore
     rules:
-      - operations: ["CREATE"]
-        apiGroups: [""]
-        apiVersions: ["v1"]
-        resources: ["pods"]
+    - operations: [ "CREATE" ]
+      apiGroups: [""]
+      apiVersions: ["v1"]
+      resources: ["pods"]
     sideEffects: None
     timeoutSeconds: 5
     objectSelector:

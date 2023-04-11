@@ -1,6 +1,6 @@
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
-metadata: # kpt-merge: kubeflow/ml-pipeline-ui
+metadata:
   name: ml-pipeline-ui
   namespace: kubeflow
 spec:
@@ -15,7 +15,7 @@ spec:
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
-metadata: # kpt-merge: kubeflow/ml-pipeline
+metadata:
   name: ml-pipeline
   namespace: kubeflow
 spec:
@@ -39,7 +39,7 @@ spec:
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
-metadata: # kpt-merge: kubeflow/ml-pipeline-visualizationserver
+metadata:
   name: ml-pipeline-visualizationserver
   namespace: kubeflow
 spec:
@@ -56,10 +56,11 @@ spec:
         - cluster.local/ns/kubeflow/sa/ml-pipeline-scheduledworkflow
         - cluster.local/ns/kubeflow/sa/ml-pipeline-viewer-crd-service-account
         - cluster.local/ns/kubeflow/sa/kubeflow-pipelines-cache
+
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
-metadata: # kpt-merge: kubeflow/service-cache-server
+metadata:
   name: service-cache-server
   namespace: kubeflow
 spec:
@@ -68,10 +69,11 @@ spec:
       app: cache-server
   rules:
   - {}
+
 ---
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
-metadata: # kpt-merge: /ml-pipeline-ui
+metadata:
   name: ml-pipeline-ui
 spec:
   host: ml-pipeline-ui.kubeflow.svc.cluster.local
@@ -81,7 +83,7 @@ spec:
 ---
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
-metadata: # kpt-merge: /ml-pipeline
+metadata:
   name: ml-pipeline
 spec:
   host: ml-pipeline.kubeflow.svc.cluster.local
@@ -91,7 +93,7 @@ spec:
 ---
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
-metadata: # kpt-merge: /ml-pipeline-visualizationserver
+metadata:
   name: ml-pipeline-visualizationserver
 spec:
   host: ml-pipeline-visualizationserver.kubeflow.svc.cluster.local

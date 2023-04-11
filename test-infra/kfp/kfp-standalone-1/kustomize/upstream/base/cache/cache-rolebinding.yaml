@@ -1,6 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
-metadata: # kpt-merge: /kubeflow-pipelines-cache-binding
+metadata:
   name: kubeflow-pipelines-cache-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
