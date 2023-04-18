@@ -34,7 +34,7 @@ to manage GCP infrastructure using GitOps.
 1. Fetch the management blueprint
 
    ```
-   kpt pkg get https://github.com/kubeflow/gcp-blueprints.git/management@master ./
+   kpt pkg get https://github.com/GoogleCloudPlatform/kubeflow-distribution.git/management@master ./
    ```
 
 1. Fetch the upstream manifests
