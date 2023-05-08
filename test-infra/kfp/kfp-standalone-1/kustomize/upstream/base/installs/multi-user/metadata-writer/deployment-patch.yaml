@@ -1,7 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /metadata-writer
   name: metadata-writer
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|metadata-writer'
 spec:
   template:
     spec:

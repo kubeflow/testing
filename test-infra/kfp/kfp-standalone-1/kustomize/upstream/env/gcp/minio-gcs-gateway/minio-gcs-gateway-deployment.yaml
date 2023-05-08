@@ -1,9 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /minio
   name: minio
   labels:
     app: minio
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|minio'
 spec:
   selector:
     matchLabels:
@@ -23,7 +25,7 @@ spec:
             - gateway
             - gcs
             - $(GCP_PROJECT_ID)
-          env:            
+          env:
             - name: GCP_PROJECT_ID
               valueFrom:
                 configMapKeyRef:

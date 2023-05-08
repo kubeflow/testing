@@ -1,6 +1,8 @@
 apiVersion: v1
 kind: Namespace
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Namespace|default|kubeflow'
   labels:
     application-crd-id: kubeflow-pipelines
   name: kubeflow
@@ -11,6 +13,7 @@ metadata:
   annotations:
     api-approved.kubernetes.io: https://github.com/kubernetes-sigs/application/pull/2
     controller-gen.kubebuilder.io/version: v0.4.0
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|applications.app.k8s.io
   labels:
     application-crd-id: kubeflow-pipelines
     controller-tools.k8s.io: "1.0"
@@ -534,6 +537,8 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|clusterworkflowtemplates.argoproj.io
   labels:
     application-crd-id: kubeflow-pipelines
   name: clusterworkflowtemplates.argoproj.io
@@ -573,6 +578,8 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|cronworkflows.argoproj.io
   labels:
     application-crd-id: kubeflow-pipelines
   name: cronworkflows.argoproj.io
@@ -616,6 +623,8 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|scheduledworkflows.kubeflow.org
   labels:
     application-crd-id: kubeflow-pipelines
   name: scheduledworkflows.kubeflow.org
@@ -658,6 +667,8 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|viewers.kubeflow.org
   labels:
     application-crd-id: kubeflow-pipelines
   name: viewers.kubeflow.org
@@ -695,6 +706,8 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|workfloweventbindings.argoproj.io
   labels:
     application-crd-id: kubeflow-pipelines
   name: workfloweventbindings.argoproj.io
@@ -733,6 +746,8 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|workflows.argoproj.io
   labels:
     application-crd-id: kubeflow-pipelines
   name: workflows.argoproj.io
@@ -786,6 +801,8 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|workflowtaskresults.argoproj.io
   labels:
     application-crd-id: kubeflow-pipelines
   name: workflowtaskresults.argoproj.io
@@ -1214,6 +1231,8 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|workflowtasksets.argoproj.io
   labels:
     application-crd-id: kubeflow-pipelines
   name: workflowtasksets.argoproj.io
@@ -1258,6 +1277,8 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apiextensions.k8s.io|CustomResourceDefinition|default|workflowtemplates.argoproj.io
   labels:
     application-crd-id: kubeflow-pipelines
   name: workflowtemplates.argoproj.io
@@ -1296,6 +1317,8 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|application'
   labels:
     application-crd-id: kubeflow-pipelines
   name: application
@@ -1304,6 +1327,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|argo'
   labels:
     application-crd-id: kubeflow-pipelines
   name: argo
@@ -1312,6 +1337,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|kubeflow-pipelines-cache'
   labels:
     app: cache-server
     application-crd-id: kubeflow-pipelines
@@ -1321,6 +1348,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|kubeflow-pipelines-cache-deployer-sa'
   labels:
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-cache-deployer-sa
@@ -1329,6 +1358,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|kubeflow-pipelines-container-builder'
   labels:
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-container-builder
@@ -1337,6 +1368,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|kubeflow-pipelines-metadata-writer'
   labels:
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-metadata-writer
@@ -1345,6 +1378,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|kubeflow-pipelines-viewer'
   labels:
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-viewer
@@ -1353,6 +1388,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|metadata-grpc-server'
   labels:
     application-crd-id: kubeflow-pipelines
   name: metadata-grpc-server
@@ -1361,6 +1398,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|ml-pipeline'
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline
@@ -1369,6 +1408,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|ml-pipeline-persistenceagent'
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent
@@ -1377,6 +1418,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|ml-pipeline-scheduledworkflow'
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-scheduledworkflow
@@ -1385,6 +1428,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|ml-pipeline-ui'
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-ui
@@ -1393,6 +1438,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|ml-pipeline-viewer-crd-service-account'
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-viewer-crd-service-account
@@ -1401,6 +1448,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|ml-pipeline-visualizationserver'
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-visualizationserver
@@ -1409,6 +1458,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|mysql'
   labels:
     application-crd-id: kubeflow-pipelines
   name: mysql
@@ -1417,6 +1468,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|pipeline-runner'
   labels:
     application-crd-id: kubeflow-pipelines
   name: pipeline-runner
@@ -1425,6 +1478,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|proxy-agent-runner'
   labels:
     application-crd-id: kubeflow-pipelines
   name: proxy-agent-runner
@@ -1433,6 +1488,8 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|application-manager-role
   labels:
     application-crd-id: kubeflow-pipelines
   name: application-manager-role
@@ -1458,6 +1515,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|argo-role
   labels:
     application-crd-id: kubeflow-pipelines
   name: argo-role
@@ -1585,6 +1644,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|kubeflow-pipelines-cache-deployer-role
   labels:
     app: cache-deployer
     application-crd-id: kubeflow-pipelines
@@ -1605,6 +1666,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|kubeflow-pipelines-cache-role
   labels:
     app: cache-server
     application-crd-id: kubeflow-pipelines
@@ -1641,6 +1704,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|kubeflow-pipelines-metadata-writer-role
   labels:
     app: kubeflow-pipelines-metadata-writer-role
     application-crd-id: kubeflow-pipelines
@@ -1677,6 +1742,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|ml-pipeline
   labels:
     app: ml-pipeline
     application-crd-id: kubeflow-pipelines
@@ -1731,6 +1798,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|ml-pipeline-persistenceagent-role
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent-role
@@ -1762,6 +1831,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|ml-pipeline-scheduledworkflow-role
   labels:
     app: ml-pipeline-scheduledworkflow-role
     application-crd-id: kubeflow-pipelines
@@ -1804,6 +1875,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|ml-pipeline-ui
   labels:
     app: ml-pipeline-ui
     application-crd-id: kubeflow-pipelines
@@ -1851,6 +1924,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|ml-pipeline-viewer-controller-role
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-viewer-controller-role
@@ -1886,6 +1961,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|pipeline-runner
   labels:
     application-crd-id: kubeflow-pipelines
   name: pipeline-runner
@@ -1970,6 +2047,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|Role|default|proxy-agent-runner
   labels:
     app: proxy-agent-runner
     application-crd-id: kubeflow-pipelines
@@ -1986,6 +2065,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|ClusterRole|default|kubeflow-pipelines-cache-deployer-clusterrole
   labels:
     app: kubeflow-pipelines-cache-deployer-clusterrole
     application-crd-id: kubeflow-pipelines
@@ -2023,6 +2104,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|application-manager-rolebinding
   labels:
     application-crd-id: kubeflow-pipelines
   name: application-manager-rolebinding
@@ -2039,6 +2122,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|argo-binding
   labels:
     application-crd-id: kubeflow-pipelines
   name: argo-binding
@@ -2055,6 +2140,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|kubeflow-pipelines-cache-binding
   labels:
     app: cache-server
     application-crd-id: kubeflow-pipelines
@@ -2072,6 +2159,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|kubeflow-pipelines-cache-deployer-rolebinding
   labels:
     app: cache-deployer
     application-crd-id: kubeflow-pipelines
@@ -2089,6 +2178,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|kubeflow-pipelines-metadata-writer-binding
   labels:
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-metadata-writer-binding
@@ -2105,6 +2196,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|ml-pipeline
   labels:
     app: ml-pipeline
     application-crd-id: kubeflow-pipelines
@@ -2122,6 +2215,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|ml-pipeline-persistenceagent-binding
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-persistenceagent-binding
@@ -2138,6 +2233,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|ml-pipeline-scheduledworkflow-binding
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-scheduledworkflow-binding
@@ -2154,6 +2251,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|ml-pipeline-ui
   labels:
     app: ml-pipeline-ui
     application-crd-id: kubeflow-pipelines
@@ -2171,6 +2270,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|ml-pipeline-viewer-crd-binding
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-viewer-crd-binding
@@ -2187,6 +2288,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|pipeline-runner-binding
   labels:
     application-crd-id: kubeflow-pipelines
   name: pipeline-runner-binding
@@ -2203,6 +2306,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|RoleBinding|default|proxy-agent-runner
   labels:
     app: proxy-agent-runner
     application-crd-id: kubeflow-pipelines
@@ -2220,6 +2325,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: rbac.authorization.k8s.io|ClusterRoleBinding|default|kubeflow-pipelines-cache-deployer-clusterrolebinding
   labels:
     application-crd-id: kubeflow-pipelines
   name: kubeflow-pipelines-cache-deployer-clusterrolebinding
@@ -2235,6 +2342,8 @@ subjects:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ConfigMap|default|inverse-proxy-config'
   labels:
     application-crd-id: kubeflow-pipelines
   name: inverse-proxy-config
@@ -2245,6 +2354,8 @@ data:
   defaultPipelineRoot: ""
 kind: ConfigMap
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ConfigMap|default|kfp-launcher'
   labels:
     application-crd-id: kubeflow-pipelines
   name: kfp-launcher
@@ -2256,6 +2367,8 @@ data:
   METADATA_GRPC_SERVICE_PORT: "8080"
 kind: ConfigMap
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ConfigMap|default|metadata-grpc-configmap'
   labels:
     application-crd-id: kubeflow-pipelines
     component: metadata-grpc-server
@@ -2272,6 +2385,8 @@ data:
     }
 kind: ConfigMap
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ConfigMap|default|ml-pipeline-ui-configmap'
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-ui-configmap
@@ -2283,7 +2398,7 @@ data:
   DEFAULT_CACHE_STALENESS: ""
   MAXIMUM_CACHE_STALENESS: ""
   appName: kfp-standalone-1
-  appVersion: 2.0.0-beta.1
+  appVersion: 2.0.0-beta.2
   autoUpdatePipelineDefaultVersion: "true"
   bucketName: mlpipeline
   cacheDb: cachedb
@@ -2305,6 +2420,8 @@ data:
     namespace: `kubectl rollout restart deployment -n <your-namespace>`.
 kind: ConfigMap
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ConfigMap|default|pipeline-install-config'
   labels:
     application-crd-id: kubeflow-pipelines
   name: pipeline-install-config
@@ -2342,6 +2459,8 @@ data:
     imagePullPolicy: IfNotPresent
 kind: ConfigMap
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ConfigMap|default|workflow-controller-configmap'
   labels:
     application-crd-id: kubeflow-pipelines
   name: workflow-controller-configmap
@@ -2350,6 +2469,8 @@ metadata:
 apiVersion: v1
 kind: Secret
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Secret|default|mlpipeline-minio-artifact'
   labels:
     application-crd-id: kubeflow-pipelines
   name: mlpipeline-minio-artifact
@@ -2364,6 +2485,8 @@ data:
   username: cm9vdA==
 kind: Secret
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Secret|default|mysql-secret'
   labels:
     application-crd-id: kubeflow-pipelines
   name: mysql-secret
@@ -2373,6 +2496,8 @@ type: Opaque
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|cache-server'
   labels:
     app: cache-server
     application-crd-id: kubeflow-pipelines
@@ -2389,6 +2514,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|controller-manager-service'
   labels:
     application-crd-id: kubeflow-pipelines
     control-plane: controller-manager
@@ -2406,6 +2533,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|metadata-envoy-service'
   labels:
     app: metadata-envoy
     application-crd-id: kubeflow-pipelines
@@ -2424,6 +2553,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|metadata-grpc-service'
   labels:
     app: metadata
     application-crd-id: kubeflow-pipelines
@@ -2442,6 +2573,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|minio-service'
   labels:
     application-crd-id: kubeflow-pipelines
   name: minio-service
@@ -2460,6 +2593,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|ml-pipeline'
     prometheus.io/port: "8888"
     prometheus.io/scheme: http
     prometheus.io/scrape: "true"
@@ -2484,6 +2618,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|ml-pipeline-ui'
   labels:
     app: ml-pipeline-ui
     application-crd-id: kubeflow-pipelines
@@ -2502,6 +2638,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|ml-pipeline-visualizationserver'
   labels:
     application-crd-id: kubeflow-pipelines
   name: ml-pipeline-visualizationserver
@@ -2519,6 +2657,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|mysql'
   labels:
     application-crd-id: kubeflow-pipelines
   name: mysql
@@ -2536,6 +2676,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|workflow-controller-metrics'
     workflows.argoproj.io/description: |
       This service is deprecated. It will be removed in v3.4.
 
@@ -2574,6 +2715,8 @@ spec:
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: scheduling.k8s.io|PriorityClass|default|workflow-controller
   labels:
     application-crd-id: kubeflow-pipelines
   name: workflow-controller
@@ -2582,6 +2725,8 @@ value: 1000000
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|PersistentVolumeClaim|default|minio-pvc'
   labels:
     application-crd-id: kubeflow-pipelines
   name: minio-pvc
@@ -2596,6 +2741,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|PersistentVolumeClaim|default|mysql-pv-claim'
   labels:
     application-crd-id: kubeflow-pipelines
   name: mysql-pv-claim
@@ -2610,6 +2757,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|cache-deployer-deployment
   labels:
     app: cache-deployer
     application-crd-id: kubeflow-pipelines
@@ -2635,7 +2784,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-deployer:2.0.0-beta.1
+        image: gcr.io/ml-pipeline/cache-deployer:2.0.0-beta.2
         imagePullPolicy: Always
         name: main
       restartPolicy: Always
@@ -2644,6 +2793,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|cache-server
   labels:
     app: cache-server
     application-crd-id: kubeflow-pipelines
@@ -2725,7 +2876,7 @@ spec:
               fieldPath: metadata.namespace
         - name: WEBHOOK_PORT
           value: "8443"
-        image: gcr.io/ml-pipeline/cache-server:2.0.0-beta.1
+        image: gcr.io/ml-pipeline/cache-server:2.0.0-beta.2
         imagePullPolicy: Always
         name: server
         ports:
@@ -2744,6 +2895,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|controller-manager
   labels:
     application-crd-id: kubeflow-pipelines
     control-plane: controller-manager
@@ -2790,6 +2943,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|metadata-envoy-deployment
   labels:
     application-crd-id: kubeflow-pipelines
     component: metadata-envoy
@@ -2810,7 +2965,7 @@ spec:
         component: metadata-envoy
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/metadata-envoy:2.0.0-beta.1
+      - image: gcr.io/ml-pipeline/metadata-envoy:2.0.0-beta.2
         name: container
         ports:
         - containerPort: 9090
@@ -2821,6 +2976,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|metadata-grpc-deployment
   labels:
     application-crd-id: kubeflow-pipelines
     component: metadata-grpc-server
@@ -2900,6 +3057,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|metadata-writer
   labels:
     app: metadata-writer
     application-crd-id: kubeflow-pipelines
@@ -2923,7 +3082,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/metadata-writer:2.0.0-beta.1
+        image: gcr.io/ml-pipeline/metadata-writer:2.0.0-beta.2
         name: main
         resources:
           limits:
@@ -2933,6 +3092,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|minio
   labels:
     app: minio
     application-crd-id: kubeflow-pipelines
@@ -2986,6 +3147,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|ml-pipeline
   labels:
     app: ml-pipeline
     application-crd-id: kubeflow-pipelines
@@ -3062,7 +3225,7 @@ spec:
             secretKeyRef:
               key: secretkey
               name: mlpipeline-minio-artifact
-        image: gcr.io/ml-pipeline/api-server:2.0.0-beta.1
+        image: gcr.io/ml-pipeline/api-server:2.0.0-beta.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -3115,6 +3278,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|ml-pipeline-persistenceagent
   labels:
     app: ml-pipeline-persistenceagent
     application-crd-id: kubeflow-pipelines
@@ -3147,7 +3312,7 @@ spec:
           value: kubeflow-userid
         - name: KUBEFLOW_USERID_PREFIX
           value: ""
-        image: gcr.io/ml-pipeline/persistenceagent:2.0.0-beta.1
+        image: gcr.io/ml-pipeline/persistenceagent:2.0.0-beta.2
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-persistenceagent
         resources:
@@ -3159,6 +3324,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|ml-pipeline-scheduledworkflow
   labels:
     app: ml-pipeline-scheduledworkflow
     application-crd-id: kubeflow-pipelines
@@ -3188,7 +3355,7 @@ spec:
             configMapKeyRef:
               key: cronScheduleTimezone
               name: pipeline-install-config
-        image: gcr.io/ml-pipeline/scheduledworkflow:2.0.0-beta.1
+        image: gcr.io/ml-pipeline/scheduledworkflow:2.0.0-beta.2
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-scheduledworkflow
       serviceAccountName: ml-pipeline-scheduledworkflow
@@ -3196,6 +3363,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|ml-pipeline-ui
   labels:
     app: ml-pipeline-ui
     application-crd-id: kubeflow-pipelines
@@ -3234,7 +3403,7 @@ spec:
               name: mlpipeline-minio-artifact
         - name: ALLOW_CUSTOM_VISUALIZATIONS
           value: "true"
-        image: gcr.io/ml-pipeline/frontend:2.0.0-beta.1
+        image: gcr.io/ml-pipeline/frontend:2.0.0-beta.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -3280,6 +3449,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|ml-pipeline-viewer-crd
   labels:
     app: ml-pipeline-viewer-crd
     application-crd-id: kubeflow-pipelines
@@ -3306,7 +3477,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/viewer-crd-controller:2.0.0-beta.1
+        image: gcr.io/ml-pipeline/viewer-crd-controller:2.0.0-beta.2
         imagePullPolicy: Always
         name: ml-pipeline-viewer-crd
       serviceAccountName: ml-pipeline-viewer-crd-service-account
@@ -3314,6 +3485,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|ml-pipeline-visualizationserver
   labels:
     app: ml-pipeline-visualizationserver
     application-crd-id: kubeflow-pipelines
@@ -3333,7 +3506,7 @@ spec:
         application-crd-id: kubeflow-pipelines
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/visualization-server:2.0.0-beta.1
+      - image: gcr.io/ml-pipeline/visualization-server:2.0.0-beta.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -3372,6 +3545,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|mysql
   labels:
     app: mysql
     application-crd-id: kubeflow-pipelines
@@ -3422,6 +3597,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|proxy-agent
   labels:
     app: proxy-agent
     application-crd-id: kubeflow-pipelines
@@ -3442,7 +3619,7 @@ spec:
       - env:
         - name: PROXY_URL
           value: https://datalab-staging.cloud.google.com/tun/m/4592f092208ecc84946b8f8f8016274df1b36a14
-        image: gcr.io/ml-pipeline/inverse-proxy-agent:2.0.0-beta.1
+        image: gcr.io/ml-pipeline/inverse-proxy-agent:2.0.0-beta.2
         imagePullPolicy: IfNotPresent
         name: proxy-agent
       hostNetwork: true
@@ -3451,6 +3628,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    internal.kpt.dev/upstream-identifier: apps|Deployment|default|workflow-controller
   labels:
     app: workflow-controller
     application-crd-id: kubeflow-pipelines
@@ -3472,7 +3651,7 @@ spec:
         - --configmap
         - workflow-controller-configmap
         - --executor-image
-        - gcr.io/ml-pipeline/argoexec:v3.3.8-license-compliance
+        - gcr.io/ml-pipeline/argoexec:v3.3.10-license-compliance
         - --namespaced
         command:
         - workflow-controller
@@ -3482,7 +3661,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.name
-        image: gcr.io/ml-pipeline/workflow-controller:v3.3.8-license-compliance
+        image: gcr.io/ml-pipeline/workflow-controller:v3.3.10-license-compliance
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -3520,6 +3699,7 @@ apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
   annotations:
+    internal.kpt.dev/upstream-identifier: app.k8s.io|Application|default|kfp-standalone-1
     kubernetes-engine.cloud.google.com/icon: data:image/png;base64,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
     marketplace.cloud.google.com/deploy-info: '{"partner_id": "google-cloud-ai-platform",
       "product_id": "kubeflow-pipelines", "partner_name": "Google Cloud AI Platform"}'
@@ -3556,7 +3736,7 @@ spec:
       url: https://github.com/kubeflow/pipelines
     notes: Please go to [Hosted Kubeflow Pipelines Console](https://console.cloud.google.com/ai-platform/pipelines/clusters).
     type: Kubeflow Pipelines
-    version: 2.0.0-beta.1
+    version: 2.0.0-beta.2
   info:
   - name: Console
     value: https://console.cloud.google.com/ai-platform/pipelines/clusters

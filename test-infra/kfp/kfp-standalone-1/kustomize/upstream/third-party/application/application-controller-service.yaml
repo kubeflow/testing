@@ -1,10 +1,12 @@
 apiVersion: v1
 kind: Service
-metadata:
+metadata: # kpt-merge: /controller-manager-service
   name: controller-manager-service
   labels:
     control-plane: controller-manager
     controller-tools.k8s.io: "1.0"
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|controller-manager-service'
 spec:
   selector:
     control-plane: controller-manager

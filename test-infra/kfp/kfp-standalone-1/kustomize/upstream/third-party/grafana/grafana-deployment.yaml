@@ -1,10 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: kubeflow/grafana
   name: grafana
   namespace: kubeflow
   labels:
     app: grafana
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|kubeflow|grafana'
 spec:
   replicas: 1
   selector:
@@ -57,4 +59,4 @@ spec:
       securityContext:
         fsGroup: 472
         runAsUser: 472
-# TODO(jingzhang36): consider adding persistent volume if you would like the created dashboards to persist.
+        # TODO(jingzhang36): consider adding persistent volume if you would like the created dashboards to persist.

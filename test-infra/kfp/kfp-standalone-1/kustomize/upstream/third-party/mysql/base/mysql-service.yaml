@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: Service
-metadata:
+metadata: # kpt-merge: /mysql
   name: mysql
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|mysql'
 spec:
   ports:
   - # We cannot have name: mysql here, because some requests through istio fail with it.

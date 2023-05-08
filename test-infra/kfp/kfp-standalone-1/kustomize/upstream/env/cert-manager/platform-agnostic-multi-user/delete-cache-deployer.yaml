@@ -1,36 +1,48 @@
 # Delete cache deployer as we use the cert-manager instead 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-cache-deployer-clusterrole
   name: kubeflow-pipelines-cache-deployer-clusterrole
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|ClusterRole|default|kubeflow-pipelines-cache-deployer-clusterrole'
 $patch: delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-cache-deployer-clusterrolebinding
   name: kubeflow-pipelines-cache-deployer-clusterrolebinding
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|ClusterRoleBinding|default|kubeflow-pipelines-cache-deployer-clusterrolebinding'
 $patch: delete
 ---
 apiVersion: v1
 kind: ServiceAccount
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-cache-deployer-sa
   name: kubeflow-pipelines-cache-deployer-sa
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|kubeflow-pipelines-cache-deployer-sa'
 $patch: delete
 ---
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /cache-deployer-deployment
   name: cache-deployer-deployment
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|cache-deployer-deployment'
 $patch: delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-cache-deployer-role
   name: kubeflow-pipelines-cache-deployer-role
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|Role|default|kubeflow-pipelines-cache-deployer-role'
 $patch: delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-cache-deployer-rolebinding
   name: kubeflow-pipelines-cache-deployer-rolebinding
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|RoleBinding|default|kubeflow-pipelines-cache-deployer-rolebinding'
 $patch: delete

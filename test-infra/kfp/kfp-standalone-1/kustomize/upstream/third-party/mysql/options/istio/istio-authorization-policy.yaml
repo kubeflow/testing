@@ -1,8 +1,10 @@
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
-metadata:
+metadata: # kpt-merge: kubeflow/mysql
   name: mysql
   namespace: kubeflow
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'security.istio.io|AuthorizationPolicy|kubeflow|mysql'
 spec:
   selector:
     matchLabels:
@@ -18,13 +20,13 @@ spec:
         - cluster.local/ns/kubeflow/sa/ml-pipeline-viewer-crd-service-account
         - cluster.local/ns/kubeflow/sa/kubeflow-pipelines-cache
         - cluster.local/ns/kubeflow/sa/metadata-grpc-server
-
 ---
-
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
-metadata:
+metadata: # kpt-merge: /ml-pipeline-mysql
   name: ml-pipeline-mysql
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'networking.istio.io|DestinationRule|default|ml-pipeline-mysql'
 spec:
   host: mysql.kubeflow.svc.cluster.local
   trafficPolicy:

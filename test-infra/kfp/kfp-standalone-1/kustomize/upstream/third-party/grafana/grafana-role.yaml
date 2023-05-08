@@ -1,9 +1,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
-metadata:
+metadata: # kpt-merge: /grafana
   labels:
     app: grafana
   name: grafana
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|Role|default|grafana'
 rules:
 - apiGroups: [""]
   resources:

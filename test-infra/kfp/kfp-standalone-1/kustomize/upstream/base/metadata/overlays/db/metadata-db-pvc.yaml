@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
-metadata:
+metadata: # kpt-merge: /metadata-mysql
   name: metadata-mysql
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|PersistentVolumeClaim|default|metadata-mysql'
 spec:
   accessModes:
     - ReadWriteOnce

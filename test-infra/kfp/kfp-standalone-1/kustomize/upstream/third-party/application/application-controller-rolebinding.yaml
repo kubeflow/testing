@@ -1,7 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
-metadata:
+metadata: # kpt-merge: /application-manager-rolebinding
   name: application-manager-rolebinding
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|RoleBinding|default|application-manager-rolebinding'
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

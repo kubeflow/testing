@@ -1,8 +1,10 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
-metadata:
+metadata: # kpt-merge: kubeflow/metadata-grpc
   name: metadata-grpc
   namespace: kubeflow
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'networking.istio.io|VirtualService|kubeflow|metadata-grpc'
 spec:
   gateways:
   - kubeflow-gateway

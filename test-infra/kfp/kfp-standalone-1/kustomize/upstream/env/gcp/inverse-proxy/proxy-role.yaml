@@ -1,9 +1,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
-metadata:
+metadata: # kpt-merge: /proxy-agent-runner
   labels:
     app: proxy-agent-runner
   name: proxy-agent-runner
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|Role|default|proxy-agent-runner'
 rules:
 - apiGroups:
   - ""

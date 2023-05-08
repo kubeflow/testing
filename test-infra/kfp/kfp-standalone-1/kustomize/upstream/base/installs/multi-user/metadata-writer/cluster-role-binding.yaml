@@ -1,7 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-metadata-writer-binding
   name: kubeflow-pipelines-metadata-writer-binding
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|ClusterRoleBinding|default|kubeflow-pipelines-metadata-writer-binding'
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

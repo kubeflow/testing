@@ -1,7 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
-metadata:
+metadata: # kpt-merge: /scheduledworkflows.kubeflow.org
   name: scheduledworkflows.kubeflow.org
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apiextensions.k8s.io|CustomResourceDefinition|default|scheduledworkflows.kubeflow.org'
 spec:
   group: kubeflow.org
   names:

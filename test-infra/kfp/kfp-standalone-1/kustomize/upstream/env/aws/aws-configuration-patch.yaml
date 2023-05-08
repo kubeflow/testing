@@ -1,7 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /ml-pipeline-ui
   name: ml-pipeline-ui
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|ml-pipeline-ui'
 spec:
   template:
     metadata:
@@ -25,12 +27,13 @@ spec:
                 secretKeyRef:
                   name: mlpipeline-minio-artifact
                   key: secretkey
-
 ---
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /ml-pipeline
   name: ml-pipeline
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|ml-pipeline'
 spec:
   template:
     metadata:

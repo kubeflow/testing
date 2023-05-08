@@ -1,18 +1,24 @@
 # Delete cache deployer related resources as we use the cert-manager instead 
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /cache-deployer-deployment
   name: cache-deployer-deployment
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|cache-deployer-deployment'
 $patch: delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-cache-deployer-role
   name: kubeflow-pipelines-cache-deployer-role
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|Role|default|kubeflow-pipelines-cache-deployer-role'
 $patch: delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-cache-deployer-rolebinding
   name: kubeflow-pipelines-cache-deployer-rolebinding
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|RoleBinding|default|kubeflow-pipelines-cache-deployer-rolebinding'
 $patch: delete

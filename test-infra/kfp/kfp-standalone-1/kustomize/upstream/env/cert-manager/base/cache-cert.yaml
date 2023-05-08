@@ -1,7 +1,9 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
-metadata:
+metadata: # kpt-merge: /kfp-cache-cert
   name: kfp-cache-cert
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'cert-manager.io|Certificate|default|kfp-cache-cert'
 spec:
   commonName: kfp-cache-cert
   isCA: true
