@@ -28,6 +28,5 @@ patchesStrategicMerge:
 - persistence-agent/deployment-patch.yaml
 - metadata-writer/deployment-patch.yaml
 - cache/deployment-patch.yaml
-
 configurations:
 - params.yaml

@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
-metadata:
+metadata: # kpt-merge: /pipeline-install-config
   name: pipeline-install-config
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|ConfigMap|default|pipeline-install-config'
 data:
   warning: |
     1. Do not use kubectl to edit this configmap, because some values are used
@@ -11,7 +13,7 @@ data:
     until the changes take effect. A quick way to restart all deployments in a
     namespace: `kubectl rollout restart deployment -n <your-namespace>`.
   appName: pipeline
-  appVersion: 2.0.0-beta.1
+  appVersion: 2.0.0-beta.2
   dbHost: mysql
   dbPort: "3306"
   mlmdDb: metadb

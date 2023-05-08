@@ -1,7 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /ml-pipeline
   name: ml-pipeline
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|ml-pipeline'
 spec:
   template:
     spec:

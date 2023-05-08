@@ -1,9 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /metadata-db
   name: metadata-db
   labels:
     component: db
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|metadata-db'
 spec:
   selector:
     matchLabels:
@@ -49,4 +51,3 @@ spec:
       - name: metadata-mysql
         persistentVolumeClaim:
           claimName: metadata-mysql
-

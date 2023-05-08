@@ -1,9 +1,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-cache-deployer-clusterrole
   labels:
     app: kubeflow-pipelines-cache-deployer-clusterrole
   name: kubeflow-pipelines-cache-deployer-clusterrole
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'rbac.authorization.k8s.io|ClusterRole|default|kubeflow-pipelines-cache-deployer-clusterrole'
 rules:
 - apiGroups:
   - certificates.k8s.io
@@ -32,4 +34,4 @@ rules:
   resourceNames:
   - kubernetes.io/*
   verbs:
-  - approve  
+  - approve

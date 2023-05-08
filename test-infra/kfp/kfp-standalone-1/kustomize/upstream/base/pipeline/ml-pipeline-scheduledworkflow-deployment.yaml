@@ -1,9 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /ml-pipeline-scheduledworkflow
   labels:
     app: ml-pipeline-scheduledworkflow
   name: ml-pipeline-scheduledworkflow
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|ml-pipeline-scheduledworkflow'
 spec:
   selector:
     matchLabels:
@@ -20,13 +22,13 @@ spec:
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-scheduledworkflow
         env:
-          - name: NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: CRON_SCHEDULE_TIMEZONE
-            valueFrom:
-              configMapKeyRef:
-                name: pipeline-install-config
-                key: cronScheduleTimezone
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CRON_SCHEDULE_TIMEZONE
+          valueFrom:
+            configMapKeyRef:
+              name: pipeline-install-config
+              key: cronScheduleTimezone
       serviceAccountName: ml-pipeline-scheduledworkflow

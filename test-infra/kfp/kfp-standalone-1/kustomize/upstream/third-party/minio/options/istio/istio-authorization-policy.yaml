@@ -1,7 +1,9 @@
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
-metadata:
+metadata: # kpt-merge: /minio-service
   name: minio-service
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'security.istio.io|AuthorizationPolicy|default|minio-service'
 spec:
   action: ALLOW
   selector:
@@ -21,8 +23,10 @@ spec:
 ---
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
-metadata:
+metadata: # kpt-merge: /ml-pipeline-minio
   name: ml-pipeline-minio
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'networking.istio.io|DestinationRule|default|ml-pipeline-minio'
 spec:
   host: minio-service.kubeflow.svc.cluster.local
   trafficPolicy:

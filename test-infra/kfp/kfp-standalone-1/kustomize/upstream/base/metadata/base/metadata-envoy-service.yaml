@@ -1,9 +1,11 @@
 kind: Service
 apiVersion: v1
-metadata:
+metadata: # kpt-merge: /metadata-envoy-service
   labels:
     app: metadata-envoy
   name: metadata-envoy-service
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|metadata-envoy-service'
 spec:
   selector:
     component: metadata-envoy

@@ -1,18 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /workflow-controller
   name: workflow-controller
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|workflow-controller'
 spec:
   template:
     spec:
       containers:
         - name: workflow-controller
-          image: gcr.io/ml-pipeline/workflow-controller:v3.3.8-license-compliance
+          image: gcr.io/ml-pipeline/workflow-controller:v3.3.10-license-compliance
           args:
             - --configmap
             - workflow-controller-configmap
             - --executor-image
-            - gcr.io/ml-pipeline/argoexec:v3.3.8-license-compliance
+            - gcr.io/ml-pipeline/argoexec:v3.3.10-license-compliance
           resources:
             requests:
               cpu: 100m

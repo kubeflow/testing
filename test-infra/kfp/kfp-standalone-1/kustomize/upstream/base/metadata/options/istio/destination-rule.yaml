@@ -1,7 +1,9 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
-metadata:
+metadata: # kpt-merge: /metadata-grpc-service
   name: metadata-grpc-service
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'networking.istio.io|DestinationRule|default|metadata-grpc-service'
 spec:
   host: metadata-grpc-service.kubeflow.svc.cluster.local
   trafficPolicy:

@@ -1,7 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata: # kpt-merge: /kubeflow-pipelines-profile-controller
   name: kubeflow-pipelines-profile-controller
+  annotations:
+    internal.kpt.dev/upstream-identifier: 'apps|Deployment|default|kubeflow-pipelines-profile-controller'
 spec:
   replicas: 1
   template:

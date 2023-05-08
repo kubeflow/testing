@@ -1,9 +1,11 @@
 kind: Service
 apiVersion: v1
-metadata:
+metadata: # kpt-merge: /metadata-grpc-service
   labels:
     app: metadata
   name: metadata-grpc-service
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|Service|default|metadata-grpc-service'
 spec:
   selector:
     component: metadata-grpc-server
