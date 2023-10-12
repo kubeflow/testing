@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: # kpt-merge: /metadata-postgres
+  name: metadata-postgres
+  annotations:
+    internal.kpt.dev/upstream-identifier: '|PersistentVolumeClaim|default|metadata-postgres'
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
