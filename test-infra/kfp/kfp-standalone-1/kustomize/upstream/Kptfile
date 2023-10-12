@@ -7,12 +7,12 @@ upstream:
   git:
     repo: https://github.com/kubeflow/pipelines
     directory: /manifests/kustomize
-    ref: 2.0.1
+    ref: 2.0.2
   updateStrategy: resource-merge
 upstreamLock:
   type: git
   git:
     repo: https://github.com/kubeflow/pipelines
     directory: /manifests/kustomize
-    ref: 2.0.1
-    commit: d740231ab0a37accc4a9343e6f5a31218f1ed984
+    ref: 2.0.2
+    commit: 05f790f5add728ecf4a099c2110ffe7538b49704
