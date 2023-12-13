@@ -2407,7 +2407,7 @@ data:
   DEFAULT_CACHE_STALENESS: ""
   MAXIMUM_CACHE_STALENESS: ""
   appName: kfp-standalone-1
-  appVersion: 2.0.3
+  appVersion: 2.0.5
   autoUpdatePipelineDefaultVersion: "true"
   bucketName: mlpipeline
   cacheDb: cachedb
@@ -2796,7 +2796,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/cache-deployer:2.0.3
+        image: gcr.io/ml-pipeline/cache-deployer:2.0.5
         imagePullPolicy: Always
         name: main
       restartPolicy: Always
@@ -2888,7 +2888,7 @@ spec:
               fieldPath: metadata.namespace
         - name: WEBHOOK_PORT
           value: "8443"
-        image: gcr.io/ml-pipeline/cache-server:2.0.3
+        image: gcr.io/ml-pipeline/cache-server:2.0.5
         imagePullPolicy: Always
         name: server
         ports:
@@ -2930,17 +2930,13 @@ spec:
     spec:
       containers:
       - command:
-        - /bin/sh
-        - -c
-        - |
-          echo "logs are hidden because volume is too excessive" &&
-          /root/manager 2> /dev/null
+        - /kube-app-manager
         env:
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/application-crd-controller:1.0-beta-non-cluster-role
+        image: gcr.io/ml-pipeline/application-crd-controller:20231101
         imagePullPolicy: IfNotPresent
         name: manager
         resources:
@@ -2977,7 +2973,7 @@ spec:
         component: metadata-envoy
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/metadata-envoy:2.0.3
+      - image: gcr.io/ml-pipeline/metadata-envoy:2.0.5
         name: container
         ports:
         - containerPort: 9090
@@ -3094,7 +3090,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/metadata-writer:2.0.3
+        image: gcr.io/ml-pipeline/metadata-writer:2.0.5
         name: main
         resources:
           limits:
@@ -3267,7 +3263,7 @@ spec:
             secretKeyRef:
               key: secretkey
               name: mlpipeline-minio-artifact
-        image: gcr.io/ml-pipeline/api-server:2.0.3
+        image: gcr.io/ml-pipeline/api-server:2.0.5
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -3350,7 +3346,7 @@ spec:
               fieldPath: metadata.namespace
         - name: NUM_WORKERS
           value: "2"
-        image: gcr.io/ml-pipeline/persistenceagent:2.0.3
+        image: gcr.io/ml-pipeline/persistenceagent:2.0.5
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-persistenceagent
         resources:
@@ -3404,7 +3400,7 @@ spec:
             configMapKeyRef:
               key: cronScheduleTimezone
               name: pipeline-install-config
-        image: gcr.io/ml-pipeline/scheduledworkflow:2.0.3
+        image: gcr.io/ml-pipeline/scheduledworkflow:2.0.5
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-scheduledworkflow
       serviceAccountName: ml-pipeline-scheduledworkflow
@@ -3452,7 +3448,7 @@ spec:
               name: mlpipeline-minio-artifact
         - name: ALLOW_CUSTOM_VISUALIZATIONS
           value: "true"
-        image: gcr.io/ml-pipeline/frontend:2.0.3
+        image: gcr.io/ml-pipeline/frontend:2.0.5
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -3526,7 +3522,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: gcr.io/ml-pipeline/viewer-crd-controller:2.0.3
+        image: gcr.io/ml-pipeline/viewer-crd-controller:2.0.5
         imagePullPolicy: Always
         name: ml-pipeline-viewer-crd
       serviceAccountName: ml-pipeline-viewer-crd-service-account
@@ -3555,7 +3551,7 @@ spec:
         application-crd-id: kubeflow-pipelines
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/visualization-server:2.0.3
+      - image: gcr.io/ml-pipeline/visualization-server:2.0.5
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -3668,7 +3664,7 @@ spec:
       - env:
         - name: PROXY_URL
           value: https://datalab-staging.cloud.google.com/tun/m/4592f092208ecc84946b8f8f8016274df1b36a14
-        image: gcr.io/ml-pipeline/inverse-proxy-agent:2.0.3
+        image: gcr.io/ml-pipeline/inverse-proxy-agent:2.0.5
         imagePullPolicy: IfNotPresent
         name: proxy-agent
       hostNetwork: true
@@ -3785,7 +3781,7 @@ spec:
       url: https://github.com/kubeflow/pipelines
     notes: Please go to [Hosted Kubeflow Pipelines Console](https://console.cloud.google.com/ai-platform/pipelines/clusters).
     type: Kubeflow Pipelines
-    version: 2.0.3
+    version: 2.0.5
   info:
   - name: Console
     value: https://console.cloud.google.com/ai-platform/pipelines/clusters
