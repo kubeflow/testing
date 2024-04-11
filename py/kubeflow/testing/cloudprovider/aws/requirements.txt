@@ -8,7 +8,7 @@ certifi==2020.12.5
 chardet==4.0.0
 fire==0.4.0
 google-auth==1.27.0
-idna==2.10
+idna==3.7
 iniconfig==1.1.1
 jmespath==0.10.0
 junit-xml==1.9
