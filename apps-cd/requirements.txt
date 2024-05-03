@@ -17,5 +17,5 @@ pyjwt==1.7.1
 requests==2.22.0
 requests-oauthlib==1.2.0
 requests-toolbelt==0.9.1
-tqdm==4.42.0
+tqdm==4.66.3
 watchdog==0.9.0
