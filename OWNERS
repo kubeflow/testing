@@ -1,7 +1,4 @@
 approvers:
-- chensun
-- PatrickXYS
-- zijianjoy
-reviewers:
-- theofpa
-- pingsutw
+  - andreyvelich
+  - nsingla
+  - tariq-hasan

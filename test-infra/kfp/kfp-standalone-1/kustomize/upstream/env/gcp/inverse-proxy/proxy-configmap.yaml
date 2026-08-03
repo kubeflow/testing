@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata: # kpt-merge: /inverse-proxy-config
-  name: inverse-proxy-config
-  annotations:
-    internal.kpt.dev/upstream-identifier: '|ConfigMap|default|inverse-proxy-config'

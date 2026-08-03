@@ -1,9 +1,0 @@
-# Namespace to run Tekton and other Kubeflow CI jobs.
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: kf-ci
-  #annotations:
-    # TODO(jlewi): We should add a cluster selector to only select
-    # the KF ci managmenet cluster.
-    #configmanagement.gke.io/cluster-selector: kf-ci-tekt

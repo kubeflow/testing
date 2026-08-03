@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata: # kpt-merge: /kfp-launcher
-  name: kfp-launcher
-  annotations:
-    internal.kpt.dev/upstream-identifier: '|ConfigMap|default|kfp-launcher'
-data:
-  defaultPipelineRoot: $(kfp-default-pipeline-root)

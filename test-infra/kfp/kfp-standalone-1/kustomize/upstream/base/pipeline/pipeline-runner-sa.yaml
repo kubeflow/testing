@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata: # kpt-merge: /pipeline-runner
-  name: pipeline-runner
-  annotations:
-    internal.kpt.dev/upstream-identifier: '|ServiceAccount|default|pipeline-runner'
