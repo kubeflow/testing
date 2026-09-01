@@ -25,7 +25,11 @@ python hack/boilerplate/boilerplate.py --base-ref master
 
 The following GitHub actions are available.
 
-_Work In Progress_
+### AI issue quality analyzer
+
+Review newly opened issues from another repository using the shared AI analyzer.
+See the [AI analyzer guide](docs/ai-analyzer/README.md) for prerequisites, the
+caller workflow, expected behavior, and maintenance instructions.
 
 ## Contributing
 
