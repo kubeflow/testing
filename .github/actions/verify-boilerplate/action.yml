@@ -1,0 +1,115 @@
+# Copyright The Kubeflow Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Verify Boilerplate Headers
+description: >
+  Verify Apache 2.0 copyright headers across a repository. Every source file
+  must match the boilerplate template once the copyright year is normalized
+  out; files added relative to the base branch must additionally use the
+  year-less header. Runs hack/boilerplate/boilerplate.py from the checkout of
+  kubeflow/testing that GitHub creates for this action, so the script version
+  always matches the reference the action is pinned to and callers never
+  vendor a copy.
+
+  The caller must check out its own repository before this action runs, using
+  fetch-depth: 0 so the base branch can be resolved.
+
+inputs:
+  base-reference:
+    description: >
+      Base branch used for new-file detection. Defaults to the pull-request
+      base branch, then to the repository default branch, so the action works
+      on both pull_request and push events without per-repository
+      configuration. Note that this governs only the year-less rule for newly
+      added files; all files are checked for header match regardless.
+    required: false
+    default: ""
+  boilerplate-directory:
+    description: >
+      Directory containing the boilerplate template files (boilerplate.*.txt).
+      Leave empty to use the templates shipped alongside the script in
+      kubeflow/testing.
+    required: false
+    default: ""
+  root-directory:
+    description: >
+      Directory to scan. Leave empty to use the workspace root. Set this when
+      the caller checks its repository out into a subdirectory.
+    required: false
+    default: ""
+  python-version:
+    description: Python version used to run the checker.
+    required: false
+    default: "3.12"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Run boilerplate check
+      shell: bash
+      env:
+        BASE_REFERENCE: >-
+          ${{ inputs.base-reference
+              || github.event.pull_request.base.ref
+              || github.event.repository.default_branch }}
+        BOILERPLATE_DIRECTORY: ${{ inputs.boilerplate-directory }}
+        ROOT_DIRECTORY: ${{ inputs.root-directory }}
+      run: |
+        set -euo pipefail
+
+        action_root="$(cd "${GITHUB_ACTION_PATH}/../../.." && pwd)"
+        script="${action_root}/hack/boilerplate/boilerplate.py"
+        if [[ ! -f "${script}" ]]; then
+          echo "::error::boilerplate.py not found at ${script}. The action" \
+               "expects to run from a checkout of kubeflow/testing."
+          exit 1
+        fi
+
+        base_reference="${BASE_REFERENCE#refs/heads/}"
+        if [[ -z "${base_reference}" ]]; then
+          echo "::error::No base branch could be determined. Pass the" \
+               "base-reference input explicitly."
+          exit 1
+        fi
+
+        root_directory="${ROOT_DIRECTORY:-${GITHUB_WORKSPACE}}"
+        if ! git -C "${root_directory}" rev-parse --git-dir >/dev/null 2>&1; then
+          echo "::error::${root_directory} is not a Git checkout. Run" \
+               "actions/checkout with fetch-depth: 0 before this action, or" \
+               "set the root-directory input."
+          exit 1
+        fi
+        root_directory="$(cd "${root_directory}" && pwd)"
+
+        if [[ -n "${BOILERPLATE_DIRECTORY}" ]]; then
+          if [[ ! -d "${BOILERPLATE_DIRECTORY}" ]]; then
+            echo "::error::boilerplate-directory ${BOILERPLATE_DIRECTORY}" \
+                 "does not exist."
+            exit 1
+          fi
+          boilerplate_directory="$(cd "${BOILERPLATE_DIRECTORY}" && pwd)"
+        else
+          boilerplate_directory="${action_root}/hack/boilerplate"
+        fi
+
+        python3 "${script}" \
+          --rootdir "${root_directory}" \
+          --boilerplate-dir "${boilerplate_directory}" \
+          --base-ref "${base_reference}"
+
