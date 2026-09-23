@@ -1,0 +1,78 @@
+# Copyright The Kubeflow Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Create Kind cluster
+description: Create a Kind Kubernetes cluster for CI workflows.
+
+inputs:
+  k8s_version:
+    description: Kubernetes version used by the Kind node image and kubectl.
+    required: true
+  node_image:
+    description: Kind node image to use, for example kindest/node:v1.35.0.
+    required: true
+  cluster_name:
+    description: Name of the Kind cluster.
+    required: false
+    default: kind
+  kind_version:
+    description: Kind version to install.
+    required: false
+    default: v0.33.0
+  wait:
+    description: Time to wait for the control plane to become ready.
+    required: false
+    default: 60s
+
+outputs:
+  kubeconfig:
+    description: Absolute path to the kubeconfig for the created cluster.
+    value: ${{ steps.export-kubeconfig.outputs.kubeconfig }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create Kind cluster
+      uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+      with:
+        version: ${{ inputs.kind_version }}
+        kubectl_version: ${{ inputs.k8s_version }}
+        node_image: ${{ inputs.node_image }}
+        cluster_name: ${{ inputs.cluster_name }}
+        wait: ${{ inputs.wait }}
+
+    - name: Export KUBECONFIG
+      id: export-kubeconfig
+      shell: bash
+      env:
+        CLUSTER_NAME: ${{ inputs.cluster_name }}
+      run: |
+        set -euo pipefail
+
+        kubeconfig_path="${KUBECONFIG:-${HOME}/.kube/config}"
+        if [ ! -s "${kubeconfig_path}" ]; then
+          kubeconfig_path="${RUNNER_TEMP}/kubeconfig-${CLUSTER_NAME}"
+          kind export kubeconfig \
+            --name "${CLUSTER_NAME}" \
+            --kubeconfig "${kubeconfig_path}"
+        fi
+
+        if [ ! -s "${kubeconfig_path}" ]; then
+          echo "Kind did not create a kubeconfig for cluster ${CLUSTER_NAME}" >&2
+          exit 1
+        fi
+
+        echo "KUBECONFIG=${kubeconfig_path}" >> "${GITHUB_ENV}"
+        echo "kubeconfig=${kubeconfig_path}" >> "${GITHUB_OUTPUT}"
+        kubectl cluster-info --context "kind-${CLUSTER_NAME}"

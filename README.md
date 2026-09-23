@@ -25,7 +25,34 @@ python hack/boilerplate/boilerplate.py --base-ref master
 
 The following GitHub actions are available.
 
-_Work In Progress_
+### Create a Kind cluster
+
+The `create-cluster` action provisions a Kind cluster for Kubernetes integration tests. It accepts
+the Kubernetes version and node image explicitly, exports `KUBECONFIG` for subsequent steps, and
+also exposes the kubeconfig path as an action output.
+
+```yaml
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Kind cluster
+        id: kind
+        uses: kubeflow/testing/.github/actions/create-cluster@master
+        with:
+          k8s_version: v1.35.0
+          node_image: kindest/node:v1.35.0
+          cluster_name: kubeflow
+
+      - name: Inspect cluster
+        run: kubectl get nodes
+```
+
+`cluster_name`, `kind_version`, and `wait` are optional. The Kubernetes version should match the
+version in the selected Kind node image. Keep cluster creation separate from installing Kubeflow
+subprojects or other test dependencies so callers can compose the setup they need.
 
 ## Contributing
 
