@@ -22,6 +22,10 @@ inputs:
   node_image:
     description: Kind node image to use, for example kindest/node:v1.35.0.
     required: true
+  cluster_type:
+    description: Cluster type to create, cpu or gpu. GPU requires nvkind and NVIDIA Container Toolkit on the runner.
+    required: false
+    default: cpu
   cluster_name:
     description: Name of the Kind cluster.
     required: false
@@ -43,7 +47,24 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Create Kind cluster
+    - name: Validate cluster type
+      shell: bash
+      env:
+        CLUSTER_TYPE: ${{ inputs.cluster_type }}
+      run: |
+        set -euo pipefail
+
+        case "${CLUSTER_TYPE}" in
+          cpu|gpu)
+            ;;
+          *)
+            echo "cluster_type must be cpu or gpu, got ${CLUSTER_TYPE}" >&2
+            exit 1
+            ;;
+        esac
+
+    - name: Create CPU Kind cluster
+      if: ${{ inputs.cluster_type == 'cpu' }}
       uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
       with:
         version: ${{ inputs.kind_version }}
@@ -51,6 +72,39 @@ runs:
         node_image: ${{ inputs.node_image }}
         cluster_name: ${{ inputs.cluster_name }}
         wait: ${{ inputs.wait }}
+
+    - name: Create GPU Kind cluster
+      if: ${{ inputs.cluster_type == 'gpu' }}
+      shell: bash
+      env:
+        CLUSTER_NAME: ${{ inputs.cluster_name }}
+        NODE_IMAGE: ${{ inputs.node_image }}
+      run: |
+        set -euo pipefail
+
+        nvkind_bin="$(command -v nvkind || true)"
+        if [[ -z "${nvkind_bin}" && -x "/root/go/bin/nvkind" ]]; then
+          nvkind_bin="/root/go/bin/nvkind"
+        fi
+        if [[ -z "${nvkind_bin}" ]]; then
+          echo "GPU clusters require nvkind on the runner" >&2
+          exit 1
+        fi
+        if ! command -v nvidia-ctk >/dev/null 2>&1; then
+          echo "GPU clusters require NVIDIA Container Toolkit on the runner" >&2
+          exit 1
+        fi
+
+        sudo nvidia-ctk config \
+          --set accept-nvidia-visible-devices-as-volume-mounts=true \
+          --in-place
+        sudo nvidia-ctk runtime configure \
+          --runtime=docker \
+          --set-as-default
+        sudo systemctl restart docker
+        sudo "${nvkind_bin}" cluster create \
+          --name "${CLUSTER_NAME}" \
+          --image "${NODE_IMAGE}"
 
     - name: Export KUBECONFIG
       id: export-kubeconfig
@@ -61,6 +115,13 @@ runs:
         set -euo pipefail
 
         kubeconfig_path="${KUBECONFIG:-${HOME}/.kube/config}"
+        if [[ "${kubeconfig_path}" != /* ]]; then
+          kubeconfig_dir="$(dirname "${kubeconfig_path}")"
+          kubeconfig_file="$(basename "${kubeconfig_path}")"
+          mkdir -p "${kubeconfig_dir}"
+          kubeconfig_path="$(cd "${kubeconfig_dir}" && pwd -P)/${kubeconfig_file}"
+        fi
+
         if [ ! -s "${kubeconfig_path}" ]; then
           kubeconfig_path="${RUNNER_TEMP}/kubeconfig-${CLUSTER_NAME}"
           kind export kubeconfig \
@@ -73,6 +134,8 @@ runs:
           exit 1
         fi
 
+        export KUBECONFIG="${kubeconfig_path}"
         echo "KUBECONFIG=${kubeconfig_path}" >> "${GITHUB_ENV}"
         echo "kubeconfig=${kubeconfig_path}" >> "${GITHUB_OUTPUT}"
-        kubectl cluster-info --context "kind-${CLUSTER_NAME}"
+        kubectl --kubeconfig "${kubeconfig_path}" cluster-info \
+          --context "kind-${CLUSTER_NAME}"
