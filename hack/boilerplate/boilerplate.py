@@ -29,6 +29,10 @@ $TARGET_BRANCH or master), resolved as origin/<ref> then <ref>. If the base
 cannot be resolved, or files cannot be listed, the run fails rather than
 passing vacuously.
 
+Files whose repository-relative path matches any --exclude regular expression
+are skipped entirely. A pattern that matches no file produces a warning so
+stale exclusions are noticed.
+
 Reference: https://github.com/kubernetes/steering/issues/299
 """
 
@@ -70,6 +74,31 @@ _RE_GO_BUILD_CONSTRAINTS = re.compile(r"^(//(go:build| \+build).*\n)+\n", re.MUL
 _RE_SHEBANG = re.compile(r"^(#!.*\n)\n*")
 _RE_GENERATED = re.compile(r"DO NOT EDIT", re.MULTILINE)
 _RE_HELM_TEMPLATE = re.compile(r"(?:^|/)charts/[^/]+/templates/.*\.(?:ya?ml|tpl)$")
+
+
+def compile_excludes(patterns: list[str]) -> list[re.Pattern[str]]:
+    """Compile --exclude patterns, raising ValueError on an invalid one."""
+    compiled: list[re.Pattern[str]] = []
+    for pattern in patterns:
+        try:
+            compiled.append(re.compile(pattern))
+        except re.error as e:
+            raise ValueError(f"invalid --exclude pattern {pattern!r}: {e}") from e
+    return compiled
+
+
+def matching_exclude(
+    relpath: str, excludes: list[re.Pattern[str]]
+) -> re.Pattern[str] | None:
+    """Return the first exclude pattern that matches relpath, if any.
+
+    Patterns are applied with re.search to the repository-relative path using
+    forward slashes, so anchor with ^ and $ to match a whole path.
+    """
+    for pattern in excludes:
+        if pattern.search(relpath):
+            return pattern
+    return None
 
 
 def find_root_dir() -> str:
@@ -287,6 +316,17 @@ def parse_args() -> argparse.Namespace:
             "master). Resolved as origin/<ref> then <ref>."
         ),
     )
+    parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        metavar="REGEX",
+        help=(
+            "Skip files whose repository-relative path (forward slashes) "
+            "matches this Python regular expression, applied with re.search. "
+            "May be given multiple times."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -294,6 +334,12 @@ def main() -> int:
     args = parse_args()
     rootdir = args.rootdir or find_root_dir()
     os.chdir(rootdir)
+
+    try:
+        excludes = compile_excludes(args.exclude)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
 
     templates = load_templates(args.boilerplate_dir)
     if not templates:
@@ -320,13 +366,33 @@ def main() -> int:
         return 1
 
     failed: list[tuple[str, str | None]] = []
+    excluded_count = 0
+    exclude_hits: dict[str, int] = {p.pattern: 0 for p in excludes}
     for filepath in files:
         relpath = os.path.relpath(filepath, rootdir).replace(os.sep, "/")
+        matched = matching_exclude(relpath, excludes)
+        if matched is not None:
+            excluded_count += 1
+            exclude_hits[matched.pattern] += 1
+            continue
         new_file = relpath not in base
         passes, error = file_passes(filepath, templates, new_file=new_file)
         if not passes:
             failed.append((relpath, error))
             print(relpath)  # stdout stays parseable
+
+    if excludes:
+        print(
+            f"Excluded {excluded_count} file(s) matching --exclude patterns.",
+            file=sys.stderr,
+        )
+        for pattern, hits in exclude_hits.items():
+            if hits == 0:
+                print(
+                    f"WARNING: --exclude pattern {pattern!r} matched no files; "
+                    "it may be stale.",
+                    file=sys.stderr,
+                )
 
     if failed:
         print_remediation(failed)
