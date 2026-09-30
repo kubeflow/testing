@@ -13,19 +13,15 @@
 # limitations under the License.
 
 name: Create Kind cluster
-description: Create a Kind Kubernetes cluster for CI workflows.
+description: Create a reliable Kind Kubernetes cluster for CI workflows.
 
 inputs:
   k8s_version:
     description: Kubernetes version used by the Kind node image and kubectl.
     required: true
   node_image:
-    description: Kind node image to use, for example kindest/node:v1.35.0.
+    description: Kind node image to use, for example kindest/node:v1.36.1.
     required: true
-  cluster_type:
-    description: Cluster type to create, cpu or gpu. GPU requires nvkind and NVIDIA Container Toolkit on the runner.
-    required: false
-    default: cpu
   cluster_name:
     description: Name of the Kind cluster.
     required: false
@@ -33,11 +29,7 @@ inputs:
   kind_version:
     description: Kind version to install.
     required: false
-    default: v0.33.0
-  wait:
-    description: Time to wait for the control plane to become ready.
-    required: false
-    default: 60s
+    default: v0.32.0
 
 outputs:
   kubeconfig:
@@ -47,64 +39,85 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Validate cluster type
+    - name: Free up disk space on runner
       shell: bash
       env:
-        CLUSTER_TYPE: ${{ inputs.cluster_type }}
-      run: |
-        set -euo pipefail
+        ACTION_PATH: ${{ github.action_path }}
+      run: "${ACTION_PATH}/scripts/free-disk-space.sh"
 
-        case "${CLUSTER_TYPE}" in
-          cpu|gpu)
-            ;;
-          *)
-            echo "cluster_type must be cpu or gpu, got ${CLUSTER_TYPE}" >&2
-            exit 1
-            ;;
-        esac
+    - name: Configure Docker Hub mirror
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: "${ACTION_PATH}/scripts/configure-docker-hub-mirror.sh"
 
-    - name: Create CPU Kind cluster
-      if: ${{ inputs.cluster_type == 'cpu' }}
-      uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+    - name: Restore Kind node image cache
+      id: kind-node-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.0.0
       with:
-        version: ${{ inputs.kind_version }}
-        kubectl_version: ${{ inputs.k8s_version }}
-        node_image: ${{ inputs.node_image }}
-        cluster_name: ${{ inputs.cluster_name }}
-        wait: ${{ inputs.wait }}
+        path: /tmp/kind-node-${{ inputs.k8s_version }}.tar
+        key: kind-node-${{ runner.os }}-${{ runner.arch }}-${{ inputs.k8s_version }}
 
-    - name: Create GPU Kind cluster
-      if: ${{ inputs.cluster_type == 'gpu' }}
+    - name: Load Kind node image from cache
+      if: ${{ steps.kind-node-cache.outputs.cache-hit == 'true' }}
       shell: bash
       env:
-        CLUSTER_NAME: ${{ inputs.cluster_name }}
+        K8S_VERSION: ${{ inputs.k8s_version }}
+      run: docker load -i "/tmp/kind-node-${K8S_VERSION}.tar"
+
+    - name: Pull and cache Kind node image
+      if: ${{ steps.kind-node-cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        K8S_VERSION: ${{ inputs.k8s_version }}
         NODE_IMAGE: ${{ inputs.node_image }}
       run: |
-        set -euo pipefail
+        "${ACTION_PATH}/scripts/docker-pull-with-retry.sh" \
+          "${NODE_IMAGE}" \
+          "gcr.io/k8s-staging-kind/node:${K8S_VERSION}"
+        docker save "${NODE_IMAGE}" -o "/tmp/kind-node-${K8S_VERSION}.tar"
 
-        nvkind_bin="$(command -v nvkind || true)"
-        if [[ -z "${nvkind_bin}" && -x "/root/go/bin/nvkind" ]]; then
-          nvkind_bin="/root/go/bin/nvkind"
-        fi
-        if [[ -z "${nvkind_bin}" ]]; then
-          echo "GPU clusters require nvkind on the runner" >&2
+    - name: Create Kind cluster
+      id: cluster-create
+      continue-on-error: true
+      uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+      env:
+        CURL_HOME: ${{ github.action_path }}/curl-retry
+      with:
+        cluster_name: ${{ inputs.cluster_name }}
+        kubectl_version: ${{ inputs.k8s_version }}
+        version: ${{ inputs.kind_version }}
+        node_image: ${{ inputs.node_image }}
+
+    - name: Retry Kind cluster creation
+      if: ${{ steps.cluster-create.outcome == 'failure' }}
+      uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+      env:
+        CURL_HOME: ${{ github.action_path }}/curl-retry
+      with:
+        cluster_name: ${{ inputs.cluster_name }}
+        kubectl_version: ${{ inputs.k8s_version }}
+        version: ${{ inputs.kind_version }}
+        node_image: ${{ inputs.node_image }}
+
+    - name: Remove kindnet CPU limit
+      shell: bash
+      run: |
+        # Keep kindnet's scheduling request, but do not quota traffic bursts.
+        kubectl -n kube-system patch daemonset/kindnet --type=strategic \
+          -p '{"spec":{"template":{"spec":{"containers":[{"name":"kindnet-cni","resources":{"requests":{"cpu":"100m"},"limits":{"cpu":null}}}]}}}}'
+        kubectl -n kube-system rollout status daemonset/kindnet --timeout=180s
+
+        cpu_request=$(kubectl -n kube-system get daemonset kindnet \
+          -o jsonpath='{.spec.template.spec.containers[?(@.name=="kindnet-cni")].resources.requests.cpu}')
+        cpu_limit=$(kubectl -n kube-system get daemonset kindnet \
+          -o jsonpath='{.spec.template.spec.containers[?(@.name=="kindnet-cni")].resources.limits.cpu}')
+
+        if [ "${cpu_request}" != "100m" ] || [ -n "${cpu_limit}" ]; then
+          echo "Unexpected kindnet CPU resources after patch" >&2
           exit 1
         fi
-        if ! command -v nvidia-ctk >/dev/null 2>&1; then
-          echo "GPU clusters require NVIDIA Container Toolkit on the runner" >&2
-          exit 1
-        fi
-
-        sudo nvidia-ctk config \
-          --set accept-nvidia-visible-devices-as-volume-mounts=true \
-          --in-place
-        sudo nvidia-ctk runtime configure \
-          --runtime=docker \
-          --set-as-default
-        sudo systemctl restart docker
-        sudo "${nvkind_bin}" cluster create \
-          --name "${CLUSTER_NAME}" \
-          --image "${NODE_IMAGE}"
 
     - name: Export KUBECONFIG
       id: export-kubeconfig
@@ -112,8 +125,6 @@ runs:
       env:
         CLUSTER_NAME: ${{ inputs.cluster_name }}
       run: |
-        set -euo pipefail
-
         kubeconfig_path="${KUBECONFIG:-${HOME}/.kube/config}"
         if [[ "${kubeconfig_path}" != /* ]]; then
           kubeconfig_dir="$(dirname "${kubeconfig_path}")"
@@ -134,7 +145,6 @@ runs:
           exit 1
         fi
 
-        export KUBECONFIG="${kubeconfig_path}"
         echo "KUBECONFIG=${kubeconfig_path}" >> "${GITHUB_ENV}"
         echo "kubeconfig=${kubeconfig_path}" >> "${GITHUB_OUTPUT}"
         kubectl --kubeconfig "${kubeconfig_path}" cluster-info \
