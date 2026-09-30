@@ -48,6 +48,17 @@ inputs:
       the caller checks its repository out into a subdirectory.
     required: false
     default: ""
+  exclude:
+    description: >
+      Newline-separated Python regular expressions. Files whose
+      repository-relative path (forward slashes) matches any pattern, applied
+      with re.search, are skipped. Leading and trailing whitespace is trimmed,
+      and blank lines and lines starting with # are ignored. Anchor patterns
+      with ^ and $ to match a whole path, e.g. ^third_party/ or
+      ^internal/foo/vendored/.*\.go$. A pattern that matches no file emits a
+      warning.
+    required: false
+    default: ""
   python-version:
     description: Python version used to run the checker.
     required: false
@@ -70,6 +81,7 @@ runs:
               || github.event.repository.default_branch }}
         BOILERPLATE_DIRECTORY: ${{ inputs.boilerplate-directory }}
         ROOT_DIRECTORY: ${{ inputs.root-directory }}
+        EXCLUDE: ${{ inputs.exclude }}
       run: |
         set -euo pipefail
 
@@ -108,8 +120,21 @@ runs:
           boilerplate_directory="${action_root}/hack/boilerplate"
         fi
 
+        # One --exclude flag per non-empty, non-comment line. The patterns are
+        # passed through an environment variable and a bash array, never
+        # interpolated into the script, so they cannot inject shell syntax.
+        exclude_args=()
+        while IFS= read -r pattern || [[ -n "${pattern}" ]]; do
+          pattern="${pattern#"${pattern%%[![:space:]]*}"}"
+          pattern="${pattern%"${pattern##*[![:space:]]}"}"
+          if [[ -z "${pattern}" || "${pattern}" == \#* ]]; then
+            continue
+          fi
+          exclude_args+=(--exclude "${pattern}")
+        done <<< "${EXCLUDE}"
+
         python3 "${script}" \
           --rootdir "${root_directory}" \
           --boilerplate-dir "${boilerplate_directory}" \
-          --base-ref "${base_reference}"
-
+          --base-ref "${base_reference}" \
+          ${exclude_args[@]+"${exclude_args[@]}"}
