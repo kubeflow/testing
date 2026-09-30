@@ -27,9 +27,11 @@ The following GitHub actions are available.
 
 ### Create a Kind cluster
 
-The `create-cluster` action provisions a Kind cluster for Kubernetes integration tests. It accepts
-the Kubernetes version, node image, and cluster type explicitly, exports an absolute `KUBECONFIG`
-path for subsequent steps, and also exposes that path as an action output.
+The `create-cluster` action provisions a Kind cluster for Kubernetes integration tests. It follows
+the setup used by Kubeflow Pipelines CI: it frees runner disk space when needed, configures the
+Docker Hub mirror, caches the Kind node image, retries image pulls and cluster creation, and removes
+the kindnet CPU limit. It exports an absolute `KUBECONFIG` path for subsequent steps and also exposes
+that path as an action output.
 
 ```yaml
 jobs:
@@ -40,23 +42,20 @@ jobs:
 
       - name: Create Kind cluster
         id: kind
-        uses: kubeflow/testing/.github/actions/create-cluster@378b6b94b24a948a5f440986e6b60b691636ff64 # create-cluster action
+        uses: kubeflow/testing/.github/actions/create-cluster@f6dc12513635cb4c24d56cb4c69bde7223381bcd # create-cluster action
         with:
-          k8s_version: v1.35.0
-          node_image: kindest/node:v1.35.0
-          cluster_type: cpu
+          k8s_version: v1.36.1
+          node_image: kindest/node:v1.36.1
           cluster_name: kubeflow
 
       - name: Inspect cluster
         run: kubectl get nodes
 ```
 
-`cluster_name`, `kind_version`, and `wait` are optional. `cluster_type` defaults to `cpu`; set it to `gpu`
-on a GPU runner with `nvkind` and the NVIDIA Container Toolkit installed. GPU mode configures the
-NVIDIA runtime and creates the cluster with `nvkind`. GPU operator and other Kubeflow tool installation
-remain caller responsibilities. The Kubernetes version should match the version in the selected Kind
-node image. Keep cluster creation separate from installing Kubeflow subprojects or other test
-dependencies so callers can compose the setup they need.
+`cluster_name` and `kind_version` are optional. The Kubernetes version should match the version in
+the selected Kind node image. The action is tested with Kubernetes v1.33.12 and v1.36.1. GPU cluster
+support is outside this action's current scope. Keep cluster creation separate from installing
+Kubeflow subprojects or other test dependencies so callers can compose the setup they need.
 
 ## Contributing
 
