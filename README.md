@@ -21,6 +21,16 @@ Run this script as follows:
 python hack/boilerplate/boilerplate.py --base-ref master
 ```
 
+Vendored third-party code that must keep its upstream license header can be skipped with
+`--exclude`, which takes a Python regular expression matched (with `re.search`) against each
+file's repository-relative path. Repeat the flag for multiple patterns:
+
+```bash
+python hack/boilerplate/boilerplate.py --base-ref main \
+  --exclude '^third_party/' \
+  --exclude '^internal/starrocks/mysqldriver/'
+```
+
 ## Common GitHub Actions
 
 The following GitHub actions are available.
@@ -56,6 +66,24 @@ jobs:
 the selected Kind node image. The action is tested with Kubernetes v1.33.12 and v1.36.1. GPU cluster
 support is outside this action's current scope. Keep cluster creation separate from installing
 Kubeflow subprojects or other test dependencies so callers can compose the setup they need.
+### verify-boilerplate
+
+Runs the license header check above against the calling repository. Check out the repository
+with `fetch-depth: 0` first so the base branch can be resolved:
+
+```yaml
+- uses: actions/checkout@v5
+  with:
+    fetch-depth: 0
+- uses: kubeflow/testing/.github/actions/verify-boilerplate@<commit-sha>
+  with:
+    base-reference: main
+    # Optional: one regular expression per line; blank lines and # comments are ignored.
+    exclude: |
+      ^third_party/
+      # Vendored go-sql-driver/mysql (MPL-2.0); keeps its upstream header.
+      ^internal/starrocks/mysqldriver/
+```
 
 ## Contributing
 
