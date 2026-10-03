@@ -1,0 +1,41 @@
+name: "Create Kind Cluster"
+description: >-
+  Spins up a local Kubernetes cluster (Kind) so CI jobs can run against a real
+  cluster without each workflow re-implementing the setup inline. Exports
+  KUBECONFIG so subsequent steps can talk to the cluster directly.
+inputs:
+  kubernetes-version:
+    description: Kubernetes version (drives the kubectl version and the pinned node image below).
+    required: false
+    default: v1.37.0
+  kind-node-image:
+    description: Kind node image (kindest/node) matching kubernetes-version.
+    required: false
+    default: kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5
+  cluster-name:
+    description: Name of the Kind cluster.
+    required: false
+    default: kind
+runs:
+  using: "composite"
+  steps:
+    - name: Create Kind cluster
+      uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2  # v1.15.0
+      with:
+        cluster_name: ${{ inputs.cluster-name }}
+        node_image: ${{ inputs.kind-node-image }}
+        version: v0.33.0
+        kubectl_version: ${{ inputs.kubernetes-version }}
+        config: ${{ github.action_path }}/kind-config.yaml
+
+    - name: Export KUBECONFIG
+      shell: bash
+      run: |
+        # If the caller already exported KUBECONFIG, Kind writes the new
+        # cluster there; overwriting it would point later steps at the
+        # wrong file. Only fall back to the default location when unset.
+        if [ -n "${KUBECONFIG:-}" ]; then
+          echo "KUBECONFIG=$KUBECONFIG" >> "$GITHUB_ENV"
+        else
+          echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+        fi
