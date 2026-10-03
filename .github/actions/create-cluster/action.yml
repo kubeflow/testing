@@ -1,0 +1,151 @@
+# Copyright The Kubeflow Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Create Kind cluster
+description: Create a reliable Kind Kubernetes cluster for CI workflows.
+
+inputs:
+  k8s_version:
+    description: Kubernetes version used by the Kind node image and kubectl.
+    required: true
+  node_image:
+    description: Kind node image to use, for example kindest/node:v1.36.1.
+    required: true
+  cluster_name:
+    description: Name of the Kind cluster.
+    required: false
+    default: kind
+  kind_version:
+    description: Kind version to install.
+    required: false
+    default: v0.32.0
+
+outputs:
+  kubeconfig:
+    description: Absolute path to the kubeconfig for the created cluster.
+    value: ${{ steps.export-kubeconfig.outputs.kubeconfig }}
+
+runs:
+  using: composite
+  steps:
+    - name: Free up disk space on runner
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: "${ACTION_PATH}/scripts/free-disk-space.sh"
+
+    - name: Configure Docker Hub mirror
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: "${ACTION_PATH}/scripts/configure-docker-hub-mirror.sh"
+
+    - name: Restore Kind node image cache
+      id: kind-node-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.0.0
+      with:
+        path: /tmp/kind-node-${{ inputs.k8s_version }}.tar
+        key: kind-node-${{ runner.os }}-${{ runner.arch }}-${{ inputs.k8s_version }}-${{ inputs.node_image }}
+
+    - name: Load Kind node image from cache
+      if: ${{ steps.kind-node-cache.outputs.cache-hit == 'true' }}
+      shell: bash
+      env:
+        K8S_VERSION: ${{ inputs.k8s_version }}
+      run: docker load -i "/tmp/kind-node-${K8S_VERSION}.tar"
+
+    - name: Pull and cache Kind node image
+      if: ${{ steps.kind-node-cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        K8S_VERSION: ${{ inputs.k8s_version }}
+        NODE_IMAGE: ${{ inputs.node_image }}
+      run: |
+        "${ACTION_PATH}/scripts/docker-pull-with-retry.sh" \
+          "${NODE_IMAGE}" \
+          "gcr.io/k8s-staging-kind/node:${K8S_VERSION}"
+        docker save "${NODE_IMAGE}" -o "/tmp/kind-node-${K8S_VERSION}.tar"
+
+    - name: Create Kind cluster
+      id: cluster-create
+      continue-on-error: true
+      uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+      env:
+        CURL_HOME: ${{ github.action_path }}/curl-retry
+      with:
+        cluster_name: ${{ inputs.cluster_name }}
+        kubectl_version: ${{ inputs.k8s_version }}
+        version: ${{ inputs.kind_version }}
+        node_image: ${{ inputs.node_image }}
+
+    - name: Retry Kind cluster creation
+      if: ${{ steps.cluster-create.outcome == 'failure' }}
+      uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+      env:
+        CURL_HOME: ${{ github.action_path }}/curl-retry
+      with:
+        cluster_name: ${{ inputs.cluster_name }}
+        kubectl_version: ${{ inputs.k8s_version }}
+        version: ${{ inputs.kind_version }}
+        node_image: ${{ inputs.node_image }}
+
+    - name: Remove kindnet CPU limit
+      shell: bash
+      run: |
+        # Keep kindnet's scheduling request, but do not quota traffic bursts.
+        kubectl -n kube-system patch daemonset/kindnet --type=strategic \
+          -p '{"spec":{"template":{"spec":{"containers":[{"name":"kindnet-cni","resources":{"requests":{"cpu":"100m"},"limits":{"cpu":null}}}]}}}}'
+        kubectl -n kube-system rollout status daemonset/kindnet --timeout=180s
+
+        cpu_request=$(kubectl -n kube-system get daemonset kindnet \
+          -o jsonpath='{.spec.template.spec.containers[?(@.name=="kindnet-cni")].resources.requests.cpu}')
+        cpu_limit=$(kubectl -n kube-system get daemonset kindnet \
+          -o jsonpath='{.spec.template.spec.containers[?(@.name=="kindnet-cni")].resources.limits.cpu}')
+
+        if [ "${cpu_request}" != "100m" ] || [ -n "${cpu_limit}" ]; then
+          echo "Unexpected kindnet CPU resources after patch" >&2
+          exit 1
+        fi
+
+    - name: Export KUBECONFIG
+      id: export-kubeconfig
+      shell: bash
+      env:
+        CLUSTER_NAME: ${{ inputs.cluster_name }}
+      run: |
+        kubeconfig_path="${KUBECONFIG:-${HOME}/.kube/config}"
+        if [[ "${kubeconfig_path}" != /* ]]; then
+          kubeconfig_dir="$(dirname "${kubeconfig_path}")"
+          kubeconfig_file="$(basename "${kubeconfig_path}")"
+          mkdir -p "${kubeconfig_dir}"
+          kubeconfig_path="$(cd "${kubeconfig_dir}" && pwd -P)/${kubeconfig_file}"
+        fi
+
+        if [ ! -s "${kubeconfig_path}" ]; then
+          kubeconfig_path="${RUNNER_TEMP}/kubeconfig-${CLUSTER_NAME}"
+          kind export kubeconfig \
+            --name "${CLUSTER_NAME}" \
+            --kubeconfig "${kubeconfig_path}"
+        fi
+
+        if [ ! -s "${kubeconfig_path}" ]; then
+          echo "Kind did not create a kubeconfig for cluster ${CLUSTER_NAME}" >&2
+          exit 1
+        fi
+
+        echo "KUBECONFIG=${kubeconfig_path}" >> "${GITHUB_ENV}"
+        echo "kubeconfig=${kubeconfig_path}" >> "${GITHUB_OUTPUT}"
+        kubectl --kubeconfig "${kubeconfig_path}" cluster-info \
+          --context "kind-${CLUSTER_NAME}"
