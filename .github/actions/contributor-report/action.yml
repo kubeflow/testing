@@ -1,0 +1,71 @@
+# Copyright The Kubeflow Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Contributor Report
+description: >
+  Post a contributor report comment on a pull request: Kubeflow org
+  membership, GitHub account age, and the author's issues, merged pull
+  requests and pull-request comments in the calling repository. A previous
+  report on the same pull request is updated in place. Runs
+  hack/contributor-report/contributor_report.py from the checkout of
+  kubeflow/testing that GitHub creates for this action, so callers never
+  vendor a copy and never need to check out pull-request code.
+
+  Must run on a pull_request_target (or pull_request) event with
+  pull-requests: write permission.
+
+inputs:
+  github-token:
+    description: >
+      Token used to read contributor statistics and post the comment.
+      Normally secrets.GITHUB_TOKEN.
+    required: true
+  dry-run:
+    description: Print the report to the job log instead of posting it.
+    required: false
+    default: "false"
+  python-version:
+    description: Python version used to run the report script.
+    required: false
+    default: "3.12"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Generate contributor report
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        CONTRIBUTOR_REPORT_DRY_RUN: ${{ inputs.dry-run }}
+      run: |
+        set -euo pipefail
+
+        action_root="$(cd "${GITHUB_ACTION_PATH}/../../.." && pwd)"
+        script_directory="${action_root}/hack/contributor-report"
+        if [[ ! -f "${script_directory}/contributor_report.py" ]]; then
+          echo "::error::contributor_report.py not found in" \
+               "${script_directory}. The action expects to run from a" \
+               "checkout of kubeflow/testing."
+          exit 1
+        fi
+
+        python3 -m pip install --disable-pip-version-check --quiet \
+          -r "${script_directory}/requirements.txt"
+        python3 "${script_directory}/contributor_report.py"
