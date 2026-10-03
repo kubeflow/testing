@@ -26,7 +26,7 @@ description: >
   fetch-depth: 0 so the base branch can be resolved.
 
 inputs:
-  base-reference:
+  base-ref:
     description: >
       Base branch used for new-file detection. Defaults to the pull-request
       base branch, then to the repository default branch, so the action works
@@ -35,7 +35,7 @@ inputs:
       added files; all files are checked for header match regardless.
     required: false
     default: ""
-  boilerplate-directory:
+  boilerplate-dir:
     description: >
       Directory containing the boilerplate template files (boilerplate.*.txt).
       Leave empty to use the templates shipped alongside the script in
@@ -76,10 +76,10 @@ runs:
       shell: bash
       env:
         BASE_REFERENCE: >-
-          ${{ inputs.base-reference
+          ${{ inputs.base-ref
               || github.event.pull_request.base.ref
               || github.event.repository.default_branch }}
-        BOILERPLATE_DIRECTORY: ${{ inputs.boilerplate-directory }}
+        BOILERPLATE_DIRECTORY: ${{ inputs.boilerplate-dir }}
         ROOT_DIRECTORY: ${{ inputs.root-directory }}
         EXCLUDE: ${{ inputs.exclude }}
       run: |
@@ -96,7 +96,7 @@ runs:
         base_reference="${BASE_REFERENCE#refs/heads/}"
         if [[ -z "${base_reference}" ]]; then
           echo "::error::No base branch could be determined. Pass the" \
-               "base-reference input explicitly."
+               "base-ref input explicitly."
           exit 1
         fi
 
@@ -111,7 +111,7 @@ runs:
 
         if [[ -n "${BOILERPLATE_DIRECTORY}" ]]; then
           if [[ ! -d "${BOILERPLATE_DIRECTORY}" ]]; then
-            echo "::error::boilerplate-directory ${BOILERPLATE_DIRECTORY}" \
+            echo "::error::boilerplate-dir ${BOILERPLATE_DIRECTORY}" \
                  "does not exist."
             exit 1
           fi

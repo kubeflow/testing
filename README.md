@@ -46,7 +46,7 @@ with `fetch-depth: 0` first so the base branch can be resolved:
     fetch-depth: 0
 - uses: kubeflow/testing/.github/actions/verify-boilerplate@<commit-sha>
   with:
-    base-reference: main
+    base-ref: main
     # Optional: one regular expression per line; blank lines and # comments are ignored.
     exclude: |
       ^third_party/
