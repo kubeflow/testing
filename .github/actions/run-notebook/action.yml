@@ -1,0 +1,131 @@
+# Copyright The Kubeflow Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Run Notebook
+description: >
+  Run a Jupyter notebook with Papermill. This action provides a
+  subproject-agnostic wrapper around Papermill, keeping the reusable
+  mechanism centralized while allowing per-project customization through
+  an injectable failure hook for diagnostics.
+
+  Borrowing from the Trainer subproject's hack/e2e-run-notebook.sh, this
+  action accepts notebook path, output path, timeout, and optional
+  Papermill parameters as inputs, and runs the notebook in a clean
+  Python environment.
+
+  The caller must check out its own repository before this action runs.
+
+inputs:
+  notebook:
+    description: >
+      Path to the input .ipynb file to execute. This is required and must
+      point to an existing Jupyter notebook.
+    required: true
+  output:
+    description: >
+      Path where the executed notebook will be saved. Defaults to
+      output.ipynb in the current working directory.
+    required: false
+    default: "output.ipynb"
+  timeout:
+    description: >
+      Papermill cell execution timeout in seconds. If a single cell takes
+      longer than this to execute, Papermill will raise a timeout error.
+    required: false
+    default: "600"
+  parameters:
+    description: >
+      Papermill parameter flags passed directly to the papermill command.
+      Use the -p flag for each parameter, e.g. "-p num_cpu 3 -p gpu 1".
+      Leave empty if the notebook does not require parameters.
+    required: false
+    default: ""
+  requirements:
+    description: >
+      Path to a requirements.txt file to install before running the
+      notebook. Leave empty if no additional packages are needed beyond
+      Papermill itself.
+    required: false
+    default: ""
+  on-failure:
+    description: >
+      Shell command to run when the notebook execution fails. Use this to
+      inject per-project diagnostics, e.g. dumping Kubernetes pod logs or
+      describing custom resources. The command runs after a failure and
+      before the action exits with a non-zero status. Leave empty to skip.
+    required: false
+    default: ""
+  python-version:
+    description: Python version used to run Papermill.
+    required: false
+    default: "3.12"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install Papermill
+      shell: bash
+      run: pip install papermill
+
+    - name: Install additional requirements
+      if: ${{ inputs.requirements != '' }}
+      shell: bash
+      run: |
+        if [[ ! -f "${{ inputs.requirements }}" ]]; then
+          echo "::error::requirements file '${{ inputs.requirements }}' not found."
+          exit 1
+        fi
+        pip install -r "${{ inputs.requirements }}"
+
+    - name: Run notebook
+      shell: bash
+      env:
+        NOTEBOOK_INPUT: ${{ inputs.notebook }}
+        NOTEBOOK_OUTPUT: ${{ inputs.output }}
+        PAPERMILL_TIMEOUT: ${{ inputs.timeout }}
+        PAPERMILL_PARAMS: ${{ inputs.parameters }}
+        ON_FAILURE: ${{ inputs.on-failure }}
+      run: |
+        set -euo pipefail
+
+        if [[ ! -f "${NOTEBOOK_INPUT}" ]]; then
+          echo "::error::Notebook '${NOTEBOOK_INPUT}' not found."
+          exit 1
+        fi
+
+        run_on_failure() {
+          if [[ -n "${ON_FAILURE}" ]]; then
+            echo "::group::Failure diagnostics"
+            eval "${ON_FAILURE}" || true
+            echo "::endgroup::"
+          fi
+        }
+
+        echo "::group::Papermill execution"
+        if papermill "${NOTEBOOK_INPUT}" "${NOTEBOOK_OUTPUT}" \
+            ${PAPERMILL_PARAMS} \
+            --execution-timeout "${PAPERMILL_TIMEOUT}"; then
+          echo "::endgroup::"
+          echo "Notebook executed successfully."
+        else
+          echo "::endgroup::"
+          echo "::error::Notebook execution failed."
+          run_on_failure
+          exit 1
+        fi
