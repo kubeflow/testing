@@ -42,7 +42,7 @@ inputs:
       kubeflow/testing.
     required: false
     default: ""
-  root-directory:
+  root-dir:
     description: >
       Directory to scan. Leave empty to use the workspace root. Set this when
       the caller checks its repository out into a subdirectory.
@@ -80,7 +80,7 @@ runs:
               || github.event.pull_request.base.ref
               || github.event.repository.default_branch }}
         BOILERPLATE_DIRECTORY: ${{ inputs.boilerplate-dir }}
-        ROOT_DIRECTORY: ${{ inputs.root-directory }}
+        ROOT_DIRECTORY: ${{ inputs.root-dir }}
         EXCLUDE: ${{ inputs.exclude }}
       run: |
         set -euo pipefail
@@ -104,7 +104,7 @@ runs:
         if ! git -C "${root_directory}" rev-parse --git-dir >/dev/null 2>&1; then
           echo "::error::${root_directory} is not a Git checkout. Run" \
                "actions/checkout with fetch-depth: 0 before this action, or" \
-               "set the root-directory input."
+               "set the root-dir input."
           exit 1
         fi
         root_directory="$(cd "${root_directory}" && pwd)"
