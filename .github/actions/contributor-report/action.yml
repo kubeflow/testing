@@ -15,9 +15,9 @@
 name: Contributor Report
 description: >
   Post a contributor report comment on a pull request: Kubeflow org
-  membership, GitHub account age, and the author's issues, merged pull
-  requests and pull-request comments in the calling repository. A previous
-  report on the same pull request is updated in place. Runs
+  membership, GitHub account age, and the author's issues and merged pull
+  requests in the calling repository. A previous report on the same pull
+  request is updated in place. Runs
   hack/contributor-report/contributor_report.py from the checkout of
   kubeflow/testing that GitHub creates for this action, so callers never
   vendor a copy and never need to check out pull-request code.

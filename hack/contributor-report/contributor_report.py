@@ -49,32 +49,10 @@ query ContributorReport(
   $username: String!
   $issueCountQuery: String!
   $mergedPrQuery: String!
-  $issueCommentCursor: String
 ) {
   user(login: $username) {
     login
     createdAt
-    issueComments(
-      first: 100
-      after: $issueCommentCursor
-      orderBy: { field: UPDATED_AT, direction: DESC }
-    ) {
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      nodes {
-        issue {
-          url
-          repository {
-            owner {
-              login
-            }
-            name
-          }
-        }
-      }
-    }
   }
   issuesOpened: search(query: $issueCountQuery, type: ISSUE_ADVANCED, first: 1) {
     issueCount
@@ -91,7 +69,6 @@ class ContributorStats:
     created_at: str
     issues_opened: int
     merged_prs: int
-    pr_comments: int
 
 
 @dataclass(frozen=True)
@@ -182,56 +159,22 @@ def fetch_contributor_stats(username: str, owner: str,
     issue_count_query = f"repo:{owner}/{repo} is:issue author:{username}"
     merged_pr_query = f"repo:{owner}/{repo} is:pr is:merged author:{username}"
 
-    issue_comment_cursor = None
-    issue_comment_count = 0
-    created_at = None
-    issues_opened = None
-    merged_prs = None
-
-    while True:
-        data = github_graphql(
-            CONTRIBUTOR_QUERY,
-            {
-                "username": username,
-                "issueCountQuery": issue_count_query,
-                "mergedPrQuery": merged_pr_query,
-                "issueCommentCursor": issue_comment_cursor,
-            },
-        )
-        user = data.get("user")
-        if not user:
-            raise RuntimeError(f"GitHub user not found: {username}")
-
-        if created_at is None:
-            created_at = user["createdAt"]
-            issues_opened = data["issuesOpened"]["issueCount"]
-            merged_prs = data["mergedPrs"]["issueCount"]
-
-        for node in user["issueComments"]["nodes"]:
-            issue = node.get("issue")
-            if not issue:
-                continue
-            comment_repo = issue["repository"]
-            # GitHub logins and repository names are case-insensitive.
-            if (comment_repo["owner"]["login"].lower() == owner.lower() and
-                    comment_repo["name"].lower() == repo.lower() and
-                    "/pull/" in issue["url"]):
-                issue_comment_count += 1
-
-        page_info = user["issueComments"]["pageInfo"]
-        if not page_info["hasNextPage"]:
-            break
-        issue_comment_cursor = page_info["endCursor"]
-
-    assert created_at is not None
-    assert issues_opened is not None
-    assert merged_prs is not None
+    data = github_graphql(
+        CONTRIBUTOR_QUERY,
+        {
+            "username": username,
+            "issueCountQuery": issue_count_query,
+            "mergedPrQuery": merged_pr_query,
+        },
+    )
+    user = data.get("user")
+    if not user:
+        raise RuntimeError(f"GitHub user not found: {username}")
 
     return ContributorStats(
-        created_at=created_at,
-        issues_opened=issues_opened,
-        merged_prs=merged_prs,
-        pr_comments=issue_comment_count,
+        created_at=user["createdAt"],
+        issues_opened=data["issuesOpened"]["issueCount"],
+        merged_prs=data["mergedPrs"]["issueCount"],
     )
 
 
@@ -271,10 +214,6 @@ def build_user_rows(repository: str, is_kubeflow_member: bool,
             metric="GitHub account age",
             value=f"{age_days} days (created {created_date})",
         ),
-        MarkdownRow(
-            metric=f"PR comments in {repository}",
-            value=str(stats.pr_comments),
-        ),
     ]
 
 
@@ -287,7 +226,6 @@ def build_non_user_rows(repository: str,
         MarkdownRow(metric=f"Issues opened in {repository}", value=reason),
         MarkdownRow(metric=f"Merged PRs in {repository}", value=reason),
         MarkdownRow(metric="GitHub account age", value=reason),
-        MarkdownRow(metric=f"PR comments in {repository}", value=reason),
     ]
 
 

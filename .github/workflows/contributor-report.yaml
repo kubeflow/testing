@@ -18,7 +18,7 @@ name: Contributor Report
 
 on:
   pull_request_target:
-    types: [opened, reopened, ready_for_review, synchronize]
+    types: [opened]
 
 permissions:
   contents: read
@@ -27,9 +27,6 @@ permissions:
 jobs:
   contributor-report:
     if: github.event.pull_request.user.login != 'dependabot[bot]'
-    concurrency:
-      group: contributor-report-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       # pull_request_target checks out the base branch, never the pull-request

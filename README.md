@@ -56,21 +56,22 @@ with `fetch-depth: 0` first so the base branch can be resolved:
 
 ### contributor-report
 
-Posts a comment on each pull request summarizing its author: Kubeflow org membership (from
+Posts a comment on a pull request summarizing its author: Kubeflow org membership (from
 [kubeflow/internal-acls](https://github.com/kubeflow/internal-acls)), GitHub account age, and the
-issues, merged pull requests and pull-request comments they have in the calling repository. When the
-pull request is updated, the existing report is edited in place rather than posted again.
+issues and merged pull requests they have in the calling repository. If a report is already on the
+pull request, it is edited in place rather than posted again.
 
 The action runs its script from `kubeflow/testing`, so it does not need a checkout and never runs
 pull-request code. Use the `pull_request_target` event so the report also works for pull requests
-from forks:
+from forks. The report is about the author, which does not change between pushes, so run it only
+when the pull request is opened:
 
 ```yaml
 name: Contributor Report
 
 on:
   pull_request_target:
-    types: [opened, reopened, ready_for_review, synchronize]
+    types: [opened]
 
 permissions:
   contents: read
@@ -79,9 +80,6 @@ permissions:
 jobs:
   contributor-report:
     if: github.event.pull_request.user.login != 'dependabot[bot]'
-    concurrency:
-      group: contributor-report-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - uses: kubeflow/testing/.github/actions/contributor-report@<commit-sha>
