@@ -82,12 +82,15 @@ jobs:
     if: github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
-      - uses: kubeflow/testing/.github/actions/contributor-report@<commit-sha>
+      - uses: kubeflow/testing/.github/actions/contributor-report@<tag>
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Optional: print the report to the job log instead of commenting.
           # dry-run: "true"
 ```
+
+Replace `<tag>` with a release tag of `kubeflow/testing`, such as `v0.1.0`, so the action only
+changes when you move to a newer tag.
 
 To preview a report locally, run the script against a saved pull-request event payload:
 
