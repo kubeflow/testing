@@ -54,6 +54,53 @@ with `fetch-depth: 0` first so the base branch can be resolved:
       ^internal/starrocks/mysqldriver/
 ```
 
+### contributor-report
+
+Posts a comment on a pull request summarizing its author: Kubeflow org membership (from
+[kubeflow/internal-acls](https://github.com/kubeflow/internal-acls)), GitHub account age, and the
+issues and merged pull requests they have in the calling repository. If a report is already on the
+pull request, it is edited in place rather than posted again.
+
+The action runs its script from `kubeflow/testing`, so it does not need a checkout and never runs
+pull-request code. Use the `pull_request_target` event so the report also works for pull requests
+from forks. The report is about the author, which does not change between pushes, so run it only
+when the pull request is opened:
+
+```yaml
+name: Contributor Report
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  contributor-report:
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kubeflow/testing/.github/actions/contributor-report@<tag>
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: print the report to the job log instead of commenting.
+          # dry-run: "true"
+```
+
+Replace `<tag>` with a release tag of `kubeflow/testing`, such as `v0.1.0`, so the action only
+changes when you move to a newer tag.
+
+To preview a report locally, run the script against a saved pull-request event payload:
+
+```bash
+pip install -r hack/contributor-report/requirements.txt
+GITHUB_TOKEN="$(gh auth token)" GITHUB_REPOSITORY=kubeflow/pipelines \
+  GITHUB_EVENT_PATH=event.json CONTRIBUTOR_REPORT_DRY_RUN=true \
+  python hack/contributor-report/contributor_report.py
+```
+
 ## Contributing
 
 We welcome contributions to enhance support for common Kubeflow infrastructure! Please see our
