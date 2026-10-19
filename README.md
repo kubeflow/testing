@@ -54,8 +54,7 @@ jobs:
         id: kind
         uses: kubeflow/testing/.github/actions/create-cluster@f6dc12513635cb4c24d56cb4c69bde7223381bcd # create-cluster action
         with:
-          k8s_version: v1.36.1
-          node_image: kindest/node:v1.36.1
+          k8s_version: v1.36.4
           cluster_name: kubeflow
 
       - name: Inspect cluster
@@ -63,9 +62,20 @@ jobs:
 ```
 
 `cluster_name` and `kind_version` are optional. The Kubernetes version should match the version in
-the selected Kind node image. The action is tested with Kubernetes v1.33.12 and v1.36.1. GPU cluster
+the selected Kind node image. The action is tested with Kubernetes v1.35.8, v1.36.4, and v1.37.0. GPU cluster
 support is outside this action's current scope. Keep cluster creation separate from installing
 Kubeflow subprojects or other test dependencies so callers can compose the setup they need.
+The action accepts these optional inputs:
+
+- `node_image`: defaults to `kindest/node:<k8s_version>`; pass an image digest when reproducibility is required.
+- `cluster_name`: defaults to `kind`.
+- `kind_version`: defaults to `v0.33.0`.
+- `free_disk_space`: defaults to `true`; set to `false` to preserve runner images and disk state.
+- `configure_docker_mirror`: defaults to `true`; set to `false` to skip Docker mirror setup.
+- `config`: optional path to a Kind configuration file, including multi-node cluster configurations.
+
+The action resolves a relative `KUBECONFIG` to an absolute path before cluster creation. If the caller provides a colon-separated `KUBECONFIG` list, the action uses an isolated file under `RUNNER_TEMP` so its output remains a single path.
+
 ### verify-boilerplate
 
 Runs the license header check above against the calling repository. Check out the repository

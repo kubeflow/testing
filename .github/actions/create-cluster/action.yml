@@ -20,8 +20,9 @@ inputs:
     description: Kubernetes version used by the Kind node image and kubectl.
     required: true
   node_image:
-    description: Kind node image to use, for example kindest/node:v1.36.1.
-    required: true
+    description: Kind node image to use. Defaults to kindest/node:<k8s_version>.
+    required: false
+    default: ""
   cluster_name:
     description: Name of the Kind cluster.
     required: false
@@ -29,31 +30,55 @@ inputs:
   kind_version:
     description: Kind version to install.
     required: false
-    default: v0.32.0
+    default: v0.33.0
+  free_disk_space:
+    description: Free runner disk space before creating the cluster.
+    required: false
+    default: "true"
+  configure_docker_mirror:
+    description: Configure the Docker Hub mirror before creating the cluster.
+    required: false
+    default: "true"
+  config:
+    description: Path to a Kind configuration file.
+    required: false
+    default: ""
 
 outputs:
   kubeconfig:
     description: Absolute path to the kubeconfig for the created cluster.
-    value: ${{ steps.export-kubeconfig.outputs.kubeconfig }}
+    value: ${{ steps.resolve-kubeconfig.outputs.kubeconfig }}
 
 runs:
   using: composite
   steps:
     - name: Free up disk space on runner
+      if: ${{ inputs.free_disk_space == 'true' }}
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
       run: "${ACTION_PATH}/scripts/free-disk-space.sh"
 
     - name: Configure Docker Hub mirror
+      if: ${{ inputs.configure_docker_mirror == 'true' }}
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
       run: "${ACTION_PATH}/scripts/configure-docker-hub-mirror.sh"
 
+    - name: Resolve Kind node image
+      id: node-image
+      shell: bash
+      env:
+        KUBERNETES_VERSION: ${{ inputs.k8s_version }}
+        REQUESTED_NODE_IMAGE: ${{ inputs.node_image }}
+      run: |
+        node_image="${REQUESTED_NODE_IMAGE:-kindest/node:${KUBERNETES_VERSION}}"
+        printf 'node_image=%s\n' "${node_image}" >> "${GITHUB_OUTPUT}"
+
     - name: Restore Kind node image cache
       id: kind-node-cache
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.0.0
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: /tmp/kind-node-${{ inputs.k8s_version }}.tar
         key: kind-node-${{ runner.os }}-${{ runner.arch }}-${{ inputs.k8s_version }}-${{ inputs.node_image }}
@@ -71,12 +96,32 @@ runs:
       env:
         ACTION_PATH: ${{ github.action_path }}
         K8S_VERSION: ${{ inputs.k8s_version }}
-        NODE_IMAGE: ${{ inputs.node_image }}
+        NODE_IMAGE: ${{ steps.node-image.outputs.node_image }}
       run: |
         "${ACTION_PATH}/scripts/docker-pull-with-retry.sh" \
           "${NODE_IMAGE}" \
           "gcr.io/k8s-staging-kind/node:${K8S_VERSION}"
         docker save "${NODE_IMAGE}" -o "/tmp/kind-node-${K8S_VERSION}.tar"
+
+    - name: Resolve KUBECONFIG
+      id: resolve-kubeconfig
+      shell: bash
+      env:
+        CLUSTER_NAME: ${{ inputs.cluster_name }}
+        CALLER_KUBECONFIG: ${{ env.KUBECONFIG }}
+      run: |
+        kubeconfig_candidate="${CALLER_KUBECONFIG:-}"
+        if [[ -z "${kubeconfig_candidate}" || "${kubeconfig_candidate}" == *:* ]]; then
+          kubeconfig_candidate="${RUNNER_TEMP}/kubeconfig-${CLUSTER_NAME}"
+        fi
+
+        kubeconfig_dir="$(dirname -- "${kubeconfig_candidate}")"
+        mkdir -p -- "${kubeconfig_dir}"
+        kubeconfig_dir="$(cd -- "${kubeconfig_dir}" && pwd -P)"
+        kubeconfig_path="${kubeconfig_dir}/$(basename -- "${kubeconfig_candidate}")"
+
+        printf 'KUBECONFIG=%s\n' "${kubeconfig_path}" >> "${GITHUB_ENV}"
+        printf 'kubeconfig=%s\n' "${kubeconfig_path}" >> "${GITHUB_OUTPUT}"
 
     - name: Create Kind cluster
       id: cluster-create
@@ -88,7 +133,8 @@ runs:
         cluster_name: ${{ inputs.cluster_name }}
         kubectl_version: ${{ inputs.k8s_version }}
         version: ${{ inputs.kind_version }}
-        node_image: ${{ inputs.node_image }}
+        node_image: ${{ steps.node-image.outputs.node_image }}
+        config: ${{ inputs.config }}
 
     - name: Retry Kind cluster creation
       if: ${{ steps.cluster-create.outcome == 'failure' }}
@@ -99,7 +145,8 @@ runs:
         cluster_name: ${{ inputs.cluster_name }}
         kubectl_version: ${{ inputs.k8s_version }}
         version: ${{ inputs.kind_version }}
-        node_image: ${{ inputs.node_image }}
+        node_image: ${{ steps.node-image.outputs.node_image }}
+        config: ${{ inputs.config }}
 
     - name: Remove kindnet CPU limit
       shell: bash
@@ -125,7 +172,7 @@ runs:
       env:
         CLUSTER_NAME: ${{ inputs.cluster_name }}
       run: |
-        kubeconfig_path="${KUBECONFIG:-${HOME}/.kube/config}"
+        kubeconfig_path="${KUBECONFIG:?KUBECONFIG was not resolved before cluster creation}"
         if [[ "${kubeconfig_path}" != /* ]]; then
           kubeconfig_dir="$(dirname "${kubeconfig_path}")"
           kubeconfig_file="$(basename "${kubeconfig_path}")"
@@ -145,7 +192,5 @@ runs:
           exit 1
         fi
 
-        echo "KUBECONFIG=${kubeconfig_path}" >> "${GITHUB_ENV}"
-        echo "kubeconfig=${kubeconfig_path}" >> "${GITHUB_OUTPUT}"
         kubectl --kubeconfig "${kubeconfig_path}" cluster-info \
           --context "kind-${CLUSTER_NAME}"
