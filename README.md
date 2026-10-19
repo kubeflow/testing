@@ -35,6 +35,47 @@ python hack/boilerplate/boilerplate.py --base-ref main \
 
 The following GitHub actions are available.
 
+### Create a Kind cluster
+
+The `create-cluster` action provisions a Kind cluster for Kubernetes integration tests. It follows
+the setup used by Kubeflow Pipelines CI: it frees runner disk space when needed, configures the
+Docker Hub mirror, caches the Kind node image, retries image pulls and cluster creation, and removes
+the kindnet CPU limit. It exports an absolute `KUBECONFIG` path for subsequent steps and also exposes
+that path as an action output.
+
+```yaml
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Create Kind cluster
+        id: kind
+        uses: kubeflow/testing/.github/actions/create-cluster@f6dc12513635cb4c24d56cb4c69bde7223381bcd # create-cluster action
+        with:
+          k8s_version: v1.36.4
+          cluster_name: kubeflow
+
+      - name: Inspect cluster
+        run: kubectl get nodes
+```
+
+`cluster_name` and `kind_version` are optional. The Kubernetes version should match the version in
+the selected Kind node image. The action is tested with Kubernetes v1.35.8, v1.36.4, and v1.37.0. GPU cluster
+support is outside this action's current scope. Keep cluster creation separate from installing
+Kubeflow subprojects or other test dependencies so callers can compose the setup they need.
+The action accepts these optional inputs:
+
+- `node_image`: defaults to `kindest/node:<k8s_version>`; pass an image digest when reproducibility is required.
+- `cluster_name`: defaults to `kind`.
+- `kind_version`: defaults to `v0.33.0`.
+- `free_disk_space`: defaults to `true`; set to `false` to preserve runner images and disk state.
+- `configure_docker_mirror`: defaults to `true`; set to `false` to skip Docker mirror setup.
+- `config`: optional path to a Kind configuration file, including multi-node cluster configurations.
+
+The action resolves a relative `KUBECONFIG` to an absolute path before cluster creation. If the caller provides a colon-separated `KUBECONFIG` list, the action uses an isolated file under `RUNNER_TEMP` so its output remains a single path.
+
 ### verify-boilerplate
 
 Runs the license header check above against the calling repository. Check out the repository
