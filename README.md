@@ -54,6 +54,28 @@ with `fetch-depth: 0` first so the base branch can be resolved:
       ^internal/starrocks/mysqldriver/
 ```
 
+### publish-image
+
+Builds and optionally publishes multi-architecture container images using QEMU, Docker Buildx,
+`docker/metadata-action`, and `docker/build-push-action` with GitHub Actions cache support. Promoted
+from `kubeflow/trainer`'s `template-publish-image` composite action so subprojects can drive
+per-image `platforms` matrices without maintaining separate `docker/*` action setups:
+
+```yaml
+- uses: actions/checkout@v5
+- uses: kubeflow/testing/.github/actions/publish-image@<commit-sha>
+  with:
+    image: |
+      ghcr.io/kubeflow/trainer/${{ matrix.component-name }}
+      docker.io/kubeflow/${{ matrix.component-name }}
+    dockerfile: ${{ matrix.dockerfile }}
+    platforms: ${{ matrix.platforms }}
+    version: ${{ inputs.version }}
+    push: ${{ env.SHOULD_PUBLISH == 'true' }}
+    registry: ghcr.io
+    registry-password: ${{ secrets.GITHUB_TOKEN }}
+```
+
 ## Contributing
 
 We welcome contributions to enhance support for common Kubeflow infrastructure! Please see our

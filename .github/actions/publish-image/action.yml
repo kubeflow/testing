@@ -1,0 +1,182 @@
+# Copyright The Kubeflow Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Build And Publish Container Images
+description: >
+  Build and optionally publish multi-architecture container images using
+  QEMU, Docker Buildx, metadata-action, and build-push-action. Promoted from
+  kubeflow/trainer's template-publish-image composite action so Kubeflow
+  subprojects can share a single multi-arch build-and-push implementation.
+
+inputs:
+  image:
+    description: >
+      One or more container image names (newline-separated, e.g.
+      ghcr.io/kubeflow/trainer/trainer-controller-manager).
+    required: true
+  dockerfile:
+    description: Path to the Dockerfile.
+    required: true
+  platforms:
+    description: >
+      Comma-separated target platforms (e.g.
+      linux/amd64,linux/arm64,linux/ppc64le or linux/amd64).
+    required: true
+  context:
+    description: Build context directory (e.g. . or examples/xgboost/xgboost-dist).
+    required: false
+    default: .
+  push:
+    description: Whether to push container images or not ("true" or "false").
+    required: true
+  version:
+    description: >
+      Explicit image tag (e.g. v2.3.0-rc.0) for builds not triggered by a tag
+      push.
+    required: false
+    default: ""
+  tags:
+    description: >
+      Optional custom tag rules passed to docker/metadata-action. When empty,
+      defaults to tagging git tag pushes, commit SHAs (when version is empty),
+      and the explicit version input (when version is non-empty).
+    required: false
+    default: ""
+  build-args:
+    description: Optional newline-separated build-time variables passed to Docker buildx.
+    required: false
+    default: ""
+  registry:
+    description: >
+      Container registry to log in to when push is "true" and registry-password
+      is provided.
+    required: false
+    default: "ghcr.io"
+  registry-username:
+    description: Username for container registry authentication.
+    required: false
+    default: ${{ github.actor }}
+  registry-password:
+    description: >
+      Password or token (e.g. secrets.GITHUB_TOKEN) for container registry
+      authentication. Leave empty if the calling workflow logs in to registries
+      before invoking this action.
+    required: false
+    default: ""
+  free-disk-space:
+    description: >
+      Whether to remove pre-installed runner toolchains, prune Docker images,
+      and relocate /var/lib/docker to /mnt/docker before building ("true" or
+      "false").
+    required: false
+    default: "true"
+
+outputs:
+  tags:
+    description: Generated Docker image tags from docker/metadata-action.
+    value: ${{ steps.meta.outputs.tags }}
+  labels:
+    description: Generated OCI image labels from docker/metadata-action.
+    value: ${{ steps.meta.outputs.labels }}
+  digest:
+    description: Built image digest from docker/build-push-action.
+    value: ${{ steps.build-push.outputs.digest }}
+
+runs:
+  using: composite
+  steps:
+    - name: Remove unnecessary files
+      if: inputs.free-disk-space == 'true'
+      shell: bash
+      run: |
+        echo "Disk usage before cleanup:"
+        df -hT
+
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /usr/local/share/boost
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /usr/local/share/powershell
+        sudo rm -rf /usr/share/swift
+
+        echo "Disk usage after cleanup:"
+        df -hT
+
+    - name: Prune docker images
+      if: inputs.free-disk-space == 'true'
+      shell: bash
+      run: |
+        docker image prune -a -f
+        docker system df
+        df -hT
+
+    - name: Move docker data directory
+      if: inputs.free-disk-space == 'true'
+      shell: bash
+      run: |
+        echo "Stopping docker service ..."
+        sudo systemctl stop docker
+        DOCKER_DEFAULT_ROOT_DIR=/var/lib/docker
+        DOCKER_ROOT_DIR=/mnt/docker
+        echo "Moving ${DOCKER_DEFAULT_ROOT_DIR} -> ${DOCKER_ROOT_DIR}"
+        sudo mv ${DOCKER_DEFAULT_ROOT_DIR} ${DOCKER_ROOT_DIR}
+        echo "Creating symlink ${DOCKER_DEFAULT_ROOT_DIR} -> ${DOCKER_ROOT_DIR}"
+        sudo ln -s ${DOCKER_ROOT_DIR} ${DOCKER_DEFAULT_ROOT_DIR}
+        echo "$(sudo ls -l ${DOCKER_DEFAULT_ROOT_DIR})"
+        echo "Starting docker service ..."
+        sudo systemctl daemon-reload
+        sudo systemctl start docker
+        echo "Docker service status:"
+        sudo systemctl --no-pager -l -o short status docker
+
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      with:
+        platforms: amd64,ppc64le,arm64
+
+    - name: Set Up Docker Buildx
+      uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+    - name: Log in to container registry
+      if: inputs.push == 'true' && inputs.registry-password != ''
+      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.registry-username }}
+        password: ${{ inputs.registry-password }}
+
+    - name: Add Docker Tags
+      id: meta
+      uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+      with:
+        images: ${{ inputs.image }}
+        tags: |-
+          ${{ inputs.tags || format('type=ref,event=tag
+          type=sha,enable={0}
+          type=raw,value={1},enable={2}', inputs.version == '', inputs.version, inputs.version != '') }}
+
+    - name: Build and Push
+      id: build-push
+      uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      with:
+        platforms: ${{ inputs.platforms }}
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
+        push: ${{ inputs.push }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: ${{ inputs.build-args }}
+        cache-from: type=gha
+        cache-to: type=gha,ignore-error=true
