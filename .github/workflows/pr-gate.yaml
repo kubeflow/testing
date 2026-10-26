@@ -1,0 +1,124 @@
+# Copyright The Kubeflow Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: PR Gate
+
+on:
+  workflow_call:
+    inputs:
+      admission-label:
+        description: >
+          Label that must be present on the referenced same-repository issue
+          before an external pull request is admitted.
+        required: false
+        type: string
+        default: "ready"
+      approved-label:
+        description: >
+          Label added to the pull request when admission succeeds.
+        required: false
+        type: string
+        default: "ok-to-test"
+      needs-approval-label:
+        description: >
+          Label removed from the pull request when admission succeeds.
+        required: false
+        type: string
+        default: "needs-ok-to-test"
+      exempt-bots:
+        description: >
+          Newline- or comma-separated list of bot logins exempted from the gate.
+          Blank entries and lines starting with # are ignored.
+        required: false
+        type: string
+        default: |
+          dependabot[bot]
+          copybara-service[bot]
+      contributing-url:
+        description: >
+          URL to contribution guidelines included in the default closure
+          comment.
+        required: false
+        type: string
+        default: "https://www.kubeflow.org/docs/about/contributing/"
+      closure-message:
+        description: >
+          Custom comment posted before closing a pull request that fails
+          admission. Leave empty to use the standard message referencing
+          admission-label and contributing-url.
+        required: false
+        type: string
+        default: ""
+      approve-workflows:
+        description: >
+          Whether to approve pending action_required workflow runs for the pull
+          request after admission succeeds.
+        required: false
+        type: boolean
+        default: true
+      python-version:
+        description: Python version used to run the helper scripts.
+        required: false
+        type: string
+        default: "3.12"
+      testing-repository:
+        description: >
+          Repository hosting the PR gate action and helper scripts. Override
+          when testing workflow changes in a fork.
+        required: false
+        type: string
+        default: "kubeflow/testing"
+      testing-ref:
+        description: >
+          Git ref (branch, tag, or commit SHA) of testing-repository to check
+          out for the PR gate action and helper scripts.
+        required: false
+        type: string
+        default: "master"
+
+permissions:
+  actions: write
+  contents: read
+  issues: read
+  pull-requests: write
+
+jobs:
+  check-pr-author:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out trusted PR gate action and helpers
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          repository: ${{ inputs.testing-repository }}
+          ref: ${{ inputs.testing-ref }}
+          path: .kubeflow-testing
+          persist-credentials: false
+          sparse-checkout: |
+            .github/actions/pr-gate
+            hack/pr-gate
+          sparse-checkout-cone-mode: false
+
+      - name: Run PR admission gate
+        uses: ./.kubeflow-testing/.github/actions/pr-gate
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          admission-label: ${{ inputs.admission-label }}
+          approved-label: ${{ inputs.approved-label }}
+          needs-approval-label: ${{ inputs.needs-approval-label }}
+          exempt-bots: ${{ inputs.exempt-bots }}
+          contributing-url: ${{ inputs.contributing-url }}
+          closure-message: ${{ inputs.closure-message }}
+          approve-workflows: ${{ inputs.approve-workflows && 'true' || 'false' }}
+          python-version: ${{ inputs.python-version }}

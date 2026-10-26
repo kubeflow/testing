@@ -54,6 +54,43 @@ with `fetch-depth: 0` first so the base branch can be resolved:
       ^internal/starrocks/mysqldriver/
 ```
 
+### pr-gate
+
+Gates pull requests from external contributors on a maintainer-triaged issue:
+
+1. Looks up the PR author in [`kubeflow/internal-acls` `org.yaml`](https://github.com/kubeflow/internal-acls/blob/master/github-orgs/kubeflow/org.yaml); Kubeflow org admins and members pass without further checks.
+2. Exempts configured bot accounts (`dependabot[bot]` and `copybara-service[bot]` by default).
+3. Requires external contributors to reference a same-repository closing issue (`Fixes #N` on its own line in the PR description, including for PRs targeting release branches) that carries the maintainer admission label (`ready` by default).
+4. When admitted, adds `ok-to-test`, removes `needs-ok-to-test`, and approves pending `action_required` fork workflow runs. Otherwise comments with admission guidance and closes the PR.
+
+Call it as a reusable workflow from `.github/workflows/pr-gate.yaml` in a consuming repository:
+
+```yaml
+name: PR Gate
+
+on:
+  pull_request_target:
+    types: [opened, labeled, synchronize, reopened]
+
+permissions:
+  actions: write
+  contents: read
+  issues: read
+  pull-requests: write
+
+jobs:
+  pr-gate:
+    uses: kubeflow/testing/.github/workflows/pr-gate.yaml@<commit-sha>
+```
+
+Or invoke the composite action directly inside a job step:
+
+```yaml
+- uses: kubeflow/testing/.github/actions/pr-gate@<commit-sha>
+  with:
+    admission-label: ready
+```
+
 ## Contributing
 
 We welcome contributions to enhance support for common Kubeflow infrastructure! Please see our
