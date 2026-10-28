@@ -1,0 +1,65 @@
+# Copyright The Kubeflow Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: "Create Kind Cluster"
+description: >-
+  Spins up a local Kubernetes cluster (Kind) so CI jobs can run against a real
+  cluster without each workflow re-implementing the setup inline. Exports
+  KUBECONFIG so subsequent steps can talk to the cluster directly.
+inputs:
+  kubernetes-version:
+    description: >-
+      Kubernetes version of the cluster. Drives the kubectl version, and also
+      the node image when kind-node-image is left empty, so the server version
+      the tests run against always matches this input.
+    required: false
+    default: v1.37.0
+  kind-node-image:
+    description: >-
+      Optional pinned Kind node image (kindest/node:tag@sha256:...). Use this
+      when a digest must be pinned, e.g. for supply-chain reasons. Leave empty
+      to derive kindest/node from kubernetes-version.
+    required: false
+    default: ""
+  cluster-name:
+    description: Name of the Kind cluster.
+    required: false
+    default: kind
+runs:
+  using: "composite"
+  steps:
+    - name: Create Kind cluster
+      uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2  # v1.15.0
+      with:
+        cluster_name: ${{ inputs.cluster-name }}
+        # An explicitly pinned image wins; otherwise the node image follows
+        # kubernetes-version. Before this, the default node image silently
+        # decided the cluster version, so overriding only kubernetes-version
+        # still produced a v1.37.0 cluster.
+        node_image: ${{ inputs.kind-node-image || format('kindest/node:{0}', inputs.kubernetes-version) }}
+        version: v0.33.0
+        kubectl_version: ${{ inputs.kubernetes-version }}
+        config: ${{ github.action_path }}/kind-config.yaml
+
+    - name: Export KUBECONFIG
+      shell: bash
+      run: |
+        # If the caller already exported KUBECONFIG, Kind writes the new
+        # cluster there; overwriting it would point later steps at the
+        # wrong file. Only fall back to the default location when unset.
+        if [ -n "${KUBECONFIG:-}" ]; then
+          echo "KUBECONFIG=$KUBECONFIG" >> "$GITHUB_ENV"
+        else
+          echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+        fi
